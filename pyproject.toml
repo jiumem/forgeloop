@@ -1,0 +1,31 @@
+[project]
+name = "forgeloop"
+version = "0.1.0"
+description = "Codex auto-coding loop for continuous engineering tasks"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.10",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.9",
+    "pyright>=1.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "strict"
+include = ["automation", "schemas", "tests"]

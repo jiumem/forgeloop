@@ -1,0 +1,165 @@
+{
+  "$defs": {
+    "NextAction": {
+      "description": "Controller 下一步动作枚举。",
+      "enum": [
+        "run_coder",
+        "run_reviewer",
+        "wait_human_review",
+        "wait_human_ruling",
+        "resolve_blocked",
+        "none"
+      ],
+      "title": "NextAction",
+      "type": "string"
+    },
+    "RoundRecord": {
+      "description": "单轮记录：绑定该轮的 coder/reviewer 结果引用。",
+      "properties": {
+        "round_no": {
+          "description": "轮次编号",
+          "minimum": 1,
+          "title": "Round No",
+          "type": "integer"
+        },
+        "coder_result_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "该轮 coder_result 持久化路径或标识",
+          "title": "Coder Result Ref"
+        },
+        "reviewer_result_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "该轮 review_result 持久化路径或标识",
+          "title": "Reviewer Result Ref"
+        },
+        "started_at": {
+          "description": "该轮开始时间",
+          "format": "date-time",
+          "title": "Started At",
+          "type": "string"
+        },
+        "finished_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "该轮结束时间",
+          "title": "Finished At"
+        }
+      },
+      "required": [
+        "round_no"
+      ],
+      "title": "RoundRecord",
+      "type": "object"
+    },
+    "TaskStatus": {
+      "description": "任务状态枚举 — 状态机的全部合法状态。\n\n正常流:\n    NEW -> CODING -> REVIEWING -> REVIEW_CLEAN -> HUMAN_REVIEW -> DONE\n修复回环:\n    REVIEWING -> NEEDS_FIX -> CODING\n异常出口:\n    ANY -> NEEDS_HUMAN_RULING\n    ANY -> BLOCKED",
+      "enum": [
+        "NEW",
+        "CODING",
+        "REVIEWING",
+        "NEEDS_FIX",
+        "REVIEW_CLEAN",
+        "HUMAN_REVIEW",
+        "DONE",
+        "NEEDS_HUMAN_RULING",
+        "BLOCKED"
+      ],
+      "title": "TaskStatus",
+      "type": "string"
+    }
+  },
+  "description": "编排运行态模型 — 四个核心模型之一。\n\n这是 controller 的工作台：记录任务当前在哪个状态、\n已回环多少轮、下一步做什么、是否需要人类介入。",
+  "properties": {
+    "task_id": {
+      "description": "关联的任务 ID",
+      "minLength": 1,
+      "title": "Task Id",
+      "type": "string"
+    },
+    "current_status": {
+      "$ref": "#/$defs/TaskStatus",
+      "default": "NEW",
+      "description": "当前状态"
+    },
+    "round_no": {
+      "default": 0,
+      "description": "当前轮次编号（0 表示尚未开始）",
+      "minimum": 0,
+      "title": "Round No",
+      "type": "integer"
+    },
+    "next_action": {
+      "$ref": "#/$defs/NextAction",
+      "default": "run_coder",
+      "description": "controller 下一步动作"
+    },
+    "rounds": {
+      "description": "历史轮次记录",
+      "items": {
+        "$ref": "#/$defs/RoundRecord"
+      },
+      "title": "Rounds",
+      "type": "array"
+    },
+    "pending_notification": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "待发送的通知事件（如 needs_human_ruling）",
+      "title": "Pending Notification"
+    },
+    "closure_summary": {
+      "default": "",
+      "description": "结案摘要",
+      "title": "Closure Summary",
+      "type": "string"
+    },
+    "created_at": {
+      "description": "task_state 创建时间",
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "updated_at": {
+      "description": "最后更新时间",
+      "format": "date-time",
+      "title": "Updated At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "task_id"
+  ],
+  "title": "TaskState",
+  "type": "object"
+}
