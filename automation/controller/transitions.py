@@ -151,12 +151,17 @@ def apply_transition(
 
     此函数：
     1. 校验跃迁合法性
-    2. 更新状态、动作、通知
-    3. 如果提供了 reviewer_result_ref，绑定到当前轮次
+    2. 从 REVIEWING 跃迁时强制要求 reviewer_result_ref（台账必须完整）
+    3. 更新状态、动作、通知
     4. 从 REVIEWING 跃迁出去时关闭当前轮（coder→reviewer 周期完成）
     5. 更新 updated_at 时间戳
     """
     _validate_transition(task_state.current_status, result.new_status)
+
+    # 从 REVIEWING 跃迁时，台账必须绑定 reviewer 结果
+    if task_state.current_status == TaskStatus.REVIEWING and not reviewer_result_ref:
+        msg = "从 REVIEWING 跃迁时必须提供 reviewer_result_ref（台账不允许缺失结果引用）"
+        raise ValueError(msg)
 
     now = datetime.now(UTC)
     rounds = list(task_state.rounds)
@@ -202,17 +207,19 @@ def start_task(task_state: TaskState) -> TaskState:
 def coder_done(
     task_state: TaskState,
     *,
-    coder_result_ref: str | None = None,
+    coder_result_ref: str,
 ) -> TaskState:
-    """CODING → REVIEWING：coder_result 产出后，绑定 coder_result_ref 到当前轮。"""
+    """​CODING → REVIEWING：coder_result 产出后，绑定 coder_result_ref 到当前轮。
+
+    coder_result_ref 为必填，台账不允许缺失结果引用。
+    """
     _validate_transition(task_state.current_status, TaskStatus.REVIEWING)
     now = datetime.now(UTC)
     rounds = list(task_state.rounds)
 
     # 绑定 coder 结果到当前轮
-    if coder_result_ref and rounds:
-        current = rounds[-1]
-        rounds[-1] = current.model_copy(update={"coder_result_ref": coder_result_ref})
+    if rounds:
+        rounds[-1] = rounds[-1].model_copy(update={"coder_result_ref": coder_result_ref})
 
     return task_state.model_copy(
         update={

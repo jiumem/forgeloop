@@ -244,7 +244,7 @@ class TestApplyTransition:
             next_action=NextAction.RUN_CODER,
             reason="blocking findings",
         )
-        new_state = apply_transition(state, result)
+        new_state = apply_transition(state, result, reviewer_result_ref="r1_review.json")
         assert new_state.current_status == TaskStatus.NEEDS_FIX
         assert new_state.next_action == NextAction.RUN_CODER
         # 原 state 不变（不可变验证）
@@ -358,7 +358,7 @@ class TestLifecycleFunctions:
     def test_coder_done_from_non_coding_raises(self) -> None:
         state = _make_state(status=TaskStatus.REVIEWING)
         with pytest.raises(TransitionError):
-            coder_done(state)
+            coder_done(state, coder_result_ref="dummy.json")
 
     def test_approve_from_non_human_review_raises(self) -> None:
         state = _make_state(status=TaskStatus.REVIEW_CLEAN)
@@ -369,3 +369,41 @@ class TestLifecycleFunctions:
         state = _make_state(status=TaskStatus.REVIEWING)
         with pytest.raises(TransitionError):
             needs_fix_to_coding(state)
+
+    def test_coder_done_requires_ref(self) -> None:
+        """台账合同：coder_done 必须提供 coder_result_ref。"""
+        state = TaskState(task_id="ref_test")
+        state = start_task(state)
+        with pytest.raises(TypeError):
+            coder_done(state)  # type: ignore[call-arg]
+
+    def test_apply_transition_from_reviewing_requires_reviewer_ref(self) -> None:
+        """台账合同：从 REVIEWING 跃迁时必须提供 reviewer_result_ref。"""
+        state = TaskState(task_id="ref_test")
+        state = start_task(state)
+        state = coder_done(state, coder_result_ref="coder.json")
+        packet = _make_packet()
+        review = _make_review(verdict=TaskVerdict.CLEAN, ready=True)
+        decision = decide_after_review(packet, state, review)
+        with pytest.raises(ValueError, match="reviewer_result_ref"):
+            apply_transition(state, decision)  # 缺 reviewer_result_ref
+
+    def test_needs_human_ruling_lifecycle(self) -> None:
+        """REVIEWING → NEEDS_HUMAN_RULING: reviewer 无法判断，轮次应在此关闭。"""
+        state = TaskState(task_id="human_ruling_test")
+        state = start_task(state)
+        state = coder_done(state, coder_result_ref="r1_coder.json")
+        assert state.current_status == TaskStatus.REVIEWING
+
+        # REVIEWING → NEEDS_HUMAN_RULING
+        packet = _make_packet()
+        review = _make_review(verdict=TaskVerdict.NEEDS_HUMAN_RULING)
+        decision = decide_after_review(packet, state, review)
+        state = apply_transition(state, decision, reviewer_result_ref="r1_review.json")
+        assert state.current_status == TaskStatus.NEEDS_HUMAN_RULING
+        assert state.next_action == NextAction.WAIT_HUMAN_RULING
+        # 台账完整：reviewer ref 绑定 + 轮次关闭
+        assert len(state.rounds) == 1
+        assert state.rounds[0].coder_result_ref == "r1_coder.json"
+        assert state.rounds[0].reviewer_result_ref == "r1_review.json"
+        assert state.rounds[0].finished_at is not None
