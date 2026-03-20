@@ -69,10 +69,25 @@ class TestFileStateStore:
         loaded = store.load("overwrite_test")
         assert loaded.round_no == 5
 
-    def test_path_traversal_protection(self, store: FileStateStore) -> None:
-        """含 / 或 .. 的 task_id 不应穿越目录。"""
-        state = TaskState(task_id="../escape_test")
-        path = store.save(state)
-        # 文件应在 base_dir 内，名称被清洗
-        assert path.parent == store.base_dir
-        assert ".." not in path.name
+    def test_schema_rejects_unsafe_task_id(self, store: FileStateStore) -> None:
+        """含 / 或 .. 的 task_id 在 schema 层即被拒绝。"""
+        with pytest.raises(Exception):  # noqa: B017 — ValidationError
+            TaskState(task_id="../escape_test")
+        with pytest.raises(Exception):  # noqa: B017
+            TaskState(task_id="a/b")
+
+    def test_store_rejects_path_traversal_defensively(self, store: FileStateStore) -> None:
+        """即使绕过 schema，store 也拒绝含路径分隔符的 task_id。"""
+        with pytest.raises(StateStoreError, match="非法"):
+            store.load("../escape")
+        with pytest.raises(StateStoreError, match="非法"):
+            store.exists("a/b")
+
+    def test_no_task_id_collision(self, store: FileStateStore) -> None:
+        """不同 task_id 不会映射到同一文件。"""
+        store.save(TaskState(task_id="a_b"))
+        store.save(TaskState(task_id="a-b"))
+        assert store.exists("a_b")
+        assert store.exists("a-b")
+        tasks = store.list_tasks()
+        assert set(tasks) == {"a_b", "a-b"}

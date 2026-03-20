@@ -44,7 +44,8 @@ class TaskPacket(BaseModel):
     task_id: str = Field(
         ...,
         min_length=1,
-        description="任务唯一标识，如 P1_schema_baseline",
+        pattern=r"^[A-Za-z0-9_-]+$",
+        description="任务唯一标识，如 P1_schema_baseline（仅限字母、数字、下划线、连字符）",
     )
     title: str = Field(
         ...,

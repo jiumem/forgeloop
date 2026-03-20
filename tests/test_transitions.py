@@ -122,10 +122,10 @@ class TestDecideAfterReview:
         """即使 verdict=clean，有 blocking findings 仍应 NEEDS_FIX。"""
         packet = _make_packet()
         state = _make_state()
-        # verdict 说 clean 但实际有 blocking finding — 异常情况兜底
+        # verdict 说 clean 但实际有 blocking finding — 矛盾输入兜底
         review = _make_review(
-            verdict=TaskVerdict.NEEDS_FIX,
-            ready=False,
+            verdict=TaskVerdict.CLEAN,
+            ready=True,
             blocking_findings=1,
         )
 
@@ -301,11 +301,13 @@ class TestLifecycleFunctions:
         # REVIEW_CLEAN → HUMAN_REVIEW
         state = enter_human_review(state)
         assert state.current_status == TaskStatus.HUMAN_REVIEW
+        assert state.pending_notification == "ready_for_human_review"
 
         # HUMAN_REVIEW → DONE
         state = approve_human_review(state, closure_summary="P1 完成")
         assert state.current_status == TaskStatus.DONE
         assert state.closure_summary == "P1 完成"
+        assert state.pending_notification == "task_done"
 
     def test_fix_loop_lifecycle(self) -> None:
         """REVIEWING → NEEDS_FIX → CODING → REVIEWING（修复回环）。"""

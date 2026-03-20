@@ -115,6 +115,27 @@ class TestTaskPacket:
         with pytest.raises(ValidationError):
             PromotionPolicy(max_review_rounds=0)
 
+    def test_task_id_rejects_unsafe_characters(self) -> None:
+        """task_id 只允许字母、数字、下划线、连字符。"""
+        for bad_id in ["../escape", "a/b", "has space", "has.dot", "a\\b"]:
+            with pytest.raises(ValidationError):
+                TaskPacket(
+                    task_id=bad_id,
+                    title="bad",
+                    must_do=["x"],
+                    done_criteria=["y"],
+                )
+
+    def test_task_id_accepts_safe_characters(self) -> None:
+        """task_id 合法字符：字母、数字、下划线、连字符。"""
+        tp = TaskPacket(
+            task_id="P1_schema-baseline-v2",
+            title="safe",
+            must_do=["x"],
+            done_criteria=["y"],
+        )
+        assert tp.task_id == "P1_schema-baseline-v2"
+
 
 # ═══════════════════════════════════════════════════
 # CoderResult

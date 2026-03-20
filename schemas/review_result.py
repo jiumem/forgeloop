@@ -113,7 +113,9 @@ class ReviewResult(BaseModel):
     - "看不清"必须诚实输出 needs_human_ruling
     """
 
-    task_id: str = Field(..., min_length=1, description="关联的任务 ID")
+    task_id: str = Field(
+        ..., min_length=1, pattern=r"^[A-Za-z0-9_-]+$", description="关联的任务 ID"
+    )
     round_no: int = Field(..., ge=1, description="第几轮审查")
 
     # ── 四个区块 ──

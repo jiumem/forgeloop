@@ -90,7 +90,9 @@ class TaskState(BaseModel):
     已回环多少轮、下一步做什么、是否需要人类介入。
     """
 
-    task_id: str = Field(..., min_length=1, description="关联的任务 ID")
+    task_id: str = Field(
+        ..., min_length=1, pattern=r"^[A-Za-z0-9_-]+$", description="关联的任务 ID"
+    )
     current_status: TaskStatus = Field(
         default=TaskStatus.NEW,
         description="当前状态",

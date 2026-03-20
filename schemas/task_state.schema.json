@@ -97,6 +97,7 @@
     "task_id": {
       "description": "关联的任务 ID",
       "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
       "title": "Task Id",
       "type": "string"
     },

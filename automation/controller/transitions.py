@@ -197,7 +197,7 @@ def enter_human_review(task_state: TaskState) -> TaskState:
         update={
             "current_status": TaskStatus.HUMAN_REVIEW,
             "next_action": NextAction.WAIT_HUMAN_REVIEW,
-            "notification": "ready_for_human_review",
+            "pending_notification": "ready_for_human_review",
             "updated_at": now,
         }
     )
@@ -212,7 +212,7 @@ def approve_human_review(task_state: TaskState, closure_summary: str = "") -> Ta
             "current_status": TaskStatus.DONE,
             "next_action": NextAction.NONE,
             "closure_summary": closure_summary,
-            "notification": "task_done",
+            "pending_notification": "task_done",
             "updated_at": now,
         }
     )

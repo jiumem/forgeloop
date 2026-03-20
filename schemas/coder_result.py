@@ -46,7 +46,9 @@ class CoderResult(BaseModel):
     - 边界面: out_of_scope_notes
     """
 
-    task_id: str = Field(..., min_length=1, description="关联的任务 ID")
+    task_id: str = Field(
+        ..., min_length=1, pattern=r"^[A-Za-z0-9_-]+$", description="关联的任务 ID"
+    )
     round_no: int = Field(..., ge=1, description="第几轮执行")
 
     # ── 代码面 ──

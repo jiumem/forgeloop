@@ -34,10 +34,14 @@ class FileStateStore:
         return self._base_dir
 
     def _path_for(self, task_id: str) -> Path:
-        """返回 task_id 对应的存储路径。"""
-        # 防止路径穿越
-        safe_name = task_id.replace("/", "_").replace("..", "_")
-        return self._base_dir / f"{safe_name}.json"
+        """返回 task_id 对应的存储路径。
+
+        task_id 的合法字符已由 schema 层 pattern 约束保证（仅字母/数字/_/-）。
+        此处仍做防御性检查，拒绝含路径分隔符的 ID。
+        """
+        if "/" in task_id or "\\" in task_id or ".." in task_id:
+            raise StateStoreError(f"非法 task_id: {task_id!r}（含路径分隔符或 ..）")
+        return self._base_dir / f"{task_id}.json"
 
     def save(self, state: TaskState) -> Path:
         """保存 task_state 到文件，返回文件路径。"""

@@ -24,8 +24,9 @@
   "description": "任务真值模型 — 四个核心模型之一。\n\n设计原则：尽量少，但必须足够执法。\n\n字段分层:\n- 身份层: task_id / title / phase / chain\n- 法源层: entry_docs\n- 范围层: must_do / must_not_do / done_criteria\n- 依赖层: depends_on / related_tasks\n- 验证层: required_checks\n- 推进层: promotion_policy",
   "properties": {
     "task_id": {
-      "description": "任务唯一标识，如 P1_schema_baseline",
+      "description": "任务唯一标识，如 P1_schema_baseline（仅限字母、数字、下划线、连字符）",
       "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
       "title": "Task Id",
       "type": "string"
     },
