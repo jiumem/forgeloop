@@ -234,6 +234,7 @@ class TestCoderResult:
         assert "if" in rule
         assert rule["if"]["properties"]["status"]["enum"] == ["skipped", "error"]
         assert rule["then"]["properties"]["message"]["minLength"] == 1
+        assert rule["then"]["properties"]["message"]["pattern"] == "\\S"
         assert "message" in rule["then"]["required"]
 
 

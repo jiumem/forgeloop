@@ -153,17 +153,24 @@ def apply_transition(
     1. 校验跃迁合法性
     2. 更新状态、动作、通知
     3. 如果提供了 reviewer_result_ref，绑定到当前轮次
-    4. 更新 updated_at 时间戳
+    4. 从 REVIEWING 跃迁出去时关闭当前轮（coder→reviewer 周期完成）
+    5. 更新 updated_at 时间戳
     """
     _validate_transition(task_state.current_status, result.new_status)
 
     now = datetime.now(UTC)
     rounds = list(task_state.rounds)
 
-    # 绑定 reviewer 结果到当前轮
-    if reviewer_result_ref and rounds:
-        current = rounds[-1]
-        rounds[-1] = current.model_copy(update={"reviewer_result_ref": reviewer_result_ref})
+    if rounds:
+        updates: dict[str, str | datetime] = {}
+        # 绑定 reviewer 结果到当前轮
+        if reviewer_result_ref:
+            updates["reviewer_result_ref"] = reviewer_result_ref
+        # 从 REVIEWING 跃迁出去 = 该轮 coder→reviewer 周期完成
+        if task_state.current_status == TaskStatus.REVIEWING:
+            updates["finished_at"] = now
+        if updates:
+            rounds[-1] = rounds[-1].model_copy(update=updates)
 
     return task_state.model_copy(
         update={
@@ -235,39 +242,32 @@ def enter_human_review(task_state: TaskState) -> TaskState:
 
 
 def approve_human_review(task_state: TaskState, closure_summary: str = "") -> TaskState:
-    """HUMAN_REVIEW → DONE：人工签字结案，关闭最后一轮。"""
+    """HUMAN_REVIEW → DONE：人工签字结案。
+
+    不再关闭轮次 —— 当前轮已在 REVIEWING → REVIEW_CLEAN 时由 apply_transition 关闭。
+    """
     _validate_transition(task_state.current_status, TaskStatus.DONE)
     now = datetime.now(UTC)
-    rounds = list(task_state.rounds)
-
-    # 关闭最后一轮
-    if rounds:
-        current = rounds[-1]
-        rounds[-1] = current.model_copy(update={"finished_at": now})
-
     return task_state.model_copy(
         update={
             "current_status": TaskStatus.DONE,
             "next_action": NextAction.NONE,
             "closure_summary": closure_summary,
             "pending_notification": "task_done",
-            "rounds": rounds,
             "updated_at": now,
         }
     )
 
 
 def needs_fix_to_coding(task_state: TaskState) -> TaskState:
-    """NEEDS_FIX → CODING：关闭当前轮，开启新一轮。"""
+    """NEEDS_FIX → CODING：开启新一轮。
+
+    不再关闭当前轮 —— 已在 REVIEWING → NEEDS_FIX 时由 apply_transition 关闭。
+    """
     _validate_transition(task_state.current_status, TaskStatus.CODING)
     now = datetime.now(UTC)
     new_round_no = task_state.round_no + 1
     rounds = list(task_state.rounds)
-
-    # 关闭当前轮
-    if rounds:
-        current = rounds[-1]
-        rounds[-1] = current.model_copy(update={"finished_at": now})
 
     # 开启新一轮
     rounds.append(RoundRecord(round_no=new_round_no, started_at=now))

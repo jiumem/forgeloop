@@ -296,7 +296,7 @@ class TestLifecycleFunctions:
         assert state.current_status == TaskStatus.REVIEWING
         assert state.rounds[0].coder_result_ref == "runs/lifecycle_test/r1_coder.json"
 
-        # REVIEWING → REVIEW_CLEAN (via decide_after_review + apply): 绑定 reviewer_result_ref
+        # REVIEWING → REVIEW_CLEAN (via decide_after_review + apply): 绑定 reviewer + 关闭当轮
         packet = _make_packet()
         review = _make_review(verdict=TaskVerdict.CLEAN, ready=True)
         decision = decide_after_review(packet, state, review)
@@ -305,6 +305,7 @@ class TestLifecycleFunctions:
         )
         assert state.current_status == TaskStatus.REVIEW_CLEAN
         assert state.rounds[0].reviewer_result_ref == "runs/lifecycle_test/r1_review.json"
+        assert state.rounds[0].finished_at is not None  # 从 REVIEWING 出去即关闭
 
         # REVIEW_CLEAN → HUMAN_REVIEW
         # 通知不应被覆盖：文档法定事件 review_clean_ready_for_human 保持不变
@@ -312,13 +313,12 @@ class TestLifecycleFunctions:
         assert state.current_status == TaskStatus.HUMAN_REVIEW
         assert state.pending_notification == "review_clean_ready_for_human"
 
-        # HUMAN_REVIEW → DONE: 关闭最后一轮
+        # HUMAN_REVIEW → DONE: 轮次已关闭，approve 不再重复关
         state = approve_human_review(state, closure_summary="P1 完成")
         assert state.current_status == TaskStatus.DONE
         assert state.closure_summary == "P1 完成"
         assert state.pending_notification == "task_done"
         assert len(state.rounds) == 1
-        assert state.rounds[0].finished_at is not None
 
     def test_fix_loop_lifecycle(self) -> None:
         """REVIEWING → NEEDS_FIX → CODING → REVIEWING（修复回环 + rounds 台账）。"""
@@ -328,20 +328,20 @@ class TestLifecycleFunctions:
         assert state.current_status == TaskStatus.REVIEWING
         assert len(state.rounds) == 1
 
-        # REVIEWING → NEEDS_FIX (via decide_after_review)
+        # REVIEWING → NEEDS_FIX (via decide_after_review): 绑定 reviewer + 关闭当轮
         packet = _make_packet()
         review = _make_review(verdict=TaskVerdict.NEEDS_FIX, ready=False, blocking_findings=1)
         decision = decide_after_review(packet, state, review)
         state = apply_transition(state, decision, reviewer_result_ref="r1_review.json")
         assert state.current_status == TaskStatus.NEEDS_FIX
         assert state.rounds[0].reviewer_result_ref == "r1_review.json"
+        assert state.rounds[0].finished_at is not None  # 从 REVIEWING 出去即关闭
 
-        # NEEDS_FIX → CODING: 关闭第 1 轮，开启第 2 轮
+        # NEEDS_FIX → CODING: 第 1 轮已关闭，只开新轮
         state = needs_fix_to_coding(state)
         assert state.current_status == TaskStatus.CODING
         assert state.round_no == 2
         assert len(state.rounds) == 2
-        assert state.rounds[0].finished_at is not None  # 第 1 轮已关闭
         assert state.rounds[1].round_no == 2
         assert state.rounds[1].finished_at is None  # 第 2 轮进行中
 

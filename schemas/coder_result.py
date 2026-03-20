@@ -36,7 +36,7 @@ def _check_result_json_schema_extra(schema: dict[str, Any]) -> None:
                 "required": ["status"],
             },
             "then": {
-                "properties": {"message": {"minLength": 1}},
+                "properties": {"message": {"minLength": 1, "pattern": "\\S"}},
                 "required": ["message"],
             },
         }

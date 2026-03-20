@@ -19,7 +19,8 @@
           "then": {
             "properties": {
               "message": {
-                "minLength": 1
+                "minLength": 1,
+                "pattern": "\\S"
               }
             },
             "required": [
