@@ -90,6 +90,7 @@ class NextTaskRecommendation(BaseModel):
     task_id: str = Field(
         ...,
         min_length=1,
+        pattern=r"^[A-Za-z0-9_-]+$",
         description="建议的下一任务 ID",
     )
     rationale: str = Field(

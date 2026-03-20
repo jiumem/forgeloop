@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class CheckStatus(StrEnum):
@@ -27,7 +27,15 @@ class CheckResult(BaseModel):
 
     check_name: str = Field(..., min_length=1, description="检查名称")
     status: CheckStatus = Field(..., description="执行状态")
-    message: str = Field(default="", description="附加说明，skipped 时必须填原因")
+    message: str = Field(default="", description="附加说明，skipped/error 时必须填原因")
+
+    @model_validator(mode="after")
+    def _require_message_when_skipped_or_error(self) -> CheckResult:
+        """设计方案 §5.2: 未执行的检查必须显式写明原因。"""
+        if self.status in {CheckStatus.SKIPPED, CheckStatus.ERROR} and not self.message.strip():
+            msg = f"status={self.status.value} 时 message 不能为空（必须写明原因）"
+            raise ValueError(msg)
+        return self
 
 
 class CoderResult(BaseModel):

@@ -15,7 +15,7 @@
         },
         "message": {
           "default": "",
-          "description": "附加说明，skipped 时必须填原因",
+          "description": "附加说明，skipped/error 时必须填原因",
           "title": "Message",
           "type": "string"
         }

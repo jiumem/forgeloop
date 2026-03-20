@@ -85,6 +85,8 @@
     "depends_on": {
       "description": "前置依赖任务 ID 列表",
       "items": {
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_-]+$",
         "type": "string"
       },
       "title": "Depends On",
@@ -93,6 +95,8 @@
     "related_tasks": {
       "description": "相关任务 ID 列表（不构成硬依赖）",
       "items": {
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_-]+$",
         "type": "string"
       },
       "title": "Related Tasks",

@@ -190,14 +190,17 @@ def coder_done(task_state: TaskState) -> TaskState:
 
 
 def enter_human_review(task_state: TaskState) -> TaskState:
-    """REVIEW_CLEAN → HUMAN_REVIEW：进入人工最终审查。"""
+    """REVIEW_CLEAN → HUMAN_REVIEW：进入人工最终审查。
+
+    不覆盖 pending_notification —— 文档法定通知 review_clean_ready_for_human
+    已由 apply_transition(decide_after_review(...)) 写入，此处仅推进状态。
+    """
     _validate_transition(task_state.current_status, TaskStatus.HUMAN_REVIEW)
     now = datetime.now(UTC)
     return task_state.model_copy(
         update={
             "current_status": TaskStatus.HUMAN_REVIEW,
             "next_action": NextAction.WAIT_HUMAN_REVIEW,
-            "pending_notification": "ready_for_human_review",
             "updated_at": now,
         }
     )

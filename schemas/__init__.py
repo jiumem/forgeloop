@@ -16,7 +16,7 @@ from schemas.review_result import (
     Severity,
     TaskVerdict,
 )
-from schemas.task_packet import PromotionPolicy, TaskPacket
+from schemas.task_packet import PromotionPolicy, TaskIdRef, TaskPacket
 from schemas.task_state import NextAction, RoundRecord, TaskState, TaskStatus
 
 __all__ = [
@@ -31,6 +31,7 @@ __all__ = [
     "ReviewResult",
     "RoundRecord",
     "Severity",
+    "TaskIdRef",
     "TaskPacket",
     "TaskState",
     "TaskStatus",

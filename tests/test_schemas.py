@@ -136,6 +136,28 @@ class TestTaskPacket:
         )
         assert tp.task_id == "P1_schema-baseline-v2"
 
+    def test_depends_on_rejects_unsafe_task_id(self) -> None:
+        """depends_on 元素也必须符合 task_id 格式约束。"""
+        with pytest.raises(ValidationError):
+            TaskPacket(
+                task_id="P2",
+                title="bad dep",
+                must_do=["x"],
+                done_criteria=["y"],
+                depends_on=["a/b"],
+            )
+
+    def test_related_tasks_rejects_unsafe_task_id(self) -> None:
+        """related_tasks 元素也必须符合 task_id 格式约束。"""
+        with pytest.raises(ValidationError):
+            TaskPacket(
+                task_id="P2",
+                title="bad related",
+                must_do=["x"],
+                done_criteria=["y"],
+                related_tasks=["has space"],
+            )
+
 
 # ═══════════════════════════════════════════════════
 # CoderResult
@@ -179,6 +201,30 @@ class TestCoderResult:
     def test_missing_task_id(self) -> None:
         with pytest.raises(ValidationError):
             CoderResult(round_no=1)  # type: ignore[call-arg]
+
+    def test_skipped_check_without_message_rejected(self) -> None:
+        """SKIPPED 状态时 message 不能为空（设计方案 §5.2 执法）。"""
+        with pytest.raises(ValidationError, match="不能为空"):
+            CheckResult(check_name="pytest", status=CheckStatus.SKIPPED)
+
+    def test_skipped_check_with_message_accepted(self) -> None:
+        """SKIPPED + 有原因说明应通过。"""
+        cr = CheckResult(
+            check_name="integration",
+            status=CheckStatus.SKIPPED,
+            message="no Codex available",
+        )
+        assert cr.status == CheckStatus.SKIPPED
+
+    def test_error_check_without_message_rejected(self) -> None:
+        """ERROR 状态同样必须填原因。"""
+        with pytest.raises(ValidationError, match="不能为空"):
+            CheckResult(check_name="lint", status=CheckStatus.ERROR)
+
+    def test_passed_check_without_message_accepted(self) -> None:
+        """PASSED 状态 message 可为空。"""
+        cr = CheckResult(check_name="pytest", status=CheckStatus.PASSED)
+        assert cr.message == ""
 
 
 # ═══════════════════════════════════════════════════
@@ -246,6 +292,11 @@ class TestReviewResult:
     def test_next_task_recommendation(self) -> None:
         rec = NextTaskRecommendation(task_id="P2_state_machine", rationale="P1 已完成")
         assert rec.task_id == "P2_state_machine"
+
+    def test_next_task_recommendation_rejects_unsafe_id(self) -> None:
+        """NextTaskRecommendation.task_id 也必须符合格式约束。"""
+        with pytest.raises(ValidationError):
+            NextTaskRecommendation(task_id="a/b")
 
 
 # ═══════════════════════════════════════════════════

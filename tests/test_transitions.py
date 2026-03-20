@@ -299,9 +299,10 @@ class TestLifecycleFunctions:
         assert state.current_status == TaskStatus.REVIEW_CLEAN
 
         # REVIEW_CLEAN → HUMAN_REVIEW
+        # 通知不应被覆盖：文档法定事件 review_clean_ready_for_human 保持不变
         state = enter_human_review(state)
         assert state.current_status == TaskStatus.HUMAN_REVIEW
-        assert state.pending_notification == "ready_for_human_review"
+        assert state.pending_notification == "review_clean_ready_for_human"
 
         # HUMAN_REVIEW → DONE
         state = approve_human_review(state, closure_summary="P1 完成")

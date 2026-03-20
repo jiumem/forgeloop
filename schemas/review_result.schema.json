@@ -60,6 +60,7 @@
         "task_id": {
           "description": "建议的下一任务 ID",
           "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
           "title": "Task Id",
           "type": "string"
         },
