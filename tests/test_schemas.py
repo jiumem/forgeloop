@@ -226,6 +226,16 @@ class TestCoderResult:
         cr = CheckResult(check_name="pytest", status=CheckStatus.PASSED)
         assert cr.message == ""
 
+    def test_json_schema_has_conditional_message_constraint(self) -> None:
+        """导出的 JSON Schema 必须包含 if/then 条件约束。"""
+        schema = CheckResult.model_json_schema()
+        assert "allOf" in schema, "JSON Schema 缺少 allOf 条件约束"
+        rule = schema["allOf"][0]
+        assert "if" in rule
+        assert rule["if"]["properties"]["status"]["enum"] == ["skipped", "error"]
+        assert rule["then"]["properties"]["message"]["minLength"] == 1
+        assert "message" in rule["then"]["required"]
+
 
 # ═══════════════════════════════════════════════════
 # ReviewResult

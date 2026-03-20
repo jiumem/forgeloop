@@ -23,7 +23,7 @@ from datetime import UTC, datetime
 
 from schemas.review_result import ReviewResult, TaskVerdict
 from schemas.task_packet import TaskPacket
-from schemas.task_state import NextAction, TaskState, TaskStatus
+from schemas.task_state import NextAction, RoundRecord, TaskState, TaskStatus
 
 # ── 合法跃迁表 ──
 # 只有列出的 (from, to) 对才是合法跃迁；其余一律拒绝。
@@ -141,49 +141,77 @@ def decide_after_review(
     )
 
 
-def apply_transition(task_state: TaskState, result: TransitionResult) -> TaskState:
+def apply_transition(
+    task_state: TaskState,
+    result: TransitionResult,
+    *,
+    reviewer_result_ref: str | None = None,
+) -> TaskState:
     """将跃迁结果应用到 task_state，返回新的 task_state。
 
     此函数：
     1. 校验跃迁合法性
     2. 更新状态、动作、通知
-    3. 更新 updated_at 时间戳
+    3. 如果提供了 reviewer_result_ref，绑定到当前轮次
+    4. 更新 updated_at 时间戳
     """
     _validate_transition(task_state.current_status, result.new_status)
 
     now = datetime.now(UTC)
+    rounds = list(task_state.rounds)
+
+    # 绑定 reviewer 结果到当前轮
+    if reviewer_result_ref and rounds:
+        current = rounds[-1]
+        rounds[-1] = current.model_copy(update={"reviewer_result_ref": reviewer_result_ref})
+
     return task_state.model_copy(
         update={
             "current_status": result.new_status,
             "next_action": result.next_action,
             "pending_notification": result.notification,
+            "rounds": rounds,
             "updated_at": now,
         }
     )
 
 
 def start_task(task_state: TaskState) -> TaskState:
-    """NEW → CODING：controller 首次调度。"""
+    """NEW → CODING：controller 首次调度，创建第一轮 RoundRecord。"""
     _validate_transition(task_state.current_status, TaskStatus.CODING)
     now = datetime.now(UTC)
+    first_round = RoundRecord(round_no=1, started_at=now)
     return task_state.model_copy(
         update={
             "current_status": TaskStatus.CODING,
             "next_action": NextAction.RUN_CODER,
             "round_no": 1,
+            "rounds": [first_round],
             "updated_at": now,
         }
     )
 
 
-def coder_done(task_state: TaskState) -> TaskState:
-    """CODING → REVIEWING：coder_result 产出后。"""
+def coder_done(
+    task_state: TaskState,
+    *,
+    coder_result_ref: str | None = None,
+) -> TaskState:
+    """CODING → REVIEWING：coder_result 产出后，绑定 coder_result_ref 到当前轮。"""
     _validate_transition(task_state.current_status, TaskStatus.REVIEWING)
     now = datetime.now(UTC)
+    rounds = list(task_state.rounds)
+
+    # 绑定 coder 结果到当前轮
+    if coder_result_ref and rounds:
+        current = rounds[-1]
+        rounds[-1] = current.model_copy(update={"coder_result_ref": coder_result_ref})
+
     return task_state.model_copy(
         update={
             "current_status": TaskStatus.REVIEWING,
             "next_action": NextAction.RUN_REVIEWER,
+            "rounds": rounds,
             "updated_at": now,
         }
     )
@@ -207,30 +235,49 @@ def enter_human_review(task_state: TaskState) -> TaskState:
 
 
 def approve_human_review(task_state: TaskState, closure_summary: str = "") -> TaskState:
-    """HUMAN_REVIEW → DONE：人工签字结案。"""
+    """HUMAN_REVIEW → DONE：人工签字结案，关闭最后一轮。"""
     _validate_transition(task_state.current_status, TaskStatus.DONE)
     now = datetime.now(UTC)
+    rounds = list(task_state.rounds)
+
+    # 关闭最后一轮
+    if rounds:
+        current = rounds[-1]
+        rounds[-1] = current.model_copy(update={"finished_at": now})
+
     return task_state.model_copy(
         update={
             "current_status": TaskStatus.DONE,
             "next_action": NextAction.NONE,
             "closure_summary": closure_summary,
             "pending_notification": "task_done",
+            "rounds": rounds,
             "updated_at": now,
         }
     )
 
 
 def needs_fix_to_coding(task_state: TaskState) -> TaskState:
-    """NEEDS_FIX → CODING：回 coder 修复。"""
+    """NEEDS_FIX → CODING：关闭当前轮，开启新一轮。"""
     _validate_transition(task_state.current_status, TaskStatus.CODING)
     now = datetime.now(UTC)
-    new_round = task_state.round_no + 1
+    new_round_no = task_state.round_no + 1
+    rounds = list(task_state.rounds)
+
+    # 关闭当前轮
+    if rounds:
+        current = rounds[-1]
+        rounds[-1] = current.model_copy(update={"finished_at": now})
+
+    # 开启新一轮
+    rounds.append(RoundRecord(round_no=new_round_no, started_at=now))
+
     return task_state.model_copy(
         update={
             "current_status": TaskStatus.CODING,
             "next_action": NextAction.RUN_CODER,
-            "round_no": new_round,
+            "round_no": new_round_no,
+            "rounds": rounds,
             "updated_at": now,
         }
     )

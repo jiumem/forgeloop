@@ -1,6 +1,33 @@
 {
   "$defs": {
     "CheckResult": {
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "skipped",
+                  "error"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "message": {
+                "minLength": 1
+              }
+            },
+            "required": [
+              "message"
+            ]
+          }
+        }
+      ],
       "description": "单项检查的执行结果。",
       "properties": {
         "check_name": {
