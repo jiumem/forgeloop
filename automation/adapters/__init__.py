@@ -10,5 +10,7 @@
 - 不做跃迁决策（决策归 controller/transitions）
 - 每个适配器是无状态函数或薄 class
 
-当前状态：占坑，P4 实现。
+当前状态：
+- P3 已定义合同（base.py: CodexAdapter Protocol + 配置/结果/错误类型）
+- P6 实现具体 Codex CLI adapter
 """
