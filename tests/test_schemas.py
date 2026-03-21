@@ -8,6 +8,9 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import pytest
 from pydantic import ValidationError
 
@@ -21,7 +24,7 @@ from schemas.review_result import (
     TaskVerdict,
 )
 from schemas.task_packet import PromotionPolicy, TaskPacket
-from schemas.task_state import NextAction, TaskState, TaskStatus
+from schemas.task_state import NextAction, RoundRecord, TaskState, TaskStatus
 
 # ═══════════════════════════════════════════════════
 # TaskPacket
@@ -358,3 +361,306 @@ class TestTaskState:
         ts = TaskState(task_id="P1")
         assert ts.created_at is not None
         assert ts.updated_at is not None
+
+    def test_rounds_round_no_inconsistency_rejected(self) -> None:
+        """round_no 与 rounds 长度不一致时 schema 应拒绝构造。"""
+        with pytest.raises(ValidationError, match="台账必须完整"):
+            TaskState(
+                task_id="x",
+                current_status=TaskStatus.CODING,
+                round_no=1,
+                rounds=[],  # 应有 1 条但为空
+            )
+
+    def test_rounds_extra_record_rejected(self) -> None:
+        """rounds 条数多于 round_no 同样被拒。"""
+        with pytest.raises(ValidationError, match="台账必须完整"):
+            TaskState(
+                task_id="x",
+                round_no=0,
+                rounds=[RoundRecord(round_no=1)],  # 多出一条
+            )
+
+    def test_rounds_wrong_round_no_in_record_rejected(self) -> None:
+        """rounds 内某条 round_no 与位置不匹配时被拒。"""
+        with pytest.raises(ValidationError, match="期望"):
+            TaskState(
+                task_id="x",
+                round_no=2,
+                rounds=[
+                    RoundRecord(round_no=1),
+                    RoundRecord(round_no=5),  # 位置 2 但 round_no=5
+                ],
+            )
+
+    def test_consistent_rounds_accepted(self) -> None:
+        """rounds 与 round_no 一致时正常构造。"""
+        ts = TaskState(
+            task_id="x",
+            current_status=TaskStatus.CODING,
+            next_action=NextAction.RUN_CODER,
+            round_no=2,
+            rounds=[RoundRecord(round_no=1), RoundRecord(round_no=2)],
+        )
+        assert ts.round_no == 2
+        assert len(ts.rounds) == 2
+
+    def test_new_with_nonzero_round_no_rejected(self) -> None:
+        """NEW 状态 round_no 必须为 0。"""
+        with pytest.raises(ValidationError, match="NEW 状态 round_no 必须为 0"):
+            TaskState(
+                task_id="x",
+                current_status=TaskStatus.NEW,
+                round_no=1,
+                rounds=[RoundRecord(round_no=1)],
+            )
+
+    def test_work_status_with_zero_round_no_rejected(self) -> None:
+        """工作状态（CODING 等）round_no 不能为 0。"""
+        from schemas.task_state import STATUS_NEXT_ACTION
+
+        for status in (TaskStatus.CODING, TaskStatus.REVIEWING, TaskStatus.DONE):
+            with pytest.raises(ValidationError, match="工作状态"):
+                TaskState(
+                    task_id="x",
+                    current_status=status,
+                    next_action=STATUS_NEXT_ACTION[status],
+                    round_no=0,
+                    rounds=[],
+                )
+
+    def test_non_new_with_positive_round_no_accepted(self) -> None:
+        """非 NEW 状态 + round_no>=1 + 正确 next_action 正常构造。"""
+        from schemas.task_state import STATUS_NEXT_ACTION
+
+        for status in (TaskStatus.CODING, TaskStatus.REVIEWING, TaskStatus.DONE):
+            ts = TaskState(
+                task_id="x",
+                current_status=status,
+                next_action=STATUS_NEXT_ACTION[status],
+                round_no=1,
+                rounds=[RoundRecord(round_no=1)],
+            )
+            assert ts.current_status == status
+
+    def test_early_abort_terminal_with_zero_round_no_accepted(self) -> None:
+        """BLOCKED/NEEDS_HUMAN_RULING 可从 NEW 直接到达，round_no==0 合法。"""
+        from schemas.task_state import STATUS_NEXT_ACTION
+
+        for status in (TaskStatus.BLOCKED, TaskStatus.NEEDS_HUMAN_RULING):
+            ts = TaskState(
+                task_id="x",
+                current_status=status,
+                next_action=STATUS_NEXT_ACTION[status],
+                round_no=0,
+                rounds=[],
+            )
+            assert ts.current_status == status
+            assert ts.round_no == 0
+
+
+# ═══════════════════════════════════════════════════
+# TaskState 全局合同矩阵测试
+# ═══════════════════════════════════════════════════
+
+
+class TestTaskStateContractMatrix:
+    """参数化覆盖 9 个 status × 多字段 的合法/非法组合。
+
+    schema 级不变式：
+    1. status ↔ next_action 严格 1:1
+    2. status ↔ round_no
+    3. closure_summary 仅 DONE 允许非空
+    4. 常量完备性
+    """
+
+    @staticmethod
+    def _valid_state(
+        status: TaskStatus,
+        *,
+        round_no: int | None = None,
+        closure_summary: str = "",
+    ) -> TaskState:
+        """构造给定 status 下最小合法 TaskState。"""
+        from schemas.task_state import ALLOW_ZERO_ROUND_STATUSES, STATUS_NEXT_ACTION
+
+        if round_no is None:
+            round_no = 0 if status in ALLOW_ZERO_ROUND_STATUSES else 1
+        rounds = [RoundRecord(round_no=i + 1) for i in range(round_no)]
+        return TaskState(
+            task_id="matrix",
+            current_status=status,
+            next_action=STATUS_NEXT_ACTION[status],
+            round_no=round_no,
+            rounds=rounds,
+            closure_summary=closure_summary,
+        )
+
+    # ── 1. status ↔ next_action ──
+
+    @pytest.mark.parametrize("status", list(TaskStatus))
+    def test_correct_next_action_accepted(self, status: TaskStatus) -> None:
+        """每个 status 配对正确 next_action 可构造。"""
+        ts = self._valid_state(status)
+        from schemas.task_state import STATUS_NEXT_ACTION
+
+        assert ts.next_action == STATUS_NEXT_ACTION[status]
+
+    @pytest.mark.parametrize("status", list(TaskStatus))
+    def test_wrong_next_action_rejected(self, status: TaskStatus) -> None:
+        """每个 status 配对错误 next_action 被拒。"""
+        from schemas.task_state import ALLOW_ZERO_ROUND_STATUSES, STATUS_NEXT_ACTION
+
+        correct = STATUS_NEXT_ACTION[status]
+        # 找一个与正确值不同的 next_action
+        wrong = next(a for a in NextAction if a != correct)
+        round_no = 0 if status in ALLOW_ZERO_ROUND_STATUSES else 1
+        rounds = [RoundRecord(round_no=i + 1) for i in range(round_no)]
+        with pytest.raises(ValidationError, match="next_action 必须为"):
+            TaskState(
+                task_id="matrix",
+                current_status=status,
+                next_action=wrong,
+                round_no=round_no,
+                rounds=rounds,
+            )
+
+    # ── 2. status ↔ round_no ──
+
+    _WORK_STATUSES = [
+        s
+        for s in TaskStatus
+        if s not in (TaskStatus.NEW, TaskStatus.BLOCKED, TaskStatus.NEEDS_HUMAN_RULING)
+    ]
+
+    @pytest.mark.parametrize("status", _WORK_STATUSES)
+    def test_work_status_rejects_zero_round(self, status: TaskStatus) -> None:
+        """工作状态 round_no=0 被拒。"""
+        from schemas.task_state import STATUS_NEXT_ACTION
+
+        with pytest.raises(ValidationError, match="工作状态"):
+            TaskState(
+                task_id="matrix",
+                current_status=status,
+                next_action=STATUS_NEXT_ACTION[status],
+                round_no=0,
+                rounds=[],
+            )
+
+    @pytest.mark.parametrize("status", [TaskStatus.BLOCKED, TaskStatus.NEEDS_HUMAN_RULING])
+    def test_early_abort_accepts_zero_round(self, status: TaskStatus) -> None:
+        """早退状态 round_no=0 合法。"""
+        ts = self._valid_state(status, round_no=0)
+        assert ts.round_no == 0
+
+    @pytest.mark.parametrize("status", [TaskStatus.BLOCKED, TaskStatus.NEEDS_HUMAN_RULING])
+    def test_early_abort_also_accepts_positive_round(self, status: TaskStatus) -> None:
+        """早退状态 round_no>=1 也合法（从工作状态异常退出）。"""
+        ts = self._valid_state(status, round_no=1)
+        assert ts.round_no == 1
+
+    def test_new_rejects_nonzero_round(self) -> None:
+        """NEW round_no!=0 被拒。"""
+        with pytest.raises(ValidationError, match="NEW 状态 round_no 必须为 0"):
+            TaskState(
+                task_id="matrix",
+                current_status=TaskStatus.NEW,
+                next_action=NextAction.RUN_CODER,
+                round_no=1,
+                rounds=[RoundRecord(round_no=1)],
+            )
+
+    # ── 3. closure_summary ──
+
+    _NON_DONE_STATUSES = [s for s in TaskStatus if s != TaskStatus.DONE]
+
+    @pytest.mark.parametrize("status", _NON_DONE_STATUSES)
+    def test_non_done_rejects_closure_summary(self, status: TaskStatus) -> None:
+        """非 DONE 状态不允许非空 closure_summary。"""
+        from schemas.task_state import ALLOW_ZERO_ROUND_STATUSES, STATUS_NEXT_ACTION
+
+        round_no = 0 if status in ALLOW_ZERO_ROUND_STATUSES else 1
+        rounds = [RoundRecord(round_no=i + 1) for i in range(round_no)]
+        with pytest.raises(ValidationError, match="closure_summary"):
+            TaskState(
+                task_id="matrix",
+                current_status=status,
+                next_action=STATUS_NEXT_ACTION[status],
+                round_no=round_no,
+                rounds=rounds,
+                closure_summary="should not be here",
+            )
+
+    def test_done_accepts_closure_summary(self) -> None:
+        """DONE 允许非空 closure_summary。"""
+        ts = self._valid_state(TaskStatus.DONE, closure_summary="task completed")
+        assert ts.closure_summary == "task completed"
+
+    def test_done_accepts_empty_closure_summary(self) -> None:
+        """DONE 也允许空 closure_summary（人工未填摘要）。"""
+        ts = self._valid_state(TaskStatus.DONE, closure_summary="")
+        assert ts.closure_summary == ""
+
+    # ── 4. 常量完备性 ──
+
+    def test_status_next_action_covers_all_statuses(self) -> None:
+        """STATUS_NEXT_ACTION 覆盖所有 TaskStatus。"""
+        from schemas.task_state import STATUS_NEXT_ACTION
+
+        assert set(STATUS_NEXT_ACTION.keys()) == set(TaskStatus)
+
+    def test_allow_zero_round_partition(self) -> None:
+        """ALLOW_ZERO_ROUND_STATUSES + 工作状态 = 全部 TaskStatus。"""
+        from schemas.task_state import ALLOW_ZERO_ROUND_STATUSES
+
+        work_statuses = set(TaskStatus) - ALLOW_ZERO_ROUND_STATUSES
+        assert work_statuses | ALLOW_ZERO_ROUND_STATUSES == set(TaskStatus)
+        # 工作状态不应为空
+        assert len(work_statuses) >= 6
+
+    def test_allow_closure_summary_only_done(self) -> None:
+        """ALLOW_CLOSURE_SUMMARY_STATUSES 仅含 DONE。"""
+        from schemas.task_state import ALLOW_CLOSURE_SUMMARY_STATUSES
+
+        assert {TaskStatus.DONE} == ALLOW_CLOSURE_SUMMARY_STATUSES
+
+    # ── 5. 全 status 合法构造烟雾测试 ──
+
+    @pytest.mark.parametrize("status", list(TaskStatus))
+    def test_every_status_can_be_constructed(self, status: TaskStatus) -> None:
+        """每个 status 都能构造出合法 TaskState（不存在"死状态"）。"""
+        ts = self._valid_state(status)
+        assert ts.current_status == status
+
+
+# ═══════════════════════════════════════════════════
+# Mock fixture 与 JSON 一致性
+# ═══════════════════════════════════════════════════
+
+_FIXTURES_DIR = Path(__file__).resolve().parent.parent / "mock" / "fixtures"
+
+
+class TestMockFixtureConsistency:
+    """mock/ 下 Python 样例实例与 JSON fixture 必须一致。"""
+
+    def test_minimal_packet_matches_json(self) -> None:
+        from mock.sample_task_packets import MINIMAL_PACKET
+
+        json_path = _FIXTURES_DIR / "minimal_task_packet.json"
+        json_data = json.loads(json_path.read_text(encoding="utf-8"))
+        assert MINIMAL_PACKET.model_dump(mode="json") == json_data
+
+    def test_full_packet_matches_json(self) -> None:
+        from mock.sample_task_packets import FULL_PACKET
+
+        json_path = _FIXTURES_DIR / "full_task_packet.json"
+        json_data = json.loads(json_path.read_text(encoding="utf-8"))
+        assert FULL_PACKET.model_dump(mode="json") == json_data
+
+    def test_json_fixtures_roundtrip_as_valid_task_packet(self) -> None:
+        """JSON fixture 必须能被 TaskPacket 校验通过（双向锁定）。"""
+        for name in ("minimal_task_packet.json", "full_task_packet.json"):
+            json_path = _FIXTURES_DIR / name
+            data = json.loads(json_path.read_text(encoding="utf-8"))
+            tp = TaskPacket(**data)
+            assert tp.task_id

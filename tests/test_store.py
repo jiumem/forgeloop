@@ -11,7 +11,7 @@ from __future__ import annotations
 import pytest
 
 from automation.state.store import FileStateStore, StateStoreError
-from schemas.task_state import TaskState, TaskStatus
+from schemas.task_state import RoundRecord, TaskState, TaskStatus
 
 
 @pytest.fixture
@@ -27,7 +27,12 @@ class TestFileStateStore:
 
     def test_save_and_load_roundtrip(self, store: FileStateStore) -> None:
         """保存后加载应完全一致。"""
-        state = TaskState(task_id="test_roundtrip", current_status=TaskStatus.CODING, round_no=2)
+        state = TaskState(
+            task_id="test_roundtrip",
+            current_status=TaskStatus.CODING,
+            round_no=2,
+            rounds=[RoundRecord(round_no=1), RoundRecord(round_no=2)],
+        )
         store.save(state)
 
         loaded = store.load("test_roundtrip")
@@ -62,9 +67,19 @@ class TestFileStateStore:
 
     def test_save_overwrites(self, store: FileStateStore) -> None:
         """重复保存应覆盖旧文件。"""
-        state1 = TaskState(task_id="overwrite_test", round_no=1)
+        state1 = TaskState(
+            task_id="overwrite_test",
+            current_status=TaskStatus.CODING,
+            round_no=1,
+            rounds=[RoundRecord(round_no=1)],
+        )
         store.save(state1)
-        state2 = TaskState(task_id="overwrite_test", round_no=5)
+        state2 = TaskState(
+            task_id="overwrite_test",
+            current_status=TaskStatus.CODING,
+            round_no=5,
+            rounds=[RoundRecord(round_no=i + 1) for i in range(5)],
+        )
         store.save(state2)
         loaded = store.load("overwrite_test")
         assert loaded.round_no == 5

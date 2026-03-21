@@ -1,0 +1,42 @@
+{
+  "task_id": "P2_state_machine",
+  "title": "状态枚举、跃迁表与 task_state 持久化",
+  "phase": "M1",
+  "chain": "v1",
+  "entry_docs": [
+    "docs/Codex 自动任务编码循环设计方案.md",
+    "docs/Codex 自动任务编码循环任务规划文档.md"
+  ],
+  "must_do": [
+    "定义 TaskStatus 枚举",
+    "定义 NextAction 枚举",
+    "实现跃迁规则表",
+    "实现 task_state 持久化"
+  ],
+  "must_not_do": [
+    "不做多任务并行调度",
+    "不做 CI/GitHub Actions 集成"
+  ],
+  "done_criteria": [
+    "状态枚举可程序化引用",
+    "跃迁表覆盖设计方案所有路径",
+    "task_state 可 JSON 序列化/反序列化",
+    "uv run pytest 全绿"
+  ],
+  "depends_on": [
+    "P1_schema_baseline"
+  ],
+  "related_tasks": [
+    "P3_interfaces_contract"
+  ],
+  "required_checks": [
+    "uv run pytest",
+    "uv run ruff check .",
+    "uv run ruff format --check .",
+    "uv run pyright"
+  ],
+  "promotion_policy": {
+    "auto_promote": false,
+    "max_review_rounds": 5
+  }
+}

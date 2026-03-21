@@ -20,7 +20,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from enum import StrEnum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class TaskStatus(StrEnum):
@@ -55,6 +55,33 @@ class NextAction(StrEnum):
     WAIT_HUMAN_RULING = "wait_human_ruling"
     RESOLVE_BLOCKED = "resolve_blocked"
     NONE = "none"  # 任务已结案
+
+
+# ── schema 级合同常量 ──
+
+# status 与 next_action 严格 1:1 绑定。
+# 违反此绑定意味着状态对象本身自相矛盾。
+STATUS_NEXT_ACTION: dict[TaskStatus, NextAction] = {
+    TaskStatus.NEW: NextAction.RUN_CODER,
+    TaskStatus.CODING: NextAction.RUN_CODER,
+    TaskStatus.REVIEWING: NextAction.RUN_REVIEWER,
+    TaskStatus.NEEDS_FIX: NextAction.RUN_CODER,
+    TaskStatus.REVIEW_CLEAN: NextAction.WAIT_HUMAN_REVIEW,
+    TaskStatus.HUMAN_REVIEW: NextAction.WAIT_HUMAN_REVIEW,
+    TaskStatus.DONE: NextAction.NONE,
+    TaskStatus.NEEDS_HUMAN_RULING: NextAction.WAIT_HUMAN_RULING,
+    TaskStatus.BLOCKED: NextAction.RESOLVE_BLOCKED,
+}
+
+# 允许 round_no == 0 的状态。
+# NEW: 尚未开轮。BLOCKED / NEEDS_HUMAN_RULING: 可从 NEW 直接早退。
+# 其他工作状态必须经过 start_task 开轮，round_no >= 1。
+ALLOW_ZERO_ROUND_STATUSES: frozenset[TaskStatus] = frozenset(
+    {TaskStatus.NEW, TaskStatus.BLOCKED, TaskStatus.NEEDS_HUMAN_RULING}
+)
+
+# 允许 closure_summary 非空的状态。只有 DONE 允许。
+ALLOW_CLOSURE_SUMMARY_STATUSES: frozenset[TaskStatus] = frozenset({TaskStatus.DONE})
 
 
 class RoundRecord(BaseModel):
@@ -132,3 +159,52 @@ class TaskState(BaseModel):
         default_factory=_utcnow,
         description="最后更新时间",
     )
+
+    @model_validator(mode="after")
+    def _enforce_state_contract(self) -> TaskState:
+        """TaskState 全局合同 — schema 级不变式。
+
+        任何时候构造该状态都必须满足，无论来源路径。
+        合同矩阵定义在模块级常量中，此处统一执法。
+
+        1. rounds 台账一致性：len(rounds) == round_no，编号连续
+        2. status ↔ next_action：严格 1:1 绑定
+        3. status ↔ round_no：NEW 必须 0，工作状态 >= 1，早退状态 >= 0
+        4. closure_summary：仅 DONE 允许非空
+        """
+        # ── 1. rounds 台账一致性 ──
+        if len(self.rounds) != self.round_no:
+            msg = (
+                f"rounds 长度（{len(self.rounds)}）与 round_no（{self.round_no}）不一致。"
+                f"台账必须完整：len(rounds) == round_no"
+            )
+            raise ValueError(msg)
+        for i, r in enumerate(self.rounds):
+            expected = i + 1
+            if r.round_no != expected:
+                msg = f"rounds[{i}].round_no={r.round_no}，期望 {expected}"
+                raise ValueError(msg)
+
+        # ── 2. status ↔ next_action 严格 1:1 绑定 ──
+        expected_action = STATUS_NEXT_ACTION[self.current_status]
+        if self.next_action != expected_action:
+            msg = (
+                f"状态 {self.current_status} 的 next_action 必须为 "
+                f"{expected_action.value}，实际为 {self.next_action.value}"
+            )
+            raise ValueError(msg)
+
+        # ── 3. status ↔ round_no ──
+        if self.current_status == TaskStatus.NEW and self.round_no != 0:
+            msg = f"NEW 状态 round_no 必须为 0，实际为 {self.round_no}"
+            raise ValueError(msg)
+        if self.current_status not in ALLOW_ZERO_ROUND_STATUSES and self.round_no < 1:
+            msg = f"工作状态（{self.current_status}）round_no 必须 >= 1，实际为 {self.round_no}"
+            raise ValueError(msg)
+
+        # ── 4. closure_summary 仅 DONE 允许非空 ──
+        if self.closure_summary and self.current_status not in ALLOW_CLOSURE_SUMMARY_STATUSES:
+            msg = f"状态 {self.current_status} 不允许非空 closure_summary，仅 DONE 可设置结案摘要"
+            raise ValueError(msg)
+
+        return self

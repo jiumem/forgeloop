@@ -1,3 +1,7 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "forgeloop"
 version = "0.1.0"
@@ -14,6 +18,12 @@ dev = [
     "pyright>=1.1",
 ]
 
+[project.scripts]
+forgeloop = "automation.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["automation", "schemas", "mock"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
@@ -28,4 +38,4 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 [tool.pyright]
 pythonVersion = "3.12"
 typeCheckingMode = "strict"
-include = ["automation", "schemas", "tests"]
+include = ["automation", "schemas", "tests", "mock"]

@@ -1,0 +1,21 @@
+{
+  "task_id": "MOCK_minimal",
+  "title": "最小样例任务",
+  "phase": "",
+  "chain": "",
+  "entry_docs": [],
+  "must_do": [
+    "实现功能 A"
+  ],
+  "must_not_do": [],
+  "done_criteria": [
+    "功能 A 测试通过"
+  ],
+  "depends_on": [],
+  "related_tasks": [],
+  "required_checks": [],
+  "promotion_policy": {
+    "auto_promote": false,
+    "max_review_rounds": 3
+  }
+}
