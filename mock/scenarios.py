@@ -30,9 +30,9 @@ from mock.sample_review_results import (
     LOOP_LIMIT_REVIEW,
     NEEDS_HUMAN_RULING_REVIEW,
 )
-from mock.sample_task_packets import MINIMAL_PACKET
+from mock.sample_task_packets import MINIMAL_PACKET, SCENARIO_PACKET
 from schemas.review_result import ReviewResult
-from schemas.task_packet import PromotionPolicy, TaskPacket
+from schemas.task_packet import TaskPacket
 from schemas.task_state import (
     NextAction,
     RoundRecord,
@@ -160,8 +160,8 @@ HAPPY_PATH = ReviewScenario(
 BLOCKING_FINDING = ReviewScenario(
     name="blocking_finding",
     description="reviewer 给出 in-scope blocking finding → NEEDS_FIX",
-    task_packet=MINIMAL_PACKET,
-    task_state=_reviewing_state("MOCK_minimal", 1),
+    task_packet=SCENARIO_PACKET,
+    task_state=_reviewing_state("MOCK_scenario", 1),
     review_result=BLOCKING_FINDING_REVIEW,
     expected_status=TaskStatus.NEEDS_FIX,
     expected_cause=TransitionCause.REVIEW_FINDINGS,
@@ -171,8 +171,8 @@ BLOCKING_FINDING = ReviewScenario(
 FAILED_CHECKS = ReviewScenario(
     name="failed_checks",
     description="checks 未过导致回环 → NEEDS_FIX",
-    task_packet=MINIMAL_PACKET,
-    task_state=_reviewing_state("MOCK_minimal", 1),
+    task_packet=SCENARIO_PACKET,
+    task_state=_reviewing_state("MOCK_scenario", 1),
     review_result=FAILED_CHECKS_REVIEW,
     expected_status=TaskStatus.NEEDS_FIX,
     expected_cause=TransitionCause.REVIEW_FINDINGS,
@@ -182,31 +182,20 @@ FAILED_CHECKS = ReviewScenario(
 NEEDS_HUMAN_RULING = ReviewScenario(
     name="needs_human_ruling",
     description="reviewer 无法可靠裁决 → NEEDS_HUMAN_RULING",
-    task_packet=MINIMAL_PACKET,
-    task_state=_reviewing_state("MOCK_minimal", 1),
+    task_packet=SCENARIO_PACKET,
+    task_state=_reviewing_state("MOCK_scenario", 1),
     review_result=NEEDS_HUMAN_RULING_REVIEW,
     expected_status=TaskStatus.NEEDS_HUMAN_RULING,
     expected_cause=TransitionCause.REVIEWER_ESCALATION,
     expected_notification="needs_human_ruling",
 )
 
-# 场景 5 需要一个 max_review_rounds=5 的 packet + round_no=5 的 state
-_LOOP_LIMIT_PACKET = TaskPacket(
-    task_id="MOCK_minimal",
-    title="最小样例任务",
-    must_do=["实现功能 A"],
-    done_criteria=["功能 A 测试通过"],
-    promotion_policy=PromotionPolicy(
-        auto_promote=False,
-        max_review_rounds=5,
-    ),
-)
-
+# 场景 5: SCENARIO_PACKET 已包含 max_review_rounds=5
 LOOP_LIMIT = ReviewScenario(
     name="loop_limit",
     description="loop 超限（round_no >= max_review_rounds）→ NEEDS_HUMAN_RULING",
-    task_packet=_LOOP_LIMIT_PACKET,
-    task_state=_reviewing_state("MOCK_minimal", 5),
+    task_packet=SCENARIO_PACKET,
+    task_state=_reviewing_state("MOCK_scenario", 5),
     review_result=LOOP_LIMIT_REVIEW,
     expected_status=TaskStatus.NEEDS_HUMAN_RULING,
     expected_cause=TransitionCause.LOOP_LIMIT,

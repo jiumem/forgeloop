@@ -47,7 +47,7 @@ CLEAN_REVIEW = ReviewResult(
 
 # ── 场景 2: 有 in-scope blocking finding ──
 BLOCKING_FINDING_REVIEW = ReviewResult(
-    task_id="MOCK_minimal",
+    task_id="MOCK_scenario",
     round_no=1,
     findings=[
         Finding(
@@ -70,7 +70,7 @@ BLOCKING_FINDING_REVIEW = ReviewResult(
 
 # ── 场景 3: 检查未通过导致回环 ──
 FAILED_CHECKS_REVIEW = ReviewResult(
-    task_id="MOCK_minimal",
+    task_id="MOCK_scenario",
     round_no=1,
     findings=[
         Finding(
@@ -93,7 +93,7 @@ FAILED_CHECKS_REVIEW = ReviewResult(
 
 # ── 场景 4: reviewer 无法可靠裁决 ──
 NEEDS_HUMAN_RULING_REVIEW = ReviewResult(
-    task_id="MOCK_minimal",
+    task_id="MOCK_scenario",
     round_no=1,
     findings=[
         Finding(
@@ -116,7 +116,7 @@ NEEDS_HUMAN_RULING_REVIEW = ReviewResult(
 
 # ── 场景 5: 配合 loop limit 使用（本身是 needs_fix，但 round_no >= max 时触发 loop limit）──
 LOOP_LIMIT_REVIEW = ReviewResult(
-    task_id="MOCK_minimal",
+    task_id="MOCK_scenario",
     round_no=5,
     findings=[
         Finding(

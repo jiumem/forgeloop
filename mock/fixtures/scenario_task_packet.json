@@ -1,0 +1,28 @@
+{
+  "task_id": "MOCK_scenario",
+  "title": "场景测试任务",
+  "phase": "",
+  "chain": "",
+  "entry_docs": [],
+  "must_do": [
+    "定义 TaskStatus 枚举",
+    "定义 NextAction 枚举",
+    "实现跃迁规则表"
+  ],
+  "must_not_do": [],
+  "done_criteria": [
+    "状态枚举可程序化引用",
+    "跃迁表覆盖设计方案所有路径",
+    "task_state 可 JSON 序列化/反序列化"
+  ],
+  "depends_on": [],
+  "related_tasks": [],
+  "required_checks": [
+    "uv run pytest",
+    "uv run ruff check ."
+  ],
+  "promotion_policy": {
+    "auto_promote": false,
+    "max_review_rounds": 5
+  }
+}

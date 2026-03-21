@@ -39,7 +39,7 @@ CLEAN_CODER = CoderResult(
 
 # ── 场景 2/3: 部分完成，有遗留 ──
 PARTIAL_CODER = CoderResult(
-    task_id="MOCK_minimal",
+    task_id="MOCK_scenario",
     round_no=1,
     files_changed=[
         "automation/controller/transitions.py",
@@ -62,7 +62,7 @@ PARTIAL_CODER = CoderResult(
 
 # ── 场景 3: 检查未通过 ──
 FAILED_CHECKS_CODER = CoderResult(
-    task_id="MOCK_minimal",
+    task_id="MOCK_scenario",
     round_no=1,
     files_changed=[
         "automation/controller/transitions.py",

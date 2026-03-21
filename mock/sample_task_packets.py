@@ -1,11 +1,11 @@
 """mock 样例 task_packet — 可复用的标准测试输入。
 
-提供最小和完整两个等级的样例，供 mock 场景、smoke test、
+提供最小、场景、完整三个等级的样例，供 mock 场景、smoke test、
 以及后续 P4/P5/P6 联调复用。
 
 用法::
 
-    from mock.sample_task_packets import MINIMAL_PACKET, FULL_PACKET
+    from mock.sample_task_packets import MINIMAL_PACKET, SCENARIO_PACKET, FULL_PACKET
 
     # 直接使用 Pydantic 实例
     state = TaskState(task_id=MINIMAL_PACKET.task_id)
@@ -26,6 +26,32 @@ MINIMAL_PACKET = TaskPacket(
     title="最小样例任务",
     must_do=["实现功能 A"],
     done_criteria=["功能 A 测试通过"],
+)
+
+# ── 场景级 task_packet ──
+# 供 ReviewResult fixtures 的 scope_basis 引用，字段足够丰富。
+# 所有 finding.scope_basis 中的索引和内容必须在此 packet 中可查。
+SCENARIO_PACKET = TaskPacket(
+    task_id="MOCK_scenario",
+    title="场景测试任务",
+    must_do=[
+        "定义 TaskStatus 枚举",
+        "定义 NextAction 枚举",
+        "实现跃迁规则表",
+    ],
+    done_criteria=[
+        "状态枚举可程序化引用",
+        "跃迁表覆盖设计方案所有路径",
+        "task_state 可 JSON 序列化/反序列化",
+    ],
+    required_checks=[
+        "uv run pytest",
+        "uv run ruff check .",
+    ],
+    promotion_policy=PromotionPolicy(
+        auto_promote=False,
+        max_review_rounds=5,
+    ),
 )
 
 # ── 完整 task_packet ──

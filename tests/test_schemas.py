@@ -643,12 +643,21 @@ _FIXTURES_DIR = Path(__file__).resolve().parent.parent / "mock" / "fixtures"
 class TestMockFixtureConsistency:
     """mock/ 下 Python 样例实例与 JSON fixture 必须一致。"""
 
+    # ── TaskPacket round-trip ──
+
     def test_minimal_packet_matches_json(self) -> None:
         from mock.sample_task_packets import MINIMAL_PACKET
 
         json_path = _FIXTURES_DIR / "minimal_task_packet.json"
         json_data = json.loads(json_path.read_text(encoding="utf-8"))
         assert MINIMAL_PACKET.model_dump(mode="json") == json_data
+
+    def test_scenario_packet_matches_json(self) -> None:
+        from mock.sample_task_packets import SCENARIO_PACKET
+
+        json_path = _FIXTURES_DIR / "scenario_task_packet.json"
+        json_data = json.loads(json_path.read_text(encoding="utf-8"))
+        assert SCENARIO_PACKET.model_dump(mode="json") == json_data
 
     def test_full_packet_matches_json(self) -> None:
         from mock.sample_task_packets import FULL_PACKET
@@ -659,8 +668,147 @@ class TestMockFixtureConsistency:
 
     def test_json_fixtures_roundtrip_as_valid_task_packet(self) -> None:
         """JSON fixture 必须能被 TaskPacket 校验通过（双向锁定）。"""
-        for name in ("minimal_task_packet.json", "full_task_packet.json"):
+        for name in (
+            "minimal_task_packet.json",
+            "scenario_task_packet.json",
+            "full_task_packet.json",
+        ):
             json_path = _FIXTURES_DIR / name
             data = json.loads(json_path.read_text(encoding="utf-8"))
             tp = TaskPacket(**data)
             assert tp.task_id
+
+    # ── CoderResult round-trip ──
+
+    def test_coder_result_matches_json(self) -> None:
+        from mock.sample_coder_results import (
+            CLEAN_CODER,
+            FAILED_CHECKS_CODER,
+            PARTIAL_CODER,
+        )
+
+        _pairs: list[tuple[str, CoderResult]] = [
+            ("clean_coder_result.json", CLEAN_CODER),
+            ("partial_coder_result.json", PARTIAL_CODER),
+            ("failed_checks_coder_result.json", FAILED_CHECKS_CODER),
+        ]
+        for filename, instance in _pairs:
+            json_path = _FIXTURES_DIR / filename
+            json_data = json.loads(json_path.read_text(encoding="utf-8"))
+            assert instance.model_dump(mode="json") == json_data, filename
+
+    def test_coder_result_json_roundtrip(self) -> None:
+        """CoderResult JSON fixture 能被 schema 校验通过。"""
+        for name in (
+            "clean_coder_result.json",
+            "partial_coder_result.json",
+            "failed_checks_coder_result.json",
+        ):
+            data = json.loads((_FIXTURES_DIR / name).read_text(encoding="utf-8"))
+            cr = CoderResult(**data)
+            assert cr.task_id
+
+    # ── ReviewResult round-trip ──
+
+    def test_review_result_matches_json(self) -> None:
+        from mock.sample_review_results import (
+            BLOCKING_FINDING_REVIEW,
+            CLEAN_REVIEW,
+            FAILED_CHECKS_REVIEW,
+            LOOP_LIMIT_REVIEW,
+            NEEDS_HUMAN_RULING_REVIEW,
+        )
+
+        _pairs: list[tuple[str, ReviewResult]] = [
+            ("clean_review_result.json", CLEAN_REVIEW),
+            ("blocking_finding_review_result.json", BLOCKING_FINDING_REVIEW),
+            ("failed_checks_review_result.json", FAILED_CHECKS_REVIEW),
+            ("needs_human_ruling_review_result.json", NEEDS_HUMAN_RULING_REVIEW),
+            ("loop_limit_review_result.json", LOOP_LIMIT_REVIEW),
+        ]
+        for filename, instance in _pairs:
+            json_path = _FIXTURES_DIR / filename
+            json_data = json.loads(json_path.read_text(encoding="utf-8"))
+            assert instance.model_dump(mode="json") == json_data, filename
+
+    def test_review_result_json_roundtrip(self) -> None:
+        """ReviewResult JSON fixture 能被 schema 校验通过。"""
+        for name in (
+            "clean_review_result.json",
+            "blocking_finding_review_result.json",
+            "failed_checks_review_result.json",
+            "needs_human_ruling_review_result.json",
+            "loop_limit_review_result.json",
+        ):
+            data = json.loads((_FIXTURES_DIR / name).read_text(encoding="utf-8"))
+            rr = ReviewResult(**data)
+            assert rr.task_id
+
+
+class TestScenarioSemanticConsistency:
+    """mock/scenarios.py 语义一致性 — scope_basis 引用与 task_id 对齐。"""
+
+    @staticmethod
+    def _resolve_scope_basis(packet: TaskPacket, scope_basis: str) -> bool:
+        """检查 scope_basis 引用的字段/索引在 packet 中是否存在。
+
+        支持格式:
+        - "must_do[2]: ..." → packet.must_do[2] 存在
+        - "required_checks[0]: ..." → packet.required_checks[0] 存在
+        - "done_criteria[2] ..." → packet.done_criteria[2] 存在
+        """
+        import re
+
+        m = re.match(r"^(\w+)\[(\d+)\]", scope_basis)
+        if not m:
+            return True
+        field_name, idx_str = m.group(1), int(m.group(2))
+        field_val: object = getattr(packet, field_name, None)
+        if not isinstance(field_val, list):
+            return False
+        return idx_str < len(field_val)  # pyright: ignore[reportUnknownArgumentType]
+
+    def test_review_scenario_task_id_alignment(self) -> None:
+        """每个 ReviewScenario 的三元组 task_id 必须一致。"""
+        from mock.scenarios import REVIEW_SCENARIOS
+
+        for name, s in REVIEW_SCENARIOS.items():
+            pkt_id = s.task_packet.task_id
+            state_id = s.task_state.task_id
+            review_id = s.review_result.task_id
+            assert pkt_id == state_id, (
+                f"{name}: task_packet.task_id={pkt_id} != task_state.task_id={state_id}"
+            )
+            assert pkt_id == review_id, (
+                f"{name}: task_packet.task_id={pkt_id} != review_result.task_id={review_id}"
+            )
+
+    def test_scope_basis_references_exist_in_paired_packet(self) -> None:
+        """每个 finding 的 scope_basis 引用的字段索引在配对 TaskPacket 中必须存在。"""
+        from mock.scenarios import REVIEW_SCENARIOS
+
+        for name, s in REVIEW_SCENARIOS.items():
+            for f in s.review_result.findings:
+                assert self._resolve_scope_basis(s.task_packet, f.scope_basis), (
+                    f"{name}: finding={f.finding_key} 的 "
+                    f"scope_basis={f.scope_basis!r} "
+                    f"在 {s.task_packet.task_id} 中不可查"
+                )
+
+    def test_approval_scenario_task_state_in_human_review(self) -> None:
+        """ApprovalScenario 的 task_state 必须处于 HUMAN_REVIEW。"""
+        from mock.scenarios import APPROVAL_SCENARIOS
+
+        for name, s in APPROVAL_SCENARIOS.items():
+            assert s.task_state.current_status == TaskStatus.HUMAN_REVIEW, (
+                f"{name}: expected HUMAN_REVIEW, got {s.task_state.current_status}"
+            )
+
+    def test_review_scenario_task_state_in_reviewing(self) -> None:
+        """ReviewScenario 的 task_state 必须处于 REVIEWING。"""
+        from mock.scenarios import REVIEW_SCENARIOS
+
+        for name, s in REVIEW_SCENARIOS.items():
+            assert s.task_state.current_status == TaskStatus.REVIEWING, (
+                f"{name}: expected REVIEWING, got {s.task_state.current_status}"
+            )
