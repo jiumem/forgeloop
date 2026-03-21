@@ -1,0 +1,22 @@
+{
+  "task_id": "MOCK_minimal",
+  "round_no": 5,
+  "findings": [
+    {
+      "finding_key": "recurring-test-failure",
+      "severity": "P1",
+      "summary": "反复出现的测试失败",
+      "why_it_matters": "经过多轮修复仍未解决，可能需要人工介入。",
+      "in_scope": true,
+      "scope_basis": "required_checks[0]: uv run pytest",
+      "blocks_promotion": true
+    }
+  ],
+  "current_task_verdict": "needs_fix",
+  "promotion_readiness": {
+    "ready": false,
+    "rationale": "仍有阻断 finding，且已达回环上限。"
+  },
+  "next_task_recommendations": [],
+  "summary": "多轮修复未能解决测试失败，建议人工介入。"
+}

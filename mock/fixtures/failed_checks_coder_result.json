@@ -1,0 +1,37 @@
+{
+  "task_id": "MOCK_minimal",
+  "round_no": 1,
+  "files_changed": [
+    "automation/controller/transitions.py",
+    "tests/test_transitions.py"
+  ],
+  "contracts_addressed": [
+    "状态枚举可程序化引用",
+    "跃迁表覆盖设计方案所有路径"
+  ],
+  "cleanups_done": [],
+  "check_results": [
+    {
+      "check_name": "uv run pytest",
+      "status": "failed",
+      "message": "2 tests failed"
+    },
+    {
+      "check_name": "uv run ruff check .",
+      "status": "passed",
+      "message": ""
+    },
+    {
+      "check_name": "uv run ruff format --check .",
+      "status": "passed",
+      "message": ""
+    },
+    {
+      "check_name": "uv run pyright",
+      "status": "passed",
+      "message": ""
+    }
+  ],
+  "out_of_scope_notes": [],
+  "summary": "代码变更完成但有 2 个测试未通过。"
+}
