@@ -812,3 +812,32 @@ class TestScenarioSemanticConsistency:
             assert s.task_state.current_status == TaskStatus.REVIEWING, (
                 f"{name}: expected REVIEWING, got {s.task_state.current_status}"
             )
+
+    def test_lifecycle_scope_basis_references_exist(self) -> None:
+        """lifecycle 场景中每个 review step 的 scope_basis 在配对 TaskPacket 中可查。"""
+        from mock.scenarios import LIFECYCLE_SCENARIOS, LifecycleAction
+
+        for name, s in LIFECYCLE_SCENARIOS.items():
+            for i, step in enumerate(s.steps):
+                if step.action != LifecycleAction.DECIDE_AFTER_REVIEW:
+                    continue
+                assert step.review_result is not None, (
+                    f"{name} step[{i}]: DECIDE_AFTER_REVIEW 缺少 review_result"
+                )
+                for f in step.review_result.findings:
+                    assert self._resolve_scope_basis(s.task_packet, f.scope_basis), (
+                        f"{name} step[{i}]: finding={f.finding_key} 的 "
+                        f"scope_basis={f.scope_basis!r} "
+                        f"在 {s.task_packet.task_id} 中不可查"
+                    )
+
+    def test_lifecycle_decide_steps_have_review_result(self) -> None:
+        """lifecycle 场景中 DECIDE_AFTER_REVIEW 步骤必须携带 review_result。"""
+        from mock.scenarios import LIFECYCLE_SCENARIOS, LifecycleAction
+
+        for name, s in LIFECYCLE_SCENARIOS.items():
+            for i, step in enumerate(s.steps):
+                if step.action == LifecycleAction.DECIDE_AFTER_REVIEW:
+                    assert step.review_result is not None, (
+                        f"{name} step[{i}]: DECIDE_AFTER_REVIEW 缺少 review_result"
+                    )

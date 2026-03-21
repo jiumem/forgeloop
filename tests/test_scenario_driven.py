@@ -26,9 +26,9 @@ from mock.scenarios import (
     REVIEW_SCENARIOS,
     ApprovalScenario,
     FullLifecycleScenario,
+    LifecycleAction,
     ReviewScenario,
 )
-from schemas.review_result import ReviewResult
 
 # ═══════════════════════════════════════════════════
 # decide_after_review 参数化测试
@@ -190,33 +190,14 @@ class TestApprovalScenarios:
 
 _LIFECYCLE_IDS = list(LIFECYCLE_SCENARIOS.keys())
 
-
-def _make_clean_review(task_id: str, round_no: int) -> ReviewResult:
-    """为 lifecycle 测试构造 clean review。"""
-    from mock.sample_review_results import CLEAN_REVIEW
-
-    return CLEAN_REVIEW.model_copy(update={"task_id": task_id, "round_no": round_no})
-
-
-def _make_blocking_review(task_id: str, round_no: int) -> ReviewResult:
-    """为 lifecycle 测试构造 blocking review。"""
-    from mock.sample_review_results import BLOCKING_FINDING_REVIEW
-
-    return BLOCKING_FINDING_REVIEW.model_copy(update={"task_id": task_id, "round_no": round_no})
-
-
-def _make_escalation_review(task_id: str, round_no: int) -> ReviewResult:
-    """为 lifecycle 测试构造 needs_human_ruling review。"""
-    from mock.sample_review_results import NEEDS_HUMAN_RULING_REVIEW
-
-    return NEEDS_HUMAN_RULING_REVIEW.model_copy(update={"task_id": task_id, "round_no": round_no})
+_A = LifecycleAction
 
 
 class TestLifecycleScenarios:
     """用 P4 FullLifecycleScenario 验证端到端多步骤流程。
 
-    每个 lifecycle scenario 的 steps 是 (动作描述, 期望状态) 序列。
-    测试引擎根据动作描述分派到对应的 transition 函数。
+    每步是结构化 LifecycleStep，携带 action enum + scenario 绑定的 review_result。
+    测试引擎根据 action 分派到对应的 transition 函数，无字符串匹配。
     """
 
     def _run_lifecycle(self, scenario: FullLifecycleScenario) -> None:
@@ -225,45 +206,36 @@ class TestLifecycleScenarios:
 
         packet = scenario.task_packet
         state = TaskState(task_id=packet.task_id)
-        round_no = 0
 
-        for step_desc, expected_status in scenario.steps:
-            if step_desc == "start_task":
+        for step in scenario.steps:
+            if step.action == _A.START_TASK:
                 state = start_task(state)
-                round_no = state.round_no
-            elif step_desc.startswith("coder_done"):
-                ref = f"runs/{packet.task_id}/r{round_no}_coder.json"
+            elif step.action == _A.CODER_DONE:
+                ref = f"runs/{packet.task_id}/r{state.round_no}_coder.json"
                 state = coder_done(state, coder_result_ref=ref)
-            elif "decide_after_review" in step_desc:
-                review = self._pick_review(step_desc, packet.task_id, round_no)
+            elif step.action == _A.DECIDE_AFTER_REVIEW:
+                assert step.review_result is not None, (
+                    f"{scenario.name}: DECIDE_AFTER_REVIEW 缺少 review_result"
+                )
+                review = step.review_result.model_copy(
+                    update={"task_id": packet.task_id, "round_no": state.round_no}
+                )
                 decision = decide_after_review(packet, state, review)
-                ref = f"runs/{packet.task_id}/r{round_no}_review.json"
+                ref = f"runs/{packet.task_id}/r{state.round_no}_review.json"
                 state = apply_transition(state, decision, reviewer_result_ref=ref)
-            elif step_desc == "needs_fix_to_coding":
+            elif step.action == _A.NEEDS_FIX_TO_CODING:
                 state = needs_fix_to_coding(state)
-                round_no = state.round_no
-            elif step_desc == "enter_human_review":
+            elif step.action == _A.ENTER_HUMAN_REVIEW:
                 state = enter_human_review(state)
-            elif step_desc == "approve_human_review":
+            elif step.action == _A.APPROVE_HUMAN_REVIEW:
                 state = approve_human_review(state, closure_summary="lifecycle test done")
-            else:
-                raise ValueError(f"Unknown step: {step_desc}")
+            else:  # pragma: no cover
+                raise ValueError(f"Unknown action: {step.action}")
 
-            assert state.current_status == expected_status, (
-                f"{scenario.name} step '{step_desc}': "
-                f"expected {expected_status}, got {state.current_status}"
+            assert state.current_status == step.expected_status, (
+                f"{scenario.name} step {step.action.value}: "
+                f"expected {step.expected_status}, got {state.current_status}"
             )
-
-    @staticmethod
-    def _pick_review(step_desc: str, task_id: str, round_no: int) -> ReviewResult:
-        """根据 step 描述选择对应的 ReviewResult。"""
-        if "clean" in step_desc:
-            return _make_clean_review(task_id, round_no)
-        elif "blocking" in step_desc:
-            return _make_blocking_review(task_id, round_no)
-        elif "needs_human_ruling" in step_desc:
-            return _make_escalation_review(task_id, round_no)
-        raise ValueError(f"Cannot pick review for: {step_desc}")
 
     def test_lifecycle_happy(self) -> None:
         self._run_lifecycle(LIFECYCLE_SCENARIOS["lifecycle_happy"])

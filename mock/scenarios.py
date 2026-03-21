@@ -20,7 +20,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from enum import StrEnum
 
 from automation.controller.transitions import TransitionCause
 from mock.sample_review_results import (
@@ -83,20 +84,38 @@ class ApprovalScenario:
     expected_notification: str = "task_done"
 
 
+class LifecycleAction(StrEnum):
+    """生命周期步骤动作枚举。"""
+
+    START_TASK = "start_task"
+    CODER_DONE = "coder_done"
+    DECIDE_AFTER_REVIEW = "decide_after_review"
+    NEEDS_FIX_TO_CODING = "needs_fix_to_coding"
+    ENTER_HUMAN_REVIEW = "enter_human_review"
+    APPROVE_HUMAN_REVIEW = "approve_human_review"
+
+
+@dataclass(frozen=True)
+class LifecycleStep:
+    """生命周期场景的单步。"""
+
+    action: LifecycleAction
+    expected_status: TaskStatus
+    review_result: ReviewResult | None = None
+
+
 @dataclass(frozen=True)
 class FullLifecycleScenario:
     """一条完整生命周期路径（多步骤）。
 
-    steps 中每一步是 (动作描述, 期望状态) 的序列，
-    用于端到端场景验证。
+    每一步是结构化 LifecycleStep，携带 action enum + 可选 review_result。
+    review_result 仅在 action=DECIDE_AFTER_REVIEW 时必填。
     """
 
     name: str
     description: str
     task_packet: TaskPacket
-    steps: list[tuple[str, TaskStatus]] = field(
-        default_factory=lambda: list[tuple[str, TaskStatus]]()
-    )
+    steps: tuple[LifecycleStep, ...]
 
 
 # ═══════════════════════════════════════════════════
@@ -223,17 +242,19 @@ HUMAN_APPROVAL = ApprovalScenario(
 # ═══════════════════════════════════════════════════
 
 
+_A = LifecycleAction
+
 LIFECYCLE_HAPPY = FullLifecycleScenario(
     name="lifecycle_happy",
     description="NEW → CODING → REVIEWING → REVIEW_CLEAN → HUMAN_REVIEW → DONE",
     task_packet=MINIMAL_PACKET,
-    steps=[
-        ("start_task", TaskStatus.CODING),
-        ("coder_done", TaskStatus.REVIEWING),
-        ("decide_after_review (clean)", TaskStatus.REVIEW_CLEAN),
-        ("enter_human_review", TaskStatus.HUMAN_REVIEW),
-        ("approve_human_review", TaskStatus.DONE),
-    ],
+    steps=(
+        LifecycleStep(_A.START_TASK, TaskStatus.CODING),
+        LifecycleStep(_A.CODER_DONE, TaskStatus.REVIEWING),
+        LifecycleStep(_A.DECIDE_AFTER_REVIEW, TaskStatus.REVIEW_CLEAN, CLEAN_REVIEW),
+        LifecycleStep(_A.ENTER_HUMAN_REVIEW, TaskStatus.HUMAN_REVIEW),
+        LifecycleStep(_A.APPROVE_HUMAN_REVIEW, TaskStatus.DONE),
+    ),
 )
 
 LIFECYCLE_ONE_FIX = FullLifecycleScenario(
@@ -242,28 +263,32 @@ LIFECYCLE_ONE_FIX = FullLifecycleScenario(
         "NEW → CODING → REVIEWING → NEEDS_FIX → CODING"
         " → REVIEWING → REVIEW_CLEAN → HUMAN_REVIEW → DONE"
     ),
-    task_packet=MINIMAL_PACKET,
-    steps=[
-        ("start_task", TaskStatus.CODING),
-        ("coder_done", TaskStatus.REVIEWING),
-        ("decide_after_review (blocking finding)", TaskStatus.NEEDS_FIX),
-        ("needs_fix_to_coding", TaskStatus.CODING),
-        ("coder_done (round 2)", TaskStatus.REVIEWING),
-        ("decide_after_review (clean)", TaskStatus.REVIEW_CLEAN),
-        ("enter_human_review", TaskStatus.HUMAN_REVIEW),
-        ("approve_human_review", TaskStatus.DONE),
-    ],
+    task_packet=SCENARIO_PACKET,
+    steps=(
+        LifecycleStep(_A.START_TASK, TaskStatus.CODING),
+        LifecycleStep(_A.CODER_DONE, TaskStatus.REVIEWING),
+        LifecycleStep(_A.DECIDE_AFTER_REVIEW, TaskStatus.NEEDS_FIX, BLOCKING_FINDING_REVIEW),
+        LifecycleStep(_A.NEEDS_FIX_TO_CODING, TaskStatus.CODING),
+        LifecycleStep(_A.CODER_DONE, TaskStatus.REVIEWING),
+        LifecycleStep(_A.DECIDE_AFTER_REVIEW, TaskStatus.REVIEW_CLEAN, CLEAN_REVIEW),
+        LifecycleStep(_A.ENTER_HUMAN_REVIEW, TaskStatus.HUMAN_REVIEW),
+        LifecycleStep(_A.APPROVE_HUMAN_REVIEW, TaskStatus.DONE),
+    ),
 )
 
 LIFECYCLE_ESCALATION = FullLifecycleScenario(
     name="lifecycle_escalation",
     description="NEW → CODING → REVIEWING → NEEDS_HUMAN_RULING",
-    task_packet=MINIMAL_PACKET,
-    steps=[
-        ("start_task", TaskStatus.CODING),
-        ("coder_done", TaskStatus.REVIEWING),
-        ("decide_after_review (needs_human_ruling)", TaskStatus.NEEDS_HUMAN_RULING),
-    ],
+    task_packet=SCENARIO_PACKET,
+    steps=(
+        LifecycleStep(_A.START_TASK, TaskStatus.CODING),
+        LifecycleStep(_A.CODER_DONE, TaskStatus.REVIEWING),
+        LifecycleStep(
+            _A.DECIDE_AFTER_REVIEW,
+            TaskStatus.NEEDS_HUMAN_RULING,
+            NEEDS_HUMAN_RULING_REVIEW,
+        ),
+    ),
 )
 
 
