@@ -38,8 +38,8 @@ These agents are the stable role layer for the built-in workflow skills. They ar
 
 - Stage: implementation review
 - Used by: `task-loop`, `requesting-code-review`
-- Purpose: review production readiness, test quality, regressions, and maintainability
-- Returns: strengths, findings by severity, and a merge assessment
+- Purpose: review production readiness, test quality, regressions, and maintainability for the provided review scope
+- Returns: strengths, findings by severity, and a readiness assessment for the reviewed scope
 
 ## Boundary Rules
 

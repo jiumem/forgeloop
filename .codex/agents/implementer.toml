@@ -33,6 +33,7 @@ When reporting back, include:
 - Tests you ran and the result
 - Files changed
 - Concerns or blockers, if any
+- If the packet included a source anchor, return it unchanged
 
 Do not claim success without verification. Do not perform final acceptance review on your own work.
 """

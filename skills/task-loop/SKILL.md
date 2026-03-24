@@ -1,143 +1,178 @@
 ---
 name: task-loop
-description: Use when executing implementation plans with independent tasks in the current session
+description: Use when one bounded implementation task is ready to enter a subagent-driven implement-review-fix loop
 ---
 
 # Task Loop
 
-Execute plan by dispatching fresh subagent per task, with two-stage review after each: spec compliance review first, then code quality review.
+Execute exactly one bounded task packet through a fresh `implementer`, then ordered `spec_reviewer` and `code_reviewer` loops, until the task is complete or explicitly blocked.
 
 If you are reading this skill body, the workflow has already reached the point where subagents are required to move the task forward. Do not ask the user whether to enable subagents; start the task loop.
 
-**Why subagents:** You delegate tasks to specialized agents with isolated context. By precisely crafting their instructions and context, you ensure they stay focused and succeed at their task. They should never inherit your session's context or history — you construct exactly what they need. This also preserves your own context for coordination work.
+**Boundary rule:** `task-loop` does not read a whole plan, does not schedule multiple tasks, and does not finish the development branch. The caller owns plan parsing, task ordering, milestone tracking, and final branch completion. `task-loop` owns only one task at a time.
 
-**Core principle:** Fresh subagent per task + two-stage review (spec then quality) = high quality, fast iteration
+**Why subagents:** You delegate one task to specialized agents with isolated context. By precisely crafting the task packet, you keep them focused on the bounded work instead of rediscovering requirements from your session history.
+
+**Core principle:** One task packet + fresh implementer context + ordered review loops = reliable task closure
+
+**Codex-native orchestration rule:** `implementer` is a long-lived task-local subagent. Spawn it once, save its `agent_id`, and reuse it for fix rounds via `send_input`. `spec_reviewer` and `code_reviewer` are fresh short-lived reviewers. Spawn a new reviewer each round. Unless there is a specific reason to fork history, all three agents should be spawned with `fork_context=false`.
 
 ## When to Use
 
-```dot
-digraph when_to_use {
-    "Have implementation plan?" [shape=diamond];
-    "Tasks mostly independent?" [shape=diamond];
-    "Stay in this session?" [shape=diamond];
-    "task-loop" [shape=box];
-    "flat-tasks-loop" [shape=box];
-    "Manual execution or brainstorm first" [shape=box];
-
-    "Have implementation plan?" -> "Tasks mostly independent?" [label="yes"];
-    "Have implementation plan?" -> "Manual execution or brainstorm first" [label="no"];
-    "Tasks mostly independent?" -> "Stay in this session?" [label="yes"];
-    "Tasks mostly independent?" -> "Manual execution or brainstorm first" [label="no - tightly coupled"];
-    "Stay in this session?" -> "task-loop" [label="yes"];
-    "Stay in this session?" -> "flat-tasks-loop" [label="no - parallel session"];
-}
-```
-
-**vs. Executing Plans (parallel session):**
-- Same session (no context switch)
-- Fresh subagent per task (no context pollution)
-- Two-stage review after each task: spec compliance first, then code quality
-- Faster iteration (no human-in-loop between tasks)
+- Use `task-loop` when you already have exactly one bounded task to execute.
+- Use `forgeloop:flat-tasks-loop` when you have a multi-task plan that must be flattened and executed serially.
+- Use `forgeloop:writing-plans` first if the work is still a rough requirement, not a task packet.
+- Use ad-hoc manual execution only when the task is too small to justify the loop or the user explicitly wants direct implementation.
 
 ## The Process
 
-```dot
-digraph process {
-    rankdir=TB;
+### Step 1: Build the Task Packet
 
-    subgraph cluster_per_task {
-        label="Per Task";
-        "Dispatch implementer custom agent (./implementer-prompt.md)" [shape=box];
-        "Implementer subagent asks questions?" [shape=diamond];
-        "Answer questions, provide context" [shape=box];
-        "Implementer subagent implements, tests, commits, self-reviews" [shape=box];
-        "Dispatch spec_reviewer custom agent (./spec-reviewer-prompt.md)" [shape=box];
-        "Spec reviewer subagent confirms code matches spec?" [shape=diamond];
-        "Implementer subagent fixes spec gaps" [shape=box];
-        "Dispatch code_reviewer custom agent (./code-quality-reviewer-prompt.md)" [shape=box];
-        "Code quality reviewer subagent approves?" [shape=diamond];
-        "Implementer subagent fixes quality issues" [shape=box];
-        "Mark task complete in update_plan" [shape=box];
-    }
+Before dispatching, assemble the exact packet for this one task:
 
-    "Read plan, extract all tasks with full text, note context, create update_plan" [shape=box];
-    "More tasks remain?" [shape=diamond];
-    "Dispatch final code_reviewer custom agent for entire implementation" [shape=box];
-    "Use forgeloop:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
+- Full task text
+- Acceptance criteria
+- Relevant repo and module context
+- Related files, APIs, or prior tasks this task depends on
+- Constraints, non-goals, and migration notes
+- Required verification commands
+- Source anchor, if the caller supplied one
 
-    "Read plan, extract all tasks with full text, note context, create update_plan" -> "Dispatch implementer custom agent (./implementer-prompt.md)";
-    "Dispatch implementer custom agent (./implementer-prompt.md)" -> "Implementer subagent asks questions?";
-    "Implementer subagent asks questions?" -> "Answer questions, provide context" [label="yes"];
-    "Answer questions, provide context" -> "Dispatch implementer custom agent (./implementer-prompt.md)";
-    "Implementer subagent asks questions?" -> "Implementer subagent implements, tests, commits, self-reviews" [label="no"];
-    "Implementer subagent implements, tests, commits, self-reviews" -> "Dispatch spec_reviewer custom agent (./spec-reviewer-prompt.md)";
-    "Dispatch spec_reviewer custom agent (./spec-reviewer-prompt.md)" -> "Spec reviewer subagent confirms code matches spec?";
-    "Spec reviewer subagent confirms code matches spec?" -> "Implementer subagent fixes spec gaps" [label="no"];
-    "Implementer subagent fixes spec gaps" -> "Dispatch spec_reviewer custom agent (./spec-reviewer-prompt.md)" [label="re-review"];
-    "Spec reviewer subagent confirms code matches spec?" -> "Dispatch code_reviewer custom agent (./code-quality-reviewer-prompt.md)" [label="yes"];
-    "Dispatch code_reviewer custom agent (./code-quality-reviewer-prompt.md)" -> "Code quality reviewer subagent approves?";
-    "Code quality reviewer subagent approves?" -> "Implementer subagent fixes quality issues" [label="no"];
-    "Implementer subagent fixes quality issues" -> "Dispatch code_reviewer custom agent (./code-quality-reviewer-prompt.md)" [label="re-review"];
-    "Code quality reviewer subagent approves?" -> "Mark task complete in update_plan" [label="yes"];
-    "Mark task complete in update_plan" -> "More tasks remain?";
-    "More tasks remain?" -> "Dispatch implementer custom agent (./implementer-prompt.md)" [label="yes"];
-    "More tasks remain?" -> "Dispatch final code_reviewer custom agent for entire implementation" [label="no"];
-    "Dispatch final code_reviewer custom agent for entire implementation" -> "Use forgeloop:finishing-a-development-branch";
-}
-```
+Also establish the task-local review boundary before the implementer starts work:
+
+- Record the starting commit or equivalent task-local base point
+- Treat this task-local boundary as the only scope reviewers should inspect
+- Do not let task-local review drift into unrelated branch changes
+
+Do not make the implementer rediscover the task from a whole plan file if you can provide the bounded packet directly.
+
+### Step 2: Dispatch `implementer`
+
+Spawn the `implementer` custom agent with the full task packet.
+
+Codex control-plane requirements:
+- Use `spawn_agent` once for the implementer
+- Set `fork_context=false` unless you have a specific reason to fork history
+- Save the returned `agent_id`
+- Treat that `agent_id` as the task's implementation thread for the rest of the loop
+
+The implementer should handle:
+- Implementation
+- Test updates or additions
+- Local verification
+- Self-review before handing work back
+
+### Step 3: Handle Implementer Status
+
+Use `wait_agent` when you are blocked on the implementer's result.
+
+Implementer subagents report one of four statuses. Handle each deliberately:
+
+**DONE:** Proceed to spec review.
+
+**DONE_WITH_CONCERNS:** Read the concerns before proceeding. If the concern affects correctness, scope, migration safety, or verification, resolve it before review. If that concern cannot be resolved within the current task packet, do not continue as if the task is healthy - convert the situation into `NEEDS_CONTEXT` or `BLOCKED` and stop the loop until the issue is handled.
+
+**NEEDS_CONTEXT:** Provide the missing context to the same implementer via `send_input`, then `wait_agent` on that same `agent_id` again. Do not spawn a replacement implementer just because more context is needed.
+
+**BLOCKED:** Stop the loop and assess the blocker:
+1. Provide missing context and retry
+2. Re-dispatch with a more capable model if the task needs more reasoning
+3. Split the task if the task packet is too large
+4. Escalate to the human if the plan or requirement is wrong
+
+Before leaving this step with a healthy implementation result, capture the task-local review inputs:
+- touched files for this task
+- task-local head point after the implementer round
+- verification evidence the implementer produced
+
+### Step 4: Run the Spec Review Loop First
+
+Dispatch a fresh `spec_reviewer` with:
+- the original task packet
+- the source anchor, if present
+- the task-local review boundary
+- the task-local touched files
+- the task-local verification evidence
+- the implementer result
+
+Codex control-plane requirements:
+- Spawn a new `spec_reviewer` each review round
+- Set `fork_context=false`
+- Do not reuse prior reviewer threads
+- `wait_agent` for the review result before proceeding
+
+If the spec reviewer finds issues:
+1. Use `send_input` to the same `implementer` `agent_id` with the reviewer findings; the original task packet remains authoritative
+2. Fix only the reported gaps or incorrect additions without dropping the original task boundaries
+3. `wait_agent` on the same implementer
+4. Spawn a fresh `spec_reviewer` and review again within the same task-local boundary
+
+Do not start code quality review until spec compliance is approved.
+
+### Step 5: Run the Code Review Loop Second
+
+After spec review passes, dispatch a fresh `code_reviewer` with:
+- the original task packet
+- the source anchor, if present
+- the task-local review boundary
+- the task-local touched files
+- the task-local verification evidence
+- the implementer result
+
+Codex control-plane requirements:
+- Spawn a new `code_reviewer` each review round
+- Set `fork_context=false`
+- Do not reuse prior reviewer threads
+- Interpret the reviewer output as a task-slice readiness assessment, not a whole-branch merge gate
+- `wait_agent` for the review result before proceeding
+
+If the code reviewer finds issues:
+1. Use `send_input` to the same `implementer` `agent_id` with the reviewer findings; the original task packet remains authoritative
+2. Fix the reported quality or risk issues without replacing the original task packet with a narrower reviewer summary
+3. `wait_agent` on the same implementer
+4. Spawn a fresh `code_reviewer` and review again within the same task-local boundary
+
+Repeat until the task is approved or explicitly blocked.
+
+### Step 6: Return a Task Result to the Caller
+
+When the loop finishes, return a concise task result to the caller:
+
+- Status: complete or blocked
+- What changed
+- What verification passed
+- Any remaining concerns that do not block task completion
+- The source anchor received from the caller, unchanged
+
+The caller decides whether to mark a milestone task complete, advance to the next task, request wider review, or stop.
 
 ## Model Selection
 
 Use the least powerful model that can handle each role to conserve cost and increase speed.
 
-**Mechanical implementation tasks** (isolated functions, clear specs, 1-2 files): use a fast, cheap model. Most implementation tasks are mechanical when the plan is well-specified.
+**Mechanical implementation tasks** (isolated functions, clear specs, 1-2 files): use a fast, cheap model.
 
 **Integration and judgment tasks** (multi-file coordination, pattern matching, debugging): use a standard model.
 
 **Architecture, design, and review tasks**: use the most capable available model.
 
 **Task complexity signals:**
-- Touches 1-2 files with a complete spec → cheap model
-- Touches multiple files with integration concerns → standard model
-- Requires design judgment or broad codebase understanding → most capable model
-
-## Handling Implementer Status
-
-Implementer subagents report one of four statuses. Handle each appropriately:
-
-**DONE:** Proceed to spec compliance review.
-
-**DONE_WITH_CONCERNS:** The implementer completed the work but flagged doubts. Read the concerns before proceeding. If the concerns are about correctness or scope, address them before review. If they're observations (e.g., "this file is getting large"), note them and proceed to review.
-
-**NEEDS_CONTEXT:** The implementer needs information that wasn't provided. Provide the missing context and re-dispatch.
-
-**BLOCKED:** The implementer cannot complete the task. Assess the blocker:
-1. If it's a context problem, provide more context and re-dispatch with the same model
-2. If the task requires more reasoning, re-dispatch with a more capable model
-3. If the task is too large, break it into smaller pieces
-4. If the plan itself is wrong, escalate to the human
-
-**Never** ignore an escalation or force the same model to retry without changes. If the implementer said it's stuck, something needs to change.
-
-## Prompt Templates
-
-- `./implementer-prompt.md` - Dispatch `implementer`
-- `./spec-reviewer-prompt.md` - Dispatch `spec_reviewer`
-- `./code-quality-reviewer-prompt.md` - Dispatch `code_reviewer`
+- Touches 1-2 files with a complete spec -> cheap model
+- Touches multiple files with integration concerns -> standard model
+- Requires design judgment or broad codebase understanding -> most capable model
 
 ## Example Workflow
 
 ```
-You: I'm using Task Loop to execute this plan.
+You: I'm using Task Loop for this bounded task.
 
-[Read plan file once: docs/forgeloop/plans/feature-plan.md]
-[Extract all 5 tasks with full text and context]
-[Create update_plan with all tasks]
+Task packet:
+- Task: Add config validation for invalid enum values
+- Acceptance: reject invalid values, surface validation error, cover CLI + config file paths
+- Context: parser lives in src/config.ts, current tests in tests/config.test.ts
+- Verification: npm test -- config
 
-Task 1: Config validation
-
-[Get Task 1 text and context (already extracted)]
-[Dispatch `implementer` with full task text + context]
+[Dispatch `implementer` with the task packet]
 
 Implementer: "Before I begin - should invalid values fail closed or fall back to defaults?"
 
@@ -147,90 +182,46 @@ Implementer: "Got it. Implementing now..."
 [Later] Implementer:
   - Implemented config validation
   - Added tests, 5/5 passing
-  - Self-review: Found I missed --force flag, added it
-  - Committed
+  - Self-review: all good
 
 [Dispatch `spec_reviewer`]
 Spec reviewer: ✅ Spec compliant - all requirements met, nothing extra
 
-[Get git SHAs, dispatch `code_reviewer`]
+[Dispatch `code_reviewer`]
 Code reviewer: Strengths: Good test coverage, clean. Issues: None. Approved.
 
-[Mark Task 1 complete]
-
-Task 2: Recovery modes
-
-[Get Task 2 text and context (already extracted)]
-[Dispatch `implementer` with full task text + context]
-
-Implementer: [No questions, proceeds]
-Implementer:
-  - Added verify/repair modes
-  - 8/8 tests passing
-  - Self-review: All good
-  - Committed
-
-[Dispatch `spec_reviewer`]
-Spec reviewer: ❌ Issues:
-  - Missing: Progress reporting (spec says "report every 100 items")
-  - Extra: Added --json flag (not requested)
-
-[Implementer fixes issues]
-Implementer: Removed --json flag, added progress reporting
-
-[Spec reviewer reviews again]
-Spec reviewer: ✅ Spec compliant now
-
-[Dispatch `code_reviewer`]
-Code reviewer: Strengths: Solid. Issues (Important): Magic number (100)
-
-[Implementer fixes]
-Implementer: Extracted PROGRESS_INTERVAL constant
-
-[Code reviewer reviews again]
-Code reviewer: ✅ Approved
-
-[Mark Task 2 complete]
-
-...
-
-[After all tasks]
-[Spawn final `code_reviewer`]
-Final reviewer: All requirements met, ready to merge
-
-Done!
+You:
+- Status: complete
+- Changed: src/config.ts, tests/config.test.ts
+- Verification: npm test -- config
+- Concerns: none
 ```
 
 ## Advantages
 
 **vs. Manual execution:**
 - Subagents follow TDD naturally
-- Fresh context per task (no confusion)
-- Parallel-safe (subagents don't interfere)
-- Subagent can ask questions (before AND during work)
-
-**vs. Executing Plans:**
-- Same session (no handoff)
-- Continuous progress (no waiting)
-- Review checkpoints automatic
+- Fresh context for one task instead of a whole milestone
+- Subagent can ask questions before and during work
+- Review checkpoints are mandatory and ordered
 
 **Efficiency gains:**
-- No file reading overhead (controller provides full text)
-- Controller curates exactly what context is needed
-- Subagent gets complete information upfront
-- Questions surfaced before work begins (not after)
+- Caller curates exactly what one task needs
+- Subagent gets bounded context upfront
+- Questions surface before the task drifts
+- Review loops catch under-building and over-building early
 
 **Quality gates:**
 - Self-review catches issues before handoff
 - Two-stage review: spec compliance, then code quality
 - Review loops ensure fixes actually work
-- Spec compliance prevents over/under-building
-- Code quality ensures implementation is well-built
+- Spec compliance prevents over-building and under-building
+- Code quality ensures implementation is production-ready
 
 **Cost:**
 - More subagent invocations (implementer + 2 reviewers per task)
-- Controller does more prep work (extracting all tasks upfront)
 - Review loops add iterations
+- Caller must prepare a good task packet
 - But catches issues early (cheaper than debugging later)
 
 ## Red Flags
@@ -239,15 +230,20 @@ Done!
 - Start implementation on main/master branch without explicit user consent
 - Skip reviews (spec compliance OR code quality)
 - Proceed with unfixed issues
-- Dispatch multiple implementation subagents in parallel (conflicts)
-- Make subagent read plan file (provide full text instead)
-- Skip scene-setting context (subagent needs to understand where task fits)
-- Ignore subagent questions (answer before letting them proceed)
-- Accept "close enough" on spec compliance (spec reviewer found issues = not done)
-- Skip review loops (reviewer found issues = implementer fixes = review again)
-- Let implementer self-review replace actual review (both are needed)
-- **Start code quality review before spec compliance is ✅** (wrong order)
-- Move to next task while either review has open issues
+- Dispatch multiple implementation subagents for the same task in parallel
+- Hand the implementer an entire milestone when one bounded task will do
+- Make `task-loop` own milestone sequencing or branch finishing
+- Skip scene-setting context
+- Ignore subagent questions
+- Accept "close enough" on spec compliance
+- Skip review loops
+- Let implementer self-review replace actual review
+- Start code quality review before spec compliance is approved
+- Claim the task is done without verification evidence
+- Let reviewer findings replace the original task packet during fix rounds
+- Re-spawn the implementer for normal fix rounds instead of reusing its `agent_id`
+- Spawn reviewers with `fork_context=true` without a specific reason
+- Let reviewers inspect branch-wide changes when a task-local review boundary is available
 
 **If subagent asks questions:**
 - Answer clearly and completely
@@ -255,25 +251,18 @@ Done!
 - Don't rush them into implementation
 
 **If reviewer finds issues:**
-- Implementer (same subagent) fixes them
+- Implementer fixes them
 - Reviewer reviews again
 - Repeat until approved
-- Don't skip the re-review
-
-**If subagent fails task:**
-- Dispatch fix subagent with specific instructions
-- Don't try to fix manually (context pollution)
+- Reuse the same implementer agent via `send_input`, but use a fresh reviewer agent each round
 
 ## Integration
 
-**Required workflow skills:**
-- **forgeloop:using-git-worktrees** - REQUIRED: Set up isolated workspace before starting
-- **forgeloop:writing-plans** - Creates the plan this skill executes
-- **forgeloop:requesting-code-review** - Code review template for reviewer subagents
-- **forgeloop:finishing-a-development-branch** - Complete development after all tasks
+**Called by:**
+- **forgeloop:flat-tasks-loop** - Uses `task-loop` as the required atomic loop for each flattened task
+- Direct single-task execution - When a plan already contains exactly one bounded task
 
-**Subagents should use:**
-- **forgeloop:test-driven-development** - Subagents follow TDD for each task
-
-**Alternative workflow:**
-- **forgeloop:flat-tasks-loop** - Use for flat serial execution instead of same-session task-loop execution
+**Pairs with:**
+- **forgeloop:requesting-code-review** - Use for wider milestone or pre-merge review outside this single-task loop
+- **forgeloop:verification-before-completion** - Use before claiming broader work is complete
+- **forgeloop:test-driven-development** - Implementers should follow TDD inside the task packet

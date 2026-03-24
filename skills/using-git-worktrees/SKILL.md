@@ -13,6 +13,43 @@ Git worktrees create isolated workspaces sharing the same repository, allowing w
 
 **Announce at start:** "I'm using the using-git-worktrees skill to set up an isolated workspace."
 
+**Reuse rule:** This skill decides whether to reuse the current workspace or create a new worktree. Callers should not invent their own definition of a "safe isolated workspace."
+
+## Branch Naming Contract
+
+Decide the branch name before any reuse or worktree creation decision.
+
+- If the user explicitly names a branch, use it.
+- Otherwise derive `BRANCH_NAME` as `codex/<feature-slug>`.
+- Use a short, stable slug based on the feature or task name.
+- Do not silently invent a different branch name when the chosen one already exists or is already checked out elsewhere.
+
+If the target branch already exists or is already in use by another worktree:
+- Stop and surface the conflict
+- Ask for a different branch name or a different location only if needed
+
+## Reuse Current Workspace Or Create A Worktree
+
+Before reusing the current workspace, first honor any explicit user location override.
+
+If the user explicitly names a worktree location, that location wins. Do not reuse the current workspace instead just because it was prepared earlier in the workflow.
+
+Only when there is no explicit user location override should you decide whether the current workspace is already a prepared implementation environment.
+
+You may reuse the current workspace only when one of these is true:
+- It was already prepared earlier in this same workflow by `forgeloop:using-git-worktrees`
+- The user explicitly says the current workspace is the prepared environment to continue using
+
+If neither condition is true, create a new worktree by following this skill.
+
+If you reuse the current workspace:
+- Confirm the current branch is not `main` or `master`
+- Confirm the current branch already matches the intended `BRANCH_NAME`
+- Verify the project setup and clean baseline for the current workspace before returning ready
+- Report that the current workspace was reused instead of creating a new worktree
+
+Do not let callers or local guesswork bypass this rule.
+
 ## Directory Selection Process
 
 Follow this priority order:
@@ -66,19 +103,19 @@ Do not ask just to choose between `.worktrees/` and `~/.codex/worktrees/<project
 
 ### For Project-Local Directories (.worktrees or worktrees)
 
-**MUST verify directory is ignored before creating worktree:**
+**MUST verify the selected directory is ignored before creating worktree:**
 
 ```bash
-# Check if directory is ignored (respects local, global, and system gitignore)
-git check-ignore -q .worktrees 2>/dev/null || git check-ignore -q worktrees 2>/dev/null
+# Check the selected directory only (respects local, global, and system gitignore)
+git check-ignore -q "$LOCATION" 2>/dev/null
 ```
 
 **If NOT ignored:**
 
-Per Jesse's rule "Fix broken things immediately":
-1. Add appropriate line to .gitignore
-2. Commit the change
-3. Proceed with worktree creation
+Do not edit `.gitignore` or create a commit from this skill.
+
+- If the project-local directory came from an explicit user override, stop and surface the problem. The directory must be ignored before it can be used.
+- If the project-local directory was selected automatically from `AGENTS.md` or existing directories, do not mutate repository state here. Set `LOCATION` to `~/.codex/worktrees/<project-name>/` and continue with the global Codex worktree root instead.
 
 **Why critical:** Prevents accidentally committing worktree contents to repository.
 
@@ -93,6 +130,14 @@ No .gitignore verification needed - outside project entirely.
 ```bash
 project=$(basename "$(git rev-parse --show-toplevel)")
 ```
+
+### 1.5. Reuse Current Workspace When Allowed
+
+If the reuse rule above is satisfied, stay in the current workspace and skip worktree creation. Only do this when the current branch already matches the intended `BRANCH_NAME`. Then continue with project setup and baseline verification in the current workspace.
+
+### 1.6. Decide Branch Name
+
+`BRANCH_NAME` should already be determined by the branch naming contract above before reaching creation steps.
 
 ### 2. Create Worktree
 
@@ -165,13 +210,18 @@ Ready to implement <feature-name>
 
 | Situation | Action |
 |-----------|--------|
-| User explicitly names location | Use user override |
+| User explicitly names location | Use user override before considering reuse |
+| User explicitly names branch | Use that branch name |
+| No explicit branch provided | Derive `codex/<feature-slug>` |
+| Branch already exists or is checked out elsewhere | Stop and surface conflict |
+| Reusing current workspace on the wrong branch | Stop and surface conflict |
 | AGENTS.md specifies location | Use it |
 | `.worktrees/` exists | Use it (verify ignored) |
 | `worktrees/` exists | Use it (verify ignored) |
 | Both exist | Use `.worktrees/` |
 | No preference or local dir | Use `~/.codex/worktrees/<project-name>/` |
-| Directory not ignored | Add to .gitignore + commit |
+| Auto-selected local directory not ignored | Fall back to global Codex worktree root |
+| Explicit local override not ignored | Stop and surface the problem |
 | Tests fail during baseline | Report failures + ask |
 | No package.json/Cargo.toml | Skip dependency install |
 
@@ -180,12 +230,27 @@ Ready to implement <feature-name>
 ### Skipping ignore verification
 
 - **Problem:** Worktree contents get tracked, pollute git status
-- **Fix:** Always use `git check-ignore` before creating project-local worktree
+- **Fix:** Always run `git check-ignore` on the selected project-local directory before creating the worktree
+
+### Reusing the current workspace on the wrong branch
+
+- **Problem:** Work starts on a branch that does not match the requested or derived target branch
+- **Fix:** Reuse only when the current branch already equals `BRANCH_NAME`
+
+### Mutating the repository during environment setup
+
+- **Problem:** A setup skill unexpectedly edits `.gitignore` or creates a commit on the current branch
+- **Fix:** Never commit from this skill; stop or fall back to the global worktree root
 
 ### Assuming directory location
 
 - **Problem:** Creates inconsistency, violates project conventions
 - **Fix:** Follow priority: user override > AGENTS.md > existing dirs > default global root
+
+### Guessing a branch name after collision
+
+- **Problem:** Creates hidden branch drift and makes later cleanup confusing
+- **Fix:** Use the explicit name or derived `codex/<feature-slug>`, then stop if it conflicts
 
 ### Proceeding with failing tests
 
@@ -204,11 +269,12 @@ You: I'm using the using-git-worktrees skill to set up an isolated workspace.
 
 [Check .worktrees/ - exists]
 [Verify ignored - git check-ignore confirms .worktrees/ is ignored]
-[Create worktree: git worktree add .worktrees/auth -b feature/auth]
+[Decide branch: codex/auth]
+[Create worktree: git worktree add .worktrees/codex/auth -b codex/auth]
 [Run npm install]
 [Run npm test - 47 passing]
 
-Worktree ready at /Users/jesse/myproject/.worktrees/auth
+Worktree ready at /Users/jesse/myproject/.worktrees/codex/auth
 Tests passing (47 tests, 0 failures)
 Ready to implement auth feature
 ```
@@ -217,12 +283,19 @@ Ready to implement auth feature
 
 **Never:**
 - Create worktree without verifying it's ignored (project-local)
+- Edit `.gitignore` or create a commit from this skill
 - Skip baseline test verification
 - Proceed with failing tests without asking
 - Assume directory location when ambiguous
+- Override an explicit user location request with reuse logic
+- Reuse the current workspace on a different branch than `BRANCH_NAME`
+- Silently pick a different branch after a conflict
 - Skip AGENTS.md check
 
 **Always:**
+- Honor explicit user location overrides before reuse checks
+- Decide the branch name before `git worktree add`
+- Reuse the current workspace only when its branch already matches `BRANCH_NAME`
 - Follow directory priority: user override > AGENTS.md > existing dirs > default global root
 - Verify directory is ignored for project-local
 - Auto-detect and run project setup
@@ -231,7 +304,7 @@ Ready to implement auth feature
 ## Integration
 
 **Called by:**
-- **brainstorming** (Phase 4) - REQUIRED when design is approved and implementation follows
+- **brainstorming** - Use when approved work should move into an isolated implementation workspace
 - **task-loop** - REQUIRED before executing any tasks
 - **flat-tasks-loop** - REQUIRED before executing any tasks
 - Any skill needing isolated workspace

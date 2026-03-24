@@ -193,8 +193,8 @@ git worktree remove <worktree-path>
 ## Integration
 
 **Called by:**
-- **task-loop** (Step 7) - After all tasks complete
-- **flat-tasks-loop** (Step 5) - After the flattened task list is complete
+- **flat-tasks-loop** - After the flattened milestone is complete
+- Manual completion flow - When broader work is complete outside the flattened dispatcher
 
 **Pairs with:**
 - **using-git-worktrees** - Cleans up worktree created by that skill

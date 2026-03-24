@@ -49,7 +49,7 @@ This structure informs the task decomposition. Each task should produce self-con
 ```markdown
 # [Feature Name] Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use forgeloop:task-loop (recommended) or forgeloop:flat-tasks-loop to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use forgeloop:flat-tasks-loop (recommended) to execute this plan as one flattened milestone, or forgeloop:task-loop only when the plan currently contains exactly one bounded executable task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** [One sentence describing what this builds]
 
@@ -130,16 +130,16 @@ After saving the plan, offer execution choice:
 
 **"Plan complete and saved to `docs/forgeloop/plans/<filename>.md`. Two execution options:**
 
-**1. Task Loop (recommended)** - I dispatch a fresh subagent per task, review between tasks, fast iteration
+**1. Flat Tasks Loop (recommended)** - I flatten the plan into one serial milestone and dispatch `task-loop` for each task
 
-**2. Flat Serial Execution** - Execute tasks in this session using flat-tasks-loop as one flattened milestone
+**2. Direct Task Loop** - Only if the plan currently contains exactly one bounded executable task
 
 **Which approach?"**
 
-**If Task Loop chosen:**
-- **REQUIRED SUB-SKILL:** Use forgeloop:task-loop
-- Fresh subagent per task + two-stage review
-
-**If Inline Execution chosen:**
+**If Flat Tasks Loop chosen:**
 - **REQUIRED SUB-SKILL:** Use forgeloop:flat-tasks-loop
-- Flatten the plan into one serial task list and execute it top-to-bottom
+- Flatten the plan into one serial task list and dispatch `task-loop` top-to-bottom
+
+**If Direct Task Loop chosen:**
+- **REQUIRED SUB-SKILL:** Use forgeloop:task-loop
+- Pass one bounded task packet only; do not hand `task-loop` the entire multi-task plan
