@@ -1,12 +1,11 @@
 # Spec Compliance Reviewer Prompt Template
 
-Use this template when dispatching a spec compliance reviewer subagent.
+Use this template when dispatching the `spec_reviewer` custom agent.
 
 **Purpose:** Verify implementer built what was requested (nothing more, nothing less)
 
 ```
-Spawn a reviewer agent:
-  role: spec-reviewer
+Spawn the `spec_reviewer` custom agent:
   prompt: |
     You are reviewing whether an implementation matches its specification.
 

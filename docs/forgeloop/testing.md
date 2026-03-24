@@ -18,6 +18,8 @@ bash tests/codex/verify-codex-only.sh
 
 This fails if removed platform files come back or if the remaining runtime docs and skills still contain obvious non-Codex terminology.
 
+It also checks that the project-scoped custom agents under `.codex/agents/` are present and declare the required fields.
+
 ## 3. Brainstorm server integration test
 
 ```bash

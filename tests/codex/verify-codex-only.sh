@@ -34,11 +34,30 @@ if [ ! -f "scripts/install.sh" ]; then
   exit 1
 fi
 
+for agent in \
+  .codex/agents/design_challenger.toml \
+  .codex/agents/implementer.toml \
+  .codex/agents/spec_reviewer.toml \
+  .codex/agents/code_reviewer.toml \
+  .codex/agents/plan_reviewer.toml
+do
+  if [ ! -f "$agent" ]; then
+    echo "missing custom agent: $agent"
+    exit 1
+  fi
+
+  if ! rg -q '^name = ' "$agent" || ! rg -q '^description = ' "$agent" || ! rg -q '^developer_instructions = """' "$agent"; then
+    echo "custom agent missing required fields: $agent"
+    exit 1
+  fi
+done
+
 if rg -n \
   -g 'README.md' \
   -g '.codex/INSTALL.md' \
   -g 'docs/forgeloop/install.md' \
   -g 'docs/forgeloop/testing.md' \
+  -g '.codex/agents/*.toml' \
   -g 'scripts/install.sh' \
   -g 'skills/**/*.md' \
   -g '.github/**/*.md' \

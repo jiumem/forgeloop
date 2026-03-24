@@ -13,6 +13,8 @@ Forgeloop is a Codex-only workflow layer built from composable skills. It turns 
 
 These skills are meant to be mandatory workflow constraints, not optional suggestions.
 
+Project-scoped custom agents live in [`.codex/agents`](/Users/nuc8/project/forgeloop/.codex/agents). They handle bounded roles such as `design_challenger`, `plan_reviewer`, `implementer`, `spec_reviewer`, and `code_reviewer`.
+
 ## Installation
 
 If you're inside this checkout, install with:

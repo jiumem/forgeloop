@@ -1,10 +1,9 @@
 # Implementer Subagent Prompt Template
 
-Use this template when dispatching an implementer subagent.
+Use this template when dispatching the `implementer` custom agent.
 
 ```
-Spawn a worker agent:
-  role: implementer
+Spawn the `implementer` custom agent:
   prompt: |
     You are implementing Task N: [task name].
 

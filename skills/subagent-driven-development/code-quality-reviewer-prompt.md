@@ -1,13 +1,13 @@
 # Code Quality Reviewer Prompt Template
 
-Use this template when dispatching a code quality reviewer subagent.
+Use this template when dispatching the `code_reviewer` custom agent.
 
 **Purpose:** Verify implementation is well-built (clean, tested, maintainable)
 
 **Only dispatch after spec compliance review passes.**
 
 ```
-Spawn a reviewer agent using `requesting-code-review/code-reviewer.md` as the prompt body.
+Spawn the `code_reviewer` custom agent using `requesting-code-review/code-reviewer.md` as the packet body.
 
   WHAT_WAS_IMPLEMENTED: [from implementer's report]
   PLAN_OR_REQUIREMENTS: Task N from [plan-file]

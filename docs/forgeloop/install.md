@@ -21,6 +21,14 @@ Codex loads skills from `~/.codex/skills/`. This repository exposes its bundled 
 
 That keeps the working copy updateable with `git pull` while making the skills visible to Codex.
 
+## Custom Agents
+
+This repository now also includes project-scoped custom agents in `.codex/agents/`.
+
+- They work automatically when you open this repository in Codex
+- The installer does not symlink them into unrelated repositories
+- If you want to reuse the same agent layer elsewhere, copy or vendor `.codex/agents/` into that target repository
+
 ## Updating
 
 ```bash

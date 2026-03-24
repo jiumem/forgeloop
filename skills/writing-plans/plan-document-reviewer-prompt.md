@@ -1,49 +1,37 @@
-# Plan Document Reviewer Prompt Template
+# Plan Reviewer Dispatch Template
 
-Use this template when dispatching a plan document reviewer subagent.
+Use this template when dispatching the `plan_reviewer` custom agent.
 
 **Purpose:** Verify the plan is complete, matches the spec, and has proper task decomposition.
 
 **Dispatch after:** The complete plan is written.
 
-```
-Spawn a reviewer agent:
-  role: plan-document-reviewer
-  prompt: |
-    You are a plan document reviewer. Verify this plan is complete and ready for implementation.
+## Input Contract
 
-    **Plan to review:** [PLAN_FILE_PATH]
-    **Spec for reference:** [SPEC_FILE_PATH]
+- `PLAN_FILE_PATH`
+- `SPEC_FILE_PATH`
 
-    ## What to Check
+## Review Focus
 
-    | Category | What to Look For |
-    |----------|------------------|
-    | Completeness | TODOs, placeholders, incomplete tasks, missing steps |
-    | Spec Alignment | Plan covers spec requirements, no major scope creep |
-    | Task Decomposition | Tasks have clear boundaries, steps are actionable |
-    | Buildability | Could an engineer follow this plan without getting stuck? |
+| Category | What to Look For |
+|----------|------------------|
+| Completeness | TODOs, placeholders, incomplete tasks, missing steps |
+| Spec Alignment | Plan covers spec requirements, no major scope creep |
+| Task Decomposition | Tasks have clear boundaries, steps are actionable |
+| Buildability | Could an engineer follow this plan without getting stuck? |
 
-    ## Calibration
+## Boundary
 
-    **Only flag issues that would cause real problems during implementation.**
-    An implementer building the wrong thing or getting stuck is an issue.
-    Minor wording, stylistic preferences, and "nice to have" suggestions are not.
+- Review the plan against the spec, not against your preferred architecture
+- Flag only issues that would materially break implementation
+- Approve when the plan is complete, aligned, and actionable
 
-    Approve unless there are serious gaps — missing requirements from the spec,
-    contradictory steps, placeholder content, or tasks so vague they can't be acted on.
+## Output Format
 
-    ## Output Format
+`Plan Review`
 
-    ## Plan Review
-
-    **Status:** Approved | Issues Found
-
-    **Issues (if any):**
-    - [Task X, Step Y]: [specific issue] - [why it matters for implementation]
-
-    **Recommendations (advisory, do not block approval):**
-    - [suggestions for improvement]
-```
+- `Status: Approved | Issues Found`
+- `Issues (if any): [Task X, Step Y]: [specific issue] - [why it matters for implementation]`
+- `Recommendations (advisory, do not block approval)`
 
 **Reviewer returns:** Status, Issues (if any), Recommendations

@@ -40,6 +40,14 @@ find ~/.codex/skills/forgeloop -maxdepth 2 -name SKILL.md
 
 You should see the symlink plus the packaged skill directories.
 
+## Custom agents
+
+This repository also ships project-level custom agents in `.codex/agents/`.
+
+- They are active when you work inside this repository checkout
+- Skills are installed globally through `~/.codex/skills/forgeloop`
+- If you want the same custom agent set in another project, copy or vendor `.codex/agents/` into that project as well
+
 ## Update
 
 ```bash
