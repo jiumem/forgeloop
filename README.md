@@ -15,7 +15,7 @@ Forgeloop is built from a customized adaptation of [obra/superpowers](https://gi
 1. `brainstorming` turns rough requests into a reviewed design.
 2. `using-git-worktrees` creates an isolated workspace when the work should not happen in the current tree.
 3. `writing-plans` converts the design into tiny, explicit implementation steps.
-4. `subagent-driven-development` or `executing-plans` carries out the plan.
+4. `task-loop` or `executing-plans` carries out the plan.
 5. `test-driven-development`, `requesting-code-review`, and `verification-before-completion` enforce quality gates during implementation.
 6. `finishing-a-development-branch` handles merge, PR, keep, or discard decisions at the end.
 
@@ -47,7 +47,7 @@ The shipped custom agent set is documented in [docs/forgeloop/agents.md](docs/fo
 - `using-forgeloop`
 - `brainstorming`
 - `writing-plans`
-- `subagent-driven-development`
+- `task-loop`
 - `executing-plans`
 - `dispatching-parallel-agents`
 - `using-git-worktrees`

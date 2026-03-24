@@ -12,7 +12,7 @@ Dispatch the `code_reviewer` custom agent to catch issues before they cascade. T
 ## When to Request Review
 
 **Mandatory:**
-- After each task in subagent-driven development
+- After each task in task-loop
 - After completing major feature
 - Before merge to main
 
@@ -76,7 +76,7 @@ You: [Fix progress indicators]
 
 ## Integration with Workflows
 
-**Subagent-Driven Development:**
+**Task Loop:**
 - Review after EACH task
 - Catch issues before they compound
 - Fix before moving to next task

@@ -82,7 +82,7 @@ Use the writing-plans skill. Reply with exactly the required sub-skill name that
 Expected result:
 
 ```text
-forgeloop:subagent-driven-development
+forgeloop:task-loop
 ```
 
 Pass criteria:

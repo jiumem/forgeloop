@@ -11,7 +11,7 @@ Load plan, review critically, execute all tasks, report when complete.
 
 **Announce at start:** "I'm using the executing-plans skill to implement this plan."
 
-**Note:** If Codex subagents are available, prefer `forgeloop:subagent-driven-development`. This skill exists for inline execution when you intentionally stay in one session.
+**Note:** If Codex subagents are available, prefer `forgeloop:task-loop`. This skill exists for inline execution when you intentionally stay in one session.
 
 ## The Process
 

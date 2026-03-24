@@ -84,9 +84,9 @@ skills/brainstorming/SKILL.md:design_challenger
 skills/brainstorming/design-challenger-prompt.md:design_challenger
 skills/writing-plans/SKILL.md:plan_reviewer
 skills/writing-plans/plan-document-reviewer-prompt.md:plan_reviewer
-skills/subagent-driven-development/implementer-prompt.md:implementer
-skills/subagent-driven-development/spec-reviewer-prompt.md:spec_reviewer
-skills/subagent-driven-development/code-quality-reviewer-prompt.md:code_reviewer
+skills/task-loop/implementer-prompt.md:implementer
+skills/task-loop/spec-reviewer-prompt.md:spec_reviewer
+skills/task-loop/code-quality-reviewer-prompt.md:code_reviewer
 skills/requesting-code-review/SKILL.md:code_reviewer
 EOF
 

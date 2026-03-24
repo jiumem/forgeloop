@@ -23,21 +23,21 @@ These agents are the stable role layer for the built-in workflow skills. They ar
 ### `implementer`
 
 - Stage: implementation
-- Used by: `subagent-driven-development`
+- Used by: `task-loop`
 - Purpose: execute one bounded task packet, write or update tests, verify the result, and report status
 - Returns: `DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT`
 
 ### `spec_reviewer`
 
 - Stage: implementation review
-- Used by: `subagent-driven-development`
+- Used by: `task-loop`
 - Purpose: verify the implementation matches the requested task specification
 - Returns: `Spec Review`
 
 ### `code_reviewer`
 
 - Stage: implementation review
-- Used by: `subagent-driven-development`, `requesting-code-review`
+- Used by: `task-loop`, `requesting-code-review`
 - Purpose: review production readiness, test quality, regressions, and maintainability
 - Returns: strengths, findings by severity, and a merge assessment
 
