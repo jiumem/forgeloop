@@ -194,7 +194,7 @@ git worktree remove <worktree-path>
 
 **Called by:**
 - **task-loop** (Step 7) - After all tasks complete
-- **executing-plans** (Step 5) - After all batches complete
+- **flat-tasks-loop** (Step 5) - After the flattened task list is complete
 
 **Pairs with:**
 - **using-git-worktrees** - Cleans up worktree created by that skill

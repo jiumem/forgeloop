@@ -233,7 +233,7 @@ Ready to implement auth feature
 **Called by:**
 - **brainstorming** (Phase 4) - REQUIRED when design is approved and implementation follows
 - **task-loop** - REQUIRED before executing any tasks
-- **executing-plans** - REQUIRED before executing any tasks
+- **flat-tasks-loop** - REQUIRED before executing any tasks
 - Any skill needing isolated workspace
 
 **Pairs with:**
