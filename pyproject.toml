@@ -21,8 +21,6 @@ dev = [
 [project.scripts]
 forgeloop = "automation.__main__:main"
 
-[tool.hatch.build.targets.wheel]
-packages = ["automation", "schemas", "mock"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -38,4 +36,4 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 [tool.pyright]
 pythonVersion = "3.12"
 typeCheckingMode = "strict"
-include = ["automation", "schemas", "tests", "mock"]
+

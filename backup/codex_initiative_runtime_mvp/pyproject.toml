@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "codex-initiative-runtime"
+version = "0.1.0"
+description = "Codex-native initiative runtime with initiative-first orchestration and task-atomic control."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{name = "OpenAI"}]
+license = {text = "MIT"}
+dependencies = []
+
+[project.scripts]
+cir = "codex_initiative_runtime.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
