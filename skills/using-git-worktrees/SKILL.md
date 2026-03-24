@@ -9,7 +9,7 @@ description: Use when starting feature work that needs isolation from current wo
 
 Git worktrees create isolated workspaces sharing the same repository, allowing work on multiple branches simultaneously without switching.
 
-**Core principle:** Systematic directory selection + safety verification = reliable isolation.
+**Core principle:** Default to the configured global Codex worktree root, but honor explicit user overrides. Then apply safety verification.
 
 **Announce at start:** "I'm using the using-git-worktrees skill to set up an isolated workspace."
 
@@ -17,7 +17,32 @@ Git worktrees create isolated workspaces sharing the same repository, allowing w
 
 Follow this priority order:
 
-### 1. Check Existing Directories
+### 1. Honor Explicit User Override
+
+If the user explicitly names a worktree location, use it.
+
+Supported explicit overrides:
+
+- `.worktrees/`
+- `worktrees/`
+- `~/.codex/worktrees/<project-name>/`
+- a custom absolute path or `~/`-prefixed root directory
+
+If the user provides a custom root directory, create the worktree under:
+
+```text
+<custom-root>/<project-name>/<branch-name>
+```
+
+### 2. Check AGENTS.md Preference
+
+```bash
+grep -i "worktree" AGENTS.md 2>/dev/null
+```
+
+**If preference specified:** Use it without asking.
+
+### 3. Check Existing Directories
 
 ```bash
 # Check in priority order
@@ -27,26 +52,15 @@ ls -d worktrees 2>/dev/null      # Alternative
 
 **If found:** Use that directory. If both exist, `.worktrees` wins.
 
-### 2. Check AGENTS.md
+### 4. Default To Global Codex Worktree Root
 
-```bash
-grep -i "worktree.*director" AGENTS.md 2>/dev/null
+If there is no explicit user override, no `AGENTS.md` preference, and no project-local worktree directory, default to:
+
+```text
+~/.codex/worktrees/<project-name>/
 ```
 
-**If preference specified:** Use it without asking.
-
-### 3. Ask User
-
-If no directory exists and no `AGENTS.md` preference:
-
-```
-No worktree directory found. Where should I create worktrees?
-
-1. .worktrees/ (project-local, hidden)
-2. ~/.codex/worktrees/<project-name>/ (global location)
-
-Which would you prefer?
-```
+Do not ask just to choose between `.worktrees/` and `~/.codex/worktrees/<project-name>/` when the default is already clear.
 
 ## Safety Verification
 
@@ -89,7 +103,13 @@ case $LOCATION in
     path="$LOCATION/$BRANCH_NAME"
     ;;
   ~/.codex/worktrees/*)
-    path="~/.codex/worktrees/$project/$BRANCH_NAME"
+    path="$HOME/.codex/worktrees/$project/$BRANCH_NAME"
+    ;;
+  ~/*)
+    path="${LOCATION/#\~/$HOME}/$project/$BRANCH_NAME"
+    ;;
+  /*)
+    path="$LOCATION/$project/$BRANCH_NAME"
     ;;
 esac
 
@@ -145,10 +165,12 @@ Ready to implement <feature-name>
 
 | Situation | Action |
 |-----------|--------|
+| User explicitly names location | Use user override |
+| AGENTS.md specifies location | Use it |
 | `.worktrees/` exists | Use it (verify ignored) |
 | `worktrees/` exists | Use it (verify ignored) |
 | Both exist | Use `.worktrees/` |
-| Neither exists | Check AGENTS.md → Ask user |
+| No preference or local dir | Use `~/.codex/worktrees/<project-name>/` |
 | Directory not ignored | Add to .gitignore + commit |
 | Tests fail during baseline | Report failures + ask |
 | No package.json/Cargo.toml | Skip dependency install |
@@ -163,7 +185,7 @@ Ready to implement <feature-name>
 ### Assuming directory location
 
 - **Problem:** Creates inconsistency, violates project conventions
-- **Fix:** Follow priority: existing > AGENTS.md > ask
+- **Fix:** Follow priority: user override > AGENTS.md > existing dirs > default global root
 
 ### Proceeding with failing tests
 
@@ -201,7 +223,7 @@ Ready to implement auth feature
 - Skip AGENTS.md check
 
 **Always:**
-- Follow directory priority: existing > AGENTS.md > ask
+- Follow directory priority: user override > AGENTS.md > existing dirs > default global root
 - Verify directory is ignored for project-local
 - Auto-detect and run project setup
 - Verify clean test baseline
