@@ -210,3 +210,12 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 .DS_Store
+
+# Forgeloop runtime and local workspaces
+.worktrees/
+.private-journal/
+.claude/
+.forgeloop/
+node_modules/
+inspo
+triage/

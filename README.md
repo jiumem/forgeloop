@@ -1,0 +1,66 @@
+# Forgeloop
+
+Forgeloop is a Codex-only workflow layer built from composable skills. It turns Codex into a stricter engineering process: design first, plan second, implement in small verified steps, and review before moving on.
+
+## Workflow
+
+1. `brainstorming` turns rough requests into a reviewed design.
+2. `using-git-worktrees` creates an isolated workspace when the work should not happen in the current tree.
+3. `writing-plans` converts the design into tiny, explicit implementation steps.
+4. `subagent-driven-development` or `executing-plans` carries out the plan.
+5. `test-driven-development`, `requesting-code-review`, and `verification-before-completion` enforce quality gates during implementation.
+6. `finishing-a-development-branch` handles merge, PR, keep, or discard decisions at the end.
+
+These skills are meant to be mandatory workflow constraints, not optional suggestions.
+
+## Installation
+
+If you're inside this checkout, install with:
+
+```bash
+bash scripts/install.sh --yes
+```
+
+If you want a managed checkout in `~/.codex/forgeloop`, use:
+
+```bash
+git clone https://github.com/jiumem/forgeloop.git ~/.codex/forgeloop
+bash ~/.codex/forgeloop/scripts/install.sh --yes --source ~/.codex/forgeloop
+```
+
+Detailed setup notes live in [docs/forgeloop/install.md](docs/forgeloop/install.md).
+
+## Included Skills
+
+**Planning and execution**
+- `using-forgeloop`
+- `brainstorming`
+- `writing-plans`
+- `subagent-driven-development`
+- `executing-plans`
+- `dispatching-parallel-agents`
+- `using-git-worktrees`
+- `finishing-a-development-branch`
+
+**Quality**
+- `test-driven-development`
+- `requesting-code-review`
+- `receiving-code-review`
+- `verification-before-completion`
+- `systematic-debugging`
+
+## Verification
+
+Codex-specific validation steps are documented in [docs/forgeloop/testing.md](docs/forgeloop/testing.md).
+
+## Philosophy
+
+- Test first.
+- Prefer explicit plans over improvisation.
+- Use isolated agents when tasks are independent.
+- Review early so problems do not compound.
+- Verify behavior instead of trusting claims.
+
+## License
+
+MIT License. See [LICENSE](LICENSE).
