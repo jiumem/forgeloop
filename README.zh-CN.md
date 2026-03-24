@@ -4,7 +4,7 @@
 
 Forgeloop 是一个仅面向 Codex 的 workflow layer，由一组可组合 skills 构成。它把 Codex 约束成一套更严格的工程流程：先设计，再规划，再按小步验证实现，并在继续之前完成审查。
 
-`0.1.0` 版本有意只作为 Codex skill pack 发布，不作为 Python 包发布。
+`0.1.1` 版本有意只作为 Codex skill pack 发布，不作为 Python 包发布。
 
 ## 来源
 
