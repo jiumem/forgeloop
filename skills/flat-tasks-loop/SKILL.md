@@ -44,11 +44,12 @@ If any of these checks fail, stop and raise the blocker with your human partner 
 ### Step 3: Environment Preparation
 After the precheck passes, prepare an isolated implementation environment:
 1. Invoke `forgeloop:using-git-worktrees` to ensure the implementation environment is ready
-2. Let that skill decide whether to reuse the current workspace or create a new worktree
-3. Let that skill handle workspace selection, setup, and clean baseline verification
-4. In the implementation environment, verify that the plan file still exists and matches the recorded plan identity anchor
-5. Do not re-read the whole plan unless the identity check fails
-6. Only continue once the implementation environment is ready and the plan identity is confirmed
+2. When deriving the branch slug for that skill, prefer a stable milestone identifier such as the plan title or milestone name
+3. Let that skill decide whether to reuse the current workspace or create a new worktree
+4. Let that skill handle workspace selection, setup, and clean baseline verification
+5. In the implementation environment, verify that the plan file still exists and matches the recorded plan identity anchor
+6. Do not re-read the whole plan unless the identity check fails
+7. Only continue once the implementation environment is ready and the plan identity is confirmed
 
 If the plan file is missing or the identity check does not match, stop and surface the problem. Do not continue with a stale or invisible plan.
 
@@ -72,7 +73,11 @@ For each flattened task in order:
 2. Build a bounded task packet with the task text, acceptance criteria, surrounding context, constraints, verification commands, and the preserved source anchor
 3. Invoke `forgeloop:task-loop` for that single task packet
 4. Let `task-loop` carry the implement -> spec review -> code review -> fix cycle
-5. If `task-loop` returns blocked, stop the milestone and surface the blocker using both the flattened task label and its original source anchor
+5. If `task-loop` returns blocked, stop the milestone and surface the blocker using:
+   - the flattened task label
+   - its original source anchor
+   - the current `update_plan` progress
+   - the milestone concern log collected so far
 6. If `task-loop` returns non-blocking concerns, record them at the milestone level alongside the same flattened task label and source anchor
 7. If the task completes, confirm the result is real and mark it as completed using the same flattened label and source anchor
 
@@ -81,10 +86,18 @@ Do not parallelize. Do not jump ahead. Do not reopen plan structure mid-run unle
 ### Step 6: Complete Development
 
 After the full flattened task list is complete:
-- Run any milestone-level verification required by the plan
+- Run the milestone-level verification required by the plan and record the evidence
+- If milestone-level verification fails, stop and surface the blocker with:
+  - milestone verification evidence
+  - milestone concern log collected during task execution
+  Do not enter branch finishing. Return control to the upstream workflow so the main agent can decide whether to reopen a task, rerun the milestone loop, or ask the user for direction.
+- Assemble the branch-finishing handoff package:
+  - target branch context, if already known
+  - milestone verification evidence
+  - milestone concern log collected during task execution
 - Announce: "I'm using the finishing-a-development-branch skill to complete this work."
 - **REQUIRED SUB-SKILL:** Use `forgeloop:finishing-a-development-branch`
-- Follow that skill to verify tests, present options, and execute the chosen integration path
+- Hand off the branch-finishing package so that skill can perform the final completion gate, recommend the finish action, and ask for confirmation
 
 ## When to Stop and Ask for Help
 
@@ -124,9 +137,8 @@ Do not force through blockers. Stop and ask.
 - Never start implementation on main/master branch without explicit user consent
 - Do not let `task-loop` take over milestone sequencing or branch finishing
 
-## Integration
+## Required Skills
 
-**Required workflow skills:**
 - **forgeloop:using-git-worktrees** - Set up an isolated workspace before starting
 - **forgeloop:task-loop** - Executes each flattened task as the atomic adversarial coding loop
 - **forgeloop:finishing-a-development-branch** - Completes development after all tasks

@@ -1,15 +1,17 @@
 ---
 name: finishing-a-development-branch
-description: Use when implementation is complete, all tests pass, and you need to decide how to integrate the work - guides completion of development work by presenting structured options for merge, PR, or cleanup
+description: Use when implementation is complete, all tests pass, and you need to finish the branch by confirming and executing the right integration action
 ---
 
 # Finishing a Development Branch
 
 ## Overview
 
-Guide completion of development work by presenting clear options and handling chosen workflow.
+Guide completion of development work by recommending one finish action, asking for confirmation, and then executing it safely.
 
-**Core principle:** Verify tests → Present options → Execute choice → Clean up.
+**Core principle:** Verify → Recommend → Confirm → Execute → Clean up only when appropriate.
+
+**Boundary rule:** This skill is a branch-finishing protocol, not a generic git recipe. Use workflow context to identify the target branch, reuse the milestone's verification bar, and separate the feature worktree from the safe integration location where merge or branch deletion happens.
 
 **Announce at start:** "I'm using the finishing-a-development-branch skill to complete this work."
 
@@ -17,14 +19,15 @@ Guide completion of development work by presenting clear options and handling ch
 
 ### Step 1: Verify Tests
 
-**Before presenting options, verify tests pass:**
+Before recommending any finish action, rerun the milestone's required verification commands and confirm they pass.
 
 ```bash
-# Run project's test suite
-npm test / cargo test / pytest / go test ./...
+<milestone verification commands>
 ```
 
-**If tests fail:**
+If the repository requires broader verification before merge or PR, run that too.
+
+If verification fails:
 ```
 Tests failing (<N> failures). Must fix before completing:
 
@@ -33,66 +36,64 @@ Tests failing (<N> failures). Must fix before completing:
 Cannot proceed with merge/PR until tests pass.
 ```
 
-Stop. Don't proceed to Step 2.
+Stop. Do not proceed to Step 2. This skill does not repair implementation or reopen task execution.
 
-**If tests pass:** Continue to Step 2.
+Return control to the upstream workflow with the failed verification evidence so the main agent can decide whether to reopen the relevant task, rerun the milestone loop, or ask the user for direction.
 
-### Step 2: Determine Base Branch
+If verification passes, continue to Step 2.
+
+### Step 2: Determine Target Branch
+
+Determine the target integration branch before presenting options.
+
+Use this order:
+
+1. Use the branch already established by the workflow or plan, if one exists
+2. Otherwise infer from the repository's default integration branch, usually `main` or `master`
+3. If the target branch is still unclear, ask the user before proceeding
+
+Do not treat `git merge-base` output as a branch name. Use ancestry checks only as supporting evidence, not as the branch identifier shown to the user.
+
+### Step 3: Recommend One Finish Action
+
+Recommend exactly one action. Do not present a menu by default.
+
+Use this order:
+
+- Recommend **push and create a PR** by default when the branch should be reviewed or shared
+- Recommend **merge locally** only when the repository is local-only or the user already indicated they want a local merge
+- Use **keep as-is** only when the user explicitly wants to leave the branch for later
+- Use **discard** only when the user explicitly wants to abandon the work
+
+Ask for confirmation in one concise message, for example:
+
+```text
+Implementation complete. Recommended next step: push this branch and create a PR against <target-branch>.
+Reply `confirm` to proceed, or tell me the different finish action you want.
+```
+
+If the user rejects the recommendation, switch to the requested finish action and confirm that instead.
+
+### Step 4: Execute the Confirmed Action
+
+#### Merge Locally
+
+First move to a safe integration location that is not the feature branch's linked worktree. Use the main repository checkout or another workspace that is not attached to the feature branch.
 
 ```bash
-# Try common base branches
-git merge-base HEAD main 2>/dev/null || git merge-base HEAD master 2>/dev/null
-```
-
-Or ask: "This branch split from main - is that correct?"
-
-### Step 3: Present Options
-
-Present exactly these 4 options:
-
-```
-Implementation complete. What would you like to do?
-
-1. Merge back to <base-branch> locally
-2. Push and create a Pull Request
-3. Keep the branch as-is (I'll handle it later)
-4. Discard this work
-
-Which option?
-```
-
-**Don't add explanation** - keep options concise.
-
-### Step 4: Execute Choice
-
-#### Option 1: Merge Locally
-
-```bash
-# Switch to base branch
-git checkout <base-branch>
-
-# Pull latest
+git checkout <target-branch>
 git pull
-
-# Merge feature branch
 git merge <feature-branch>
-
-# Verify tests on merged result
-<test command>
-
-# If tests pass
+<milestone verification commands>
 git branch -d <feature-branch>
 ```
 
-Then: Cleanup worktree (Step 5)
+Then clean up the feature worktree.
 
-#### Option 2: Push and Create PR
+#### Push and Create PR
 
 ```bash
-# Push branch
 git push -u origin <feature-branch>
-
-# Create PR
 gh pr create --title "<title>" --body "$(cat <<'EOF'
 ## Summary
 <2-3 bullets of what changed>
@@ -103,17 +104,18 @@ EOF
 )"
 ```
 
-Then: Cleanup worktree (Step 5)
+Report the pushed branch and PR result. Keep the feature worktree.
 
-#### Option 3: Keep As-Is
+#### Keep As-Is
 
 Report: "Keeping branch <name>. Worktree preserved at <path>."
 
-**Don't cleanup worktree.**
+Do not clean up the feature worktree.
 
-#### Option 4: Discard
+#### Discard
 
-**Confirm first:**
+Require exact confirmation first:
+
 ```
 This will permanently delete:
 - Branch <name>
@@ -123,58 +125,34 @@ This will permanently delete:
 Type 'discard' to confirm.
 ```
 
-Wait for exact confirmation.
+Do not continue without the exact word `discard`.
 
-If confirmed:
+First move to a safe integration location that is not the feature branch's linked worktree. Use the main repository checkout or another workspace that is not attached to the feature branch.
+
 ```bash
-git checkout <base-branch>
+git checkout <target-branch>
 git branch -D <feature-branch>
 ```
 
-Then: Cleanup worktree (Step 5)
+Then clean up the feature worktree.
 
 ### Step 5: Cleanup Worktree
 
-**For Options 1, 2, 4:**
+Clean up only after a successful local merge or a confirmed discard.
 
-Check if in worktree:
+Never remove the current safe integration location. Remove only the feature worktree path associated with `<feature-branch>`.
+
+Locate the feature worktree directly:
 ```bash
-git worktree list | grep $(git branch --show-current)
+git worktree list
 ```
 
-If yes:
+If the feature worktree path is present:
 ```bash
 git worktree remove <worktree-path>
 ```
 
-**For Option 3:** Keep worktree.
-
-## Quick Reference
-
-| Option | Merge | Push | Keep Worktree | Cleanup Branch |
-|--------|-------|------|---------------|----------------|
-| 1. Merge locally | ✓ | - | - | ✓ |
-| 2. Create PR | - | ✓ | ✓ | - |
-| 3. Keep as-is | - | - | ✓ | - |
-| 4. Discard | - | - | - | ✓ (force) |
-
-## Common Mistakes
-
-**Skipping test verification**
-- **Problem:** Merge broken code, create failing PR
-- **Fix:** Always verify tests before offering options
-
-**Open-ended questions**
-- **Problem:** "What should I do next?" → ambiguous
-- **Fix:** Present exactly 4 structured options
-
-**Automatic worktree cleanup**
-- **Problem:** Remove worktree when might need it (Option 2, 3)
-- **Fix:** Only cleanup for Options 1 and 4
-
-**No confirmation for discard**
-- **Problem:** Accidentally delete work
-- **Fix:** Require typed "discard" confirmation
+Keep the worktree for PR or keep-as-is flows.
 
 ## Red Flags
 
@@ -183,18 +161,15 @@ git worktree remove <worktree-path>
 - Merge without verifying tests on result
 - Delete work without confirmation
 - Force-push without explicit request
+- Present a full menu by default when one best-practice recommendation is clear
 
 **Always:**
-- Verify tests before offering options
-- Present exactly 4 options
-- Get typed confirmation for Option 4
-- Clean up worktree for Options 1 & 4 only
+- Verify tests before recommending a finish action
+- Recommend one best-practice action first
+- Get exact `discard` confirmation before destructive cleanup
+- Clean up worktree only after local merge or discard
 
-## Integration
+## Used By
 
-**Called by:**
-- **flat-tasks-loop** - After the flattened milestone is complete
-- Manual completion flow - When broader work is complete outside the flattened dispatcher
-
-**Pairs with:**
-- **using-git-worktrees** - Cleans up worktree created by that skill
+- **forgeloop:flat-tasks-loop** - After the flattened milestone is complete
+- Manual broader completion by the main agent - When broader work is complete outside the flattened dispatcher

@@ -1,5 +1,6 @@
 name = "design_challenger"
 description = "Read-only design challenger for pre-planning adversarial review of briefs and design drafts."
+model = "gpt-5.4"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 

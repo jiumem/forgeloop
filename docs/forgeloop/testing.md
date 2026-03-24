@@ -2,7 +2,7 @@
 
 Run all checks from the repository root.
 
-For `0.1.1`, the release gate is the Codex workflow and brainstorm-server checks below. There is no Python package build, lint, or typecheck gate for this version.
+For `0.2.0`, the release gate is the Codex workflow and brainstorm-server checks below. There is no Python package build, lint, or typecheck gate for this version.
 
 ## 1. Install script smoke test
 

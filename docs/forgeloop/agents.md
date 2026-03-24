@@ -1,8 +1,10 @@
 # Forgeloop Custom Agents
 
-Forgeloop 0.1.1 ships a small, explicit set of project-scoped custom agents under `.codex/agents/`.
+Forgeloop 0.2.0 ships a small, explicit set of project-scoped custom agents under `.codex/agents/`.
 
 These agents are the stable role layer for the built-in workflow skills. They are intentionally narrow. The skill decides when to dispatch them and assembles the task packet; the custom agent defines how that role should think and what it should return.
+
+All Forgeloop custom agents default to `gpt-5.4` with `high` reasoning effort. Model policy lives in the agent TOML files, not in individual workflow skills.
 
 ## Shipped Agent Set
 
@@ -49,6 +51,6 @@ These agents are the stable role layer for the built-in workflow skills. They ar
 - Do not add agents that duplicate an existing role with different wording
 - Do not use a custom agent when a built-in `default`, `worker`, or `explorer` agent is enough
 
-## 0.1.1 Contract
+## 0.2.0 Contract
 
-For 0.1.1, these five agents are the official Forgeloop custom agent set. If a workflow needs another named role, add it explicitly under `.codex/agents/`, wire it from the relevant skill, and extend the repository self-checks in `tests/codex/verify-codex-only.sh`.
+For 0.2.0, these five agents are the official Forgeloop custom agent set. If a workflow needs another named role, add it explicitly under `.codex/agents/`, wire it from the relevant skill, and extend the repository self-checks in `tests/codex/verify-codex-only.sh`.
