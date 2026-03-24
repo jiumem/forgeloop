@@ -32,3 +32,9 @@ node server.test.js
 ```
 
 This verifies the browser companion server still serves pages, injects helper code, records user events, and broadcasts reloads.
+
+## 4. Manual Codex E2E verification
+
+Use the release checklist in [docs/forgeloop/e2e-codex.md](docs/forgeloop/e2e-codex.md).
+
+This is intentionally a manual verification step for real Codex runtime behavior, not a CI-style repository test.

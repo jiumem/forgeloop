@@ -104,20 +104,38 @@ done
 
 if rg -n \
   -g 'README.md' \
+  -g 'README.zh-CN.md' \
   -g '.codex/INSTALL.md' \
   -g 'docs/forgeloop/install.md' \
   -g 'docs/forgeloop/testing.md' \
   -g 'docs/forgeloop/agents.md' \
+  -g 'docs/forgeloop/e2e-codex.md' \
   -g '.codex/agents/*.toml' \
   -g 'scripts/install.sh' \
   -g 'skills/**/*.md' \
   -g '.github/**/*.md' \
   -g '!tests/codex/verify-codex-only.sh' \
-  'Claude Code|OpenCode|Gemini CLI|Cursor|Skill tool|Task tool|TodoWrite|CLAUDE\.md|GEMINI\.md|~/.agents/skills|Superpowers|superpowers' \
+  'Claude Code|OpenCode|Gemini CLI|Cursor|Skill tool|Task tool|TodoWrite|CLAUDE\.md|GEMINI\.md|~/.agents/skills' \
   . >/tmp/forgeloop-codex-only-check.txt
 then
   echo "forbidden platform terms found:"
   cat /tmp/forgeloop-codex-only-check.txt
+  exit 1
+fi
+
+if rg -n \
+  -g '.codex/INSTALL.md' \
+  -g 'docs/forgeloop/*.md' \
+  -g '.codex/agents/*.toml' \
+  -g 'scripts/install.sh' \
+  -g 'skills/**/*.md' \
+  -g '.github/**/*.md' \
+  -g '!docs/forgeloop/agents.md' \
+  'Superpowers|superpowers' \
+  . >/tmp/forgeloop-brand-check.txt
+then
+  echo "unexpected historical brand terms found outside README attribution:"
+  cat /tmp/forgeloop-brand-check.txt
   exit 1
 fi
 

@@ -1,8 +1,14 @@
+**Languages:** [English](README.md) | [简体中文](README.zh-CN.md)
+
 # Forgeloop
 
 Forgeloop is a Codex-only workflow layer built from composable skills. It turns Codex into a stricter engineering process: design first, plan second, implement in small verified steps, and review before moving on.
 
 `0.1.0` is intentionally shipped as a Codex skill pack, not as a Python package.
+
+## Origin
+
+Forgeloop is built from a customized adaptation of [obra/superpowers](https://github.com/obra/superpowers). This repository keeps the core workflow idea, then narrows and rewires it for a Codex-only setup and this project's own engineering constraints.
 
 ## Workflow
 
@@ -15,7 +21,7 @@ Forgeloop is a Codex-only workflow layer built from composable skills. It turns 
 
 These skills are meant to be mandatory workflow constraints, not optional suggestions.
 
-Project-scoped custom agents live in [`.codex/agents`](/Users/nuc8/project/forgeloop/.codex/agents). They handle bounded roles such as `design_challenger`, `plan_reviewer`, `implementer`, `spec_reviewer`, and `code_reviewer`.
+Project-scoped custom agents live in [`.codex/agents`](.codex/agents). They handle bounded roles such as `design_challenger`, `plan_reviewer`, `implementer`, `spec_reviewer`, and `code_reviewer`.
 
 ## Installation
 
