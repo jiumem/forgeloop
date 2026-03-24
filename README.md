@@ -31,6 +31,7 @@ bash ~/.codex/forgeloop/scripts/install.sh --yes --source ~/.codex/forgeloop
 ```
 
 Detailed setup notes live in [docs/forgeloop/install.md](docs/forgeloop/install.md).
+The shipped custom agent set is documented in [docs/forgeloop/agents.md](docs/forgeloop/agents.md).
 
 ## Included Skills
 
