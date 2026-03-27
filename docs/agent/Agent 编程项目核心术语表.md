@@ -267,7 +267,7 @@ Workstream 是并行结构对象，不是主骨架对象。
 
 | 主名称      | 内部正式名                   | 简称     | 正式定义                                                    |
 | -------- | ----------------------- | ------ | ------------------------------------------------------- |
-| **任务门**  | Task Gate Profile       | G1     | Task 级 blocking 验证，用于证明当前锚点已具备继续推进的最低工程可信度              |
+| **任务门**  | Task Gate Profile       | G1     | Task 级 blocking 验证，用于证明当前候选差异已具备沉淀为 Anchor Commit 的最低工程可信度              |
 | **里程碑门** | Milestone Gate Profile  | G2     | Milestone 级 blocking 验证，用于证明一组 Task 已形成可安全进入主干的阶段闭环     |
 | **专项门**  | Initiative Gate Profile | G3     | Initiative 级 blocking 验证，用于证明累计 Milestone 已满足发布、全量或结项条件 |
 | **预警校验** | Shadow Check Profile    | Shadow | 非阻断预警验证，用于尽早暴露未来会在里程碑门或专项门爆炸的问题                         |
@@ -278,10 +278,9 @@ Workstream 是并行结构对象，不是主骨架对象。
 
 | 主名称       | 内部正式名                     | 简称 | 正式定义                                                     |
 | --------- | ------------------------- | -- | -------------------------------------------------------- |
-| **任务审查**  | Task Review Profile       | R1 | 针对 anchor commit 或 commit range 的正式审查，用于判断当前 Task 锚点是否可信 |
-| **里程碑审查** | Milestone Review Profile  | R2 | 针对 Milestone PR 的正式审查，用于判断阶段状态是否真正收敛                     |
+| **任务审查**  | Task Review Profile       | R1 | 针对 anchor commit 或 commit range 的正式审查，用于判断当前 Task 锚点在任务半径内是否功能正确、验证充分、结构局部收敛 |
+| **里程碑审查** | Milestone Review Profile  | R2 | 针对 Milestone PR 的正式审查，用于判断阶段是否已经结构上收敛，且可安全并入主干 |
 | **专项审查**  | Initiative Review Profile | R3 | 针对 Initiative 交付候选的正式审查，用于判断专项是否具备正式交付资格                 |
-| **预警审查**  | Shadow Review Profile     | SR | 非阻断预警审查，用于在正式里程碑审查或专项审查之前尽早发现语义漂移与范围膨胀                   |
 
 ---
 
@@ -331,27 +330,22 @@ Workstream 是并行结构对象，不是主骨架对象。
 
 在质量控制体系中，中文主名称统一使用：
 
-> **预警校验 / 预警审查**
+> **预警校验**
 
 `Shadow` 仅作为内部英文正式名与简称索引使用。
-`影子校验 / 影子审查` 不作为正式中文主名称。
+`影子校验` 不作为正式中文主名称。
 
 ---
 
-### 5.4 Task 内部检查术语
+### 5.4 Task 锚点前局部收敛
 
-以下术语描述 **Task 锚点形成前的局部收口机制**。
-它们属于 Task 内部检查层，不进入正式 Gate / Review 法位，也不新增第四层正式质量控制对象。
+Task 在形成 Anchor Commit 之前，允许持续推进实现、验证、修补与事实澄清。
+这些动作只服务于当前差异的局部收敛，不形成独立术语层，也不进入正式 Gate / Review 法位。
 
-| 术语 | 正式定义 | 不是什么 | 典型作用 |
-| --- | --- | --- | --- |
-| **规范符合性检查** | Task 内部、anchor 前的非正式局部检查，用于确认当前实现是否命中 Task / Spec-Refs 所要求的边界与内容 | 不是 R1；不是 Milestone 级审查 | 为当前 Task 的局部修补与继续实现提供反馈 |
-| **代码质量检查** | 在规范符合性检查通过后进行的 Task 内部、anchor 前的非正式局部检查，用于暴露明显工程质量、可维护性与局部回归风险 | 不是 R1 / R2；不是 branch 级正式审查 | 帮助当前 Task 在进入 anchor 前完成局部清理与降噪 |
+正式规则：
 
-因此：
-
-> **Task 可以先做内部检查，再沉淀 anchor commit。**
-> **但只有 anchor commit + G1 + R1，才构成正式 Task 收口。**
+> **Task 在通过 G1 并沉淀 Anchor 之前只有局部收敛，没有独立 Review 法位。**
+> **但只有 G1 + anchor commit + R1，才构成正式 Task 收口。**
 
 ---
 
@@ -362,9 +356,9 @@ Workstream 是并行结构对象，不是主骨架对象。
 
 | 术语                           | 正式定义                         | 不是什么               | 典型作用                       |
 | ---------------------------- | ---------------------------- | ------------------ | -------------------------- |
-| **Anchor Commit**            | Task 正式差异锚点提交                | 不是任意 commit；不是 WIP | 作为任务门与任务审查的正式输入            |
+| **Anchor Commit**            | Task 经 G1 后沉淀的正式差异锚点提交                | 不是任意 commit；不是 WIP | 作为任务审查的正式输入，并承载任务门通过后的正式差异封口            |
 | **Fixup Commit**             | 针对 gate / review 失败而做的正式修补提交 | 不是随手补丁；不是噪音提交      | 为修补提供可审查、可归因的正式差异          |
-| **Branch Checkpoint**        | push 后形成的分支快照输入对象            | 不是阶段成立证据           | 作为预警校验与预警审查的输入             |
+| **Branch Checkpoint**        | push 后形成的分支快照输入对象            | 不是阶段成立证据           | 作为预警校验与风险跟踪的输入             |
 | **Spec Slice**               | Task 级规范切片                   | 不是整篇设计文档强制全读       | 作为触及契约、字段、接口、状态、迁移时的局部上位参考 |
 | **Spec-Refs**                | 规范切片索引字段                     | 不是正文装饰             | 显式声明 Task 所引用的法定规范来源       |
 | **Milestone Reference Doc**  | 里程碑级正式上位参考文档                 | 不是可有可无的补充说明        | 作为里程碑审查的法定依据               |
@@ -377,10 +371,10 @@ Workstream 是并行结构对象，不是主骨架对象。
 
 ### 6.1 Anchor Commit
 
-Anchor Commit 是 Task 进入正式质量控制体系的起点。
+Anchor Commit 是 Task 通过任务门后的正式差异封口，也是进入正式任务审查的起点。
 它的存在意味着：
 
-> **当前差异已经收口到一个可验证、可审查、可定位的任务锚点。**
+> **当前差异已经通过任务门，并被封口到一个可审查、可定位的任务锚点。**
 
 因此，没有 anchor commit，就不应进入正式任务审查。
 
@@ -492,7 +486,7 @@ Reviewer 的法位不是“提出建议的人”，而是**正式裁决者**。
 | 把 PR 说成 Initiative    | PR 是 Milestone 收敛容器，不是专项本体 |
 | 把 Push 说成阶段成立证据       | Push 只承担同步与预警语义            |
 | 把 Commit 说成任务完成证明     | Commit 只是差异锚点，不是完成裁决       |
-| 把 Task 内部检查说成 R1      | 内部检查只是 anchor 前局部收口，不是正式任务审查 |
+| 把 Task 锚点前局部收敛说成 R1 | anchor 前只有局部收敛，不是正式任务审查 |
 | 把 branch final review 说成第四层正式审查 | branch 级 final review 只能作为 R2 辅助输入或预警，不产生新法位 |
 | 用 G1 / R2 直接替代主名称     | 简称不能取代正式术语                 |
 | 把内部元结构术语当作第一等概念       | 会造成法位混乱与理解门槛上升             |
@@ -506,7 +500,7 @@ Reviewer 的法位不是“提出建议的人”，而是**正式裁决者**。
 > **Requirement 进入 Planner 语义世界，被压缩为 Initiative。**
 > **Initiative 按 Milestone 分段收敛。**
 > **Milestone 由一组 Task 推动成立。**
-> **Task 可先经过内部检查，再通过 Anchor Commit 进入任务门与任务审查。**
+> **Task 先在实现上下文中完成局部收敛，经 G1 证明候选差异可信后，再沉淀 Anchor Commit 并进入任务审查。**
 > **Milestone 通过 PR 进入里程碑门与里程碑审查。**
 > **Initiative 通过 Release / Rollout / Deployment Candidate 进入专项门与专项审查。**
 
@@ -517,16 +511,17 @@ Reviewer 的法位不是“提出建议的人”，而是**正式裁决者**。
 ## 10. 附录：质量控制内部术语
 
 本附录术语重要，但不进入主术语表正文第一层法位。
+这些术语只用于 Gate 验证基础设施的内部命名与职责划分，不参与对象层分级，也不直接约束 Review 章节自身的组织方式。
 
 | 术语                             | 正式定义   | 作用                                                   |
 | ------------------------------ | ------ | ---------------------------------------------------- |
-| **Assertion Plane**            | 断言层    | 定义 Gate / Review 所依赖的正式断言对象与断言结构                     |
-| **Profile Plane**              | 配置层    | 定义阻断/非阻断质量控制对象如何被组合、挂接与触发                            |
-| **Execution Surface**          | 执行面    | 将质量控制对象映射到脚本、CLI、CI、PR checks、release pipeline 与外部目标 |
+| **Assertion Plane**            | 断言层    | 定义 Gate Family / Gate / Gate Suite / Gate Catalog / Formal Entrypoint Contract 等 Gate 断言对象与断言结构 |
+| **Profile Plane**              | 编排层    | 定义 Gate Profile 及其 blocking / non-blocking 协议如何被组合、挂接与触发 |
+| **Execution Surface**          | 执行面    | 将 Gate 对象映射到脚本、CLI、CI 等验证执行入口 |
 | **Gate Family**                | 门族     | 表示同一类验证门的上位集合                                        |
 | **Gate Suite**                 | 门套件    | 一组协同执行的门组合                                           |
 | **Gate Catalog**               | 门目录    | 断言与门配置的正式目录化资产                                       |
-| **Formal Entrypoint Contract** | 正式入口契约 | 约束验证或审查从何处进入执行面                                      |
+| **Formal Entrypoint Contract** | 正式入口契约 | 约束 Gate 从何处进入执行面                                      |
 
 ---
 
@@ -539,7 +534,7 @@ Reviewer 的法位不是“提出建议的人”，而是**正式裁决者**。
 | **核心执行对象术语** | Initiative / Milestone / Task                                                                                                                 |
 | **收敛动作术语**   | Commit / Push / PR / Release / Flag / Deployment                                                                                              |
 | **规划辅助术语**   | Requirement / Scope / Non-Goals / Workstream / Dependency / Acceptance Criteria / Residual Risk                                               |
-| **质量控制术语**   | 任务门 / 里程碑门 / 专项门 / 预警校验 / 任务审查 / 里程碑审查 / 专项审查 / 预警审查                                                                                          |
+| **质量控制术语**   | 任务门 / 里程碑门 / 专项门 / 预警校验 / 任务审查 / 里程碑审查 / 专项审查                                                                                                   |
 | **证据与参考术语**  | Anchor Commit / Fixup Commit / Branch Checkpoint / Spec Slice / Spec-Refs / Milestone Reference Doc / Initiative Reference Doc / Candidate 对象 |
 | **执行角色术语**   | Planner / Coder / Reviewer                                                                                                                    |
 | **附录术语**     | Assertion Plane / Profile Plane / Execution Surface 等内部元结构名词                                                                                  |

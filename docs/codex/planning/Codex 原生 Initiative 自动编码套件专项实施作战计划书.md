@@ -89,9 +89,9 @@
 
 当前仓库已经具备两条可复用基线：
 
-第一条是旧主线的 Task-first 合同基础：
+第一条是旧主线的 Task-first 结构化视图与结果合同基础：
 
-- `schemas/task_packet.py`
+- `schemas/task_packet.py`（旧结构化投影视图原型）
 - `schemas/coder_result.py`
 - `schemas/review_result.py`
 - `schemas/task_state.py`
@@ -120,14 +120,14 @@
 - 四个核心模型的合同意识
 - 旧 controller 的显式跃迁思路
 - initiative plan / runtime state 的雏形
-- state rebuild、packet builder、gate/review bundle builder 的原型脚手架
+- state rebuild、artifact projection builder、gate/review bundle builder 的原型脚手架
 
 ### 2.3 当前主要缺口
 
 当前缺口集中在五点：
 
 - 旧四模型与 Initiative Runtime 尚未统一成正式对象层
-- Task loop 还没有固化为 `implement -> spec check -> quality check -> anchor -> G1 -> R1`
+- Task loop 还没有固化为 `implement / repair -> G1 -> anchor / fixup -> R1`
 - Milestone / Initiative formal seal 仍停留在原型与文档层
 - Codex-native skills / custom agents 还未按正交能力包正式接线
 - replay / resume、shadow automation、readonly observer 等运维能力仍未正式化
@@ -196,7 +196,7 @@ R0 / MVP Alpha
 | 能力组 | 目标 | 典型 skills / 组件 |
 | --- | --- | --- |
 | 控制面 | 解析、重建、调度、恢复 | `run-initiative`、`planning-preflight`、`rebuild-runtime`、`select-frontier` |
-| Task Core | Task 内执行与正式 Task 收口 | `task-loop`、`spec-check`、`quality-check`、`cut-anchor`、`g1-task-gate`、`r1-task-review` |
+| Task Core | Task 内执行与正式 Task 收口 | `task-loop`、`g1-task-gate`、`cut-anchor`、`r1-task-review` |
 | Milestone Seal | PR 与阶段正式收口 | `open-milestone-pr`、`g2-milestone-gate`、`r2-milestone-review` |
 | Initiative Seal | 交付候选与总体正式收口 | `g3-initiative-gate`、`r3-initiative-review` |
 | Ops / Recovery | 运行事实补采、恢复、自动巡检 | `collect-runtime-facts`、`replay-runtime`、`shadow-monitor` |
@@ -222,7 +222,7 @@ R0 / MVP Alpha
 
 例如：
 
-- `spec-check` 只负责规范符合性检查，不负责宣布 Task `DONE`
+- `g1-task-gate` 只负责当前实现轮的 G1 运行与结果整理，不负责宣布 Task `DONE`
 - `g2-milestone-gate` 只负责 G2，不负责自动 merge PR
 - `replay-runtime` 只负责恢复主状态，不负责推进下一 Task
 
@@ -241,8 +241,8 @@ Initiative 文档
   -> select_frontier
   -> select_ready_tasks
   -> task_loop
-  -> anchor
   -> G1
+  -> anchor / fixup
   -> R1
 ```
 
@@ -253,17 +253,17 @@ Initiative 文档
 - 把它解析为 Initiative plan
 - 重建当前 frontier
 - 选择一个 ready 的写入型 Task
-- 自动走完 `implement -> spec check -> quality check -> anchor -> G1 -> R1`
+- 自动走完 `implement / repair -> G1 -> anchor / fixup -> R1`
 - 在 Task `DONE` 后更新 runtime state
 
 **必须具备的能力**
 
 - `initiative_plan` parser / validator
 - `initiative_state` / `milestone_state` / `task_state` 初版
-- `task_check_result` 初版
+- `gate_evidence_note(profile=G1)` 初版
 - `run_task_loop()` 主闭环
-- `task_worker`、`spec_reviewer`、`quality_reviewer` 三角色接线
-- `.initiative-runtime/` 的基本落盘与恢复
+- `task_worker`、`reviewer` 两角色接线
+- 派生状态视图的基本生成与恢复
 
 **明确非目标**
 
@@ -281,7 +281,7 @@ Initiative 文档
 
 - 能稳定跑通至少一条真实 smoke path
 - Task `DONE` 由结构化 artifacts 证明，不靠会话摘要
-- 删除 `.initiative-runtime/` 后可重建主状态
+- 删除任意本地派生缓存后可重建主状态
 
 ### 5.2 `R1 / Beta`：Milestone Ready
 
@@ -305,7 +305,7 @@ all tasks DONE in frontier
 
 - `milestone_state` 完整状态枚举
 - milestone branch / PR 索引
-- `review_packet` 在 R2 场景下可用
+- `review_brief / review_report` 在 R2 场景下可用
 - `g2-milestone-gate`
 - `r2-milestone-review`
 - milestone merge 后 frontier 自动前移
@@ -438,9 +438,9 @@ all milestones MERGED
 - 依赖：`R0` 发布
 - 验收：Milestone 状态可由 Task `DONE` 推出
 
-`PR-07`：G2 / R2 packets 与 reports
+`PR-07`：G2 / R2 briefs、bundles 与 reports
 
-- 目标：实现 milestone review packet、bundle、gate、review 落盘
+- 目标：实现 milestone review brief、bundle、gate、review 落盘
 - 依赖：`PR-06`
 - 验收：Milestone seal 结构化结果完备
 

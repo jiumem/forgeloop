@@ -6,1371 +6,1028 @@
 | --- | --- |
 | 文档名称 | Codex 原生 Initiative 自动编码套件技术设计说明书 |
 | 文档层级 | Codex 落地方案层 / 技术设计层 |
-| 文档定位 | 对总体机制与落地方案进行工程化展开的技术定义文档 |
-| 适用范围 | 需要实现数据模型、状态机、工件合同、运行时算法与接口边界的仓库 |
-| 非目标 | 不重述总体机制映射；不替代专项作战计划；不展开逐 prompt 文案 |
+| 文档定位 | 对总体机制文档中的两个 workflow 做工程化落地的技术定义文档 |
+| 适用范围 | 需要实现运行文档、路径布局、machine block、subagent 落位、解析脚本与恢复逻辑的仓库 |
+| 非目标 | 不重述总体机制法位；不展开专项排期；不直接撰写 subagent 系统提示词正文 |
 
 ## 0. 文档定位
 
 本文档只回答一个问题：
 
-> 这套 Codex 原生 Initiative 自动编码套件，在工程层面究竟由哪些模型、状态、工件、接口和运行规则组成。
+> 第一篇里已经封板的两个 workflow，在工程层面究竟落成什么文档、什么路径、什么 machine block、什么 subagent 边界、什么恢复与校验逻辑。
 
-本文档直接服务于：
+本文档不再沿用旧的 `packet-first / brief-note-report` 组织方式。
+新的技术主轴固定为：
 
-- schema 与模型定义
-- 状态机实现
-- skill / agent / script 接口设计
-- mock、合同测试与实现代码
+- 先定义两个 workflow 在工程层的落位
+- 再定义 `Global State Doc` 与三层 `Review Rolling Doc`
+- 再定义这些文档的路径、命名和内部结构
+- 再定义 subagent、skills、scripts 如何围绕这些文档工作
+- 最后才定义状态、循环算法、恢复与测试
 
-本文档默认承接上一层文档中的机制裁决，不再重复证明：
+本文档与相邻文档的关系固定如下：
 
-- 为什么 Initiative 是主入口
-- 为什么 Task 只作为内部原子
-- 为什么内部检查不是 formal R1
-- 为什么主线程不能空壳化
-
-本文档采用以下写作约束：
-
-- 只写可实现、可测试、可裁决的技术定义
-- 优先复用仓库已有四个核心模型的业务真值地位
-- 在此基础上增加 Initiative 级运行时模型，而不是另造平行真值体系
-- 明确区分 canonical source 与 rebuildable runtime cache
+- 第一篇总体机制文档负责机制、角色、责任、交接协议与总循环
+- 本文档负责路径、结构、machine block、subagent 接缝与算法
+- subagent 的系统提示词将单独落到多篇文档中，不内嵌在本文档
+- 专项实施作战计划书只负责排期、PR、验收和推进，不再重复定义技术合同
 
 ## 1. 技术目标与设计边界
 
 ### 1.1 技术目标
 
-本设计的技术目标固定为五项：
+本设计的技术目标固定为七项：
 
-第一，建立一套 Initiative-first 的正式对象层。  
-系统必须同时表达 `initiative_plan`、`initiative_state`、`milestone_state` 与 `task_state`，并允许 controller 在不丢失上位法位的前提下做调度。
+第一，**第二篇必须成为两个 workflow 的实现设计文档，而不是旧 artifact 清单文档。**  
+文档结构、状态、路径和算法都必须围绕 `设计规划循环` 与 `编码执行循环` 组织。
 
-第二，保留旧四模型的业务真值角色。  
-`task_packet`、`coder_result`、`review_result`、`task_state` 仍是 Task 执行闭环里的结构化核心，不因新增 Initiative Runtime 而失效。
+第二，**运行中的主通信面必须收敛成最小集合。**  
+v1 只承认以下四份主运行文档：
 
-第三，把 Task 内部闭环压成显式子状态机。  
-Task loop 必须明确区分 `implement -> spec check -> quality check -> READY_FOR_ANCHOR -> G1 -> R1`，而不是把这些动作混进自然语言会话。
+- `Global State Doc`
+- `Task Review Rolling Doc`
+- `Milestone Review Rolling Doc`
+- `Initiative Review Rolling Doc`
 
-第四，保证运行态可重建。  
-任何本地缓存都只能是派生状态。删除 `.initiative-runtime/` 后，系统仍应能从总任务文档、Git/PR/CI 证据和正式 gate/review 产物恢复主状态。
+第三，**formal 输出必须内嵌在滚动文档里，而不是再拆出平行文件。**  
+`G1 / G2 / G3` 与 `R1 / R2 / R3` 的正式结构化结果，都应作为 typed machine block 追加在对应 rolling doc 中；JSON 只做派生视图，不再做第二真理源。
 
-第五，保证接口边界清晰。  
-skills、custom agents、repo 脚本、App / CLI / GitHub / Automations 都要有明确职责，避免出现“谁都能推进、谁都能裁决”的混乱控制面。
+第四，**repo 内正式文档面与本地派生面必须分离。**  
+repo 内的运行文档是协作真理源；本地如需生成 JSON 视图、解析缓存和恢复辅助数据，也只能是实现私有派生面，不进入正式路径合同。
+
+第五，**编码执行循环必须体现“单一持续 coder / 每轮 fresh reviewer”。**  
+coder 是 Initiative 执行期内持续持有实现 ownership 的单一角色；reviewer 在每次 `R1 / R2 / R3` 时都 fresh 派生。
+
+第六，**subagent 的系统提示词应单列为独立文档资产。**  
+本文档只定义它们放在哪里、如何装配进 `.codex/agents/`、如何与 skills / scripts 接线，不直接承载提示词正文。
+
+第七，**运行态必须可从文档与工程真理源重建。**  
+任何本地派生视图或缓存丢失后，系统仍应能从 Initiative 总任务文档、repo 内运行文档、Git/PR 事实与结构化 commit 恢复主状态。
 
 ### 1.2 技术非目标
 
 本文档明确不承担以下目标：
 
-- 不把 Codex 原生机制再次抽象成新的上位宪法
-- 不把 Task 内部检查提升为第四层 formal review
-- 不设计多 milestone 并发写入调度器
-- 不把 Automations 变成 blocking 主链的正式执行面
-- 不在 v1 引入分布式 worker、队列或常驻服务
-- 不把 PR 评论、JSONL 日志或 CLI 自然语言输出视为业务真值
+- 不把第一篇已经封板的机制法位重写一遍
+- 不回到 `task_brief / implementation_note / review_brief / review_report` 多文档并列模型
+- 不把 `gate_result`、`review_result` 继续设计成平行独立文件
+- 不把 `spec check / quality check / READY_FOR_ANCHOR` 旧状态机重新写回 v1
+- 不在 v1 引入分布式 worker、队列或常驻后台服务
+- 不在本文档直接给出 coder / reviewer 的完整系统提示词
+- 不把任何本地派生缓存重新升格为真理源
 
-### 1.3 与上位宪法、总体机制文档的关系
+### 1.3 与第一篇总体机制文档的衔接
 
-三层文档关系固定如下：
+本文档直接承接第一篇中已经封板的这些裁决：
 
-- 上位宪法层定义对象法位、角色边界、Gate / Review 法律
-- 第一篇总体机制文档定义 Codex 原生机制映射、总体流程与关键约束
-- 本文档定义可直接落成代码与测试的模型、状态、工件、算法与接口
+- 运行主形态是 `Supervisor + bounded subagents`
+- 系统主轴是两个 workflow
+- 当前真正要落地的是 `编码执行循环`
+- `Global State Doc + 三层 Review Rolling Doc` 是正式协作通信面
+- `coder` 是持续执行者，`reviewer` 每轮 fresh 派生
+- `Supervisor` 不编码，只负责编排、状态维护、升级裁决与用户断点
 
-因此，凡属“为什么这样设计”的问题，以第一篇为准；凡属“具体要落成什么字段、什么状态、什么算法”的问题，以本文档为准。
+因此，凡属下列问题，以第一篇为准，本文档只做工程展开：
 
-## 2. Canonical Sources 与 Runtime Cache
+- 为什么要有两个循环
+- 为什么 `Supervisor` 不亲自编码
+- 为什么 `Task -> Milestone -> Initiative` 要做三段对抗式循环
+- 为什么运行中的主通信面不能退化成接口调用链
 
-### 2.1 规划真理源
+## 2. 两个 workflow 的技术落位
 
-规划真理源只有一类：
+### 2.1 设计规划循环：先保留骨架，不展开正文
 
-- Initiative 总任务文档及其内嵌或并列的结构化 machine block
+`设计规划循环` 在 v1 的技术落位先做保留位，不在本文档展开完整算法。
+但它的技术骨架必须先预留，防止第二篇以后再次重构。
 
-其职责是表达静态总图，包括：
+当前只做一条技术裁决：
 
-- initiative 元信息
-- milestone 编排
-- workstream 责任划分
-- task 定义
-- reference assignment
-- success criteria
-- formal gate 默认命令配置
+- 规划循环未来也必须走“单一主文档 + machine block + derived view”路线，而不是再重新长出平行 packet 体系
 
-规划真理源必须满足：
+### 2.2 编码执行循环：第二篇当前真正要实现的核心
 
-- 可被 preflight 做结构校验
-- 可被 parser 无歧义解析成 `initiative_plan`
-- 不能依赖运行时状态反向补全关键字段
+`编码执行循环` 是本文档当前真正要落地的核心。
+它的工程骨架固定为三层：
 
-### 2.2 工程真理源
+第一层，**repo 内正式运行文档层**  
+保存 `Global State Doc` 与三层 `Review Rolling Doc`，这是 Agent 协作的主通信面。
 
-工程真理源由以下对象共同构成：
+第二层，**工程真理源层**  
+保存 Git 工作树、结构化 commit、分支、PR、测试和实际代码。
 
-- Git 工作树与索引
-- milestone 分支 / worktree
-- 结构化 commit
-- PR 及其关联 diff
-- 仓库中的正式代码、测试、文档与配置
+第三层，**skills / subagents / scripts 执行层**  
+围绕正式文档读写与工程真理源操作工作，但本身不成为真理源。
 
-其中最关键的工程边界是三条：
+`编码执行循环` 的工程设计必须回答以下问题：
 
-- Task 的正式工程收口锚点是 `anchor(<milestone>/<task>): ...`
-- Task 内修补可用 `fixup(<milestone>/<task>): ...`
-- 回退可用 `revert(<milestone>/<task>): ...`
+- 四份主运行文档落在 repo 的哪里
+- 文档内部怎样组织成可读、可追加、可解析的结构
+- coder、reviewer、Supervisor 各自往哪些文档追加什么
+- subagent 提示词源文档放在哪里，实际 runtime manifest 放在哪里
+- scripts 怎样只解析 machine block，而不是依赖隐式上下文记忆
+- 系统如何从文档与 Git 恢复当前执行状态
 
-Task 是否真正完成，不能只看 agent 的自然语言说明，必须能在工程真理源中找到对应代码与 anchor 证据。
+### 2.3 当前技术裁决
 
-### 2.3 验证与审查真理源
+围绕 `编码执行循环`，本文档做以下技术裁决：
 
-验证与审查真理源分两层：
+第一，**不再设计独立的 `task_brief / implementation_note / gate_evidence_note / review_brief / review_report` 文件。**  
+这些概念如果继续存在，只能作为 rolling doc 内部的 machine block 类型，而不是一级文件类型。
 
-- gate 真理源：按既定 profile 执行出的结构化 `gate_result`
-- formal review 真理源：按既定 review profile 产出的结构化 `review_result`
+第二，**`gate_result` 与 `review_result` 仍然存在，但它们的法位改成“rolling doc 中的正式结构化 block”。**  
+脚本如有需要可以做临时结构化提取，但不能再要求 reviewer 额外写一份平行结果文件。
 
-以下对象只作为辅助说明，不直接充当业务真值：
+第三，**`Global State Doc` 不是自由文本日志，而是最小可更新状态脊柱。**  
+它必须足够让 Supervisor 更新全局位置与下一动作，但不能重新长成第二套过程账本。
 
-- markdown 总结
-- PR 评论中的自由文本
-- App review pane 的非结构化说明
-- 临时分析日志
+第四，**三层 `Review Rolling Doc` 是 append-mostly 文档。**  
+创建后的 header 与 contract snapshot 固定；后续主要以回合为单位追加；不允许反复覆盖历史回合。
 
-这些对象可以被保留为 `review_report` 或附属 evidence，但 controller 的裁决只能依赖结构化结果。
+第五，**`G1` 只出现在 `Task Review Rolling Doc` 内。**  
+`G2` 只出现在 `Milestone Review Rolling Doc` 内。  
+`G3` 只出现在 `Initiative Review Rolling Doc` 内。
 
-### 2.4 Runtime Cache 与可重建原则
+第六，**任何需要写代码的修补，最终都必须回落到 Task 半径内。**  
+`R2 / R3` 发现代码问题时，只能通过 `Global State Doc` 触发新的 repair task，再由同一个 coder 回落到 Task loop。
 
-`.initiative-runtime/` 的法位固定为：
+## 3. 真理源与落盘平面
 
-- 派生状态缓存
-- packet / observation / decision / draft 的工作目录
-- 对 gate/review 结构化结果的本地副本索引
+### 3.1 单一真理源划分
 
-它不是正式真理源。其删除与重建必须满足：
+本设计只承认三类真理源：
 
-- `state.json` 可以从 `initiative_plan + Git + formal artifacts` 重建
-- `task_state` 的 formal status 可以从 anchor、G1/R1 结果回放
-- `milestone_state` 与 `initiative_state` 可以从 task / milestone formal artifacts 重新推导
-
-允许保存在 `.initiative-runtime/` 中但必须视为派生副本的对象包括：
-
-- `state.json`
-- packets
-- observations
-- decisions
-- drafts
-- local copy 的 gate / review 结果
-
-## 3. 数据模型总览
-
-本设计采用“两层对象模型”：
-
-- 静态规划层：描述做什么、怎么拆、依据什么执行
-- 运行收口层：描述当前推进到哪里、最近产生了哪些结构化工件、下一步能做什么
-
-其中旧四模型仍保留在 Task 执行真值层，新引入的 Initiative Runtime 模型负责把多个 Task 组织成可调度的总系统。
-
-### 3.1 静态规划模型
-
-#### `initiative_plan`
-
-`initiative_plan` 是 Initiative 级静态总图，是 parser 输出的主模型。最少必须包含以下语义区块：
-
-- 身份区：`key`、`title`
-- 需求摘要区：`requirement_summary.problem`、`requirement_summary.goal`
-- 法源区：`design_refs`、`gap_refs`、`sealed_decisions`
-- 边界区：`execution_boundary`、`scope`、`non_goals`
-- 成功标准区：`success_criteria`
-- 结构区：`milestones`、`workstreams`、`tasks`、`pr_plan`
-- 收口区：`initiative_reference_assignment`、`g3_commands`
-- 风险区：`global_residual_risks`、`follow_ups`
-
-合同要求：
-
-- `initiative_plan` 必须足够让 controller 在不读完整会话历史的情况下重建运行主图
-- 任何 Task 关键边界都必须能追溯到 `initiative_plan`
-- parser 失败或关键引用失效时，整个 Initiative 进入 `PLANNING_BLOCKED`
-
-#### `milestone_plan`
-
-`milestone_plan` 表达单个 Milestone 的阶段目标与正式收口边界，最少包含：
-
-- `key`
-- `goal`
-- `depends_on`
-- `planned_pr_model`
-- `acceptance`
-- `reference_assignment`
-
-技术意义：
-
-- 它决定 frontier 的合法顺序
-- 它决定 G2 / R2 的收口参照
-- 它决定 PR 与 milestone 的对应关系
-
-#### `milestone_reference_assignment`
-
-这是 `milestone_plan.reference_assignment` 的正式语义展开，不单独作为独立顶层对象存储，但在技术上应视为一个明确合同：
-
-- 该 Milestone 的主要引用文档或章节
-- 该 Milestone 的目标边界
-- 该 Milestone 的验收依据
-
-controller 构建 R2 packet 时，必须把它当作 Milestone formal review 的主法源，而不是只看 task 汇总。
-
-#### `initiative_reference_assignment`
-
-这是 Initiative 交付级 reference assignment 的正式语义展开，最少包括：
-
-- Initiative 交付面向的总设计引用
-- 对整体成功标准的汇总引用
-- 对 release / rollout candidate 的主要验收依据
-
-它是 G3 / R3 packet 的主法源。
-
-#### `task_definition`
-
-`task_definition` 是由 `initiative_plan.tasks[task_key]` 解析出的静态 Task 定义视图。它不同于 `task_packet`，因为前者是静态规划，后者是执行时裁剪后的局部包。
-
-`task_definition` 至少包含以下字段语义：
-
-- 身份区：`key`、`milestone`、`workstream`
-- 任务摘要区：`summary`
-- 法源区：`design_refs`、`gap_refs`、`spec_refs`
-- 输入输出区：`input`、`action`、`output`
-- 边界区：`non_goals`
-- 依赖区：`dependencies`
-- 局部完成标准区：`acceptance`
-- 风险区：`local_risks`
-- 执行策略区：`recommended_executor`、`execution_mode`
-- Gate 区：`g1_commands`
-
-合同要求：
-
-- `task_definition` 必须足够被 controller 裁成不依赖全文漫游的 `task_packet`
-- 不能把必须完成项和必须不做项隐藏在散文段落里
-- `dependencies` 只能指向同一 Initiative 中的其他 task key
-
-### 3.2 运行态模型
-
-#### `initiative_state`
-
-`initiative_state` 是 Initiative 运行总状态，是 controller 的主工作台。推荐字段语义如下：
-
-- 身份区：`initiative_key`、`title`
-- 正式状态区：`status`
-- frontier 区：`current_frontier`
-- 索引区：`task_states`、`milestone_states`
-- Formal 收口引用区：`latest_g3_ref`、`latest_r3_ref`
-- 运行说明区：`notes`
-
-推荐状态枚举：
-
-- `PLANNING_BLOCKED`
-- `READY`
-- `ACTIVE`
-- `WAITING_R2`
-- `WAITING_ESCALATION`
-- `WAITING_R3`
-- `DONE`
-- `ABORTED`
-
-#### `milestone_state`
-
-`milestone_state` 负责承接单个 Milestone 的阶段运行态，最少包含：
-
-- `key`
-- `status`
-- `task_keys`
-- `active_branch_ref`
-- `latest_pr_ref`
-- `latest_g2_ref`
-- `latest_r2_ref`
-- `blocked_reason`
-
-推荐状态枚举：
-
-- `NOT_READY`
-- `READY`
-- `ACTIVE`
-- `READY_FOR_PR`
-- `IN_G2`
-- `IN_R2`
-- `MERGED`
-- `BLOCKED`
-- `DEFERRED`
-
-#### `task_state`
-
-`task_state` 仍保留为四个核心模型之一，但要从旧 task-first 结构扩展到 Initiative Runtime 兼容结构。推荐字段分为两层：
-
-- 正式状态层：Task 在 Initiative 中的正式位置
-- 局部循环层：Task loop 在 Task 内部走到哪里
-
-最少字段语义如下：
-
-- 身份区：`task_id`、`initiative_key`、`milestone_key`、`workstream_key`
-- 正式状态区：`formal_status`
-- 局部循环区：`loop_phase`
-- 轮次区：`round_no`、`spec_check_round_no`、`quality_check_round_no`
-- 依赖区：`depends_on`
-- 工件引用区：
-  - `latest_task_packet_ref`
-  - `latest_coder_result_ref`
-  - `latest_spec_check_ref`
-  - `latest_quality_check_ref`
-  - `latest_g1_ref`
-  - `latest_r1_ref`
-  - `last_anchor_commit`
-- 运行控制区：`probe_count`、`stall_count`、`blocked_reason`、`pending_escalation`
-- 通知区：`pending_notification`
-
-推荐 `formal_status` 枚举：
-
-- `NOT_READY`
-- `READY`
-- `IN_FLIGHT`
-- `READY_FOR_ANCHOR`
-- `IN_G1`
-- `IN_R1`
-- `DONE`
-- `BLOCKED`
-- `DEFERRED`
-
-#### `task_loop_phase`
-
-`task_loop_phase` 是 `task_state` 的内部子状态机枚举，专门表达 Task 内循环，不可与 formal status 混用。
-
-推荐枚举：
-
-- `IDLE`
-- `BUILD_PACKET`
-- `IMPLEMENT`
-- `SPEC_CHECK`
-- `FIX_SPEC`
-- `QUALITY_CHECK`
-- `FIX_QUALITY`
-- `READY_FOR_ANCHOR`
-- `WAIT_FORMAL_SEAL`
-- `BLOCKED`
-- `ESCALATED`
-
-设计约束：
-
-- `loop_phase` 只描述 Task 内局部推进，不表达 Milestone / Initiative 收口
-- `formal_status=READY_FOR_ANCHOR` 时，`loop_phase` 必须为 `READY_FOR_ANCHOR`
-- `formal_status in {IN_G1, IN_R1}` 时，`loop_phase` 必须为 `WAIT_FORMAL_SEAL`
-
-#### `runtime_fact_state`
-
-`runtime_fact_state` 用于表达局部自动循环依赖的运行事实，而不是正式工程真理。最少应包含：
-
-- `fact_key`
-- `task_id`
-- `kind`
-- `source`
-- `freshness`
-- `evidence_refs`
-- `summary`
-
-推荐 `kind` 包括：
-
-- `TEST_OUTPUT`
-- `LINT_OUTPUT`
-- `TRACE_LOG`
-- `ERROR_REPRO`
-- `READONLY_DISCOVERY`
-
-其法位是：
-
-- 可支持局部判断
-- 可驱动 `REQUEST_RUNTIME_FACTS`
-- 不可单独宣布 Task 完成
-
-### 3.3 执行与审查工件模型
-
-#### `task_packet`
-
-`task_packet` 仍为核心模型之一，承担 controller 裁好的执行边界包。它不等于静态 `task_definition`，因为它还包含执行时上下文。
-
-它至少应包含：
-
-- `initiative_context`
-- `milestone_context`
-- `task_definition`
-- `task_runtime`
-- `requested_scope`
-- `must_not_do`
-- `acceptance`
-- `dependency_snapshot`
-- `repo_snapshot`
-- `required_checks`
-- `generated_at`
-
-技术裁决：
-
-- implementer 只能以 `task_packet` 为主输入，不允许反向要求其先自行漫游总任务文档
-- `task_packet` 是 Task 内实现与修补的唯一 controller-curated 包
-
-#### `task_check_result`
-
-`task_check_result` 是新增的内部检查模型，明确用于 Task 内部检查，而不是 formal review。
-
-推荐字段：
-
-- `task_id`
-- `check_kind`
-- `round_no`
-- `verdict`
-- `findings`
-- `blocking_findings`
-- `evidence_refs`
-- `summary`
-- `recommended_fix_scope`
-
-推荐 `check_kind` 枚举：
-
-- `SPEC_COMPLIANCE`
-- `CODE_QUALITY`
-
-推荐 `verdict` 枚举：
-
-- `PASS`
-- `FAIL`
-- `ESCALATE`
-
-技术裁决：
-
-- `task_check_result` 不得直接驱动 Task `DONE`
-- `SPEC_COMPLIANCE` 必须先于 `CODE_QUALITY`
-- `CODE_QUALITY` 只在 spec pass 后触发
-
-#### `coder_result`
-
-`coder_result` 仍为核心模型之一，记录 implementer 在某一轮客观做了什么，不宣布通过。
-
-保留其五面结构：
-
-- 代码面：`files_changed`
-- 法位面：`contracts_addressed`
-- 清理面：`cleanups_done`
-- 验证面：`check_results`
-- 边界面：`out_of_scope_notes`
-
-在 Initiative Runtime 中新增两条使用规则：
-
-- `coder_result` 必须始终能回链到生成它的 `task_packet`
-- `coder_result` 只能作为后续 `spec_check_packet` 与 `quality_check_packet` 的输入，不得直接替代 formal review
-
-#### `review_result`
-
-`review_result` 仍为核心模型之一，但在新体系中的法位被明确为：
-
-- formal review 的结构化真值模型
-- 默认先用于 `R1`
-- 结构应支持未来统一表达 `R2`、`R3`
-
-为兼容现有主线，可采用两阶段策略：
-
-- v1 过渡期：保留现有 task-scoped `review_result` 作为 `R1` 真值，并以 `review_report` 承接 `R2` / `R3`
-- 收敛目标：将 `review_result` 抽象为 `profile + object_type + object_key` 的统一 formal review 模型
-
-无论采用哪种迁移路径，硬约束都不变：
-
-- `review_result` 只代表 formal review
-- `spec_check_result` 与 `quality_check_result` 不得复用 `review_result` 名义
-
-#### `gate_result`
-
-`gate_result` 是 formal gate 的结构化结果，至少应包含：
-
-- `profile`
-- `object_key`
-- `passed`
-- `commands`
-- `summary`
-
-其中 `commands[]` 每项最少包含：
-
-- `command`
-- `return_code`
-- `stdout_ref | stdout`
-- `stderr_ref | stderr`
-
-推荐 `profile`：
-
-- `G1`
-- `G2`
-- `G3`
-
-#### `review_report`
-
-`review_report` 是供人读、供 PR / App / release panel 展示的渲染结果。它不是 controller 真值，但应稳定映射自 formal review 结构化结果。
-
-推荐字段：
-
-- `profile`
-- `object_key`
-- `verdict`
-- `summary`
-- `findings`
-- `residual_risks`
-- `escalations`
-- `evidence`
-
-它可以由 `review_result` 或其它正式 review bundle 正规化生成。
-
-## 4. 状态模型
-
-### 4.1 Initiative 状态枚举与跃迁
-
-`initiative_state.status` 的推荐跃迁如下：
-
-| 当前状态 | 条件 | 下一状态 |
+| 类别 | 真理源 | 说明 |
 | --- | --- | --- |
-| `PLANNING_BLOCKED` | preflight 通过 | `READY` |
-| `READY` | 选出 frontier 或 ready task | `ACTIVE` |
-| `ACTIVE` | milestone 全部进入待 R2 | `WAITING_R2` |
-| `ACTIVE` | 发生跨层升级或用户裁决请求 | `WAITING_ESCALATION` |
-| `WAITING_R2` | 当前 frontier 完成 R2 / merge | `ACTIVE` 或 `WAITING_R3` |
-| `WAITING_R3` | G3 / R3 clean | `DONE` |
-| 任意非终态 | 用户终止 | `ABORTED` |
+| 规划真理源 | Initiative 总任务文档 | 描述 Initiative / Milestone / Task 的静态总图 |
+| 协作真理源 | `Global State Doc` + 三层 `Review Rolling Doc` | 描述当前执行状态、回合、裁决、交接与升级 |
+| 工程真理源 | Git 工作树、结构化 commit、分支、PR、测试 | 描述真实代码与正式工程封口 |
 
-设计约束：
+任何技术设计都必须遵守这条硬边界：
 
-- `initiative_state` 不得直接跳过 Milestone 层进入 `DONE`
-- `WAITING_R3` 只在全部 Milestone 已完成正式阶段收口后成立
+> 文档负责表达协作与裁决。  
+> Git 负责表达真实代码变化。  
+> cache 只负责加速解析与恢复。
 
-### 4.2 Milestone 状态枚举与跃迁
+### 3.2 repo 内正式落盘平面
 
-`milestone_state.status` 的推荐跃迁如下：
-
-| 当前状态 | 条件 | 下一状态 |
-| --- | --- | --- |
-| `NOT_READY` | 前置 Milestone 已完成 | `READY` |
-| `READY` | 出现 ready task | `ACTIVE` |
-| `ACTIVE` | 所有 task `DONE` | `READY_FOR_PR` |
-| `READY_FOR_PR` | 开始执行 G2 | `IN_G2` |
-| `IN_G2` | gate pass | `IN_R2` |
-| `IN_R2` | review clean / PR merged | `MERGED` |
-| 任意非终态 | 阻塞或升级 | `BLOCKED` |
-
-技术约束：
-
-- `READY_FOR_PR` 之前不得启动 R2
-- `MERGED` 是 Milestone 正式完成态
-
-### 4.3 Task 状态枚举与跃迁
-
-`task_state.formal_status` 的推荐跃迁如下：
-
-| 当前状态 | 条件 | 下一状态 |
-| --- | --- | --- |
-| `NOT_READY` | 依赖满足 | `READY` |
-| `READY` | controller 启动 task loop | `IN_FLIGHT` |
-| `IN_FLIGHT` | 通过局部检查并产出 anchor 候选 | `READY_FOR_ANCHOR` |
-| `READY_FOR_ANCHOR` | anchor 已切出 | `IN_G1` |
-| `IN_G1` | G1 pass | `IN_R1` |
-| `IN_R1` | R1 clean | `DONE` |
-| 任意非终态 | 外部阻塞 | `BLOCKED` |
-| 任意非终态 | 由规划改动延后 | `DEFERRED` |
-
-技术约束：
-
-- `READY` 与 `IN_FLIGHT` 间只允许 controller 驱动，不允许 reviewer 越权
-- `DONE` 必须同时具备 `last_anchor_commit`、`latest_g1_ref`、`latest_r1_ref`
-
-### 4.4 Task Loop 内部子状态机
-
-`task_loop_phase` 的推荐流转如下：
+repo 内正式落盘平面固定为：
 
 ```text
-IDLE
-  -> BUILD_PACKET
-  -> IMPLEMENT
-  -> SPEC_CHECK
-      -> FIX_SPEC -> IMPLEMENT
-      -> QUALITY_CHECK
-          -> FIX_QUALITY -> IMPLEMENT
-          -> READY_FOR_ANCHOR
-              -> WAIT_FORMAL_SEAL
+docs/codex/runtime/<initiative_key>/
+  global-state.md
+  reviews/
+    task/<milestone_key>/<task_key>.md
+    milestone/<milestone_key>.md
+    initiative/<initiative_key>.md
 ```
 
-异常分支：
+这里的每个 markdown 文档都属于正式协作文档，不是缓存副本。
+它们的特征是：
 
-- 任一阶段缺关键证据：`REQUEST_RUNTIME_FACTS` 型决策，回到 `IMPLEMENT` 或进入 `ESCALATED`
-- 任一阶段发现硬阻塞：进入 `BLOCKED`
-- 局部循环振荡或超轮次：进入 `ESCALATED`
+- 人可读
+- Agent 可持续追加
+- scripts 可通过 machine block 稳定解析
+- 可以随分支一起演化与审计
 
-### 4.5 Upgrade / Blocked / Deferred 条件
+### 3.3 派生视图与本地缓存不设固定目录合同
 
-以下情况必须触发升级或阻塞，而不是继续局部自动循环：
+v1 仍允许实现按需生成临时结构化提取、parser 缓存或恢复辅助对象。
 
-- `must_do` 与 `must_not_do` 出现直接冲突
-- 关键法源引用失效或过时
-- 多轮 spec / quality 检查没有收敛
-- 需要修改 Milestone / Initiative 级 sealed decision
-- 需要新增超出 `task_definition` 边界的广域改造
-- 缺失运行事实且超过最大探针次数
+但本文档不再为这些对象规定固定目录。
+原因只有一个：
 
-推荐策略：
+> 这些对象不是真理源，也不该继续占据用户心智中的正式法位。
 
-- 局部证据不足但可补采：`pending_escalation=REQUEST_RUNTIME_FACTS`
-- 需要人工决定边界：`pending_escalation=NEEDS_HUMAN_RULING`
-- 外部依赖未就绪：`formal_status=BLOCKED`
-- 规划层主动后移：`formal_status=DEFERRED`
+因此，第二篇只保留两条硬约束：
 
-### 4.6 Formal Seal 条件
+- 不复制 `global-state.md` 或三层 rolling doc 的 markdown 正文
+- 不再落一套平行的 `briefs/notes/results` 正式目录
 
-正式收口条件固定如下：
+### 3.4 formal 输出如何存在
 
-Task 收口：
+为了避免“滚动文档”和“formal result 文件”双真值，formal 输出存在方式固定如下：
 
-- `task_loop_phase=READY_FOR_ANCHOR`
-- 已生成 anchor commit
-- G1 通过并落盘 `gate_result`
-- R1 通过并落盘 `review_result`
+- `G1` 的正式结果是 `Task Review Rolling Doc` 中的 `g1_result` block
+- `R1` 的正式结果是 `Task Review Rolling Doc` 中的 `r1_result` block
+- `G2` 的正式结果是 `Milestone Review Rolling Doc` 中的 `g2_result` block
+- `R2` 的正式结果是 `Milestone Review Rolling Doc` 中的 `r2_result` block
+- `G3` 的正式结果是 `Initiative Review Rolling Doc` 中的 `g3_result` block
+- `R3` 的正式结果是 `Initiative Review Rolling Doc` 中的 `r3_result` block
 
-Milestone 收口：
+JSON 里的 `gate_result_view`、`review_result_view` 只是从这些 block 导出的结构化视图。
 
-- 该 Milestone 全部 Task 为 `DONE`
-- 已生成或更新 PR
-- G2 通过
-- R2 clean 或残余风险已按法定方式记录
+## 4. 目录、路径与命名
 
-Initiative 收口：
+### 4.1 repo 内正式目录布局
 
-- 全部 Milestone 已 `MERGED`
-- G3 通过
-- R3 clean 或交付候选已被正式裁决
-
-## 5. Packet 与 Artifact 合同
-
-### 5.1 `task_packet` 合同
-
-`task_packet` 是所有写入型 Task 执行的唯一 controller-curated 输入包。建议采用以下结构：
-
-```json
-{
-  "initiative": {},
-  "milestone": {},
-  "task": {},
-  "task_runtime": {},
-  "requested_scope": [],
-  "must_not_do": [],
-  "acceptance": [],
-  "dependency_snapshot": {},
-  "repo": {},
-  "required_checks": [],
-  "generated_at": ""
-}
-```
-
-合同要求：
-
-- `requested_scope` 必须是明确待完成项，不得只给宽泛目标
-- `must_not_do` 必须显式下发，避免 implementer 自行扩大 scope
-- `repo.git_status` 仅作环境说明，不能替代 Git 真理源
-- 同一 `round_no` 只能对应一个主 `task_packet`
-
-### 5.2 `spec_check_packet` 合同
-
-`spec_check_packet` 用于 `SPEC_COMPLIANCE` 检查，最少应包含：
-
-- `task_id`
-- `round_no`
-- `what_was_requested`
-- `task_acceptance`
-- `must_not_do`
-- `coder_claim`
-- `files_changed`
-- `code_refs`
-- `evidence_refs`
-
-技术裁决：
-
-- spec reviewer 必须直接读代码与结构化输入，不得只信 implementer 摘要
-- 输出必须规范化为 `task_check_result(kind=SPEC_COMPLIANCE)`
-
-### 5.3 `quality_check_packet` 合同
-
-`quality_check_packet` 用于 `CODE_QUALITY` 检查，最少应包含：
-
-- `task_id`
-- `round_no`
-- `what_was_implemented`
-- `base_sha`
-- `head_sha`
-- `files_changed`
-- `commands_run`
-- `known_residual_risks`
-- `evidence_refs`
-
-技术裁决：
-
-- `base_sha` / `head_sha` 应明确界定审查差异面
-- 若未经过 spec pass，不得生成 quality check packet
-
-### 5.4 `review_packet` 合同
-
-`review_packet` 专用于 formal review。最少应包含：
-
-- `profile`
-- `object_type`
-- `object_key`
-- `reference_assignment`
-- `references`
-- `evidence`
-- `gate_result_ref`
-- `candidate_ref`
-- `generated_at`
-
-推荐 `object_type`：
-
-- `TASK`
-- `MILESTONE`
-- `INITIATIVE`
-
-技术裁决：
-
-- R1 packet 默认以 task anchor 与 G1 结果为主要 evidence
-- R2 packet 默认以 PR、Milestone reference assignment 与 G2 结果为主要 evidence
-- R3 packet 默认以 release / rollout candidate、Initiative reference assignment 与 G3 结果为主要 evidence
-
-### 5.5 report / bundle / runtime facts 合同
-
-各类辅助工件推荐合同如下：
-
-`observation`：
-
-- 表达局部观察结果
-- 允许包括 closure signal、entropy signal、required runtime facts
-- 不直接决定 formal 通过
-
-`decision`：
-
-- 表达 controller 对 observation 的局部裁决
-- 至少包含 `action`、`why`、`next_required_facts`
-
-`runtime_fact`：
-
-- 表达补采得到的运行事实
-- 需带 `source`、`freshness`、`evidence_refs`
-
-`bundle`：
-
-- 表达某次 gate / review 聚合的引用和证据清单
-- 用于让 reviewer 和后续工具读取，而不充当主真值
-
-### 5.6 结构化 commit / anchor / fixup 合同映射
-
-本系统要求 commit subject 满足结构化前缀：
-
-- `anchor(<milestone>/<task>): <summary>`
-- `fixup(<milestone>/<task>): <summary>`
-- `revert(<milestone>/<task>): <summary>`
-
-映射关系固定为：
-
-- `anchor` 对应 Task 正式工程锚点
-- `fixup` 对应 anchor 前后局部修补
-- `revert` 对应正式回退
-
-技术约束：
-
-- 只有 `anchor` 可以驱动 `READY_FOR_ANCHOR -> IN_G1`
-- 运行时重建必须优先扫描这些结构化 subject，而不是推测 branch diff
-
-## 6. 核心运行算法
-
-### 6.1 `planning_preflight()`
-
-输入：
-
-- Initiative 文档路径
-- repo root
-
-职责：
-
-- 提取 machine block
-- 校验关键字段完整性
-- 校验引用文件存在性
-- 校验 milestone / task dependency 图合法性
-
-输出：
-
-- `passed`
-- `errors[]`
-- `initiative_doc`
-
-失败后行为：
-
-- 不进入任何运行主链
-- Initiative 状态置为 `PLANNING_BLOCKED`
-
-### 6.2 `rebuild_initiative_state()`
-
-输入：
-
-- `initiative_plan`
-- repo root
-
-职责：
-
-- 扫描 Git anchors
-- 扫描 formal gate / review 结构化结果
-- 计算 task formal status
-- 汇总 milestone / initiative status
-- 生成新的 `initiative_state`
-
-技术裁决：
-
-- `state.json` 只可作为加速索引，不可覆盖重建结果
-- 重建优先级应为 `formal artifacts > Git anchors > cache hints`
-
-### 6.3 `select_frontier()`
-
-职责：
-
-- 在有序 milestone 列表中选择第一个未收口、依赖已满足的 frontier
-
-选择原则：
-
-- 优先级按 `initiative_plan.milestones` 顺序
-- `BLOCKED` frontier 不自动跳过，除非已有正式升级裁决
-- 不允许同时把两个写入型 milestone 设为活动 frontier
-
-### 6.4 `select_ready_tasks()`
-
-职责：
-
-- 在当前 frontier 内选择 ready task 集合
-
-选择规则：
-
-- `formal_status=READY`
-- 依赖 task 已 `DONE`
-- 同一 Milestone 默认最多一个写入型 task
-- read-only task 可在不污染工作树的前提下并行
-
-输出：
-
-- `write_tasks[]`
-- `readonly_tasks[]`
-
-### 6.5 `run_task_loop()`
-
-职责：
-
-- 驱动 Task 内局部收口直到：
-  - `READY_FOR_ANCHOR`
-  - `BLOCKED`
-  - `ESCALATED`
-
-核心步骤：
-
-1. 构建 `task_packet`
-2. 调度 `task_worker`
-3. 规范化 `coder_result`
-4. 构建并执行 `spec_check_packet`
-5. 规范化 `task_check_result(kind=SPEC_COMPLIANCE)`
-6. 若通过，再构建并执行 `quality_check_packet`
-7. 规范化 `task_check_result(kind=CODE_QUALITY)`
-8. 若全部通过，则切 anchor 并进入 formal seal
-
-停止条件：
-
-- 达到 `READY_FOR_ANCHOR`
-- 超过最大局部修补轮次
-- 进入 `BLOCKED`
-- 需要人工裁决
-
-### 6.6 `seal_milestone()`
-
-职责：
-
-- 确认 Milestone 全部 Task 已 `DONE`
-- 生成或更新 milestone branch / PR
-- 执行 G2
-- 构建 R2 packet 并生成 formal review 结果
-- 更新 `milestone_state`
-
-输出：
-
-- `latest_pr_ref`
-- `latest_g2_ref`
-- `latest_r2_ref`
-
-### 6.7 `seal_initiative()`
-
-职责：
-
-- 确认全部 Milestone 已 `MERGED`
-- 生成 release / rollout candidate
-- 执行 G3
-- 构建 R3 packet 并生成 formal review 结果
-- 更新 `initiative_state`
-
-### 6.8 `replay_or_resume_runtime()`
-
-职责：
-
-- 从 canonical source 完整重建主状态
-- 恢复最近一轮 packet / observation / decision 索引
-- 让主线程能在 crash、重启或 cache 清空后继续推进
-
-技术裁决：
-
-- 恢复逻辑不能假设上一轮 agent 会话仍存在
-- controller 恢复后必须以结构化工件重新接管，而不是依赖聊天历史
-
-## 7. Task Loop 详细技术设计
-
-### 7.1 Build Packet
-
-输入：
-
-- `task_definition`
-- `task_state`
-- frontier 上下文
-- 依赖完成快照
-
-输出：
-
-- `task_packet`
-
-要求：
-
-- 只下发当前轮需要的边界
-- 明确列出 `must_do`、`must_not_do`、`acceptance`
-- 显式带上 task 当前最新 formal / local 状态
-
-### 7.2 Implement
-
-执行者：
-
-- `task_worker`
-
-输入：
-
-- `task_packet`
-
-输出：
-
-- `coder_result`
-
-要求：
-
-- 必须回报实际改动文件与已执行检查
-- 不得宣称 Task 已 formal pass
-- 若发现 scope 不足，只能上报，不得自行重写规划
-
-### 7.3 Spec Check
-
-执行者：
-
-- `spec_reviewer`
-
-输入：
-
-- `spec_check_packet`
-- `coder_result`
-
-输出：
-
-- `task_check_result(kind=SPEC_COMPLIANCE)`
-
-通过条件：
-
-- `must_do` 已覆盖
-- `must_not_do` 未被违反
-- `acceptance` 至少达到可进入工程质量检查的程度
-
-失败后行为：
-
-- `loop_phase=FIX_SPEC`
-- controller 生成新的 implement round
-
-### 7.4 Quality Check
-
-执行者：
-
-- `quality_reviewer`
-
-输入：
-
-- `quality_check_packet`
-- `coder_result`
-- spec pass 证据
-
-输出：
-
-- `task_check_result(kind=CODE_QUALITY)`
-
-通过条件：
-
-- 无阻断级工程问题
-- 必需检查已执行或给出合法跳过原因
-- diff 边界内不存在明显回归与噪音
-
-失败后行为：
-
-- `loop_phase=FIX_QUALITY`
-- controller 生成新的 implement round
-
-### 7.5 READY_FOR_ANCHOR
-
-进入条件：
-
-- 最新一轮 implement 已完成
-- spec check pass
-- quality check pass
-- 无待补 runtime facts
-- 无待升级边界冲突
-
-此时 controller 的唯一允许动作是：
-
-- 切 `anchor(<milestone>/<task>)`
-- 更新 `task_state.last_anchor_commit`
-- 推进到 `IN_G1`
-
-### 7.6 Anchor / G1 / R1 正式收口
-
-`READY_FOR_ANCHOR` 之后的动作不再属于 Task 内部检查，而属于 formal seal：
-
-1. 创建 anchor commit
-2. 执行 G1，并记录 `gate_result(profile=G1)`
-3. 构建 R1 packet
-4. 执行 formal review，并记录 `review_result(profile=R1)` 或其过渡兼容表示
-5. 若 R1 clean，则 `formal_status=DONE`
-
-任何一个 formal seal 失败，都不得回写为“内部检查失败”；必须回到正式状态机处理：
-
-- G1 fail：回到 `IN_FLIGHT`
-- R1 fail：回到 `IN_FLIGHT`
-- review 无法判断：进入升级路径
-
-## 8. skills / agents / scripts 接口边界
-
-### 8.1 skills 清单与输入输出
-
-推荐 skill 集如下：
-
-- `run-initiative`
-- `planning-preflight`
-- `task-loop`
-- `cut-anchor`
-- `g1-task-gate`
-- `r1-task-review`
-- `open-milestone-pr`
-- `g2-milestone-gate`
-- `r2-milestone-review`
-- `g3-initiative-gate`
-- `r3-initiative-review`
-- `collect-runtime-facts`
-
-输入输出原则：
-
-- skill 输入应是结构化 packet 或对象 key
-- skill 输出应是结构化结果引用，不以大段自然语言为主
-- 同一 formal gate / review skill 不允许隐式决定后续调度
-
-### 8.2 custom agents 清单与职责
-
-推荐 custom agents：
-
-- `task_worker`
-  - 负责实现与修补
-  - 可写仓库
-  - 不宣布 formal passage
-- `spec_reviewer`
-  - 负责规范符合性检查
-  - 只读
-  - 只输出 `SPEC_COMPLIANCE` 结果
-- `quality_reviewer`
-  - 负责代码质量检查
-  - 只读
-  - 只输出 `CODE_QUALITY` 结果
-
-可选辅助角色：
-
-- `runtime_observer`
-  - 只读
-  - 补采日志、测试输出和局部运行事实
-
-### 8.3 Python 脚本清单与职责
-
-建议把确定性内核保留在 repo 脚本中，最少包括：
-
-- `planning_parser`
-- `state_rebuilder`
-- `scheduler`
-- `packet_builder`
-- `gate_runner`
-- `review_bundle_builder`
-- `artifact_normalizer`
-- `git_indexer`
-
-这些脚本的职责是：
-
-- 解析与校验结构化输入
-- 维护状态机与调度规则
-- 规范化 gate / review / check 工件
-- 降低 skill 与 agent prompt 对业务真值的直接耦合
-
-### 8.4 显式调用与隐式调用边界
-
-硬约束如下：
-
-- subagent dispatch 必须显式触发
-- gate / review 不得依赖“可能会自动触发的 background reviewer”
-- Automations 不得作为 formal gate 唯一执行入口
-- GitHub review 可作为辅助 evidence，但正式通过要以结构化结果落盘
-
-### 8.5 App / CLI / GitHub / Automations 接口接缝
-
-接缝法位固定如下：
-
-- App：日常主控制面，适合并行线程、review pane、worktree 管理
-- CLI：技能与脚本调用面
-- GitHub：PR 协作与辅助 review 面
-- Automations：shadow 巡检、提醒、重复分析面
-
-禁止事项：
-
-- 不把 App 会话历史当业务真值
-- 不把 GitHub 评论线程当 formal state machine
-- 不把 Automations 生成的摘要直接当 formal gate 结论
-
-## 9. 持久化、目录与工件布局
-
-### 9.1 目录结构
-
-推荐运行目录：
+第二篇定义的目标目录布局如下：
 
 ```text
-.initiative-runtime/
-└─ <initiative_key>/
-   ├─ state.json
-   ├─ packets/
-   ├─ reports/
-   ├─ facts/
-   ├─ observations/
-   ├─ decisions/
-   └─ drafts/
+docs/
+  codex/
+    runtime/
+      <initiative_key>/
+        global-state.md
+        reviews/
+          task/
+            <milestone_key>/
+              <task_key>.md
+          milestone/
+            <milestone_key>.md
+          initiative/
+            <initiative_key>.md
+    agents/
+      README.md
+      coder.md
+      task-reviewer.md
+      milestone-reviewer.md
+      initiative-reviewer.md
 ```
+
+这里有两组路径必须区分：
+
+- `docs/codex/runtime/` 是正式运行文档面
+- `docs/codex/agents/` 是 subagent 系统提示词源文档面
+
+### 4.2 runtime manifest 与装配路径
+
+subagent 在实际 Codex 运行时的 manifest 仍应落在：
+
+```text
+.codex/agents/
+```
+
+推荐装配关系如下：
+
+- `docs/codex/agents/coder.md` -> `.codex/agents/coder.toml`
+- `docs/codex/agents/task-reviewer.md` -> `.codex/agents/task_reviewer.toml`
+- `docs/codex/agents/milestone-reviewer.md` -> `.codex/agents/milestone_reviewer.toml`
+- `docs/codex/agents/initiative-reviewer.md` -> `.codex/agents/initiative_reviewer.toml`
+
+提示词正文真理源只认 `docs/codex/agents/*.md`，本文档不再为任何中间 prompt 装配产物规定固定路径。
+
+### 4.3 命名规则
+
+路径命名规则固定为：
+
+- Initiative 级目录名使用 `initiative_key`
+- Milestone 级目录名或文件名使用 `milestone_key`
+- Task 级文件名使用 `task_key`
+- 不在文件名中嵌入回合号；回合由文档内部 heading 与 machine block 字段表达
+- 不在文件名中嵌入 verdict；verdict 只在 block 里表达
+
+正式文档文件名固定如下：
+
+- `global-state.md`
+- `reviews/task/<milestone_key>/<task_key>.md`
+- `reviews/milestone/<milestone_key>.md`
+- `reviews/initiative/<initiative_key>.md`
+
+### 4.4 旧模型迁移规则
+
+旧模型中的下列路径与文件类型，统一视为迁移前遗留设计：
+
+- `briefs/`
+- `notes/`
+- `results/`
+- `facts/`
+- `observations/`
+- `decisions/`
+- `drafts/`
+- 独立的 `task_packet_view / review_packet_view / gate_bundle_view` 文件树
+
+它们在 v1 新设计里不再是正式结构。
+如果为了兼容工具链仍需生成，只能作为临时派生输出存在，不构成固定路径合同。
+
+## 5. 文档工件与内部结构设计
+
+### 5.1 通用 machine block 语法
+
+所有正式运行文档都采用统一的“markdown 叙述 + `forgeloop` machine block”语法。
+标准形式如下：
+
+````markdown
+```forgeloop
+kind: r1_result
+round: 2
+author_role: reviewer
+created_at: 2026-03-27T14:30:00+08:00
+verdict: changes_requested
+functional_correctness: pass
+validation_adequacy: fail
+local_structure_convergence: pass
+local_regression_risk: medium
+findings:
+  - id: R1-001
+    severity: major
+    summary: 缺失异常路径测试
+next_action: coder_repair
+```
+````
+
+统一规则如下：
+
+- machine block 的 fenced code info string 固定为 `forgeloop`
+- body 使用 YAML
+- 每个 block 都必须有 `kind`
+- `header` 与 `contract_snapshot` block 必须携带对象身份字段
+- append-only 的正式事实块必须携带 `round`、`author_role`、`created_at`
+- 同一份 rolling doc 内的对象身份默认由 header 继承，不要求每个事实块重复写 `doc_key`
+- prose 可自由书写，但脚本只读取 `forgeloop` block
+
+### 5.2 可替换块与追加块的边界
+
+围绕“第一篇 update-only、后三篇 append-only”这条原则，machine block 分成两类：
+
+第一类，**update-only 块**  
+只允许出现在 `Global State Doc` 中，由 Supervisor 原地更新，脚本只认当前文档里的最新版本。
+
+第二类，**append-only 块**  
+只允许出现在三层 `Review Rolling Doc` 中；一旦写入，不应回改，只能在末尾继续追加。
+
+`Global State Doc` 允许出现的 update-only 块只有这些：
+
+- `global_state_header`
+- `current_snapshot`
+- `next_action`
+- `last_transition`
+
+三层 rolling doc 允许出现的 append-only 块固定为：
+
+- `task_review_header` / `milestone_review_header` / `initiative_review_header`
+- `task_contract_snapshot` / `milestone_contract_snapshot` / `initiative_contract_snapshot`
+- `coder_update`
+- `g1_result` / `g2_result` / `g3_result`
+- `anchor_ref` / `fixup_ref`
+- `r1_result` / `r2_result` / `r3_result`
 
 其中：
 
-- `packets/` 存执行包与 review packet
-- `reports/` 存 gate / review 结构化结果与渲染输出
-- `facts/` 存运行事实
-- `observations/` 存局部观察
-- `decisions/` 存 controller 局部裁决
-- `drafts/` 存临时草稿，不参与业务真值
-
-### 9.2 命名规范
-
-推荐命名：
-
-- `packets/task-<task_key>-r<round>.json`
-- `packets/spec-<task_key>-r<round>.json`
-- `packets/quality-<task_key>-r<round>.json`
-- `reports/g1-<task_key>.json`
-- `reports/r1-<task_key>.json`
-- `reports/g2-<milestone_key>.json`
-- `reports/r2-<milestone_key>.json`
-- `reports/g3-<initiative_key>.json`
-- `reports/r3-<initiative_key>.json`
-
-要求：
-
-- 文件名必须能反推出对象类型、对象 key 与轮次
-- 一次 formal seal 最多产出一个同 profile 主结果
-
-### 9.3 持久化策略
-
-持久化原则：
-
-- JSON 统一 UTF-8 编码
-- 写入尽量原子化
-- 引用优先保存 repo 相对路径或对象 key，再必要时补绝对路径
-- `state.json` 在每次 controller 关键跃迁后覆写
-
-### 9.4 清理与恢复策略
-
-清理策略：
-
-- `.initiative-runtime/` 默认加入 `.gitignore`
-- 允许整体删除后重建
-- 删除前若需保留展示材料，应先导出 formal reports 到 durable plane
-
-恢复策略：
-
-- 先重跑 `planning_preflight`
-- 再执行 `rebuild_initiative_state()`
-- 最后恢复最近 packet / decision 索引供继续调度
-
-### 9.5 Git / branch / PR / candidate 索引策略
-
-推荐索引规则：
-
-- milestone branch：`codex/<initiative_key>/<milestone_key>`
-- Task anchor：结构化 commit subject
-- Milestone PR：保存在 `milestone_state.latest_pr_ref`
-- Initiative candidate：保存在 `initiative_state.notes` 或独立 candidate ref
-
-技术裁决：
-
-- branch / PR / candidate 是工程收口载体，不是对象层本身
-- controller 只能把它们当 evidence index，不得把它们误当 `milestone_state` 或 `initiative_state`
-
-## 10. 错误模型与升级协议
-
-### 10.1 输入不合法错误
-
-包括：
-
-- machine block 缺字段
-- 引用路径失效
-- 依赖指向未知对象
-- 非法枚举值
-
-处理：
-
-- 立即 preflight fail
-- 禁止启动运行主链
-
-### 10.2 状态冲突错误
-
-包括：
-
-- `task_state.formal_status` 与现有 artifacts 不一致
-- `loop_phase` 与 formal status 组合非法
-- milestone / initiative 状态无法由下层状态推出
-
-处理：
-
-- 以重建结果为准
-- 若仍冲突，进入 `WAITING_ESCALATION`
-
-### 10.3 运行事实不足错误
-
-包括：
-
-- 无法确认缺陷是否真实
-- 缺少必要测试输出
-- 需运行环境数据但无法获得
-
-处理：
-
-- 先请求 `runtime_fact`
-- 超过上限后升级人工
-
-### 10.4 跨层升级错误
-
-包括：
-
-- Task 修复需要改写 Milestone reference assignment
-- Milestone 收口要求变更 Initiative success criteria
-- review 发现 sealed decision 已不成立
-
-处理：
-
-- 不在 Task 内自动吞掉
-- 升级到对应上层裁决点
-
-### 10.5 用户断点与人工裁决入口
-
-必须保留的人工入口：
-
-- planning blocked
-- frontier blocked
-- 关键边界冲突
-- R2 / R3 前的正式断点
-- release / rollout candidate 交付断点
-
-### 10.6 不可恢复错误与 fail-safe 策略
-
-遇到以下情况时，controller 必须停止自动推进：
-
-- 结构化工件损坏且无法重建
-- Git 工作树处于不可解释的冲突态
-- formal review 与 gate 证据彼此矛盾
-- 当前仓库状态已越过 `must_not_do` 明确边界
-
-fail-safe 原则：
-
-- 停在最近可解释对象层
-- 输出结构化错误
-- 不做隐式回退或隐式强推
-
-## 11. 测试与验证设计
-
-### 11.1 schema / model tests
-
-最低覆盖：
-
-- `initiative_plan` parser / validator
-- `task_packet`
-- `task_check_result`
-- `coder_result`
-- `review_result`
-- `task_state`
-
-### 11.2 state machine tests
-
-最低覆盖：
-
-- Task formal status 跃迁
-- Task loop phase 跃迁
-- Milestone seal 跃迁
-- Initiative seal 跃迁
-- blocked / deferred / escalation 分支
-
-### 11.3 contract tests
-
-最低覆盖：
-
-- packet builder 输出
-- gate runner 输出
-- review bundle 输出
-- artifact normalizer 输出
-
-### 11.4 scenario tests
-
-建议至少覆盖以下场景：
-
-- 单 Milestone 单 Task 完整闭环
-- spec fail 后修补再通过
-- quality fail 后修补再通过
-- 缺 runtime facts 后补采再继续
-- Milestone seal 成功
-- Initiative seal 成功
-
-### 11.5 minimal Codex smoke tests
-
-仅在核心合同测试通过后执行，目标是验证：
-
-- skill 能按预期接收 packet
-- custom agent 能按预期返回结构化结果
-- 显式 subagent 调度链可跑通一轮
-
-### 11.6 文档与实现一致性检查
-
-应建立最少两类一致性检查：
-
-- 文档中的状态枚举与代码枚举一致
-- 文档中的 artifact 命名规则与实现输出一致
-
-## 12. 待决技术问题
-
-当前仍保留三项非阻断待决问题：
-
-第一，`review_result` 是否在首轮实现中直接统一覆盖 `R2 / R3`。  
-若实现成本过高，可先保留 `R1` 统一、`R2 / R3` 过渡适配，但目标模型已在本文档明确。
-
-第二，Initiative machine block 的最终承载形态是否长期保留在 markdown fenced block。  
-若后续迁移到独立 JSON / YAML 文件，必须保持 parser 输出的 `initiative_plan` 合同不变。
-
-第三，read-only runtime observer 是否需要成为单独 custom agent。  
-v1 可先复用通用只读 agent，只要其输出能落成标准化 `runtime_fact` 即可。
+- header 与 contract snapshot 只写一次
+- 之后每一轮只追加正式事实块
+- 不再引入 `coder_round_open`、`reviewer_round_open`、`supervisor_transition`、事件账本这类仪式性块
+
+### 5.3 `Global State Doc` 结构
+
+`Global State Doc` 是全局状态脊柱，不是自由文本工作日志。
+它的推荐结构固定如下：
+
+````markdown
+# <initiative_key> Global State
+
+[Section] Summary
+<人类可读摘要>
+
+```forgeloop
+kind: global_state_header
+initiative_key: INIT-001
+planning_doc_ref: docs/initiatives/INIT-001.md
+created_at: ...
+updated_at: ...
+```
+
+```forgeloop
+kind: current_snapshot
+active_plane: task
+active_milestone: MS-002
+active_task: TASK-002-API
+active_loop: task_execution
+coder_slot: CODER-1
+```
+
+```forgeloop
+kind: next_action
+owner: supervisor
+action: dispatch_coder_continue_task
+blocking_reason: null
+```
+
+```forgeloop
+kind: last_transition
+updated_at: ...
+from_state: IN_R1
+to_state: TASK_DONE
+reason: r1_clean
+```
+````
+
+`Global State Doc` 的技术职责只有五项：
+
+- 提供当前最小快照
+- 指向当前活跃对象
+- 给出下一步调度动作
+- 记录最近一次关键转换
+- 为恢复算法提供单一入口
+
+它不承担这些职责：
+
+- 不保存 reviewer 的详细 findings 主文
+- 不保存 coder 的实现细节主文
+- 不维护 Milestone / Task 的完整状态表
+- 不复制 Git diff、日志全文、测试输出全文
+
+### 5.4 `Task Review Rolling Doc` 结构
+
+`Task Review Rolling Doc` 是 `Task` 半径内唯一正式运行文档。
+它同时承载：
+
+- Task 合同快照
+- coder 连续实现与 G1 尝试
+- `anchor / fixup` 正式封口
+- `R1` 结果
+- Task 级回合交接
+
+推荐结构固定如下：
+
+````markdown
+# Task Review Rolling Doc: <task_key>
+
+```forgeloop
+kind: task_review_header
+initiative_key: INIT-001
+milestone_key: MS-002
+task_key: TASK-002-API
+doc_key: TASK-002-API
+created_at: ...
+```
+
+```forgeloop
+kind: task_contract_snapshot
+summary: ...
+spec_refs:
+  - ...
+acceptance:
+  - ...
+g1_commands:
+  - npm test -- api
+```
+
+[Round 1]
+
+```forgeloop
+kind: coder_update
+round: 1
+author_role: coder
+created_at: ...
+files_touched:
+  - src/api.ts
+  - tests/api.test.ts
+summary: ...
+```
+
+```forgeloop
+kind: g1_result
+round: 1
+author_role: coder
+created_at: ...
+profile: G1
+verdict: pass
+commands:
+  - npm test -- api
+evidence_refs:
+  - local://...
+```
+
+```forgeloop
+kind: anchor_ref
+round: 1
+author_role: coder
+created_at: ...
+commit: anchor(ms-002/task-002-api): ...
+sha: abc123
+```
+
+```forgeloop
+kind: r1_result
+round: 1
+author_role: reviewer
+created_at: ...
+verdict: clean
+functional_correctness: pass
+validation_adequacy: pass
+local_structure_convergence: pass
+local_regression_risk: low
+findings: []
+next_action: task_done
+```
+````
+
+技术边界要点：
+
+- `Task Review Rolling Doc` 是 append-only，已写入的 round 不回改
+- `G1` 失败时，不进入 reviewer；coder 继续在同一 round 下追加 `coder_update` 与新的 `g1_result`
+- `G1` 通过后才允许写入 `anchor_ref` 或 `fixup_ref`
+- `R1` 只审已经写入的正式锚点块
+- 一个 Task round 只有在 `r1_result` 写入后才算闭合；若 `R1` 要求修补，同一个 coder 在下一 round 继续
+
+### 5.5 `Milestone Review Rolling Doc` 结构
+
+`Milestone Review Rolling Doc` 是 `G2 / R2` 对抗循环的唯一正式文档。
+它同时承载：
+
+- Milestone 合同快照
+- 已纳入审查的 Task / anchor 集合
+- coder 的阶段级验证结果
+- reviewer 的 `R2` 裁决
+- 若需代码修补时的回落记录
+
+推荐结构固定如下：
+
+````markdown
+# Milestone Review Rolling Doc: <milestone_key>
+
+```forgeloop
+kind: milestone_review_header
+initiative_key: INIT-001
+milestone_key: MS-002
+doc_key: MS-002
+created_at: ...
+```
+
+```forgeloop
+kind: milestone_contract_snapshot
+goal: ...
+acceptance:
+  - ...
+g2_commands:
+  - npm test
+task_scope:
+  - TASK-002-API
+  - TASK-003-UI
+```
+
+[Round 1]
+
+```forgeloop
+kind: g2_result
+round: 1
+author_role: coder
+created_at: ...
+profile: G2
+verdict: pass
+anchors:
+  - TASK-002-API@abc123
+  - TASK-003-UI@def456
+commands:
+  - npm test
+residual_risks: []
+```
+
+```forgeloop
+kind: r2_result
+round: 1
+author_role: reviewer
+created_at: ...
+verdict: changes_requested
+stage_structure_convergence: fail
+mainline_merge_safety: fail
+evidence_adequacy: pass
+residual_risks:
+  - 兼容层仍保留双真值
+required_follow_ups:
+  - create_repair_task: TASK-002-API-REPAIR-1
+```
+````
+
+技术边界要点：
+
+- `Milestone Review Rolling Doc` 是 append-only，header 与 contract snapshot 固定后不回改
+- `G2` 由同一个 coder 负责执行并写块，`Supervisor` 不直接写 `g2_result`
+- `R2` 发现代码问题时，不允许 reviewer 直接修补代码
+- 若 `G2` 自身已经给出 `repair_required` 一类结论，该 round 可以只以 `g2_result` 结束
+- 需要代码修补时，只能回落为新的 repair task，并在 `Global State Doc` 中更新当前状态
+- 回修完成后，回到同一份 `Milestone Review Rolling Doc` 追加下一 round
+
+### 5.6 `Initiative Review Rolling Doc` 结构
+
+`Initiative Review Rolling Doc` 是 `G3 / R3` 对抗循环的唯一正式文档。
+它同时承载：
+
+- Initiative 交付合同快照
+- 进入交付候选的 Milestone 集合
+- coder 的交付级验证结果
+- reviewer 的 `R3` 裁决
+- 若需再次回落修补时的升级记录
+
+推荐结构固定如下：
+
+````markdown
+# Initiative Review Rolling Doc: <initiative_key>
+
+```forgeloop
+kind: initiative_review_header
+initiative_key: INIT-001
+doc_key: INIT-001
+created_at: ...
+```
+
+```forgeloop
+kind: initiative_contract_snapshot
+goal: ...
+success_criteria:
+  - ...
+g3_commands:
+  - npm run release:check
+milestone_scope:
+  - MS-001
+  - MS-002
+```
+
+[Round 1]
+
+```forgeloop
+kind: g3_result
+round: 1
+author_role: coder
+created_at: ...
+profile: G3
+verdict: pass
+commands:
+  - npm run release:check
+residual_risks: []
+```
+
+```forgeloop
+kind: r3_result
+round: 1
+author_role: reviewer
+created_at: ...
+verdict: clean
+delivery_readiness: pass
+release_safety: pass
+evidence_adequacy: pass
+residual_risks: []
+```
+````
+
+技术边界要点：
+
+- `Initiative Review Rolling Doc` 是 append-only，header 与 contract snapshot 固定后不回改
+- `G3` 也由同一个 coder 执行
+- 若 `G3` 自身已经给出 `repair_required` 一类结论，该 round 可以只以 `g3_result` 结束
+- `R3` 发现要改代码时，同样只能回落为 repair task
+- `R3 clean` 后，`Global State Doc` 才能把 Initiative 标记为 `DONE`
+
+## 6. subagents、提示词与执行边界
+
+### 6.1 角色与运行时落位
+
+角色落位固定如下：
+
+| 角色 | 运行时位置 | 是否 custom agent | 主职责 |
+| --- | --- | --- | --- |
+| Supervisor | 主线程 | 否 | 维护 `Global State Doc`、选择对象、编排循环、派发 subagent、处理升级与用户断点 |
+| Coder | subagent | 是 | 持续实现、修补、运行 `G1 / G2 / G3`、向 rolling doc 追加 coder 与 gate block |
+| Task Reviewer | subagent | 是 | fresh 派生，执行 Task review 并写入 `r1_result` |
+| Milestone Reviewer | subagent | 是 | fresh 派生，执行 Milestone review 并写入 `r2_result` |
+| Initiative Reviewer | subagent | 是 | fresh 派生，执行 Initiative review 并写入 `r3_result` |
+这里有一个非常关键的技术约束：
+
+> coder 是“逻辑上的单一持续角色”，不是“每轮重新定义的新角色”。
+
+v1 的优先实现方式应是：
+
+- 优先复用同一个 coder agent thread
+- 如果运行时必须重建 thread，Supervisor 必须在 `Global State Doc` 中记录其继任关系
+- 即使物理 thread 变了，逻辑 `coder_slot` 也不能变成新的角色
+
+### 6.2 系统提示词源文档位置
+
+subagent 系统提示词正文的真理源位置固定为：
+
+```text
+docs/codex/agents/
+```
+
+推荐最小集合如下：
+
+- `README.md`
+- `coder.md`
+- `task-reviewer.md`
+- `milestone-reviewer.md`
+- `initiative-reviewer.md`
+
+这些文档负责定义：
+
+- 角色职责
+- 输出纪律
+- 允许读取的文档面
+- 禁止越权的边界
+
+它们不在本文档里展开正文。
+
+### 6.3 runtime manifest 位置
+
+真正供 Codex runtime 识别的 custom agent manifest 位置固定为：
+
+```text
+.codex/agents/
+```
+
+manifest 至少负责表达：
+
+- `name`
+- `description`
+- `model`
+- `reasoning_effort`
+- `developer_instructions` 或其引用方式
+
+如果需要把 `docs/codex/agents/*.md` 编译或同步进 runtime 层，应由专门脚本完成。
+本文档不允许人工维护两套独立 prompt 文本。
+
+### 6.4 skills 与 scripts 的边界
+
+workflow 入口与执行边界固定如下：
+
+- skills 负责选择什么时候进入某个 workflow 阶段
+- custom agents 负责 bounded role behavior
+- scripts 负责解析 markdown machine block、执行确定性校验与 Git 帮助动作
+
+明确禁止：
+
+- 让 skills 成为业务真理源
+- 让 subagent 靠隐式上下文口口相传主要法源
+- 让 scripts 直接发明新的业务状态并回写主文档
+
+### 6.5 当前推荐 skill / script 接缝
+
+当前推荐最小接缝如下：
+
+- `run-initiative`：Supervisor 入口 skill
+- `continue-task-coding`：驱动 coder 继续当前 Task
+- `run-r1-review`：派发 fresh reviewer 执行 `R1`
+- `run-r2-review`：派发 fresh reviewer 执行 `R2`
+- `run-r3-review`：派发 fresh reviewer 执行 `R3`
+- `rebuild-resume-hints`：从文档与 Git 重建最小恢复提示
+
+这些名字是技术目标名，不要求当前仓库已经全部存在。
+
+## 7. 编码执行 workflow 的恢复机制与循环算法
+
+### 7.1 最小恢复机制
+
+这套系统不应再定义一组厚重的 `initiative_state / milestone_state / task_state` 运行对象。
+对 Codex 原生工作流来说，ROI 最高的恢复机制是：
+
+第一，**优先复用原有 Codex thread。**  
+如果 `Supervisor` 主线程和当前 coder thread 仍然存在，最优恢复方式就是直接回到原 thread，用户输入 `go on` 或等价续跑指令继续推进。
+
+第二，**thread 不可用时，再用文档重建最小恢复提示。**  
+新的 `Supervisor` 线程只需要读取：
+
+- Initiative 总任务文档
+- `Global State Doc`
+- 三层 `Review Rolling Doc`
+- Git / PR / commit 事实
+
+然后回答四个问题即可继续：
+
+- 当前停在哪一层循环
+- 当前活跃的 Milestone / Task 是什么
+- 当前应该续写哪一篇 rolling doc
+- 下一步动作是什么
+
+第三，**局部结构化提取只做恢复加速，不定义业务状态对象。**  
+如果实现想生成临时 JSON、局部索引或恢复提示，可以生成；但它们只是 `resume hints`，不是正式状态模型。
+
+因此，本文档对恢复层只保留一个最小合同：
+
+- `Global State Doc` 提供“当前位置 + 下一动作”
+- 三层 rolling doc 提供“已经发生过哪些正式事实”
+- Codex thread resume 是第一优先级
+- 文档重建是 thread 丢失时的兜底路径
+
+### 7.2 Task 执行子循环算法
+
+`Task` 子循环的最小算法如下：
+
+1. `Supervisor` 从 `Global State Doc` 选择当前 active task，并把 `next_action` 更新为继续当前 Task。
+2. 同一个 coder 读取：
+   - Initiative 总任务文档中的 Task 定义
+   - `Global State Doc`
+   - 当前 `Task Review Rolling Doc`
+3. coder 在当前 round 下追加一个或多个 `coder_update`。
+4. coder 在当前实现轮中执行 `G1`，并追加 `g1_result`。
+5. 若 `G1 fail`：
+   - 不进入 reviewer
+   - `Global State Doc` 保持当前 Task 为 active task
+   - 同一个 coder 继续追加新 `coder_update` 与新 `g1_result`
+6. 若 `G1 pass`：
+   - coder 切出 `anchor / fixup`
+   - 在文档中追加 `anchor_ref / fixup_ref`
+   - `Global State Doc` 把 `next_action` 切到进入 `R1`
+7. `Supervisor` 派发 fresh `Task Reviewer`
+8. reviewer 读取相同文档与对应锚点，追加 `r1_result`
+9. 若 `R1 clean`：
+   - `Supervisor` 更新 `Global State Doc`
+   - `next_action` 切到选择下一个 ready object
+10. 若 `R1 changes_requested`：
+   - `Supervisor` 更新 `Global State Doc`
+   - `next_action` 切到继续当前 Task 修补
+   - 同一个 coder 进入下一 round
+
+这里要特别强调：
+
+- `G1` 是 coder 运行指令，不是独立子流程
+- `R1` 是 fresh reviewer 裁决，不是 coder 自证
+- round 的边界由 `r1_result` 是否已经写入决定，不由单次 G1 尝试决定
+
+### 7.3 Milestone 的 G2 / R2 循环算法
+
+`Milestone` 循环的最小算法如下：
+
+1. `Supervisor` 判断 Milestone 进入阶段审查窗口：
+   - 所需 Task 已 `DONE`
+   - `Global State Doc` 当前没有更高优先级的阻断
+2. `Supervisor` 打开或续写该 `Milestone Review Rolling Doc`
+3. 同一个 coder 读取：
+   - `Global State Doc`
+   - Milestone 合同快照
+   - 已完成 Task 的 anchor / fixup 集合
+4. coder 执行 `G2` 所需验证，并追加 `g2_result`
+5. 若 coder 在 `G2` 过程中发现需要代码修补：
+   - 不进入 `R2`
+   - `Supervisor` 在 `Global State Doc` 中创建 repair task
+   - 同一个 coder 回落到 Task 子循环
+6. 若 `G2 pass`：
+   - `Supervisor` 派发 fresh `Milestone Reviewer`
+7. reviewer 追加 `r2_result`
+8. 若 `R2 clean`：
+   - `Global State Doc` 更新当前 frontier
+9. 若 `R2 changes_requested`：
+   - 只能通过 repair task 回落到 Task 子循环
+   - 同一个 coder 承担回修
+   - 回修完成后回到同一份 Milestone 文档追加下一 round
+
+### 7.4 Initiative 的 G3 / R3 循环算法
+
+`Initiative` 循环与 `Milestone` 循环同构，只是对象半径更大。
+最小算法如下：
+
+1. `Supervisor` 判断 Initiative 进入交付审查窗口
+2. 打开或续写 `Initiative Review Rolling Doc`
+3. 同一个 coder 执行 `G3` 所需验证并追加 `g3_result`
+4. 若发现需要代码修补：
+   - `Supervisor` 创建 repair task
+   - 同一个 coder 回落到 Task 子循环
+5. 若 `G3 pass`：
+   - `Supervisor` 派发 fresh `Initiative Reviewer`
+6. reviewer 追加 `r3_result`
+7. 若 `R3 clean`：
+   - `Global State Doc` 更新为交付完成
+8. 若 `R3 changes_requested`：
+   - 同样只允许回落为 repair task
+   - 修补完成后回到同一份 Initiative 文档追加下一 round
+
+### 7.5 中断、升级与恢复
+
+这套算法必须覆盖四类非 happy path：
+
+第一，**用户中断**  
+`Supervisor` 需要更新 `Global State Doc` 中的 `next_action` 与 `last_transition`，把系统切到等待用户裁决。
+
+第二，**跨层升级**  
+`R1` 若发现阶段级裂缝，只能写入升级建议并由 `Supervisor` 在 `Global State Doc` 中提升到 Milestone 层处理；reviewer 不直接修改层级。
+
+第三，**coder thread 丢失**  
+若物理 coder thread 丢失，`Supervisor` 可以派生继任 coder，但必须：
+
+- 复用原 `coder_slot`
+- 在 `Global State Doc` 的 `last_transition` 中记录继任关系
+- 不得把它写成新角色
+
+第四，**Codex thread 丢失或本地派生缓存丢失**  
+系统必须允许仅凭：
+
+- Initiative 总任务文档
+- `Global State Doc`
+- 三层 rolling doc
+- Git/PR 事实
+
+重建最小恢复提示并继续执行。
+
+## 8. 解析脚本、Git 帮助动作与验证设计
+
+### 8.1 parser 的职责
+
+parser 不再解析一堆零散 artifact 文件，而只做三件事：
+
+- 读取 `Global State Doc`
+- 读取三层 `Review Rolling Doc`
+- 提取 `forgeloop` machine block，生成派生视图
+
+parser 明确禁止：
+
+- 依赖 prose 中的隐式语义推断关键状态
+- 反向把 JSON 视图写回正式 markdown 文档
+- 自行发明文档里不存在的新状态
+
+### 8.2 Git 帮助动作的职责
+
+Git 帮助动作只承接确定性工程操作：
+
+- 查询当前分支、提交、PR ref
+- 切出 `anchor / fixup / revert`
+- 校验结构化 commit 命名
+- 收集 `G1 / G2 / G3` 所需命令执行证据 ref
+
+但它们不承担：
+
+- reviewer 裁决
+- 业务状态推进
+- 直接修改 `Global State Doc` 的主逻辑
+
+### 8.3 最小验证集
+
+第二篇定义的最小验证集固定如下：
+
+第一，**文档语法测试**
+
+- `forgeloop` block 能被稳定解析
+- block 缺失必填字段时，parser 能报错
+
+第二，**路径与命名测试**
+
+- 正式文档路径符合本设计
+- 不会生成第二套 markdown 正文
+
+第三，**恢复测试**
+
+- 从 `Global State Doc` + rolling docs 能重建最小恢复提示
+- 删除任意本地辅助缓存后恢复成功
+
+第四，**Task 回合测试**
+
+- `G1 fail` 时不会错误进入 reviewer
+- `G1 pass` 后才允许 `anchor / fixup`
+- `R1 fail` 会回到同一个 coder 的下一 round
+
+第五，**Milestone / Initiative 循环测试**
+
+- `R2 / R3` 失败时只会回落 repair task
+- 不允许 reviewer 或 Supervisor 越权直接改代码
+
+第六，**文档与工程一致性测试**
+
+- `anchor_ref / fixup_ref` 对应 commit 确实存在
+- `r1_result / r2_result / r3_result` 引用的对象与当前文档对象一致
+
+## 9. 当前待决与后续延伸
+
+### 9.1 当前待决但不阻断封板的问题
+
+第一，`设计规划循环` 还未展开正文。  
+但其“单文档 + machine block”方向已经钉住，不阻断第二篇对编码执行循环封板。
+
+第二，subagent manifest 从当前仓库既有角色迁移到 `coder / task-reviewer / milestone-reviewer / initiative-reviewer` 的具体计划，还需后续治理 PR 落地。  
+这不阻断第二篇的技术设计成立，因为本文档只定义目标装配面。
+
+第三，是否需要为 `Milestone Review Rolling Doc` 与 `Initiative Review Rolling Doc` 增加更细的 evidence ref 规范，后续可以在不改主骨架的前提下追加。  
+当前只要 `g2_result / g3_result` 能稳定记录命令、对象范围和 evidence refs 即可。
+
+### 9.2 明确禁止回退到的旧设计
+
+本文档封板后，以下旧设计视为禁止回归：
+
+- `packet-first` 主协议
+- `brief / note / report` 并列一级文档
+- `gate_result / review_result` 独立文件化
+- `spec check / quality check / READY_FOR_ANCHOR`
+- 为本地派生缓存设计固定正式路径合同
+- 把 `Supervisor` 写成直接执行 `G2 / G3` 的编码者
+- 把 `coder` 写成每层循环都重新定义的新角色
+
+### 9.3 与后续文档的衔接
+
+本文档封板后，下游文档应按以下方式承接：
+
+- `docs/codex/agents/*.md` 负责写具体系统提示词
+- `.codex/agents/*.toml` 负责写 runtime manifest
+- skill 设计与构建规范负责定义 skills 如何调用这些角色
+- 专项实施作战计划书负责把本技术设计拆成具体 PR 序列
+
+## 10. 封板结论
+
+第一，第二篇现在不再是旧式 artifact/state-machine 杂糅文档，而是严格围绕两个 workflow 的技术设计文档。  
+其中 `设计规划循环` 先保留骨架，`编码执行循环` 完整展开。
+
+第二，运行中的主通信面已被压缩到最小集合：  
+一份 `Global State Doc`，三份分层 `Review Rolling Doc`。  
+其余结果、视图、索引都降级为这些文档中的 machine block 或派生视图。
+
+第三，repo 内正式路径与本地派生面已经分离：  
+`docs/codex/runtime/<initiative_key>/` 承担正式协作真理源；本地派生缓存如需存在，也不再占据固定正式路径。
+
+第四，subagent 的落位已经明确：  
+`Supervisor` 在主线程，`coder` 是持续单一角色，`reviewer` 在每次 `R1 / R2 / R3` 时 fresh 派生，提示词正文单列到 `docs/codex/agents/`。
+
+第五，formal Gate / Review 的存在方式已经收敛：  
+不再单独造文件，而是作为 typed machine block 追加在对应 rolling doc 中。
+
+第六，这份技术设计已经足以支撑后续写：
+
+- subagent 系统提示词文档
+- parser / Git helper
+- skill 接口与运行脚本
+- 专项实施 PR 计划
