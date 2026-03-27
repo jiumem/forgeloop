@@ -10,7 +10,7 @@ Run this checklist when:
 
 - preparing a release
 - changing install paths or skill layout
-- changing `.codex/agents/`
+- changing `agents/`
 - changing startup or workflow entry skills
 - upgrading Codex and wanting to confirm runtime compatibility
 
@@ -21,6 +21,7 @@ You do not need to run it for every normal content edit.
 - `codex` CLI is installed and usable on the machine
 - this repository has been installed with `bash scripts/install.sh --yes --source <repo>`
 - the installed skill link exists at `~/.codex/skills/forgeloop`
+- the target test repository has been enabled with `bash <repo>/scripts/install.sh --yes --source <repo> --project-dir <tmpdir>`
 
 ## Recommended Environment
 
@@ -29,6 +30,7 @@ Use a fresh temporary Git repository so the test does not rely on repo-local ski
 ```bash
 tmpdir=$(mktemp -d)
 git init -q "$tmpdir"
+bash ~/.codex/forgeloop/scripts/install.sh --yes --source ~/.codex/forgeloop --project-dir "$tmpdir"
 ```
 
 Run all `codex exec` checks against that temporary directory with `-C "$tmpdir"`.

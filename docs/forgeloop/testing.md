@@ -11,6 +11,7 @@ bash tests/codex/install-script-smoke.sh
 ```
 
 This verifies local-source installation, `--doctor`, and the generated Codex skills symlink against temporary directories.
+It also verifies that installing into a target project materializes the suite's custom agents under that project's `.codex/agents/`.
 
 ## 2. Codex-only repository check
 
@@ -20,7 +21,7 @@ bash tests/codex/verify-codex-only.sh
 
 This fails if removed platform files come back or if the remaining runtime docs and skills still contain obvious non-Codex terminology.
 
-It also checks that the project-scoped custom agents under `.codex/agents/` are present and declare the required fields.
+It also checks that the suite's custom agent source manifests under `agents/` are present and declare the required fields.
 It also checks that every shipped workflow dispatch file points at a declared custom agent, so new agent roles cannot be added half-way.
 
 ## 3. Brainstorm server integration test

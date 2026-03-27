@@ -8,16 +8,25 @@ trap 'rm -rf "$TMP_ROOT"' EXIT
 
 REPO_DIR="${TMP_ROOT}/repo"
 SKILLS_DIR="${TMP_ROOT}/skills"
+PROJECT_DIR="${TMP_ROOT}/project"
+
+mkdir -p "${PROJECT_DIR}"
 
 bash "${ROOT}/scripts/install.sh" \
   --source "${ROOT}" \
   --repo-dir "${REPO_DIR}" \
   --skills-dir "${SKILLS_DIR}" \
+  --project-dir "${PROJECT_DIR}" \
   --yes \
   --force
 
 if [ ! -d "${REPO_DIR}/skills" ]; then
   echo "repo dir was not created correctly"
+  exit 1
+fi
+
+if [ -e "${REPO_DIR}/.codex" ]; then
+  echo "suite repo copy should not contain repo-local .codex"
   exit 1
 fi
 
@@ -34,13 +43,22 @@ if [ "${TARGET_REAL}" != "${EXPECTED_REAL}" ]; then
   exit 1
 fi
 
+for agent in design_challenger implementer spec_reviewer code_reviewer plan_reviewer; do
+  if [ ! -f "${PROJECT_DIR}/.codex/agents/${agent}.toml" ]; then
+    echo "project agent was not installed: ${agent}"
+    exit 1
+  fi
+done
+
 DOCTOR_OUTPUT="$(bash "${ROOT}/scripts/install.sh" \
   --doctor \
   --source "${ROOT}" \
   --repo-dir "${REPO_DIR}" \
-  --skills-dir "${SKILLS_DIR}")"
+  --skills-dir "${SKILLS_DIR}" \
+  --project-dir "${PROJECT_DIR}")"
 
 printf '%s\n' "${DOCTOR_OUTPUT}" | grep -q "source kind: local-path"
 printf '%s\n' "${DOCTOR_OUTPUT}" | grep -q "skills link:"
+printf '%s\n' "${DOCTOR_OUTPUT}" | grep -q "project agents: present"
 
 echo "install script smoke test passed"

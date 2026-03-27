@@ -12,6 +12,7 @@ SOURCE="${DEFAULT_SOURCE}"
 REPO_DIR="${DEFAULT_REPO_DIR}"
 SKILLS_DIR="${DEFAULT_SKILLS_DIR}"
 LINK_NAME="${DEFAULT_LINK_NAME}"
+PROJECT_DIR=""
 REF=""
 FORCE=0
 DRY_RUN=0
@@ -28,6 +29,7 @@ Options:
   --repo-dir <path>           Managed repository location. Default: ~/.codex/forgeloop
   --skills-dir <path>         Codex skills directory. Default: ~/.codex/skills
   --link-name <name>          Symlink name inside the skills directory. Default: forgeloop
+  --project-dir <path>        Target project to receive .codex/agents from this suite.
   --ref <git-ref>             Branch, tag, or commit when --source is a git URL.
   --force                     Replace existing checkout/symlink when needed.
   --dry-run                   Print actions without changing the filesystem.
@@ -230,6 +232,41 @@ install_link() {
   log "linked ${target} -> ${source}"
 }
 
+install_project_agents() {
+  local repo_path="$1"
+  local project_path="$2"
+  local source_dir="${repo_path}/agents"
+  local target_dir="${project_path}/.codex/agents"
+
+  if [ ! -d "$project_path" ]; then
+    log "project dir not found: ${project_path}"
+    exit 1
+  fi
+
+  if [ ! -d "$source_dir" ]; then
+    log "agent source directory not found: ${source_dir}"
+    exit 1
+  fi
+
+  ensure_dir "$target_dir"
+
+  local manifest copied=0
+  for manifest in "$source_dir"/*.toml; do
+    if [ ! -f "$manifest" ]; then
+      continue
+    fi
+    run cp "$manifest" "$target_dir/"
+    copied=1
+  done
+
+  if [ "$copied" -ne 1 ]; then
+    log "no agent manifests found in: ${source_dir}"
+    exit 1
+  fi
+
+  log "installed project agents into ${target_dir}"
+}
+
 doctor() {
   local source_kind
   local resolved_source
@@ -247,6 +284,11 @@ doctor() {
   log "  repo dir: $(canonical_path "$REPO_DIR")"
   log "  skills dir: $(canonical_path "$SKILLS_DIR")"
   log "  link name: ${LINK_NAME}"
+  if [ -n "${PROJECT_DIR}" ]; then
+    log "  project dir: $(canonical_path "$PROJECT_DIR")"
+  else
+    log "  project dir: not requested"
+  fi
   log "  git available: $(command -v git >/dev/null && printf yes || printf no)"
 
   if [ -d "${REPO_DIR}/skills" ]; then
@@ -261,6 +303,14 @@ doctor() {
     log "  skills link path exists but is not a symlink"
   else
     log "  skills link: missing"
+  fi
+
+  if [ -n "${PROJECT_DIR}" ]; then
+    if [ -d "${PROJECT_DIR}/.codex/agents" ]; then
+      log "  project agents: present"
+    else
+      log "  project agents: missing"
+    fi
   fi
 }
 
@@ -280,6 +330,10 @@ while [ "$#" -gt 0 ]; do
       ;;
     --link-name)
       LINK_NAME="$2"
+      shift 2
+      ;;
+    --project-dir)
+      PROJECT_DIR="$2"
       shift 2
       ;;
     --ref)
@@ -333,6 +387,11 @@ if ! is_git_url "$SOURCE" && [ ! -d "$SOURCE" ]; then
   exit 1
 fi
 
+if [ -n "${PROJECT_DIR}" ] && [ ! -d "${PROJECT_DIR}" ]; then
+  log "project dir not found: ${PROJECT_DIR}"
+  exit 1
+fi
+
 if is_git_url "$SOURCE"; then
   RESOLVED_REPO_DIR="$(sync_remote_source "$SOURCE" "$REPO_DIR" "$REF")"
 else
@@ -341,7 +400,14 @@ fi
 
 install_link "$RESOLVED_REPO_DIR" "$SKILLS_DIR" "$LINK_NAME"
 
+if [ -n "${PROJECT_DIR}" ]; then
+  install_project_agents "$RESOLVED_REPO_DIR" "$PROJECT_DIR"
+fi
+
 log "install complete"
 log "  repo: ${RESOLVED_REPO_DIR}"
 log "  skills link: ${SKILLS_DIR}/${LINK_NAME}"
+if [ -n "${PROJECT_DIR}" ]; then
+  log "  project agents: ${PROJECT_DIR}/.codex/agents"
+fi
 log "restart Codex to pick up new skills"

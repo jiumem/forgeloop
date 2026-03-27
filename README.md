@@ -21,7 +21,7 @@ Forgeloop is built from a customized adaptation of [obra/superpowers](https://gi
 
 These skills are meant to be mandatory workflow constraints, not optional suggestions.
 
-Project-scoped custom agents live in [`.codex/agents`](.codex/agents). They handle bounded roles such as `design_challenger`, `plan_reviewer`, `implementer`, `spec_reviewer`, and `code_reviewer`.
+The suite's custom agent manifests live in [`agents/`](agents). They handle bounded roles such as `design_challenger`, `plan_reviewer`, `implementer`, `spec_reviewer`, and `code_reviewer`, and the installer materializes them into a target project's `.codex/agents/`.
 
 ## Installation
 
@@ -36,6 +36,12 @@ If you want a managed checkout in `~/.codex/forgeloop`, use:
 ```bash
 git clone https://github.com/jiumem/forgeloop.git ~/.codex/forgeloop
 bash ~/.codex/forgeloop/scripts/install.sh --yes --source ~/.codex/forgeloop
+```
+
+To enable the same agent layer in a Codex project:
+
+```bash
+bash ~/.codex/forgeloop/scripts/install.sh --yes --source ~/.codex/forgeloop --project-dir /path/to/project
 ```
 
 Detailed setup notes live in [docs/forgeloop/install.md](docs/forgeloop/install.md).

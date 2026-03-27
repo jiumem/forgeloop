@@ -14,12 +14,12 @@ expected_agents=(
 )
 
 for path in \
+  .codex \
   .claude-plugin \
   .cursor-plugin \
   .opencode \
   hooks \
   commands \
-  agents \
   scripts/install.ps1 \
   tests/claude-code \
   tests/opencode \
@@ -43,7 +43,7 @@ if [ ! -f "scripts/install.sh" ]; then
 fi
 
 for agent in "${expected_agents[@]}"; do
-  agent_path=".codex/agents/${agent}.toml"
+  agent_path="agents/${agent}.toml"
 
   if [ ! -f "$agent_path" ]; then
     echo "missing custom agent: $agent_path"
@@ -61,7 +61,7 @@ for agent in "${expected_agents[@]}"; do
   fi
 done
 
-for agent_path in .codex/agents/*.toml; do
+for agent_path in agents/*.toml; do
   agent_name="$(basename "$agent_path" .toml)"
 
   if [[ ! " ${expected_agents[*]} " =~ " ${agent_name} " ]]; then
@@ -105,12 +105,11 @@ done
 if rg -n \
   -g 'README.md' \
   -g 'README.zh-CN.md' \
-  -g '.codex/INSTALL.md' \
   -g 'docs/forgeloop/install.md' \
   -g 'docs/forgeloop/testing.md' \
   -g 'docs/forgeloop/agents.md' \
   -g 'docs/forgeloop/e2e-codex.md' \
-  -g '.codex/agents/*.toml' \
+  -g 'agents/*.toml' \
   -g 'scripts/install.sh' \
   -g 'skills/**/*.md' \
   -g '.github/**/*.md' \
@@ -124,9 +123,8 @@ then
 fi
 
 if rg -n \
-  -g '.codex/INSTALL.md' \
   -g 'docs/forgeloop/*.md' \
-  -g '.codex/agents/*.toml' \
+  -g 'agents/*.toml' \
   -g 'scripts/install.sh' \
   -g 'skills/**/*.md' \
   -g '.github/**/*.md' \
