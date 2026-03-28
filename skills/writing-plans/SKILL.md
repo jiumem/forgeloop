@@ -142,4 +142,4 @@ After saving the plan, offer execution choice:
 
 **If Direct Task Loop chosen:**
 - **REQUIRED SUB-SKILL:** Use forgeloop:task-loop
-- Pass one bounded task packet only; do not hand `task-loop` the entire multi-task plan
+- Pass one bounded task brief only; let `task-loop` bind or materialize the formal Task runtime surface for that one task, and do not hand it the entire multi-task plan

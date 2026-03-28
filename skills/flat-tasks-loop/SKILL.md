@@ -13,7 +13,7 @@ Load a written plan, flatten its executable tasks into one serial list, dispatch
 
 **Core rule:** Treat the input plan as one milestone. Do not preserve nested phases, batches, or internal hierarchy while executing. Extract the actionable tasks, flatten them into one ordered sequence, and run them serially from top to bottom.
 
-**Dispatcher rule:** Once you are in this skill, you MUST invoke `forgeloop:task-loop` for each flattened task in sequence. Do not implement flattened tasks directly in this skill. `flat-tasks-loop` is the serial milestone-level dispatcher; `task-loop` is the required atomic adversarial coding loop for each task.
+**Dispatcher rule:** Once you are in this skill, you MUST invoke `forgeloop:task-loop` for each flattened task in sequence. Do not implement flattened tasks directly in this skill. `flat-tasks-loop` is the serial milestone-level dispatcher; `task-loop` is the required Task-level formal closure loop for each task.
 
 ## The Process
 
@@ -29,7 +29,7 @@ Load a written plan, flatten its executable tasks into one serial list, dispatch
 ### Step 2: Execution Precheck
 Before flattening, confirm the plan is execution-ready for this skill:
 1. The plan can be flattened into one unambiguous serial task list
-2. Each task is bounded enough to become a `task-loop` packet
+2. Each task is bounded enough to become a `task-loop` brief with unique identity, acceptance, and verification requirements
 3. Dependencies and ordering are clear enough to run top-to-bottom
 4. Required verification commands and execution prerequisites are present
 
@@ -70,9 +70,9 @@ From this point on, all flattening, task dispatch, verification, and completion 
 
 For each flattened task in order:
 1. Mark the task as `in_progress`
-2. Build a bounded task packet with the task text, acceptance criteria, surrounding context, constraints, verification commands, and the preserved source anchor
-3. Invoke `forgeloop:task-loop` for that single task packet
-4. Let `task-loop` carry the implement -> spec review -> code review -> fix cycle
+2. Build a bounded task brief with the task text, acceptance criteria, surrounding context, constraints, verification commands, preserved source anchor, and enough identity to bind the formal Task runtime surface
+3. Invoke `forgeloop:task-loop` for that single task brief
+4. Let `task-loop` carry the Task-level `implement / repair -> G1 -> anchor / fixup -> R1` closure
 5. If `task-loop` returns blocked, stop the milestone and surface the blocker using:
    - the flattened task label
    - its original source anchor
@@ -129,7 +129,7 @@ Do not force through blockers. Stop and ask.
 - Preserve a source anchor for every flattened task
 - Make every flattened task label unique within the milestone
 - Follow flattened task order exactly
-- Build a proper packet for each task before invoking `task-loop`
+- Build a proper bounded task brief for each task before invoking `task-loop`
 - Record non-blocking task concerns instead of dropping them
 - Do not skip verifications
 - Reference skills when the plan says to
@@ -140,5 +140,5 @@ Do not force through blockers. Stop and ask.
 ## Required Skills
 
 - **forgeloop:using-git-worktrees** - Set up an isolated workspace before starting
-- **forgeloop:task-loop** - Executes each flattened task as the atomic adversarial coding loop
+- **forgeloop:task-loop** - Executes each flattened task through Task-level formal closure
 - **forgeloop:finishing-a-development-branch** - Completes development after all tasks
