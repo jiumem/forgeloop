@@ -6,9 +6,9 @@
 | --- | --- |
 | 文档名称 | Codex 原生 Initiative 自动编码套件角色提示词总纲 |
 | 文档层级 | Codex 落地方案层 / 角色提示词层 |
-| 文档定位 | 所有 subagent 角色提示词的共同上位总纲 |
-| 适用范围 | `docs/codex/agents/*.md` 下的角色提示词源文档 |
-| 非目标 | 不直接替代具体角色提示词；不重写机制文档与技术设计文档 |
+| 文档定位 | 角色提示词设计总纲；运行时以 `agents/*.toml` 为准 |
+| 适用范围 | `agents/*.toml` 的设计约束，以及 `docs/codex/agents/*.md` 的参考镜像 |
+| 非目标 | 不直接替代运行时 manifest；不重写机制文档与技术设计文档 |
 
 ## 0. 文档定位
 
@@ -25,10 +25,10 @@
 
 因此，本文档不直接回答：
 
-- `coder` 的完整提示词怎么写
-- `task reviewer / milestone reviewer / initiative reviewer` 的字段模板怎么写
+- `coder` 的运行时 manifest 逐行怎么写
+- `task reviewer / milestone reviewer / initiative reviewer` 的具体字段模板怎么写
 
-这些应分别落到独立角色文档中。
+这些应分别落到 `agents/*.toml` 中；`docs/codex/agents/*.md` 只保留设计追溯和跳转，不再作为第二份可编辑真值源。
 
 ## 1. 角色提示词系统共同要对抗的三个通病
 
@@ -188,11 +188,10 @@ Initiative reviewer 重点审：
 
 所有角色提示词都应默认以同一组正式输入面工作：
 
-- Initiative 总任务文档
+- Initiative 静态法源三件套：`design_ref`、`gap_analysis_ref`、`total_task_doc_ref`
 - `Global State Doc`
-- `Task Review Rolling Doc`
-- `Milestone Review Rolling Doc`
-- `Initiative Review Rolling Doc`
+- 当前活跃的对应层 `Review Rolling Doc`
+- 当前对象所需的下层 review docs、anchors、supporting evidence、spec refs
 - Git / PR / commit / test 等工程事实
 
 任何角色都不应把以下对象当成正式真理源：
@@ -219,7 +218,7 @@ Initiative reviewer 重点审：
 
 ## 7. 具体角色文档应如何展开
 
-`docs/codex/agents/*.md` 下的具体角色文档，建议统一采用以下骨架：
+若仍保留 `docs/codex/agents/*.md` 作为参考镜像，建议统一采用以下骨架：
 
 - 角色法位
 - 角色目标
@@ -233,7 +232,14 @@ Initiative reviewer 重点审：
 
 ## 8. 下游文档清单
 
-本总纲之后，建议依次落地：
+本总纲之后，运行时应直接落地到：
+
+- `agents/coder.toml`
+- `agents/task_reviewer.toml`
+- `agents/milestone_reviewer.toml`
+- `agents/initiative_reviewer.toml`
+
+如需保留设计追溯，再提供轻量 reference mirror：
 
 - `docs/codex/agents/coder.md`
 - `docs/codex/agents/task-reviewer.md`
