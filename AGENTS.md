@@ -13,7 +13,7 @@
 When a custom root directory is provided, create the worktree at:
 
 ```text
-<custom-root>/<project-name>/<branch-name>
+<custom-root>/<project-name>/<worktree-name>
 ```
 
 Project-local worktree directories must still be ignored by Git before use.

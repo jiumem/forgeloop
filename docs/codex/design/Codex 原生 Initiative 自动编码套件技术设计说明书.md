@@ -148,8 +148,8 @@ coder 是 Initiative 执行期内持续持有实现 ownership 的单一角色；
 `G2` 只出现在 `Milestone Review Rolling Doc` 内。  
 `G3` 只出现在 `Initiative Review Rolling Doc` 内。
 
-第六，**任何需要写代码的修补，最终都必须回落到 Task 半径内。**  
-`R2 / R3` 发现代码问题时，只能通过 `Global State Doc` 触发新的 repair task，再由同一个 coder 回落到 Task loop。
+第六，**三层 loop 默认同构；代码修补默认留在当前对象内完成。**  
+`Task / Milestone / Initiative` 中的 coder 默认都应在当前对象内继续修补并重跑对应 gate。只有修补已经需要独立 `Task` 合同、明确新对象边界，或明显超出当前对象收口半径时，才通过 `Global State Doc` 对象化为新的 repair task，再由同一个 coder 回落到 `Task loop`。
 
 ## 3. 真理源与落盘平面
 
@@ -449,6 +449,7 @@ initiative_key: INIT-001
 milestone_key: MS-002
 task_key: TASK-002-API
 doc_key: TASK-002-API
+coder_slot: CODER-1
 created_at: ...
 ```
 
@@ -516,6 +517,7 @@ next_action: task_done
 技术边界要点：
 
 - `Task Review Rolling Doc` 是 append-only，已写入的 round 不回改
+- header 绑定对象身份与当前逻辑 `coder_slot`，用于恢复 continuity
 - `G1` 失败时，不进入 reviewer；coder 继续在同一 round 下追加 `coder_update` 与新的 `g1_result`
 - `G1` 通过后才允许写入 `anchor_ref` 或 `fixup_ref`
 - `R1` 只审已经写入的正式锚点块
@@ -542,6 +544,7 @@ kind: milestone_review_header
 initiative_key: INIT-001
 milestone_key: MS-002
 doc_key: MS-002
+coder_slot: CODER-1
 created_at: ...
 ```
 
@@ -586,18 +589,20 @@ evidence_adequacy: pass
 residual_risks:
   - 兼容层仍保留双真值
 required_follow_ups:
-  - create_repair_task: TASK-002-API-REPAIR-1
+  - continue_current_milestone_repair
+  - rerun_g2_after_stage_boundary_fix
 ```
 ````
 
 技术边界要点：
 
 - `Milestone Review Rolling Doc` 是 append-only，header 与 contract snapshot 固定后不回改
+- header 绑定对象身份与当前逻辑 `coder_slot`，用于恢复 continuity
 - `G2` 由同一个 coder 负责执行并写块，`Supervisor` 不直接写 `g2_result`
 - `R2` 发现代码问题时，不允许 reviewer 直接修补代码
-- 若 `G2` 自身已经给出 `repair_required` 一类结论，该 round 可以只以 `g2_result` 结束
-- 需要代码修补时，只能回落为新的 repair task，并在 `Global State Doc` 中更新当前状态
-- 回修完成后，回到同一份 `Milestone Review Rolling Doc` 追加下一 round
+- 若 `G2` 自身已经给出 `repair_required` 一类结论，默认仍留在当前 Milestone 内修补并重跑 `G2`
+- 只有修补已经需要独立 Task 合同、明确新对象边界或明显超出当前 Milestone 收口半径时，才对象化为新的 repair task，并在 `Global State Doc` 中更新当前状态
+- 若已对象化为 repair task，回修完成后，回到同一份 `Milestone Review Rolling Doc` 追加下一 round
 
 ### 5.6 `Initiative Review Rolling Doc` 结构
 
@@ -619,6 +624,7 @@ required_follow_ups:
 kind: initiative_review_header
 initiative_key: INIT-001
 doc_key: INIT-001
+coder_slot: CODER-1
 created_at: ...
 ```
 
@@ -664,9 +670,10 @@ residual_risks: []
 技术边界要点：
 
 - `Initiative Review Rolling Doc` 是 append-only，header 与 contract snapshot 固定后不回改
+- header 绑定对象身份与当前逻辑 `coder_slot`，用于恢复 continuity
 - `G3` 也由同一个 coder 执行
-- 若 `G3` 自身已经给出 `repair_required` 一类结论，该 round 可以只以 `g3_result` 结束
-- `R3` 发现要改代码时，同样只能回落为 repair task
+- 若 `G3` 自身已经给出 `repair_required` 一类结论，默认仍留在当前 Initiative 内修补并重跑 `G3`
+- `R3` 发现要改代码时，也默认先留在当前 Initiative 内修补；只有修补已经需要独立 Task 合同、明确新对象边界或明显超出当前 Initiative 收口半径时，才对象化为 repair task
 - `R3 clean` 后，`Global State Doc` 才能把 Initiative 标记为 `DONE`
 
 ## 6. subagents、提示词与执行边界
@@ -847,18 +854,18 @@ workflow 入口与执行边界固定如下：
    - 已完成 Task 的 anchor / fixup 集合
 4. coder 执行 `G2` 所需验证，并追加 `g2_result`
 5. 若 coder 在 `G2` 过程中发现需要代码修补：
-   - 不进入 `R2`
-   - `Supervisor` 在 `Global State Doc` 中创建 repair task
-   - 同一个 coder 回落到 Task 子循环
+   - 默认不进入 `R2`
+   - 若仍在当前 Milestone 收口半径内，同一个 coder 继续当前 Milestone 修补并重跑 `G2`
+   - 只有修补已需要独立 Task 合同、明确新对象边界或明显超出当前 Milestone 半径时，`Supervisor` 才在 `Global State Doc` 中创建 repair task，并由同一个 coder 回落到 Task 子循环
 6. 若 `G2 pass`：
    - `Supervisor` 派发 fresh `Milestone Reviewer`
 7. reviewer 追加 `r2_result`
 8. 若 `R2 clean`：
    - `Global State Doc` 更新当前 frontier
 9. 若 `R2 changes_requested`：
-   - 只能通过 repair task 回落到 Task 子循环
-   - 同一个 coder 承担回修
-   - 回修完成后回到同一份 Milestone 文档追加下一 round
+   - 若仍在当前 Milestone 收口半径内，同一个 coder 在下一 round 继续当前 Milestone 修补
+   - 只有修补已需要独立 Task 合同、明确新对象边界或明显超出当前 Milestone 半径时，才通过 repair task 回落到 Task 子循环
+   - 若已回落，回修完成后回到同一份 Milestone 文档追加下一 round
 
 ### 7.4 Initiative 的 G3 / R3 循环算法
 
@@ -869,16 +876,17 @@ workflow 入口与执行边界固定如下：
 2. 打开或续写 `Initiative Review Rolling Doc`
 3. 同一个 coder 执行 `G3` 所需验证并追加 `g3_result`
 4. 若发现需要代码修补：
-   - `Supervisor` 创建 repair task
-   - 同一个 coder 回落到 Task 子循环
+   - 若仍在当前 Initiative 收口半径内，同一个 coder 继续当前 Initiative 修补并重跑 `G3`
+   - 只有修补已需要独立 Task 合同、明确新对象边界或明显超出当前 Initiative 半径时，`Supervisor` 才创建 repair task，并由同一个 coder 回落到 Task 子循环
 5. 若 `G3 pass`：
    - `Supervisor` 派发 fresh `Initiative Reviewer`
 6. reviewer 追加 `r3_result`
 7. 若 `R3 clean`：
    - `Global State Doc` 更新为交付完成
 8. 若 `R3 changes_requested`：
-   - 同样只允许回落为 repair task
-   - 修补完成后回到同一份 Initiative 文档追加下一 round
+   - 若仍在当前 Initiative 收口半径内，同一个 coder 在下一 round 继续当前 Initiative 修补
+   - 只有修补已需要独立 Task 合同、明确新对象边界或明显超出当前 Initiative 半径时，才回落为 repair task
+   - 若已回落，修补完成后回到同一份 Initiative 文档追加下一 round
 
 ### 7.5 中断、升级与恢复
 
@@ -965,7 +973,8 @@ Git 帮助动作只承接确定性工程操作：
 
 第五，**Milestone / Initiative 循环测试**
 
-- `R2 / R3` 失败时只会回落 repair task
+- `G2 / G3 repair_required` 与 `R2 / R3 changes_requested` 在当前对象半径内时，会继续留在当前 loop 修补
+- 只有修补需要对象化时，才会回落 repair task
 - 不允许 reviewer 或 Supervisor 越权直接改代码
 
 第六，**文档与工程一致性测试**

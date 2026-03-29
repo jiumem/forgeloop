@@ -7,10 +7,12 @@ cd "$ROOT"
 
 expected_agents=(
   design_challenger
-  implementer
-  spec_reviewer
-  code_reviewer
   plan_reviewer
+  coder
+  task_reviewer
+  milestone_reviewer
+  initiative_reviewer
+  code_reviewer
 )
 
 for path in \
@@ -84,9 +86,12 @@ skills/brainstorming/SKILL.md:design_challenger
 skills/brainstorming/design-challenger-prompt.md:design_challenger
 skills/writing-plans/SKILL.md:plan_reviewer
 skills/writing-plans/plan-document-reviewer-prompt.md:plan_reviewer
-skills/task-loop/SKILL.md:implementer
-skills/task-loop/SKILL.md:spec_reviewer
-skills/task-loop/SKILL.md:code_reviewer
+skills/task-loop/SKILL.md:coder
+skills/task-loop/SKILL.md:task_reviewer
+skills/milestone-loop/SKILL.md:coder
+skills/milestone-loop/SKILL.md:milestone_reviewer
+skills/initiative-loop/SKILL.md:coder
+skills/initiative-loop/SKILL.md:initiative_reviewer
 skills/requesting-code-review/SKILL.md:code_reviewer
 EOF
 

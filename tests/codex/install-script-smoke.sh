@@ -43,7 +43,7 @@ if [ "${TARGET_REAL}" != "${EXPECTED_REAL}" ]; then
   exit 1
 fi
 
-for agent in design_challenger implementer spec_reviewer code_reviewer plan_reviewer; do
+for agent in design_challenger plan_reviewer coder task_reviewer milestone_reviewer initiative_reviewer code_reviewer; do
   if [ ! -f "${PROJECT_DIR}/.codex/agents/${agent}.toml" ]; then
     echo "project agent was not installed: ${agent}"
     exit 1

@@ -11,22 +11,32 @@ Git worktrees create isolated workspaces sharing the same repository, allowing w
 
 **Core principle:** Default to the configured global Codex worktree root, but honor explicit user overrides. Then apply safety verification.
 
+**V1 isolation rule:** One Initiative uses one dedicated worktree. Milestone changes happen by switching the branch inside that Initiative worktree, not by creating a second worktree for the same Initiative.
+
+**Naming principle:** Worktree names follow Initiative identity; branch names follow the current main closure boundary.
+
 **Announce at start:** "I'm using the using-git-worktrees skill to set up an isolated workspace."
 
 **Reuse rule:** This skill decides whether to reuse the current workspace or create a new worktree. Callers should not invent their own definition of a "safe isolated workspace."
 
-## Branch Naming Contract
+## Naming Contract
 
-Decide the branch name before any reuse or worktree creation decision.
+Decide both the worktree name and the branch name before any reuse or worktree creation decision.
 
-- If the user explicitly names a branch, use it.
-- Otherwise derive `BRANCH_NAME` as `codex/<feature-slug>`.
-- Use a short, stable slug based on the feature or task name.
-- Do not silently invent a different branch name when the chosen one already exists or is already checked out elsewhere.
+- If the user explicitly names a branch, use it as `BRANCH_NAME`.
+- Otherwise if the current work item has a uniquely known `milestone-key`, derive `BRANCH_NAME` as `codex/<initiative-key>/<milestone-key>`.
+- Otherwise derive `BRANCH_NAME` as `codex/<initiative-key>/initiative`.
+- If the user explicitly names a worktree, honor that override.
+- Otherwise derive `WORKTREE_NAME` as `codex/<initiative-key>`.
+- Do not silently invent different names when `initiative-key` is missing. If `milestone-key` is missing, fall back to the Initiative branch instead of blocking.
 
-If the target branch already exists or is already in use by another worktree:
+If the target branch already exists and is already in use by another worktree:
 - Stop and surface the conflict
 - Ask for a different branch name or a different location only if needed
+
+If the target branch already exists but is not attached to another worktree:
+- Reuse that branch
+- Do not invent a replacement branch name just because it already exists
 
 ## Reuse Current Workspace Or Create A Worktree
 
@@ -43,10 +53,13 @@ You may reuse the current workspace only when one of these is true:
 If neither condition is true, create a new worktree by following this skill.
 
 If you reuse the current workspace:
+- Confirm the current workspace is already the intended Initiative worktree
 - Confirm the current branch is not `main` or `master`
-- Confirm the current branch already matches the intended `BRANCH_NAME`
+- If the current branch already matches the intended `BRANCH_NAME`, continue
+- If the current branch does not match but the workspace is clean enough to switch, switch or create the intended `BRANCH_NAME` in this same Initiative worktree
+- If the workspace is not clean enough to switch branches safely, stop and surface the conflict
 - Verify the project setup and clean baseline for the current workspace before returning ready
-- Report that the current workspace was reused instead of creating a new worktree
+- Report that the current Initiative worktree was reused instead of creating a new worktree
 
 Do not let callers or local guesswork bypass this rule.
 
@@ -68,7 +81,7 @@ Supported explicit overrides:
 If the user provides a custom root directory, create the worktree under:
 
 ```text
-<custom-root>/<project-name>/<branch-name>
+<custom-root>/<project-name>/<worktree-name>
 ```
 
 ### 2. Check AGENTS.md Preference
@@ -133,11 +146,17 @@ project=$(basename "$(git rev-parse --show-toplevel)")
 
 ### 1.5. Reuse Current Workspace When Allowed
 
-If the reuse rule above is satisfied, stay in the current workspace and skip worktree creation. Only do this when the current branch already matches the intended `BRANCH_NAME`. Then continue with project setup and baseline verification in the current workspace.
+If the reuse rule above is satisfied, stay in the current workspace and skip worktree creation.
+
+- If the current branch already matches the intended `BRANCH_NAME`, continue.
+- If the current branch does not match but the workspace is clean enough to switch, switch or create the intended `BRANCH_NAME` in this same Initiative worktree.
+- If the workspace is not clean enough to switch safely, stop and surface the conflict.
+
+Then continue with project setup and baseline verification in the current workspace.
 
 ### 1.6. Decide Branch Name
 
-`BRANCH_NAME` should already be determined by the branch naming contract above before reaching creation steps.
+`WORKTREE_NAME` and `BRANCH_NAME` should already be determined by the naming contract above before reaching creation steps.
 
 ### 2. Create Worktree
 
@@ -145,46 +164,67 @@ If the reuse rule above is satisfied, stay in the current workspace and skip wor
 # Determine full path
 case $LOCATION in
   .worktrees|worktrees)
-    path="$LOCATION/$BRANCH_NAME"
+    path="$LOCATION/$WORKTREE_NAME"
     ;;
   ~/.codex/worktrees/*)
-    path="$HOME/.codex/worktrees/$project/$BRANCH_NAME"
+    path="$HOME/.codex/worktrees/$project/$WORKTREE_NAME"
     ;;
   ~/*)
-    path="${LOCATION/#\~/$HOME}/$project/$BRANCH_NAME"
+    path="${LOCATION/#\~/$HOME}/$project/$WORKTREE_NAME"
     ;;
   /*)
-    path="$LOCATION/$project/$BRANCH_NAME"
+    path="$LOCATION/$project/$WORKTREE_NAME"
     ;;
 esac
 
-# Create worktree with new branch
-git worktree add "$path" -b "$BRANCH_NAME"
-cd "$path"
+# Create parent directories when the worktree name contains nested segments
+mkdir -p "$(dirname "$path")"
+
+# If the Initiative worktree already exists, reuse it instead of creating a second one
+if [ -d "$path" ]; then
+  cd "$path"
+  test -z "$(git status --porcelain)" || { echo "Existing Initiative worktree is not clean; stop and surface the conflict."; exit 1; }
+  git checkout "$BRANCH_NAME" 2>/dev/null || git checkout -b "$BRANCH_NAME"
+elif git worktree list --porcelain | grep -Fxq "branch refs/heads/$BRANCH_NAME"; then
+  echo "Target branch is already attached to another worktree; stop and surface the conflict."
+  exit 1
+elif git show-ref --verify --quiet "refs/heads/$BRANCH_NAME"; then
+  git worktree add "$path" "$BRANCH_NAME"
+  cd "$path"
+else
+  # Create worktree with new branch
+  git worktree add "$path" -b "$BRANCH_NAME"
+  cd "$path"
+fi
 ```
 
 ### 3. Run Project Setup
 
-Auto-detect and run appropriate setup:
+Do not guess generic dependency installers.
+
+First look for repo-documented or repo-obvious bootstrap commands. Prefer commands that respect an existing lockfile or existing tool contract, and avoid commands that may rewrite manifests or lockfiles just to prepare the workspace.
+
+Examples when the repo clearly supports them:
 
 ```bash
 # Node.js
-if [ -f package.json ]; then npm install; fi
+if [ -f package-lock.json ]; then npm ci; fi
 
 # Rust
-if [ -f Cargo.toml ]; then cargo build; fi
+if [ -f Cargo.toml ]; then cargo check; fi
 
 # Python
-if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-if [ -f pyproject.toml ]; then poetry install; fi
+# Use a repo-documented sync/bootstrap command only; do not guess between pip/poetry/uv.
 
 # Go
-if [ -f go.mod ]; then go mod download; fi
+# Usually no separate bootstrap step is needed before baseline verification.
 ```
+
+If no setup command can be identified without guessing, stop and surface the gap instead of defaulting to `npm install`, `pip install -r requirements.txt`, `poetry install`, or similar generic installers.
 
 ### 4. Verify Clean Baseline
 
-Run tests to ensure worktree starts clean:
+Run the smallest repo-appropriate baseline verification after setup. Prefer commands already documented by the repo or already implied by the current project toolchain.
 
 ```bash
 # Examples - use project-appropriate command
@@ -193,6 +233,8 @@ cargo test
 pytest
 go test ./...
 ```
+
+If no baseline command can be uniquely determined, stop and surface the gap instead of pretending the workspace is ready.
 
 **If tests fail:** Report failures, ask whether to proceed or investigate.
 
@@ -212,9 +254,12 @@ Ready to implement <feature-name>
 |-----------|--------|
 | User explicitly names location | Use user override before considering reuse |
 | User explicitly names branch | Use that branch name |
-| No explicit branch provided | Derive `codex/<feature-slug>` |
-| Branch already exists or is checked out elsewhere | Stop and surface conflict |
-| Reusing current workspace on the wrong branch | Stop and surface conflict |
+| No explicit branch provided and milestone known | Derive `BRANCH_NAME = codex/<initiative-key>/<milestone-key>` |
+| No explicit branch provided and no milestone bound | Derive `BRANCH_NAME = codex/<initiative-key>/initiative` |
+| No explicit worktree provided | Derive `WORKTREE_NAME = codex/<initiative-key>` |
+| Branch already exists and is checked out elsewhere | Stop and surface conflict |
+| Branch already exists but is free | Reuse that branch |
+| Reusing current Initiative worktree on the wrong branch | Switch only if clean enough; otherwise stop |
 | AGENTS.md specifies location | Use it |
 | `.worktrees/` exists | Use it (verify ignored) |
 | `worktrees/` exists | Use it (verify ignored) |
@@ -222,8 +267,10 @@ Ready to implement <feature-name>
 | No preference or local dir | Use `~/.codex/worktrees/<project-name>/` |
 | Auto-selected local directory not ignored | Fall back to global Codex worktree root |
 | Explicit local override not ignored | Stop and surface the problem |
+| Initiative worktree path already exists | Reuse that Initiative worktree instead of creating a second one |
 | Tests fail during baseline | Report failures + ask |
-| No package.json/Cargo.toml | Skip dependency install |
+| No repo-obvious setup command | Stop and surface the gap |
+| No baseline command can be identified | Stop and surface the gap |
 
 ## Common Mistakes
 
@@ -235,7 +282,7 @@ Ready to implement <feature-name>
 ### Reusing the current workspace on the wrong branch
 
 - **Problem:** Work starts on a branch that does not match the requested or derived target branch
-- **Fix:** Reuse only when the current branch already equals `BRANCH_NAME`
+- **Fix:** Reuse only inside the intended Initiative worktree, and switch branches only when the workspace is clean enough
 
 ### Mutating the repository during environment setup
 
@@ -247,10 +294,10 @@ Ready to implement <feature-name>
 - **Problem:** Creates inconsistency, violates project conventions
 - **Fix:** Follow priority: user override > AGENTS.md > existing dirs > default global root
 
-### Guessing a branch name after collision
+### Guessing a branch or worktree name
 
 - **Problem:** Creates hidden branch drift and makes later cleanup confusing
-- **Fix:** Use the explicit name or derived `codex/<feature-slug>`, then stop if it conflicts
+- **Fix:** Use the explicit name, or derive `WORKTREE_NAME = codex/<initiative-key>` and `BRANCH_NAME` from the current main closure boundary; if milestone is unknown, fall back to `codex/<initiative-key>/initiative`
 
 ### Proceeding with failing tests
 
@@ -259,8 +306,8 @@ Ready to implement <feature-name>
 
 ### Hardcoding setup commands
 
-- **Problem:** Breaks on projects using different tools
-- **Fix:** Auto-detect from project files (package.json, etc.)
+- **Problem:** Generic installers can mutate dependency state or guess the wrong toolchain
+- **Fix:** Use repo-documented or repo-obvious bootstrap commands only; otherwise stop and surface the gap
 
 ## Example Workflow
 
@@ -269,14 +316,16 @@ You: I'm using the using-git-worktrees skill to set up an isolated workspace.
 
 [Check .worktrees/ - exists]
 [Verify ignored - git check-ignore confirms .worktrees/ is ignored]
-[Decide branch: codex/auth]
-[Create worktree: git worktree add .worktrees/codex/auth -b codex/auth]
-[Run npm install]
+[Decide worktree: codex/INIT-001]
+[Decide branch: codex/INIT-001/MS-001]
+[Create parent dir: mkdir -p .worktrees/codex]
+[Create worktree: git worktree add .worktrees/codex/INIT-001 -b codex/INIT-001/MS-001]
+[Run repo-obvious bootstrap: npm ci]
 [Run npm test - 47 passing]
 
-Worktree ready at /Users/jesse/myproject/.worktrees/codex/auth
+Worktree ready at /Users/jesse/myproject/.worktrees/codex/INIT-001
 Tests passing (47 tests, 0 failures)
-Ready to implement auth feature
+Ready to implement milestone MS-001 for Initiative INIT-001
 ```
 
 ## Red Flags
@@ -288,18 +337,19 @@ Ready to implement auth feature
 - Proceed with failing tests without asking
 - Assume directory location when ambiguous
 - Override an explicit user location request with reuse logic
-- Reuse the current workspace on a different branch than `BRANCH_NAME`
+- Reuse a dirty Initiative worktree and switch branches without surfacing the conflict
 - Silently pick a different branch after a conflict
 - Skip AGENTS.md check
 
 **Always:**
 - Honor explicit user location overrides before reuse checks
 - Decide the branch name before `git worktree add`
-- Reuse the current workspace only when its branch already matches `BRANCH_NAME`
+- Reuse the current Initiative worktree when possible, even if the branch needs to be switched, but only when the workspace is clean enough
+- Reuse the current Initiative worktree when possible instead of creating a second worktree for the same Initiative
 - Follow directory priority: user override > AGENTS.md > existing dirs > default global root
 - Verify directory is ignored for project-local
-- Auto-detect and run project setup
-- Verify clean test baseline
+- Use only repo-documented or repo-obvious setup commands
+- Verify clean baseline or surface the gap
 
 ## Integration
 

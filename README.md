@@ -1,4 +1,4 @@
-**Languages:** [English](README.md) | [简体中文](README.zh-CN.md)
+**Languages:** [English](README.md) | [Simplified Chinese](README.zh-CN.md)
 
 # Forgeloop
 
@@ -15,13 +15,14 @@ Forgeloop is built from a customized adaptation of [obra/superpowers](https://gi
 1. `brainstorming` turns rough requests into a reviewed design.
 2. `using-git-worktrees` creates an isolated workspace when the work should not happen in the current tree.
 3. `writing-plans` converts the design into tiny, explicit implementation steps.
-4. `flat-tasks-loop` carries out whole plans by serially dispatching `task-loop`; `task-loop` can also run one bounded task directly.
-5. `test-driven-development`, `requesting-code-review`, and `verification-before-completion` enforce quality gates during implementation.
-6. `finishing-a-development-branch` handles merge, PR, keep, or discard decisions at the end.
+4. `run-initiative` is the runtime entry: it binds the active Initiative and resumes the correct closure loop.
+5. `task-loop`, `milestone-loop`, and `initiative-loop` perform Task, Milestone, and Initiative closure; `flat-tasks-loop` remains available for bounded flat-plan execution.
+6. `test-driven-development`, `requesting-code-review`, and `verification-before-completion` enforce quality gates during implementation.
+7. `finishing-a-development-branch` handles merge, PR, keep, or discard decisions at the end.
 
 These skills are meant to be mandatory workflow constraints, not optional suggestions.
 
-The suite's custom agent manifests live in [`agents/`](agents). They handle bounded roles such as `design_challenger`, `plan_reviewer`, `implementer`, `spec_reviewer`, and `code_reviewer`, and the installer materializes them into a target project's `.codex/agents/`.
+The suite's custom agent manifests live in [`agents/`](agents). They now cover the runtime workflow roles `coder`, `task_reviewer`, `milestone_reviewer`, and `initiative_reviewer`, plus auxiliary roles such as `design_challenger`, `plan_reviewer`, and `code_reviewer`. The installer materializes them into a target project's `.codex/agents/`.
 
 ## Installation
 
@@ -53,7 +54,10 @@ The shipped custom agent set is documented in [docs/forgeloop/agents.md](docs/fo
 - `using-forgeloop`
 - `brainstorming`
 - `writing-plans`
+- `run-initiative`
 - `task-loop`
+- `milestone-loop`
+- `initiative-loop`
 - `flat-tasks-loop`
 - `dispatching-parallel-agents`
 - `using-git-worktrees`

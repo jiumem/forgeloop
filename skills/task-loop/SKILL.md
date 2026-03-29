@@ -1,221 +1,96 @@
 ---
 name: task-loop
-description: Use when one bounded implementation task is ready to enter a subagent-driven implement-review-fix loop
+description: Use when the `Global State Doc` has uniquely confirmed that current progress is at a ready or active Task; this skill uses single coder ownership to drive the current Task through formal `implement/repair -> G1 -> anchor/fixup -> fresh R1` closure
 ---
 
 # Task Loop
 
-Execute exactly one bounded task packet through a fresh `implementer`, then ordered `spec_reviewer` and `code_reviewer` loops, until the task is complete or explicitly blocked.
+`task-loop` handles only one confirmed Task. Here you act as the Task-layer `Supervisor`: maintain the minimum control plane, keep a single `coder_slot`, dispatch the same `coder` and a fresh `task_reviewer` each round, and use the facts from `G1`, `anchor / fixup`, and `R1` to decide whether to continue repair, declare formal clean closure, escalate, or stop.
 
-If you are reading this skill body, the workflow has already reached the point where subagents are required to move the task forward. Do not ask the user whether to enable subagents; start the task loop.
+`coder_slot` is the logical owner identifier, not the physical `agent_id`; the current `agent_id` may change, but `coder_slot` does not.
 
-**Boundary rule:** `task-loop` does not read a whole plan, does not schedule multiple tasks, and does not finish the development branch. The main agent or upstream workflow owns plan parsing, task ordering, milestone tracking, and final branch completion. `task-loop` owns only one task at a time.
+You are not responsible for writing code, writing `r1_result`, rewriting Milestone / Initiative dispatch, finishing the development branch, or maintaining any parallel state.
 
-**Why subagents:** You delegate one task to specialized agents with isolated context. By precisely crafting the task packet, you keep them focused on the bounded work instead of rediscovering requirements from your session history.
+## Truth Sources And Hard Boundaries
 
-**Core principle:** One task packet + fresh implementer context + ordered review loops = reliable task closure
+The formal input surface contains only the Initiative static truth trio `design_ref`, `gap_analysis_ref`, and `total_task_doc_ref` (`gap_analysis_ref` may be `N/A` for some Initiative types), the `Global State Doc`, the current `Task Review Rolling Doc`, and the necessary Git / test / commit facts.
 
-**Codex-native orchestration rule:** `implementer` is a long-lived task-local subagent. Spawn it once, save its `agent_id`, and reuse it for fix rounds via `send_input`. `spec_reviewer` and `code_reviewer` are fresh short-lived reviewers. Spawn a new reviewer each round. Unless there is a specific reason to fork history, all three agents should be spawned with `fork_context=false`.
+Hard boundaries:
+- `G1` may be run only by the coder in the current implementation round, and it must be written into the `Task Review Rolling Doc`
+- `anchor_ref` or `fixup_ref` may be written only after `G1 pass`
+- `R1` may be run only by a fresh reviewer against the formal anchor
+- a round closes only when `r1_result` is written; `G1 fail` stays in the same round
+- the `Global State Doc` may contain only `current_snapshot`, `next_action`, and `last_transition`
+- if `next_action` changes the active object or active plane, `current_snapshot` must be updated at the same time; only when still advancing within the same Task may you update only `next_action` and `last_transition`
+- if only a bounded task brief exists and the rolling doc does not, it may be used to initialize the header, including object identity and `coder_slot`, plus `task_contract_snapshot`; after initialization, the rolling doc becomes the only collaboration surface
 
-## The Process
+## Workflow
 
-### Step 1: Build the Task Packet
+1. Bind the current Task
+- Read the Task definition, the `Global State Doc`, the current `Task Review Rolling Doc`, and the necessary engineering facts
+- Confirm that the active task is unique, the workspace is executable, the rolling doc matches the active task, and `coder_slot` is unique
+- If the `Global State Doc` conflicts with the rolling doc, hand control back to `rebuild-runtime`
+- If the current Task cannot be confirmed uniquely, the contract is missing, or the facts show the system should wait for the user, stop
+- If the rolling doc does not exist, initialize only the header, including object identity and `coder_slot`, plus `task_contract_snapshot`
 
-Before dispatching, assemble the exact packet for this one task:
+2. Update the minimum control plane
+- `current_snapshot` points to the current active task and `coder_slot`
+- `next_action` points to continuing the current Task coder round
+- Record entering the current round, resuming the current round, or coder succession in `last_transition` when needed
+- Do not write implementation details, review body text, or full test output into the `Global State Doc`
 
-- Full task text
-- Acceptance criteria
-- Relevant repo and module context
-- Related files, APIs, or prior tasks this task depends on
-- Constraints, non-goals, and migration notes
-- Required verification commands
-- Source anchor, if the main agent or upstream workflow supplied one
+3. Dispatch the coder
+- Keep only one logical `coder_slot` for the current Task
+- Reuse the current `agent_id` while the physical thread is alive; if it is lost, you may assign a successor `agent_id`, but you must reuse the original `coder_slot` and record the succession
+- Default to `fork_context=false`
+- The coder input only needs to locate the current formal input surface: current Task identity, `design_ref`, `gap_analysis_ref`, `total_task_doc_ref`, the `Global State Doc` path, and the current `Task Review Rolling Doc` path
+- The coder returns its result to the `Task Review Rolling Doc` according to the contract
 
-Also establish the task-local review boundary before the implementer starts work:
+4. Handle the coder result
+- Decide only from the rolling doc and Git facts, not from chat summaries
+- If the latest `g1_result=fail`, or there is only `coder_update`: the same coder continues in the same round
+- If `g1_result=pass` but there is no valid `anchor_ref/fixup_ref`: return to the same coder to complete the formal anchor
+- If `g1_result=pass` and a valid anchor already exists: switch `next_action` to entering `R1`
+- If the coder requests more context, human judgment, or exposes a real blocker: write waiting/blocked into the `Global State Doc`, then stop
 
-- Record the starting commit or equivalent task-local base point
-- Treat this task-local boundary as the only scope reviewers should inspect
-- Do not let task-local review drift into unrelated branch changes
+5. Dispatch a fresh `task_reviewer`
+- Every `R1` round uses a freshly spawned reviewer, with `fork_context=false` by default
+- The reviewer reads `design_ref`, `gap_analysis_ref`, `total_task_doc_ref`, the `Global State Doc`, the current `Task Review Rolling Doc`, the current `anchor/fixup`, and the necessary spec refs
+- The reviewer returns its result to the `Task Review Rolling Doc` according to the contract
 
-Do not make the implementer rediscover the task from a whole plan file if you can provide the bounded packet directly.
+6. Handle `r1_result`
+- `R1 clean`: update `last_transition`; if the current Task is a repair task formally objectized from an upper-layer object and the `Global State Doc` clearly records its source object and return-hook rolling doc, then first switch `current_snapshot` back to that source Milestone / Initiative and switch `next_action` to re-entering that upper loop; otherwise, if the next ready object is uniquely confirmed, move `current_snapshot` forward to that object; otherwise switch `current_snapshot` to a frontier-selection snapshot no longer bound to the current Task, then switch `next_action` to `task_done` or `select_next_ready_object`, and hand control back upstream
+- `R1 changes_requested` and still within Task radius: switch `next_action` to continuing current Task repair, and let the same `coder_slot` enter the next round
+- If `R1` requests escalation, waiting for the user, or identifies a real blocker: the reviewer writes only the recommendation, the `Supervisor` updates only the `Global State Doc`, then hands control back upstream
 
-### Step 2: Dispatch `implementer`
+## Stop Conditions
 
-Spawn the `implementer` custom agent with the full task packet.
+Stop immediately and hand control back upstream or to the user when:
+- the active task cannot be confirmed uniquely
+- the Task contract is missing, required spec refs are missing, or the `Global State Doc` conflicts with the rolling doc
+- the workspace is not an executable implementation environment, or current facts show the system should wait for the user
+- the current problem clearly exceeds Task radius and must escalate to Milestone
+- the coder or reviewer exposes a real blocker
 
-Codex control-plane requirements:
-- Use `spawn_agent` once for the implementer
-- Set `fork_context=false` unless you have a specific reason to fork history
-- Save the returned `agent_id`
-- Treat that `agent_id` as the task's implementation thread for the rest of the loop
+## Red Lines
 
-The implementer should handle:
-- Implementation
-- Test updates or additions
-- Local verification
-- Self-review before handing work back
+Never:
+- cut `anchor / fixup` before `G1 pass`
+- enter `R1` without a formal anchor
+- treat `G1 fail` as if the round were closed
+- silently replace the logical `coder_slot`
+- keep a bounded brief long-term as a second collaboration truth source
+- write coder / reviewer body content into the `Global State Doc`
+- dispatch multiple coders concurrently for the same Task
+- let the reviewer repair code
+- skip `G1 -> anchor / fixup -> R1`
+- switch to Milestone / Initiative closure while the Task still has active repair
+- claim the Task is done without `r1_result: clean`
 
-### Step 3: Handle Implementer Status
+## Completion Criteria
 
-Use `wait_agent` when you are blocked on the implementer's result.
-
-Implementer subagents report one of four statuses. Handle each deliberately:
-
-**DONE:** Proceed to spec review.
-
-**DONE_WITH_CONCERNS:** Read the concerns before proceeding. If the concern affects correctness, scope, migration safety, or verification, resolve it before review. If that concern cannot be resolved within the current task packet, do not continue as if the task is healthy - convert the situation into `NEEDS_CONTEXT` or `BLOCKED` and stop the loop until the issue is handled.
-
-**NEEDS_CONTEXT:** Provide the missing context to the same implementer via `send_input`, then `wait_agent` on that same `agent_id` again. Do not spawn a replacement implementer just because more context is needed.
-
-**BLOCKED:** Stop the loop and assess the blocker:
-1. Provide missing context and retry
-2. Re-dispatch only if you intentionally restart the implementer thread
-3. Split the task if the task packet is too large
-4. Escalate to the human if the plan or requirement is wrong
-
-Before leaving this step with a healthy implementation result, capture the task-local review inputs:
-- touched files for this task
-- task-local head point after the implementer round
-- verification evidence the implementer produced
-
-### Step 4: Run the Spec Review Loop First
-
-Dispatch a fresh `spec_reviewer` with:
-- the original task packet
-- the source anchor, if present
-- the task-local review boundary
-- the task-local touched files
-- the task-local verification evidence
-- the implementer result
-
-Codex control-plane requirements:
-- Spawn a new `spec_reviewer` each review round
-- Set `fork_context=false`
-- Do not reuse prior reviewer threads
-- `wait_agent` for the review result before proceeding
-
-If the spec reviewer finds issues:
-1. Use `send_input` to the same `implementer` `agent_id` with the reviewer findings; the original task packet remains authoritative
-2. Fix only the reported gaps or incorrect additions without dropping the original task boundaries
-3. `wait_agent` on the same implementer
-4. Refresh the task-local review inputs after the implementer finishes the fix round:
-   - touched files for this task
-   - task-local head point after the fix round
-   - verification evidence for the updated implementation
-5. Spawn a fresh `spec_reviewer` and review again within the updated task-local boundary
-
-Do not start code quality review until spec compliance is approved.
-
-### Step 5: Run the Code Review Loop Second
-
-After spec review passes, dispatch a fresh `code_reviewer` with:
-- the original task packet
-- the source anchor, if present
-- the task-local review boundary
-- the task-local touched files
-- the task-local verification evidence
-- the implementer result
-
-Codex control-plane requirements:
-- Spawn a new `code_reviewer` each review round
-- Set `fork_context=false`
-- Do not reuse prior reviewer threads
-- Interpret the reviewer output as a task-slice readiness assessment, not a whole-branch merge gate
-- `wait_agent` for the review result before proceeding
-
-If the code reviewer finds issues:
-1. Use `send_input` to the same `implementer` `agent_id` with the reviewer findings; the original task packet remains authoritative
-2. Fix the reported quality or risk issues without replacing the original task packet with a narrower reviewer summary
-3. `wait_agent` on the same implementer
-4. Refresh the task-local review inputs after the implementer finishes the fix round:
-   - touched files for this task
-   - task-local head point after the fix round
-   - verification evidence for the updated implementation
-5. Spawn a fresh `code_reviewer` and review again within the updated task-local boundary
-
-Repeat until the task is approved or explicitly blocked.
-
-### Step 6: Record the Task Result in the Main Agent
-
-When the loop finishes, the main agent should record a concise task result:
-
-- Status: complete or blocked
-- What changed
-- What verification passed
-- Any remaining concerns that do not block task completion
-- The source anchor from the upstream workflow, unchanged if one was supplied
-
-The main agent then decides whether to mark a milestone task complete, advance to the next task, request wider review, or stop.
-
-## Example Workflow
-
-```
-You: I'm using Task Loop for this bounded task.
-
-Task packet:
-- Task: Add config validation for invalid enum values
-- Acceptance: reject invalid values, surface validation error, cover CLI + config file paths
-- Context: parser lives in src/config.ts, current tests in tests/config.test.ts
-- Verification: npm test -- config
-
-[Dispatch `implementer` with the task packet]
-
-Implementer: "Before I begin - should invalid values fail closed or fall back to defaults?"
-
-You: "Fail closed and return a validation error."
-
-Implementer: "Got it. Implementing now..."
-[Later] Implementer:
-  - Implemented config validation
-  - Added tests, 5/5 passing
-  - Self-review: all good
-
-[Dispatch `spec_reviewer`]
-Spec reviewer: ✅ Spec compliant - all requirements met, nothing extra
-
-[Dispatch `code_reviewer`]
-Code reviewer: Strengths: Good test coverage, clean. Issues: None. Approved.
-
-You:
-- Status: complete
-- Changed: src/config.ts, tests/config.test.ts
-- Verification: npm test -- config
-- Concerns: none
-```
-
-## Red Flags
-
-**Never:**
-- Start implementation on main/master branch without explicit user consent
-- Skip reviews (spec compliance OR code quality)
-- Proceed with unfixed issues
-- Dispatch multiple implementation subagents for the same task in parallel
-- Hand the implementer an entire milestone when one bounded task will do
-- Make `task-loop` own milestone sequencing or branch finishing
-- Skip scene-setting context
-- Ignore subagent questions
-- Accept "close enough" on spec compliance
-- Skip review loops
-- Let implementer self-review replace actual review
-- Start code quality review before spec compliance is approved
-- Claim the task is done without verification evidence
-- Let reviewer findings replace the original task packet during fix rounds
-- Re-spawn the implementer for normal fix rounds instead of reusing its `agent_id`
-- Spawn reviewers with `fork_context=true` without a specific reason
-- Let reviewers inspect branch-wide changes when a task-local review boundary is available
-
-**If subagent asks questions:**
-- Answer clearly and completely
-- Provide additional context if needed
-- Don't rush them into implementation
-
-**If reviewer finds issues:**
-- Implementer fixes them
-- Reviewer reviews again
-- Repeat until approved
-- Reuse the same implementer agent via `send_input`, but use a fresh reviewer agent each round
-
-## Used By
-
-- **forgeloop:flat-tasks-loop** - Uses `task-loop` as the required atomic loop for each flattened task
-- Direct single-task execution by the main agent - When exactly one bounded task packet is already ready
+On correct completion, all of the following should be true:
+- the current Task state can be recovered uniquely from the `Global State Doc` and the `Task Review Rolling Doc`
+- `coder_slot` continuity is unambiguous
+- if the Task is clean, the rolling doc already contains a valid `g1_result`, `anchor/fixup`, and `r1_result`
+- no second runtime truth source has been created outside the four formal runtime docs
