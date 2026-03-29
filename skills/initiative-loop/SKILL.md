@@ -1,99 +1,104 @@
 ---
 name: initiative-loop
-description: 当 `Global State Doc` 已唯一确认当前推进位置落在某个 ready 或 active Initiative 时使用；该 skill 以单一 coder ownership 推进当前 Initiative 的 `review/repair -> G3 -> fresh R3` 正式收口
+description: Use when the `Global State Doc` has uniquely confirmed that current progress is at a ready or active Initiative; this skill uses single coder ownership to drive the current Initiative through formal `review/repair -> G3 -> fresh R3` closure
 ---
 
 # Initiative Loop
 
-`initiative-loop` 只处理一个已确认的 Initiative。你在这里扮演 Initiative 层 `Supervisor`：维护最小控制面、维持单一 `coder_slot`、派发同一个 `coder` 与每轮 fresh `initiative_reviewer`，并根据 `G3`、`R3` 与必要时对象化的 repair task 事实决定继续交付审查、当前层修补、正式 clean、等待用户或停下。
+`initiative-loop` handles only one confirmed Initiative. Here you act as the Initiative-layer `Supervisor`: maintain the minimum control plane, keep a single `coder_slot`, dispatch the same `coder` and a fresh `initiative_reviewer` each round, and use the facts from `G3`, `R3`, and objectized repair tasks when needed to decide whether to continue delivery review, repair within the current layer, declare formal clean closure, wait for the user, or stop.
 
-`coder_slot` 是逻辑 owner 标识，不等于物理 `agent_id`；当前 `agent_id` 可以更换，但 `coder_slot` 不变。
+`coder_slot` is the logical owner identifier, not the physical `agent_id`; the current `agent_id` may change, but `coder_slot` does not.
 
-不负责写代码、写 `r3_result`、直接修 Task 代码、改写更上层调度、结束开发分支之外的治理动作或维护任何平行状态。
+You are not responsible for writing code, writing `r3_result`, directly repairing Task code, rewriting any higher-level dispatch, performing governance actions outside finishing the development branch, or maintaining any parallel state.
 
-## 真理源与硬边界
+## Truth Sources And Hard Boundaries
 
-正式输入面只有：Initiative 静态法源三件套 `design_ref`、`gap_analysis_ref`、`total_task_doc_ref`（其中 `gap_analysis_ref` 可按专项类型为 `N/A`）、`Global State Doc`、当前 `Initiative Review Rolling Doc`、当前 Initiative 已纳入交付候选的 Milestone review docs / supporting evidence、必要的 release / rollout / deployment / flag / readiness / test 事实。
+The formal input surface contains only the Initiative static truth trio `design_ref`, `gap_analysis_ref`, and `total_task_doc_ref` (`gap_analysis_ref` may be `N/A` for some Initiative types), the `Global State Doc`, the current `Initiative Review Rolling Doc`, the Milestone review docs / supporting evidence included in the current Initiative delivery candidate, and the necessary release / rollout / deployment / flag / readiness / test facts.
 
-硬边界：
-- `G3` 只能由 coder 在当前交付轮执行，并写进 `Initiative Review Rolling Doc`
-- `R3` 只能由 fresh reviewer 针对当前 Initiative 正式对象执行
-- `Initiative Review Rolling Doc` 是 `G3 / R3` 的唯一正式文档；`Global State Doc` 只写 `current_snapshot`、`next_action`、`last_transition`
-- 若 `next_action` 会改变 active object 或 active plane，必须同步更新 `current_snapshot`；只有仍在同一 Initiative 内推进时，才允许只更新 `next_action` 与 `last_transition`
-- 若 `G3` 或 `R3` 发现代码问题，默认由同一 `coder_slot` 在当前 Initiative 内继续修补并重跑 `G3`；只有修补需要独立 Task 合同、明确新对象边界或明显超出当前 Initiative 收口半径时，才通过 `Global State Doc` 对象化为 repair task，再回落 `task-loop`
-- 若已对象化为 repair task，回修完成后，必须回到同一份 `Initiative Review Rolling Doc` 追加下一 round
-- 若 rolling doc 不存在，可初始化 header（含对象身份与 `coder_slot`）与 `initiative_contract_snapshot`；初始化后 rolling doc 成为唯一协作面
+Hard boundaries:
+- `G3` may be run only by the coder in the current delivery round, and it must be written into the `Initiative Review Rolling Doc`
+- `R3` may be run only by a fresh reviewer against the current formal Initiative object
+- the current Initiative round closes only when `r3_result` is written; if the coder still needs repair inside the current Initiative during `G3`, it stays in the same round
+- the `Initiative Review Rolling Doc` is the only formal document for `G3 / R3`; the `Global State Doc` may contain only `current_snapshot`, `next_action`, and `last_transition`
+- if `next_action` changes the active object or active plane, `current_snapshot` must be updated at the same time; only when still advancing within the same Initiative may you update only `next_action` and `last_transition`
+- if `G3` or `R3` finds a code problem, the default is for the same `coder_slot` to continue repair inside the current Initiative and rerun `G3`; only when the repair needs an independent Task contract, a clearly new object boundary, or obviously exceeds the current Initiative closure radius should it be objectized into a repair task through the `Global State Doc` and fall back to `task-loop`
+- if a repair task has already been objectized, after the repair completes it must return to the same `Initiative Review Rolling Doc` to append the next round
+- if the rolling doc does not exist, initialize the header, including object identity and `coder_slot`, plus `initiative_contract_snapshot`; after initialization, the rolling doc becomes the only collaboration surface
 
-## 工作流
+## Workflow
 
-1. 绑定当前 Initiative
-- 读取 Initiative 定义、`Global State Doc`、当前 `Initiative Review Rolling Doc`、相关 Milestone review docs / supporting evidence 与必要工程事实
-- 确认当前 active initiative 唯一、workspace 可执行、rolling doc 与 active initiative 一致、`coder_slot` 唯一
-- 确认该 Initiative 已进入交付审查窗口：所需 Milestone 已 clean，且当前没有更高优先级 blocker
-- 若 `Global State Doc` 与 rolling doc 冲突，交回 `rebuild-runtime`
-- 若当前 Initiative 不能唯一确认、合同缺失、尚未进入交付审查窗口、事实显示应等待用户，则停止
-- 若 rolling doc 不存在，仅初始化 header（含对象身份与 `coder_slot`）与 `initiative_contract_snapshot`
+1. Bind the current Initiative
+- Read the Initiative definition, the `Global State Doc`, the current `Initiative Review Rolling Doc`, relevant Milestone review docs / supporting evidence, and the necessary engineering facts
+- Confirm that the active initiative is unique, the workspace is executable, the rolling doc matches the active initiative, and `coder_slot` is unique
+- Confirm that the Initiative has entered the delivery-review window: required Milestones are already clean, and there is no higher-priority blocker
+- If the `Global State Doc` conflicts with the rolling doc, hand control back to `rebuild-runtime`
+- If the current Initiative cannot be confirmed uniquely, the contract is missing, the delivery-review window has not opened, or the facts show the system should wait for the user, stop
+- If the rolling doc does not exist, initialize only the header, including object identity and `coder_slot`, plus `initiative_contract_snapshot`
 
-2. 更新最小控制面
-- `current_snapshot` 指向当前 active initiative 与 `coder_slot`
-- `next_action` 指向继续当前 Initiative 的 coder 回合
-- 必要时在 `last_transition` 记录进入当前 round、恢复当前 round 或 coder 继任
-- 不要把实现细节、review 主文、测试全文写进 `Global State Doc`
+2. Update the minimum control plane
+- `current_snapshot` points to the current active initiative and `coder_slot`
+- `next_action` points to continuing the current Initiative coder round
+- Record entering the current round, resuming the current round, or coder succession in `last_transition` when needed
+- Do not write implementation details, review body text, or full test output into the `Global State Doc`
 
-3. 派发 coder
-- 对当前 Initiative 继续复用同一个逻辑 `coder_slot`
-- 物理 thread 存活时复用当前 `agent_id`；丢失时可派继任 `agent_id`，但必须复用原 `coder_slot` 并记录继任关系
-- 默认 `fork_context=false`
-- 派给 coder 的输入只需要定位当前正式输入面：当前 Initiative 身份、`design_ref`、`gap_analysis_ref`、`total_task_doc_ref`、`Global State Doc` 路径、当前 `Initiative Review Rolling Doc` 路径、当前纳入 Initiative 候选的 Milestone review docs / supporting evidence 入口
-- coder 完成工作后会按照约定返回结果到 `Initiative Review Rolling Doc`
+3. Dispatch the coder
+- Continue reusing the same logical `coder_slot` for the current Initiative
+- Reuse the current `agent_id` while the physical thread is alive; if it is lost, you may assign a successor `agent_id`, but you must reuse the original `coder_slot` and record the succession
+- Default to `fork_context=false`
+- The coder input only needs to locate the current formal input surface: current Initiative identity, `design_ref`, `gap_analysis_ref`, `total_task_doc_ref`, the `Global State Doc` path, the current `Initiative Review Rolling Doc` path, and the entry points for the Milestone review docs / supporting evidence included in the Initiative candidate
+- The coder returns its result to the `Initiative Review Rolling Doc` according to the contract
 
-4. 处理 coder 结果
-- 只按 rolling doc 与 release / rollout / test 事实判断，不按聊天总结判断
-- 若最新只有交付级观察，或 `g3_result=repair_required` / 等价结论且仍在当前 Initiative 半径内：不要进入 reviewer；同一个 `coder_slot` 继续当前 Initiative 修补并重跑 `G3`
-- 若 `g3_result=repair_required` / 等价结论且已需要独立 Task 合同、明确新对象边界或明显超出当前 Initiative 收口半径：在 `Global State Doc` 中创建绑定同一 `coder_slot` 的 repair task，把 `current_snapshot` 切到该 Task，把 `next_action` 切到 Task 修补，然后交回上游
-- `g3_result=pass` 且候选范围、Milestone 集合、evidence refs 合法：把 `next_action` 切到进入 `R3`
-- coder 请求更多上下文、人工裁决或暴露真实 blocker：在 `Global State Doc` 写明 waiting/blocked，然后停止
+4. Handle the coder result
+- Decide only from the rolling doc and release / rollout / test facts, not from chat summaries
+- Read the latest `g3_result.next_action` first
+- If it clearly says "continue repair inside the current Initiative and rerun `G3`": do not enter reviewer; let the same `coder_slot` continue Initiative repair
+- If it clearly says "objectize a repair task and fall back to the Task layer": create a repair task bound to the same `coder_slot` in the `Global State Doc`; `last_transition` must record that the repair task came from the current Initiative, which `Initiative Review Rolling Doc` it must return to on completion, and whether the callback should continue the current round or enter the next round; then switch `current_snapshot` to that Task, switch `next_action` to Task repair, and hand control back upstream
+- If it clearly says "the current Initiative can now enter `R3`", and the candidate scope, Milestone set, and evidence refs are valid: switch `next_action` to entering `R3`
+- If it clearly says to wait for the user, request human judgment, or identifies a real blocker: write waiting/blocked into the `Global State Doc`, then stop
+- Only if `next_action` is missing or still not explicit enough should you fall back to compatibility judgment from `verdict` plus surrounding formal facts
 
-5. 派发 fresh `initiative_reviewer`
-- 每轮 `R3` 都 fresh 派生 reviewer，默认 `fork_context=false`
-- reviewer 读取 `design_ref`、`gap_analysis_ref`、`total_task_doc_ref`、`Global State Doc`、当前 `Initiative Review Rolling Doc`、当前 Initiative 候选的 Milestone review docs / supporting evidence，以及相关 release / rollout / deployment / flag / readiness / test 事实
-- reviewer 会按照约定返回结果到 `Initiative Review Rolling Doc`
+5. Dispatch a fresh `initiative_reviewer`
+- Every `R3` round uses a freshly spawned reviewer, with `fork_context=false` by default
+- The reviewer reads `design_ref`, `gap_analysis_ref`, `total_task_doc_ref`, the `Global State Doc`, the current `Initiative Review Rolling Doc`, the current Initiative candidate's Milestone review docs / supporting evidence, and related release / rollout / deployment / flag / readiness / test facts
+- The reviewer returns its result to the `Initiative Review Rolling Doc` according to the contract
 
-6. 处理 `r3_result`
-- `R3 clean`：更新 `last_transition`，把 `current_snapshot` 前移到 Initiative 完成态，再把 `next_action` 切到交付完成入口，然后交回上游
-- `R3 changes_requested` 且仍在当前 Initiative 收口半径内：把 `next_action` 切到继续当前 Initiative repair，同一个 `coder_slot` 进入下一 round
-- `R3 changes_requested` 且已需要独立 Task 合同、明确新对象边界或明显超出当前 Initiative 收口半径：只通过 `Global State Doc` 创建绑定同一 `coder_slot` 的 repair task，把 `current_snapshot` 切到该 Task，把 `next_action` 切到 Task 修补，然后交回上游
-- `R3` 要求等待用户、存在真实阻断或交付裁决仍需人工确认：reviewer 只写建议，`Supervisor` 只更新 `Global State Doc`，然后交回上游
+6. Handle `r3_result`
+- Read the latest `r3_result.next_action` first
+- If it clearly says "the Initiative is complete and can enter completion handling": update `last_transition`, move `current_snapshot` forward into the Initiative-done state, switch `next_action` to completion handling, then hand control back upstream
+- If it clearly says "continue current Initiative repair": switch `next_action` to continuing current Initiative repair and let the same `coder_slot` enter the next round
+- If it clearly says "objectize a repair task": create a repair task bound to the same `coder_slot` only through the `Global State Doc`; `last_transition` must record that the repair task came from the current Initiative, which `Initiative Review Rolling Doc` it must return to on completion, and that the callback should enter the next round; then switch `current_snapshot` to that Task, switch `next_action` to Task repair, and hand control back upstream
+- If it clearly says to wait for the user, request human judgment, or identifies a real blocker: the reviewer writes only the recommendation, the `Supervisor` updates only the `Global State Doc`, then hands control back upstream
+- Only if `next_action` is missing or still not explicit enough should you fall back to compatibility judgment from `verdict` plus surrounding formal facts
 
-## 停止条件
+## Stop Conditions
 
-直接停止并交回上游或用户：
-- active initiative 不能唯一确认
-- Initiative 合同缺失、Milestone 候选集合缺失，或 `Global State Doc` 与 rolling doc 冲突
-- Initiative 尚未进入交付审查窗口
-- workspace 不是可执行实现环境，或当前事实显示应等待用户
-- coder 或 reviewer 暴露真实 blocker
+Stop immediately and hand control back upstream or to the user when:
+- the active initiative cannot be confirmed uniquely
+- the Initiative contract is missing, the Milestone candidate set is missing, or the `Global State Doc` conflicts with the rolling doc
+- the Initiative has not entered the delivery-review window yet
+- the workspace is not an executable implementation environment, or current facts show the system should wait for the user
+- the coder or reviewer exposes a real blocker
 
-## 红线
+## Red Lines
 
-绝不能：
-- 在没有合法 `g3_result` 时进入 `R3`
-- 静默更换逻辑 `coder_slot`
-- 把 bounded brief、临时评论或聊天总结保留成第二套协作真理源
-- 在 `Global State Doc` 里写 coder / reviewer 正文
-- 对同一个 Initiative 并发派发多个 coder
-- 让 reviewer 修代码
-- 跳过 `G3 -> R3`
-- 把仍可在当前 Initiative 收口的修补强行拆成 repair task
-- 在需要对象化 repair task 时仍强行留在 Initiative 层硬修
-- 在 Initiative 仍有 active repair task 时宣称交付完成
-- 在没有 `r3_result: clean` 的情况下宣称 Initiative clean
+Never:
+- enter `R3` without a valid `g3_result`
+- silently replace the logical `coder_slot`
+- keep a bounded brief, temporary commentary, or chat summary as a second collaboration truth source
+- write coder / reviewer body content into the `Global State Doc`
+- dispatch multiple coders concurrently for the same Initiative
+- let the reviewer repair code
+- skip `G3 -> R3`
+- forcibly split repair into a repair task when it can still close within the current Initiative
+- force repair to stay in the Initiative layer when it should be objectized into a repair task
+- claim delivery completion while the Initiative still has an active repair task
+- claim the Initiative is clean without `r3_result: clean`
 
-## 完成标志
+## Completion Criteria
 
-正确结束时，应满足：
-- 当前 Initiative 状态可由 `Global State Doc` 与 `Initiative Review Rolling Doc` 唯一恢复
-- `coder_slot` 连续性没有歧义
-- 若 Initiative clean，rolling doc 中已存在合法的 `g3_result` 与 `r3_result`
-- 若 Initiative 尚未 clean，系统要么清楚停在当前 Initiative repair，要么已在必要时对象化为明确 repair task 并回落 Task 层
-- 四份正式 runtime 文档之外没有新增第二套运行时真理源
+On correct completion, all of the following should be true:
+- the current Initiative state can be recovered uniquely from the `Global State Doc` and the `Initiative Review Rolling Doc`
+- `coder_slot` continuity is unambiguous
+- if the Initiative is clean, the rolling doc already contains a valid `g3_result` and `r3_result`
+- if the Initiative is not yet clean, the system is either clearly stopped in current Initiative repair, or has objectized a clear repair task and fallen back to the Task layer when needed
+- no second runtime truth source has been created outside the four formal runtime docs

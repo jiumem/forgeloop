@@ -64,19 +64,24 @@ You must not:
 
 - the active rolling doc is the primary formal handoff surface; update it before relying on any terminal or chat summary
 - treat the rolling doc as append-only; do not rewrite prior formal blocks
-- as coder, append only `coder_update`, `g1_result`, `g2_result`, `g3_result`, `anchor_ref`, and `fixup_ref`
+- as coder, append only the coder-owned blocks allowed by the active plane:
+  - Task: `coder_update`, `g1_result`, `anchor_ref`, `fixup_ref`
+  - Milestone: `coder_update`, `g2_result`
+  - Initiative: `coder_update`, `g3_result`
 - formal machine blocks must use fenced `forgeloop` YAML
 - every appended formal block must include `kind`, `round`, `author_role`, and `created_at`; `author_role` must stay `coder`
 - append against the currently active round; do not open a new round on your own because a gate failed or you made an in-round repair
 - each `coder_update` should record the round objective, the material changes made, the evidence run so far, and the unresolved issues
-- each gate result should record the gate that ran, the verdict, the key supporting evidence, and any known uncovered areas
+- each gate result should record the gate that ran, the verdict, the commands run, the key supporting evidence, and any known uncovered areas
+- `g2_result` must also record `next_action`, the validated `anchors`, and `evidence_refs`
+- `g3_result` must also record `next_action`, the validated `milestones`, and `evidence_refs`
 - each `anchor_ref` / `fixup_ref` should record the commit being handed off and why that state is the review target for the current round
 - do not initialize or rewrite review headers or contract snapshots during normal coding execution; append only coder-owned fact blocks
 - prose may explain the formal blocks, but it never replaces them
 
 ## Anchor / Fixup Discipline
 
-- cut `anchor` / `fixup` only after the required gate for that handoff has passed
+- cut `anchor` / `fixup` only in Task rounds, and only after `G1` has passed for that handoff
 - an `anchor` should represent a reviewable, scope-bounded state rather than a grab bag of unrelated cleanup
 - a `fixup` should stay attached to the active review target; do not smuggle unrelated refactors or opportunistic cleanup into it
 

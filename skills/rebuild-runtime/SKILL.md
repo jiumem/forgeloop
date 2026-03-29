@@ -1,103 +1,110 @@
 ---
 name: rebuild-runtime
-description: 当 runtime 控制面缺失、冲突或无法唯一恢复当前下一步时使用；该 skill 读取静态法源、Global State Doc、review rolling docs 与必要 Git facts，重建最小可继续调度的控制面
+description: Use when the runtime control plane is missing, conflicting, or cannot uniquely recover the current next step; this skill reads the static truth sources, the Global State Doc, review rolling docs, and necessary Git facts to rebuild the minimum control plane needed to continue dispatch
 ---
 
 # Rebuild Runtime
 
-`rebuild-runtime` 只做恢复，不做编码、不做审查、不替代 `run-initiative` 继续调度。你在这里扮演恢复态 `Supervisor`：从正式法源和工程事实重建最小 runnable control plane，并把系统交回上游。
+`rebuild-runtime` does recovery only. It does not code, it does not review, and it does not replace `run-initiative` for ongoing dispatch. Here you act as a recovery-state `Supervisor`: rebuild the minimum runnable control plane from the formal truth sources and engineering facts, then hand the system back upstream.
 
-## 真理源与硬边界
+## Truth Sources And Hard Boundaries
 
-正式输入面只有：Initiative 静态法源三件套 `design_ref`、`gap_analysis_ref`、`total_task_doc_ref`（其中 `gap_analysis_ref` 可按专项类型为 `N/A`）、`Global State Doc`、三层 review rolling docs、必要的 Git / PR / commit / test 事实。
+The formal input surface contains only the Initiative static truth trio `design_ref`, `gap_analysis_ref`, and `total_task_doc_ref` (`gap_analysis_ref` may be `N/A` for some Initiative types), the `Global State Doc`, the three layers of review rolling docs, and the necessary Git / PR / commit / test facts.
 
-硬边界：
-- 只恢复逻辑 `coder_slot`，不恢复物理 `agent_id`
-- 只在必要时写 `Global State Doc`
-- 若 `Global State Doc` 不存在，可初始化 `global_state_header`
-- 若现有 `global_state_header` 与静态法源绑定冲突，可先修正 `global_state_header`
-- 可更新的块只有 `global_state_header`、`current_snapshot`、`next_action`、`last_transition`
-- 不写任何 rolling doc 正文
-- 不改静态法源，不造 JSON / notes / hidden memory 第二套状态
+Hard boundaries:
+- recover only the logical `coder_slot`, never the physical `agent_id`
+- write to the `Global State Doc` only when necessary
+- if the `Global State Doc` does not exist, you may initialize `global_state_header`
+- if the existing `global_state_header` conflicts with static truth-source bindings, you may correct `global_state_header` first
+- the only updatable blocks are `global_state_header`, `current_snapshot`, `next_action`, and `last_transition`
+- do not write any rolling doc body content
+- do not modify the static truth sources and do not create a second state model in JSON / notes / hidden memory
 
-## 何时触发
+## When To Trigger
 
-只在以下场景触发：
-- `Global State Doc` 缺失，但已有 rolling docs
-- `Global State Doc` 与总任务文档或 rolling docs 明显冲突
-- `task-loop`、`milestone-loop`、`initiative-loop` 在绑定对象时发现控制面无法唯一恢复
-- 原 thread 不可继续，但正式文档与 Git 事实仍足以恢复
+Trigger only in the following situations:
+- the `Global State Doc` is missing, but rolling docs already exist
+- the `Global State Doc` clearly conflicts with the total task doc or the rolling docs
+- `task-loop`, `milestone-loop`, or `initiative-loop` finds that the control plane cannot be recovered uniquely when binding an object
+- the original thread cannot continue, but the formal docs and Git facts are still sufficient for recovery
 
-以下场景不由本 skill 处理：
-- 新专项冷启动，且没有任何 runtime 文档
-- 只是需要实现环境，应交给 `using-git-worktrees`
-- 当前下一步已经清楚，无需恢复
+This skill does not handle the following:
+- a new Initiative cold start with no runtime docs at all
+- cases that only need an implementation environment and should call skill: `using-git-worktrees`
+- cases where the current next step is already clear and recovery is unnecessary
 
-## 工作流
+## Workflow
 
-1. 绑定恢复面
-- 读取 `total_task_doc_ref`、现有 `Global State Doc` 与三层 rolling docs
-- 若静态法源缺失，或 Initiative 绑定不能唯一确认，直接停止并问用户
-- 若没有任何 rolling doc 且没有 `Global State Doc`，判定为 cold start，交回上游，不写运行时状态
+1. Bind the recovery surface
+- Read `total_task_doc_ref`, the existing `Global State Doc`, and the three rolling docs
+- If the static truth sources are missing, or the Initiative binding cannot be confirmed uniquely, stop and ask the user directly
+- If there is no rolling doc at all and no `Global State Doc`, treat it as a cold start, hand control back upstream, and do not write runtime state
 
-2. 确认当前 formal frontier
-- 优先尊重与更新较新的正式事实一致的 waiting / blocked / done 信号
-- 否则，以最新且尚未闭合的正式 frontier 为 active 候选
-- 多个候选并存时，优先级固定为：active Task repair / coder round > active Milestone review / repair > active Initiative review / repair > frontier selection after last clean object
-- 聊天总结、缓存和会话记忆都不参与裁决
+2. Determine the current formal frontier
+- First respect waiting / blocked / done signals that are consistent with the newer formal facts
+- Otherwise, use the newest formal frontier that has not yet closed as the active candidate
+- If multiple candidates coexist, the fixed priority is: active Task repair / coder round > active Milestone review / repair > active Initiative review / repair > frontier selection after the last clean object
+- Chat summaries, cache, and session memory never participate in adjudication
 
-3. 判定 active object 与 next action
-- `coder_slot` 恢复规则：
-  - 若现有 `Global State Doc` 中的 `current_snapshot.coder_slot` 仍与最新正式事实一致，直接复用
-  - 若 `Global State Doc` 缺失或失真，则从被判定为 active 的 rolling doc header 恢复 `coder_slot`
-  - 若 active rolling doc header 缺少 `coder_slot`，或多个候选给出互相冲突的 `coder_slot`，直接停止并问用户
-- Task 候选：
-  - 只有 `coder_update`，或最新 `g1_result=fail`：继续当前 Task coder 回合
-  - `g1_result=pass` 且已有合法 `anchor/fixup` 但没有 `r1_result`：进入 `R1`
-  - `r1_result=changes_requested`：继续当前 Task repair
-  - `r1_result=clean`：进入 `task_done` 或 `select_next_ready_object`
-- Milestone 候选：
-  - `g2_result=repair_required` 或 `r2_result=changes_requested` 且仍在当前 Milestone 半径内：继续当前 Milestone repair
-  - 若 repair task 已被正式对象化：active plane 回到 Task
-  - `g2_result=pass` 且没有 `r2_result`：进入 `R2`
-  - `r2_result=clean`：进入 frontier selection 或 Initiative review entry
-- Initiative 候选：
-  - `g3_result=repair_required` 或 `r3_result=changes_requested` 且仍在当前 Initiative 半径内：继续当前 Initiative repair
-  - 若 repair task 已被正式对象化：active plane 回到 Task
-  - `g3_result=pass` 且没有 `r3_result`：进入 `R3`
-  - `r3_result=clean`：进入 Initiative done / delivery complete
-- 若 active plane、active object 或 next action 仍无法唯一判定，直接停止并问用户
+3. Determine the active object and next action
+- Read the latest formal block's explicit `next_action` first. If it does not conflict with object facts and the intended next step is clear enough, recover from that `next_action` first.
+- If the current active task is a repair task objectized from an upper-layer object, and `last_transition` still clearly records its source Milestone / Initiative, return-hook rolling doc, and callback round semantics, treat that callback information as the primary basis for recovering the upper loop. Do not misread it as an ordinary standalone Task that already ended.
+- `coder_slot` recovery rules:
+  - if `current_snapshot.coder_slot` in the existing `Global State Doc` is still consistent with the newest formal facts, reuse it directly
+  - if the `Global State Doc` is missing or distorted, recover `coder_slot` from the header of the rolling doc judged to be active
+  - if the active rolling doc header lacks `coder_slot`, or multiple candidates provide conflicting `coder_slot` values, stop and ask the user directly
+- Task candidates:
+  - if the latest `r1_result.next_action` clearly says to continue current Task repair, that the Task is complete, to select the next ready object, to wait for the user, or that there is a blocker, recover from it first
+  - if the current Task is a repair task with callback information and `r1_result=clean`, prefer recovering the next step of its source Milestone / Initiative rather than ordinary frontier selection
+  - if there is only `coder_update`, or the latest `g1_result=fail`: continue the current Task coder round
+  - if `g1_result=pass` and a valid `anchor/fixup` exists but there is no `r1_result`: enter `R1`
+  - if `r1_result=changes_requested`: continue current Task repair
+  - if `r1_result=clean`: enter `task_done` or `select_next_ready_object`
+- Milestone candidates:
+  - if the latest `g2_result.next_action` or `r2_result.next_action` clearly says to continue current Milestone repair, objectize a repair task, enter `R2`, enter the higher-level review entry, select the next ready object, wait for the user, or identifies a blocker, recover from it first
+  - if `g2_result=repair_required` or `r2_result=changes_requested` and the issue is still inside the current Milestone radius: continue current Milestone repair
+  - if a repair task has already been formally objectized: the active plane returns to Task
+  - if `g2_result=pass` and there is no `r2_result`: enter `R2`
+  - if `r2_result=clean`: enter frontier selection or Initiative review entry
+- Initiative candidates:
+  - if the latest `g3_result.next_action` or `r3_result.next_action` clearly says to continue current Initiative repair, objectize a repair task, enter `R3`, that the Initiative is complete, to wait for the user, or identifies a blocker, recover from it first
+  - if `g3_result=repair_required` or `r3_result=changes_requested` and the issue is still inside the current Initiative radius: continue current Initiative repair
+  - if a repair task has already been formally objectized: the active plane returns to Task
+  - if `g3_result=pass` and there is no `r3_result`: enter `R3`
+  - if `r3_result=clean`: enter Initiative done / delivery complete
+- Only if the newer formal block lacks `next_action`, or the `next_action` wording is still insufficient to determine the next step uniquely, should you fall back to inference from the old `verdict` plus surrounding formal facts. If that still conflicts or is still not unique, stop and ask the user directly.
+- If the active plane, active object, or next action still cannot be determined uniquely, stop and ask the user directly.
 
-4. 重写最小控制面
-- 若 `Global State Doc` 不存在，先初始化 `global_state_header`
-- 若现有 `global_state_header` 与 Initiative 绑定或 planning doc ref 冲突，先修正 `global_state_header`
-- 将 `current_snapshot` 写成唯一恢复出的 active plane / active object / `coder_slot`
-- 将 `next_action` 写成唯一恢复出的下一步
-- 将 `last_transition` 写成一次 recovery transition，说明为何重建控制面
-- 写完后立即交回 `run-initiative`，由上游重新确认并继续调度
+4. Rewrite the minimum control plane
+- If the `Global State Doc` does not exist, initialize `global_state_header` first
+- If the existing `global_state_header` conflicts with the Initiative binding or the planning doc ref, correct `global_state_header` first
+- Write `current_snapshot` as the uniquely recovered active plane / active object / `coder_slot`
+- Write `next_action` as the uniquely recovered next step
+- Write `last_transition` as a recovery transition explaining why the control plane was rebuilt
+- After writing, immediately hand control back to skill: `run-initiative` so the upstream dispatcher can reconfirm and continue
 
-## 停止条件
+## Stop Conditions
 
-直接停止并交回上游或用户：
-- Initiative 绑定或静态法源无法唯一确认
-- 多个 active 候选并存且 Git / 正式文档仍不能打破平局
-- rolling docs 彼此冲突，无法判定哪一侧更新
-- 没有 runtime 文档，应按 cold start 处理
-- 事实显示应等待用户，但等待原因无法被正式说明
+Stop immediately and hand control back upstream or to the user when:
+- the Initiative binding or static truth sources cannot be confirmed uniquely
+- multiple active candidates coexist and Git / formal docs still cannot break the tie
+- the rolling docs conflict with each other and it is impossible to tell which side is newer
+- there are no runtime docs and the case should be handled as a cold start
+- the facts show the system should wait for the user, but the waiting reason cannot be stated formally
 
-## 红线
+## Red Lines
 
-绝不能：
-- 写 rolling doc 正文
-- 恢复物理 owner / thread id 作为正式状态
-- 把过时的 `Global State Doc` 压过更新的 rolling doc 事实
-- 把聊天记忆、缓存或本地派生提示当成正式真理源
-- 静默猜测 active object、`coder_slot` 或 next action
+Never:
+- write rolling doc body content
+- recover a physical owner / thread id as formal state
+- let an outdated `Global State Doc` override newer rolling-doc facts
+- treat chat memory, cache, or local derived hints as formal truth sources
+- silently guess the active object, `coder_slot`, or next action
 
-## 完成标志
+## Completion Criteria
 
-正确结束时，应满足：
-- 当前 active plane、active object 与 `coder_slot` 已可唯一恢复
-- `Global State Doc` 已存在，且 `current_snapshot`、`next_action`、`last_transition` 自洽
-- 上游可重新进入 `run-initiative` 继续调度，而不依赖隐藏上下文
-- 四份正式 runtime 文档之外没有新增第二套运行时真理源
+On correct completion, all of the following should be true:
+- the current active plane, active object, and `coder_slot` can be recovered uniquely
+- the `Global State Doc` exists, and `current_snapshot`, `next_action`, and `last_transition` are self-consistent
+- the upstream dispatcher can re-enter `run-initiative` and continue without hidden context
+- no second runtime truth source has been created outside the four formal runtime docs

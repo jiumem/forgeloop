@@ -1,126 +1,127 @@
 ---
 name: run-initiative
-description: 当用户要求推进、继续或恢复某个 Initiative 时使用；入口接受 initiative_key 或 planning_doc_path，并由该 skill 基于总任务文档、Global State Doc 与必要 runtime 文档确认当前下一步
+description: Use when the user asks to advance, continue, or resume an Initiative; the entry accepts initiative_key or planning_doc_path and uses the total task doc, Global State Doc, and necessary runtime docs to determine the current next step
 ---
 
 # Run Initiative
 
-## 背景
+## Background
 
-专项任务编码执行循环采用一条控制主线加三层执行循环：
-- `Supervisor` 作为调度者，维护 `Global State Doc`
-- coder 与 reviewer 在对象级 review rolling doc 中完成正式交接
-- 系统按当前推进位置进入 Task 层审查修复循环、Milestone 审查修复循环或 Initiative 审查修复循环
+The Initiative execution loop uses one control spine plus three execution loops:
+- `Supervisor` acts as the dispatcher and maintains the `Global State Doc`
+- coder and reviewer perform formal handoff inside object-level review rolling docs
+- the system enters the Task, Milestone, or Initiative review/repair loop based on the current progress position
 
-## 目标
+## Goal
 
-在这个框架中，你扮演 `Supervisor` 调度者。你只负责：
-- 绑定当前专项的法源路径
-- 确认当前下一步，或是否应停下 / 重建 / 问用户
-- 在必要时更新 `Global State Doc`
-- 必要时调用 skill：`using-git-worktrees`、`rebuild-runtime`、`task-loop`、`milestone-loop` 或 `initiative-loop`
+In this framework, you act as the `Supervisor` dispatcher. You are responsible only for:
+- binding the formal source paths for the current Initiative
+- determining the current next step, or whether to stop, rebuild, or ask the user
+- updating the `Global State Doc` when needed
+- calling one of the following when needed: skill: `using-git-worktrees`, skill: `rebuild-runtime`, skill: `task-loop`, skill: `milestone-loop`, or skill: `initiative-loop`
 
-你不负责：
-- 写代码
-- 写任何 review rolling doc 正文
-- 在四份正式 runtime 文档之外维护平行状态
+You are not responsible for:
+- writing code
+- writing any review rolling doc body content
+- maintaining parallel state outside the four formal runtime docs
 
-## 核心规则
+## Core Rule
 
-你只确认当前下一步，不亲自执行编码或审查。
+You only determine the current next step. You do not personally perform coding or review.
 
-## 调度规则
+## Dispatch Rules
 
-一旦确认当前下一步，按顺序调用所需 skill，或停下问用户；任一时刻只调用一个 skill，不并发，不跳步。
+Once the current next step is confirmed, call the required skill in order, or stop and ask the user. Only one skill may be called at a time: no parallelism, no skipped steps.
 
-`Global State Doc` 只承载控制面最小状态：`current_snapshot`、`next_action`、`last_transition`，以及明确的 waiting / blocked / done 信号。
-每次更新只为支撑当前下一步调度，不写 coder / reviewer 正文，不记过程日志，不在正式 runtime 文档之外补第二套状态。
+The `Global State Doc` carries only the minimum control-plane state: `current_snapshot`, `next_action`, `last_transition`, plus explicit waiting / blocked / done signals.
+Each update exists only to support the current next-step dispatch. Do not write coder / reviewer body content, do not keep process logs, and do not create a second state model outside the formal runtime docs.
 
-## 何时停下或反问用户
+## When To Stop Or Ask The User
 
-- 总任务文档未封板或明显未写完
-- 当前下一步无法唯一判断
-- 新专项启动但没有明确的第一个可推进 Task
-- 当前已处于等待用户、真实阻断或已完成交付的停止态
+- the total task doc is not sealed or is obviously unfinished
+- the current next step cannot be determined uniquely
+- a new Initiative is starting but there is no clear first executable Task
+- the system is already in a stop state: waiting for the user, truly blocked, or already delivered
 
-## 主流程
+## Main Flow
 
-### 第 1 步：Bind Input
+### Step 1: Bind Input
 
-先绑定当前专项的法源路径。
+First bind the formal source paths for the current Initiative.
 
-1. 先用用户给出的 `planning_doc_path`、`initiative_key`，或当前 workspace 内唯一可证实的活跃 Initiative 绑定当前专项；若不能唯一证实，直接问用户。
-2. 优先在用户给定总任务文档的父路径下探索；不足时再到仓库 `docs/` 下继续确认。
-3. 最终确认最多 7 个法源槽位：`design_ref`、`gap_analysis_ref`、`total_task_doc_ref`、`global_state_doc_ref`、`task_review_rolling_doc_root_ref`、`milestone_review_rolling_doc_root_ref`、`initiative_review_rolling_doc_ref`。
-4. `gap_analysis_ref` 仅在非重构 / 非迁移 / 非替换 / 非治理收敛类专项中允许为 `N/A`。
-5. 四个 runtime 槽位在冷启动时允许文件或目录暂时不存在，但 canonical path 必须已经唯一确认。
-6. 若 `design_ref`、`total_task_doc_ref` 缺失，或重构类专项缺 `gap_analysis_ref`，或 `total_task_doc_ref` 不能明确当前专项的 Initiative 参考入口，则停止，不写 `Global State Doc`，直接问用户补充或确认。
+1. Use the user-provided `planning_doc_path`, `initiative_key`, or the only verifiable active Initiative in the current workspace to bind the current Initiative. If it cannot be verified uniquely, ask the user directly.
+2. Prefer exploring under the parent path of the user-provided total task doc. Only if that is insufficient should you continue under the repo `docs/` tree.
+3. At most seven formal source slots must be confirmed: `design_ref`, `gap_analysis_ref`, `total_task_doc_ref`, `global_state_doc_ref`, `task_review_rolling_doc_root_ref`, `milestone_review_rolling_doc_root_ref`, and `initiative_review_rolling_doc_ref`.
+4. `gap_analysis_ref` may be `N/A` only for non-refactor / non-migration / non-replacement / non-governance-convergence Initiatives.
+5. The four runtime slots may temporarily point to missing files or directories on cold start, but the canonical paths must already be uniquely confirmed.
+6. If `design_ref` or `total_task_doc_ref` is missing, if a refactor Initiative is missing `gap_analysis_ref`, or if `total_task_doc_ref` cannot identify the Initiative reference entry clearly, stop, do not write `Global State Doc`, and ask the user to provide or confirm the missing information.
 
-### 第 2 步：确认当前下一步
+### Step 2: Determine The Current Next Step
 
-读取正式文档后，直接确认当前下一步。
+After reading the formal docs, determine the current next step directly.
 
-1. 先读 `total_task_doc_ref` 和 `global_state_doc_ref`。
-2. 若需要，再定向读取当前活跃的 review rolling doc；只有文档事实仍不足时，才补充最小必要的 Git / test 事实。
-3. 然后直接判断：
-- `total_task_doc_ref` 未封板或明显未写完：停止，并直接向用户提出异议
-- 当前已明确处于等待用户、真实阻断或已完成交付的停止态：停下并说明当前停点
-- `Global State Doc` 缺失且没有任何 rolling doc：视为新专项启动
-- `Global State Doc` 缺失但 rolling doc 已存在，或 `Global State Doc` 与总任务文档 / rolling doc 明显冲突：调用 skill：`rebuild-runtime`
-- 当前推进明确落在 Task 层审查修复循环，包括继续当前已绑定 Task、继续修复当前 Task，或已能唯一确认下一个 ready Task：必要时先把 `current_snapshot` 与 `next_action` 正式重绑到该 Task，再调用 skill：`task-loop`
-- 当前推进明确落在某个 Milestone 审查修复循环：必要时先把 `current_snapshot` 与 `next_action` 正式重绑到该 Milestone，再调用 skill：`milestone-loop`
-- 当前推进明确落在 Initiative 审查修复循环：必要时先把 `current_snapshot` 与 `next_action` 正式重绑到该 Initiative，再调用 skill：`initiative-loop`
-- 事实不冲突但当前下一步仍无法唯一判断：直接问用户
-4. 只能确认出一个下一步或一个明确停点。矛盾则调用 skill：`rebuild-runtime`，歧义则问用户。
+1. Read `total_task_doc_ref` and `global_state_doc_ref` first.
+2. If needed, then read the currently active review rolling doc in a targeted way. Only when document facts are still insufficient should you add the minimum necessary Git / test facts.
+3. Then decide directly:
+- if `total_task_doc_ref` is not sealed or is obviously unfinished: stop and challenge the user directly
+- if the system is clearly already in a waiting-for-user, truly blocked, or delivered stop state: stop and explain the current stop point
+- if `Global State Doc` is missing and no rolling doc exists: treat it as a new Initiative start
+- if `Global State Doc` is missing but rolling docs already exist, or if `Global State Doc` clearly conflicts with the total task doc or rolling docs: call skill: `rebuild-runtime`
+- if current progress clearly belongs to the Task review/repair loop, including continuing the currently bound Task, continuing repair on the current Task, or uniquely identifying the next ready Task: formally rebind `current_snapshot` and `next_action` to that Task if needed, then call skill: `task-loop`
+- if current progress clearly belongs to a Milestone review/repair loop: formally rebind `current_snapshot` and `next_action` to that Milestone if needed, then call skill: `milestone-loop`
+- if current progress clearly belongs to the Initiative review/repair loop: formally rebind `current_snapshot` and `next_action` to that Initiative if needed, then call skill: `initiative-loop`
+- if the facts do not conflict but the current next step still cannot be determined uniquely: ask the user directly
+4. You may confirm only one next step or one clear stop point. If facts conflict, call skill: `rebuild-runtime`; if they are ambiguous, ask the user.
 
-### 第 3 步：确认执行环境
+### Step 3: Hand Environment Preparation To The Worktree Skill
 
-只有当当前下一步需要调用 skill：`task-loop`、`milestone-loop` 或 `initiative-loop` 时，才做这一步。
+Do this only when the current next step requires calling skill: `task-loop`, skill: `milestone-loop`, or skill: `initiative-loop`.
 
-1. 若当前下一步是停下、反问用户或调用 skill：`rebuild-runtime`，跳过这一步。
-2. 若当前 workspace 已是已准备好的实现环境，执行第 4 步。
-3. 若当前 workspace 还不是已准备好的实现环境，先调用 skill：`using-git-worktrees`。
+1. If the current next step is to stop, ask the user, or call skill: `rebuild-runtime`, skip this step.
+2. If the current next step is to enter skill: `task-loop`, skill: `milestone-loop`, or skill: `initiative-loop`, call skill: `using-git-worktrees` first.
+3. Whether to reuse the current workspace, switch branches, or create a worktree is decided entirely by `using-git-worktrees`; `run-initiative` must not pre-judge whether the current workspace is already prepared.
+4. If `using-git-worktrees` returns ready, continue to Step 4. If it exposes a conflict, waiting state, or blocker, stop at that point.
 
-### 第 4 步：执行当前下一步
+### Step 4: Execute The Current Next Step
 
-只消费上一步已经确认的结论，不重新解释事实。
+Consume only the conclusion already confirmed in the previous step. Do not reinterpret the facts.
 
-1. 新专项启动：初始化最小 `Global State Doc`；若存在明确的第一个可推进 Task，先把 `current_snapshot` 绑定到该 Task、把 `next_action` 切到当前 Task 的 coder 回合，再调用 skill：`task-loop`；否则停止，并直接向用户提出异议
-2. 旧专项恢复到 Task 层审查修复循环：若当前应推进的 Task 尚未被正式绑定到 `current_snapshot`，先重绑 `current_snapshot` 与 `next_action`，再调用 skill：`task-loop`
-3. 旧专项恢复到 Milestone 审查修复循环：若当前应推进的 Milestone 尚未被正式绑定到 `current_snapshot`，先重绑 `current_snapshot` 与 `next_action`，再调用 skill：`milestone-loop`
-4. 旧专项恢复到 Initiative 审查修复循环：若当前应推进的 Initiative 尚未被正式绑定到 `current_snapshot`，先重绑 `current_snapshot` 与 `next_action`，再调用 skill：`initiative-loop`
-5. 需要 `rebuild-runtime`：调用 skill：`rebuild-runtime`
-6. 需要用户确认：停止，并提出最小必要问题
-7. 已处于停止态：停止，不进入任何 loop
+1. New Initiative start: initialize the minimum `Global State Doc`. If there is a clear first executable Task, bind `current_snapshot` to that Task, switch `next_action` to the current Task coder round, then call skill: `task-loop`. Otherwise stop and challenge the user directly.
+2. Existing Initiative resumes into the Task review/repair loop: if the Task that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then call skill: `task-loop`.
+3. Existing Initiative resumes into the Milestone review/repair loop: if the Milestone that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then call skill: `milestone-loop`.
+4. Existing Initiative resumes into the Initiative review/repair loop: if the Initiative that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then call skill: `initiative-loop`.
+5. `rebuild-runtime` is required: call skill: `rebuild-runtime`.
+6. User confirmation is required: stop and ask the minimum necessary question.
+7. The system is already in a stop state: stop and enter no loop.
 
-如需继续推进，先把 `Global State Doc` 更新到足够清晰；若即将切换 active object 或 active plane，必须先写清新的 `current_snapshot` 与 `next_action`，便于后续 `Supervisor` 快速回溯和恢复当前进度状态。
+If work will continue, first update the `Global State Doc` until it is clear enough. If the active object or active plane is about to change, the new `current_snapshot` and `next_action` must be written first so that a later `Supervisor` can quickly trace and recover the current progress state.
 
-### 第 5 步：循环返回
+### Step 5: Loop Back
 
-任一 loop 返回后，重新读取 `Global State Doc` 和刚刚被修改的活跃 rolling doc，不得根据“上一轮理应做了什么”缓存推断，直接回到第 2 步重新确认当前下一步。
+After any loop returns, reread the `Global State Doc` and the active rolling doc that was just modified. Do not infer from cached expectations about what should have happened in the previous round. Go straight back to Step 2 and re-determine the current next step.
 
-持续推进，直到出现以下停点之一：
-- 等待人工裁决
-- 存在真实 blocker
-- 用户要求暂停
-- Initiative 已完成交付
+Keep advancing until one of these stop points appears:
+- waiting for human judgment
+- a true blocker exists
+- the user asked to pause
+- the Initiative has completed delivery
 
-## 禁止事项
+## Prohibitions
 
-绝不能：
-- 向任何 review rolling doc 写 coder 或 reviewer 的正式内容
-- 在 active repair Task 仍有优先级时，直接进入 Milestone 审查修复循环或 Initiative 审查修复循环
-- 把临时评论、会话记忆或 cache 当成与正式 runtime 文档等价的事实
-- 在 JSON、notes、隐藏记忆中再造第二套状态模型
-- 让 `run-initiative` 自己执行 `G1`、`G2`、`G3`、`R1`、`R2`、`R3`
-- 静默把当前 coder 换成新的逻辑 owner
-- 当 `Global State Doc` 已明确要求等待用户时仍继续推进
+Never:
+- write formal coder or reviewer content into any review rolling doc
+- enter the Milestone or Initiative review/repair loop directly while an active repair Task still has priority
+- treat temporary commentary, session memory, or cache as facts equivalent to the formal runtime docs
+- create a second state model inside JSON, notes, or hidden memory
+- let `run-initiative` execute `G1`, `G2`, `G3`, `R1`, `R2`, or `R3` itself
+- silently replace the current coder with a new logical owner
+- continue advancing when `Global State Doc` already explicitly says to wait for the user
 
-## 完成标志
+## Completion Criteria
 
-一次正确的 `run-initiative` 激活之后，系统应满足：
-- 当前专项已经被唯一绑定
-- 当前下一步或当前停点没有歧义
-- 若继续推进，只有一条明确的活跃 loop
-- 若停止，停止原因明确
-- 四份正式 runtime 文档之外没有新增运行时真理源
+After a correct `run-initiative` activation, the system should satisfy all of the following:
+- the current Initiative is bound uniquely
+- the current next step or stop point is unambiguous
+- if execution continues, there is only one clear active loop
+- if execution stops, the stop reason is clear
+- no new runtime truth source exists outside the four formal runtime docs

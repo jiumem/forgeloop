@@ -146,6 +146,8 @@ Every Task review must explicitly cover all of the following dimensions; do not 
 
 `Local Structure Convergence` must directly address architecture, boundary, and local structural integrity issues inside Task radius.
 
+`Next Action` must be a short, explicit next-step statement that the next coder and supervisor can act on directly, such as “continue current task repair”, “escalate to Milestone handling”, “wait for user input”, or “stop on blocker”.
+
 `Findings` are supporting evidence under those headings, not a vague top-level bucket.
 
 If you produce prose in addition to the formal result, organize it in this order:

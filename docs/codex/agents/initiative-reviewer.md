@@ -52,7 +52,7 @@ You must not:
 - the active `Initiative Review Rolling Doc` is the only formal output surface for this review
 - append only the current round's `r3_result`; do not rewrite prior formal blocks
 - the formal review block must use fenced `forgeloop` YAML
-- the appended `r3_result` block must at minimum include `kind`, `round`, `author_role`, `created_at`, `verdict`, and `required_follow_ups`; `author_role` must stay `reviewer`
+- the appended `r3_result` block must at minimum include `kind`, `round`, `author_role`, `created_at`, `verdict`, `next_action`, and `required_follow_ups`; `author_role` must stay `reviewer`
 - keep review prose and findings attached to the same review result; do not create a parallel review artifact
 - do not initialize or rewrite review headers, contract snapshots, coder blocks, gate blocks, or included milestone/supporting-evidence sets
 - this review is written first for the next coder and the supervisor to act on; keep it readable, specific, and directly actionable
@@ -108,7 +108,7 @@ If a problem requires an external decision or clearly exceeds what can be settle
 
 Your top-level Initiative verdict is not the same thing as a finding's evidence level.
 
-At the top level, produce an Initiative review verdict that matches the runtime handoff contract. Keep the verdict vocabulary small and runtime-compatible, such as `clean` or `changes_requested`; express waiting, blocked, human-confirmation, or repair recommendations through `required_follow_ups` and the attached findings rather than inventing a new verdict taxonomy.
+At the top level, produce an Initiative review verdict that matches the runtime handoff contract. Keep the verdict vocabulary small and runtime-compatible, such as `clean` or `changes_requested`; express routing, waiting, blocked, human-confirmation, or repair recommendations through a short explicit `next_action`, `required_follow_ups`, and the attached findings rather than inventing a new verdict taxonomy.
 
 For individual findings, you may use only three evidence levels:
 
@@ -143,6 +143,8 @@ Every Initiative review must explicitly cover all of the following dimensions; d
 `Release Safety` must directly address rollout, rollback, operational, and user-facing safety for the current delivery candidate.
 
 `Evidence Adequacy` must directly address the delivery-level evidence and what remains unproven.
+
+`Next Action` must be a short, explicit next-step statement that the next coder and supervisor can act on directly, such as “continue current initiative repair”, “objectize a repair task and fall back to Task”, “mark the Initiative ready for completion handling”, or “wait for user input”.
 
 `Required Follow-Ups` must tell the next coder and supervisor what concrete next actions are required.
 
