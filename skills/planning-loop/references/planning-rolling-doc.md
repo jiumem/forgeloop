@@ -35,7 +35,7 @@ This reference governs the planning communication plane, not artifact shape. Sta
 ## Round Law
 
 - `round` is stage-local, monotonically increasing, and owned by the `Supervisor` through the `Planning State Doc`
-- `planner` and reviewers must echo the current round in every formal block they append; they must not advance it on their own
+- `planner` and reviewers must echo the current round in every formal block they append; they do not advance it themselves
 - a new round opens only when:
   - the `Supervisor` enters a planning stage for the first time
   - the `Supervisor` re-enters the same stage after a reviewer has requested changes
@@ -56,6 +56,23 @@ This reference governs the planning communication plane, not artifact shape. Sta
   - `gap_review_result`
   - `plan_review_result`
 - no role may rewrite or delete prior formal blocks
+
+## Planner Update Law
+
+- every `planner_update` block must include at least:
+  - `kind`
+  - `round`
+  - `author_role`
+  - `created_at`
+  - `next_action`
+- `author_role` on a `planner_update` block must stay `planner`
+- the latest `planner_update` in the current round is the current planner intent
+- planner-side `next_action` vocabulary is shared across planning stages:
+  - `continue_stage_repair`: keep repairing inside the current stage and current round
+  - `request_reviewer_handoff`: the artifact is review-ready for this round and the rolling doc must expose a current stage-local handoff block
+  - `wait_for_upstream_judgment`: stop for upstream or user judgment
+  - `stop_on_blocker`: stop for a real blocker that cannot be repaired inside the current round
+- artifact-level `review-ready` remains artifact truth under the stage reference; reviewer dispatch becomes legal only when the latest `planner_update` uses `next_action=request_reviewer_handoff` and the current handoff block is present
 
 ## Handoff Law
 
@@ -100,8 +117,9 @@ This reference governs the planning communication plane, not artifact shape. Sta
   - `round`
   - `handoff_id`
   - `review_target_ref`
+- if multiple review-result blocks match the same current handoff exactly, only the latest appended matching block is actionable; earlier matching blocks remain history and must not drive current routing
 - stale or mismatched review results remain historical facts and must not drive current routing
-- if the rolling doc does not expose one unique current handoff for the current round, stop and surface a rolling-doc contract violation instead of guessing
+- if the rolling doc does not expose one unique current handoff for the current round, or one unique latest matching review result, stop and surface a rolling-doc contract violation instead of guessing
 
 ## Seal, Repair, And Reopen Law
 

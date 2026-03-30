@@ -75,7 +75,7 @@
 
 ### 1. 文档卡片（Document Card）
 
-- `1.1 状态与阶段（Status And Stage）`：标明当前文档状态，例如 `draft`、`review-ready` 或 `sealed`，并确认这是 `Design Doc` 阶段
+- `1.1 状态与阶段（Status And Stage）`：标明当前文档状态，例如 `draft`、`review-ready` 或 `sealed`，并确认这是 `Design Doc` 阶段；这里写的是文档自身状态，不替代 rolling doc 里的 round、handoff 或 stop signal
 - `1.2 Initiative 类型（Initiative Type）`：当 Initiative 类型会实质影响下游 planning 时，明确写出其类型，例如 greenfield feature、refactor、migration、replacement、governance convergence
 - `1.2 Initiative 类型（Initiative Type）` 还必须显式写出 `Gap Analysis Requirement: required | not_required`
 - `Gap Analysis Requirement` 是 planning 阶段是否必须在 `Total Task Doc` 之前先有 `Gap Analysis Doc` 的唯一正式路由信号；一旦这份 `Design Doc` sealed，下游 planning 就不得再从聊天记忆或宽泛 Initiative 标签重新判断
@@ -174,6 +174,7 @@
 - `5.4` 中关于“固定与可变”的权威界线明确
 - 正确性表面明确
 - 没有把阻塞性设计不确定性藏到下游去
+- 只有当 rolling doc 同 round 的最新 `planner_update` 使用 `next_action=request_reviewer_handoff`，并且存在匹配的当前 `design_doc_ref` handoff block 时，reviewer dispatch 才正式成立；`review-ready` 本身只说明文档已达到 handoff 条件
 
 ## Seal 标准
 

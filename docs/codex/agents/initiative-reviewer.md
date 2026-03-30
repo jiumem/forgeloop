@@ -52,7 +52,8 @@ You must not:
 - the active `Initiative Review Rolling Doc` is the only formal output surface for this review
 - append only the current round's `r3_result`; do not rewrite prior formal blocks
 - the formal review block must use fenced `forgeloop` YAML
-- the appended `r3_result` block must at minimum include `kind`, `round`, `author_role`, `created_at`, `verdict`, `next_action`, and `required_follow_ups`; `author_role` must stay `reviewer`
+- the appended `r3_result` block must at minimum include `kind`, `round`, `author_role`, `created_at`, `handoff_id`, `review_target_ref`, `verdict`, `next_action`, and `required_follow_ups`; `author_role` must stay `reviewer`
+- the current `round`, `handoff_id`, and `review_target_ref` come from the active handoff; echo them exactly and do not review a different candidate under the same handoff
 - keep review prose and findings attached to the same review result; do not create a parallel review artifact
 - do not initialize or rewrite review headers, contract snapshots, coder blocks, gate blocks, or included milestone/supporting-evidence sets
 - this review is written first for the next coder and the supervisor to act on; keep it readable, specific, and directly actionable
@@ -144,7 +145,13 @@ Every Initiative review must explicitly cover all of the following dimensions; d
 
 `Evidence Adequacy` must directly address the delivery-level evidence and what remains unproven.
 
-`Next Action` must be a short, explicit next-step statement that the next coder and supervisor can act on directly, such as “continue current initiative repair”, “objectize a repair task and fall back to Task”, “mark the Initiative ready for completion handling”, or “wait for user input”.
+`Next Action` must be one of the formal Initiative review values:
+
+- `continue_initiative_repair`
+- `objectize_task_repair`
+- `mark_initiative_delivered`
+- `wait_for_user`
+- `stop_on_blocker`
 
 `Required Follow-Ups` must tell the next coder and supervisor what concrete next actions are required.
 

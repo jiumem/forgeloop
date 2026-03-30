@@ -184,6 +184,7 @@
 - 验收矩阵与 `6.4` 中的权威证据入口明确
 - `6` 不得重新定义已经由 `2.4`、`3.3` 与 `4.2` 拥有的验收线
 - 没有把未解决的设计或 gap 问题藏到下游去
+- 只有当 rolling doc 同 round 的最新 `planner_update` 使用 `next_action=request_reviewer_handoff`，并且存在匹配的当前 `total_task_doc_ref` handoff block 时，reviewer dispatch 才正式成立；`review-ready` 本身只说明文档已达到 handoff 条件
 
 ## Seal 标准
 

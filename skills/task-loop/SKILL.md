@@ -5,11 +5,16 @@ description: Use when the `Global State Doc` has uniquely confirmed that current
 
 # Task Loop
 
-`task-loop` handles only one confirmed Task. Here you act as the Task-layer `Supervisor`: maintain the minimum control plane, keep a single `coder_slot`, dispatch the same `coder` and a fresh `task_reviewer` each round, and use the facts from `G1`, `anchor / fixup`, and `R1` to decide whether to continue repair, declare formal clean closure, escalate, or stop.
+`task-loop` handles only one confirmed Task. Here you act as the Task-layer `Supervisor`: maintain the minimum control plane, keep a single `coder_slot`, dispatch the same `coder` and a fresh `task_reviewer` each round, and use the facts from `G1`, `anchor / fixup`, and `R1` to decide whether the Task stays in the current round, enters `R1`, returns clean upstream, escalates, or stops.
 
 `coder_slot` is the logical owner identifier, not the physical `agent_id`; the current `agent_id` may change, but `coder_slot` does not.
 
 You are not responsible for writing code, writing `r1_result`, rewriting Milestone / Initiative dispatch, finishing the development branch, or maintaining any parallel state.
+
+## Task-Local Vocabulary
+
+- `g1_result.next_action` must be one of: `continue_task_coder_round`, `request_reviewer_handoff`, `wait_for_user`, `stop_on_blocker`
+- `r1_result.next_action` must be one of: `continue_task_repair`, `return_to_source_object`, `select_next_ready_object`, `task_done`, `escalate_to_milestone`, `wait_for_user`, `stop_on_blocker`
 
 ## Truth Sources And Hard Boundaries
 
@@ -19,22 +24,26 @@ Hard boundaries:
 - `G1` may be run only by the coder in the current implementation round, and it must be written into the `Task Review Rolling Doc`
 - `anchor_ref` or `fixup_ref` may be written only after `G1 pass`
 - `R1` may be run only by a fresh reviewer against the formal anchor
+- `round` is Task-local and owned by the `Supervisor` through the `Global State Doc`; coder and reviewer echo it in the rolling doc but do not advance it themselves
 - a round closes only when `r1_result` is written; `G1 fail` stays in the same round
+- a new round opens only on first entry into the Task or after `r1_result.next_action=continue_task_repair`
 - the `Global State Doc` may contain only `current_snapshot`, `next_action`, and `last_transition`
 - if `next_action` changes the active object or active plane, `current_snapshot` must be updated at the same time; only when still advancing within the same Task may you update only `next_action` and `last_transition`
+- the current Task review handoff is the latest `anchor_ref` or `fixup_ref` in the current round
+- each Task handoff block must carry `handoff_id` and `review_target_ref`; `r1_result` is actionable only when its `round`, `handoff_id`, and `review_target_ref` match that current handoff exactly, and if multiple `r1_result` blocks match one current handoff, only the latest matching block is actionable
 - if only a bounded task brief exists and the rolling doc does not, it may be used to initialize the header, including object identity and `coder_slot`, plus `task_contract_snapshot`; after initialization, the rolling doc becomes the only collaboration surface
 
 ## Workflow
 
 1. Bind the current Task
 - Read the Task definition, the `Global State Doc`, the current `Task Review Rolling Doc`, and the necessary engineering facts
-- Confirm that the active task is unique, the workspace is executable, the rolling doc matches the active task, and `coder_slot` is unique
+- Confirm that the active task is unique, the workspace is executable, the rolling doc matches the active task, `coder_slot` is unique, and the current Task-local `round` is unique when it already exists
 - If the `Global State Doc` conflicts with the rolling doc, hand control back to `rebuild-runtime`
 - If the current Task cannot be confirmed uniquely, the contract is missing, or the facts show the system should wait for the user, stop
-- If the rolling doc does not exist, initialize only the header, including object identity and `coder_slot`, plus `task_contract_snapshot`
+- If the rolling doc does not exist, initialize only the header, including object identity and `coder_slot`, plus `task_contract_snapshot`; write `coder_slot=coder` into the header and `current_snapshot`, and write `round=1` into the `Global State Doc` before dispatching the first coder round
 
 2. Update the minimum control plane
-- `current_snapshot` points to the current active task and `coder_slot`
+- `current_snapshot` points to the current active task, `coder_slot`, and the current Task-local `round`
 - `next_action` points to continuing the current Task coder round
 - Record entering the current round, resuming the current round, or coder succession in `last_transition` when needed
 - Do not write implementation details, review body text, or full test output into the `Global State Doc`
@@ -48,20 +57,29 @@ Hard boundaries:
 
 4. Handle the coder result
 - Decide only from the rolling doc and Git facts, not from chat summaries
-- If the latest `g1_result=fail`, or there is only `coder_update`: the same coder continues in the same round
-- If `g1_result=pass` but there is no valid `anchor_ref/fixup_ref`: return to the same coder to complete the formal anchor
-- If `g1_result=pass` and a valid anchor already exists: switch `next_action` to entering `R1`
-- If the coder requests more context, human judgment, or exposes a real blocker: write waiting/blocked into the `Global State Doc`, then stop
+- Read the latest `g1_result.next_action` first
+- If the latest `g1_result.next_action=continue_task_coder_round`, or there is only `coder_update`, or the latest `g1_result=fail`: the same coder continues in the same round
+- If the latest `g1_result.next_action=request_reviewer_handoff` but there is no valid current handoff yet: return to the same coder to complete the formal anchor inside the same round
+- If the latest `g1_result.next_action=request_reviewer_handoff` and one valid current handoff exists: switch `next_action` to entering `R1`
+- If the latest `g1_result.next_action=wait_for_user`: write waiting into the `Global State Doc`, then stop
+- If the latest `g1_result.next_action=stop_on_blocker`: write blocked into the `Global State Doc`, then stop
+- Only if the latest `g1_result` lacks `next_action` should you fall back to `pass / fail` plus handoff facts
 
 5. Dispatch a fresh `task_reviewer`
 - Every `R1` round uses a freshly spawned reviewer, with `fork_context=false` by default
-- The reviewer reads `design_ref`, `gap_analysis_ref`, `total_task_doc_ref`, the `Global State Doc`, the current `Task Review Rolling Doc`, the current `anchor/fixup`, and the necessary spec refs
+- The reviewer reads `design_ref`, `gap_analysis_ref`, `total_task_doc_ref`, the `Global State Doc`, the current `Task Review Rolling Doc`, the current `anchor/fixup`, the current `round`, the current `handoff_id`, the current `review_target_ref`, and the necessary spec refs
 - The reviewer returns its result to the `Task Review Rolling Doc` according to the contract
 
 6. Handle `r1_result`
-- `R1 clean`: update `last_transition`; if the current Task is a repair task formally objectized from an upper-layer object and the `Global State Doc` clearly records its source object and return-hook rolling doc, then first switch `current_snapshot` back to that source Milestone / Initiative and switch `next_action` to re-entering that upper loop; otherwise, if the next ready object is uniquely confirmed, move `current_snapshot` forward to that object; otherwise switch `current_snapshot` to a frontier-selection snapshot no longer bound to the current Task, then switch `next_action` to `task_done` or `select_next_ready_object`, and hand control back upstream
-- `R1 changes_requested` and still within Task radius: switch `next_action` to continuing current Task repair, and let the same `coder_slot` enter the next round
-- If `R1` requests escalation, waiting for the user, or identifies a real blocker: the reviewer writes only the recommendation, the `Supervisor` updates only the `Global State Doc`, then hands control back upstream
+- The current actionable `r1_result` is the latest matching review result for the current handoff
+- If the current actionable `r1_result` has `verdict=clean` and `next_action=return_to_source_object`: update `last_transition`, switch `current_snapshot` back to the source Milestone / Initiative recorded in the `Global State Doc`, and hand control back upstream
+- If the current actionable `r1_result` has `verdict=clean` and `next_action=select_next_ready_object`: update `last_transition`, move `current_snapshot` forward to the next ready object when it is uniquely confirmed, otherwise switch `current_snapshot` to a frontier-selection snapshot no longer bound to the current Task, then hand control back upstream
+- If the current actionable `r1_result` has `verdict=clean` and `next_action=task_done`: update `last_transition`, switch `current_snapshot` to a frontier-selection snapshot no longer bound to the current Task, then hand control back upstream
+- If the current actionable `r1_result` has `verdict=changes_requested` and `next_action=continue_task_repair`: increment the Task-local `round` in the `Global State Doc`, switch `next_action` back to continuing current Task repair, and let the same `coder_slot` enter the next round
+- If the current actionable `r1_result` has `verdict=changes_requested` and `next_action=escalate_to_milestone`: update `last_transition`, switch `current_snapshot` to the parent Milestone when it is uniquely confirmed, then hand control back upstream
+- If the current actionable `r1_result` has `verdict=changes_requested` and `next_action=wait_for_user`: the reviewer writes only the recommendation, the `Supervisor` writes waiting into the `Global State Doc`, then hands control back upstream
+- If the current actionable `r1_result` has `verdict=changes_requested` and `next_action=stop_on_blocker`: the reviewer writes only the recommendation, the `Supervisor` writes blocked into the `Global State Doc`, then hands control back upstream
+- If the rolling doc does not expose one unique actionable `r1_result`, or if `verdict` and `next_action` do not form one legal combination above, stop and surface the illegal Task review output explicitly
 
 ## Stop Conditions
 

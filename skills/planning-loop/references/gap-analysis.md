@@ -77,7 +77,7 @@
 
 ### 1. 文档卡片（Document Card）
 
-- `1.1 状态与阶段（Status And Stage）`：标明当前文档状态，例如 `draft`、`review-ready` 或 `sealed`，并确认这是 `Gap Analysis Doc` 阶段
+- `1.1 状态与阶段（Status And Stage）`：标明当前文档状态，例如 `draft`、`review-ready` 或 `sealed`，并确认这是 `Gap Analysis Doc` 阶段；这里写的是文档自身状态，不替代 rolling doc 里的 round、handoff 或 stop signal
 - `1.2 为什么需要 Gap Analysis（Why Gap Analysis Exists）`：说明触发 gap analysis 的原因，例如 migration、replacement、refactor 或 governance convergence
 - `1.3 主要读者（Primary Readers）`：当这有助于避免误用时，写明当前主要读者
 
@@ -170,6 +170,7 @@
 - `7.2` 中数据与兼容红线的权威界线明确
 - `7.4` 中回流规则的权威界线明确
 - 没有把 blocker 级差距藏到下游去
+- 只有当 rolling doc 同 round 的最新 `planner_update` 使用 `next_action=request_reviewer_handoff`，并且存在匹配的当前 `gap_analysis_ref` handoff block 时，reviewer dispatch 才正式成立；`review-ready` 本身只说明文档已达到 handoff 条件
 
 ## Seal 标准
 

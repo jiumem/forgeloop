@@ -31,15 +31,15 @@ You are not responsible for:
 
 ## Core Rule
 
-You only determine the current planning next step. You do not personally author planning docs or formal review text.
+You decide only the current planning next step. You do not author planning docs or formal review text yourself.
 
-`run-planning` is the planning-side top entry. `planning-loop` is its internal one-stage skill. Once `planning-loop` records a cross-stage route, stop and let the next `run-planning` activation re-bind the new active stage explicitly. Do not silently continue across planning stage boundaries inside the same activation.
+`run-planning` is the planning-side top entry. `planning-loop` is its internal one-stage skill. Once `planning-loop` records a cross-stage route, stop there and let the next `run-planning` activation bind the new active stage explicitly. Do not carry planning across stage boundaries inside one activation.
 
 ## Dispatch Rules
 
-Once the current planning next step is confirmed, either call skill: `planning-loop`, or stop and ask the user. Only one skill may be called at a time.
+Once the current planning next step is clear, either call skill: `planning-loop`, or stop and ask the user. Only one skill may be called at a time.
 
-The `Planning State Doc` carries only the minimum planning control-plane state: `current_snapshot`, `next_action`, `last_transition`, plus explicit waiting / blocked / sealed-output signals. Do not write planner or reviewer body content, and do not create a second planning state model outside the formal planning artifacts, rolling docs, and the `Planning State Doc`.
+The `Planning State Doc` holds only the minimum planning control plane: `current_snapshot`, `next_action`, `last_transition`, plus explicit waiting / blocked / sealed-output signals. Do not put planner or reviewer body content there, and do not create a second planning state model outside the formal planning artifacts, rolling docs, and the `Planning State Doc`.
 
 ## When To Stop Or Ask The User
 
@@ -47,7 +47,7 @@ The `Planning State Doc` carries only the minimum planning control-plane state: 
 - the current Initiative or planning stage cannot be confirmed uniquely
 - the `Planning State Doc` and planning artifacts conflict and the active stage, `planner_slot`, or current stage-local `round` cannot be recovered uniquely
 - the repository is missing the canonical stage reference or rolling-doc contract needed for the active stage
-- planning is already in a waiting, blocked, or `sealed_planning_docs_ready` stop state
+- planning is already in `sealed_planning_docs_ready`, or it is in a waiting / blocked stop state that this activation does not clearly resolve
 
 ## Main Flow
 
@@ -64,21 +64,25 @@ First bind the formal planning sources for the current Initiative.
 
 ### Step 2: Determine The Current Planning Next Step
 
-After reading the formal planning sources, determine whether planning should enter `planning-loop`, stop, or ask the user.
+After reading the formal planning sources, decide whether planning should enter `planning-loop`, stop, or ask the user.
 
 1. If no `Planning State Doc` exists and no planning artifact or rolling doc exists yet, treat the case as a cold planning start at `Design Doc`.
-2. If the `Planning State Doc` already records `waiting`, `blocked`, or `sealed_planning_docs_ready`, stop at that state.
-3. If the `Planning State Doc` is missing, or if it conflicts with newer planning artifacts or rolling docs, first try to recover the minimum planning control plane directly from formal planning truth instead of stopping immediately.
-4. Recovery is legal only when one active planning stage can be confirmed uniquely and the required control-plane continuity is also unique:
+2. If the `Planning State Doc` already records `sealed_planning_docs_ready`, stop at that state.
+3. If the `Planning State Doc` already records `waiting` or `blocked`, first check whether this activation clearly resolves that stop reason:
+- if not, stop at that state
+- if yes, record that resume in `last_transition`, then continue from formal planning truth instead of treating the stop as terminal
+4. If the `Planning State Doc` is missing, or if it conflicts with newer planning artifacts or rolling docs, first try to recover the minimum planning control plane directly from formal planning truth instead of stopping immediately.
+5. You may recover planning state only when one active stage is unique and its control-plane continuity is also unique:
 - preserve the existing `planner_slot` and current stage-local `round` whenever the `Planning State Doc` is still consistent with newer planning facts
 - if the `Planning State Doc` is missing or distorted, recover the current `planner_slot` and current stage-local `round` from the active planning rolling doc when that rolling doc exposes them uniquely
-- if the recovered state is a fresh cross-stage entry into a stage whose rolling doc does not yet exist, bind only the target stage, artifact path, and rolling doc path here; the downstream `planning-loop` will open that stage's `planner_slot` and first round during stage initialization
+- if the recovered state is a fresh cross-stage entry into a stage whose rolling doc does not yet exist, bind only the target stage, artifact path, and rolling doc path here; `planning-loop` will open that stage's `planner_slot` and first round during stage initialization
 - if the active stage, `planner_slot`, or current round still cannot be confirmed uniquely, stop and ask the user directly
-5. If the control plane is already consistent or has been recovered successfully, then determine the current planning next step:
-- if the `Planning State Doc` records a cross-stage route such as `advance_to_gap_analysis`, `advance_to_total_task_doc`, `reopen_to_design`, or `reopen_to_gap_analysis`, re-bind the target stage explicitly and set `next_action` to entering `planning-loop`
+6. Once the control plane is consistent or has been recovered, determine the current planning next step:
+- if this activation resolves a prior `waiting` or `blocked` stop and one active stage is now recoverable uniquely, rewrite the minimum `Planning State Doc` around that stage, clear the stop state, and continue
+- if the `Planning State Doc` records a cross-stage route such as `advance_to_gap_analysis`, `advance_to_total_task_doc`, `reopen_to_design`, or `reopen_to_gap_analysis`, re-bind the target stage explicitly, preserve that route in `last_transition`, and set `next_action` to entering `planning-loop`; a `reopen_*` route must stay visible as a reopen route, not collapse into an ordinary resume
 - if the `Planning State Doc` already records an active stage in repair, reviewer handoff, or review-result state, keep that stage and set `next_action` to entering `planning-loop`
 - if the `Planning State Doc` was missing but one active planning stage was recovered uniquely from the current planning artifact and rolling doc, initialize or rewrite the minimum `Planning State Doc` around that recovered stage and continue
-6. If the stage cannot be recovered uniquely, or the planning sources conflict in a way that no single stage can legally be chosen, stop and ask the user directly.
+7. If the stage cannot be recovered uniquely, or the planning sources conflict in a way that no single stage can legally be chosen, stop and ask the user directly.
 
 ### Step 3: Update The Minimum Planning Control Plane
 
@@ -86,15 +90,16 @@ Before dispatching, make the active planning stage explicit in the `Planning Sta
 
 1. `current_snapshot` points to the current Initiative, active planning stage, active artifact path, and rolling doc path.
 2. When the current stage is already active or has been recovered from an existing rolling doc, `current_snapshot` must also preserve the active `planner_slot` and current stage-local `round`; do not overwrite them with thinner state.
-3. Only when entering a fresh stage that does not yet have an active rolling doc may `current_snapshot` temporarily omit `planner_slot` and `round`; in that case `planning-loop` must establish them during stage initialization before dispatching `planner`.
+3. Only on first entry into a fresh stage with no rolling doc yet may `current_snapshot` temporarily omit `planner_slot` and `round`; `planning-loop` must then initialize them as `planner_slot=planner` and stage-local `round=1` before dispatching `planner`.
 4. `next_action` points to entering `planning-loop` for the current active stage.
-5. `last_transition` records cold start, control-plane recovery, stage re-bind, or resume when needed.
-6. If the `Planning State Doc` does not exist yet, initialize only the minimum control-plane blocks needed for continuation: `current_snapshot`, `next_action`, and `last_transition`.
-7. Do not write planning artifact body content or review body content into the `Planning State Doc`.
+5. `last_transition` records cold start, recovery, stage re-bind, reopen, or resume when needed.
+6. When the current entry came from `reopen_to_design` or `reopen_to_gap_analysis`, keep that reopen meaning in `last_transition` so `planning-loop` opens the next round rather than resuming the previously sealed one.
+7. If the `Planning State Doc` does not exist yet, initialize only the minimum control-plane blocks needed for continuation: `current_snapshot`, `next_action`, and `last_transition`.
+8. Do not write planning artifact body content or review body content into the `Planning State Doc`.
 
 ### Step 4: Dispatch The Internal Stage Skill
 
-Call skill: `planning-loop` only after the active planning stage has been confirmed explicitly.
+Call skill: `planning-loop` only after the active planning stage is explicit.
 
 1. `planning-loop` owns the current stage's authoring, review handoff, review-result handling, and stage-local routing until it reaches a formal stop point.
 2. Do not dispatch `planner` or any planning reviewer directly from `run-planning`.
@@ -105,8 +110,8 @@ Call skill: `planning-loop` only after the active planning stage has been confir
 After `planning-loop` returns, reread the `Planning State Doc`.
 
 1. If the returned state is `waiting`, `blocked`, or `sealed_planning_docs_ready`, stop.
-2. If the returned state records a cross-stage route, stop and let the next `run-planning` activation re-bind the new stage explicitly.
-3. If the returned state no longer exposes one legal stop point or one recoverable active planning stage, stop and surface the illegal planning state explicitly.
+2. If the returned state records a cross-stage route, stop and let the next `run-planning` activation bind the new stage explicitly.
+3. If the returned state no longer exposes one legal stop point or one recoverable active stage, stop and surface the illegal planning state explicitly.
 
 ## Red Lines
 

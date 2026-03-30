@@ -47,7 +47,7 @@ Each update exists only to support the current next-step dispatch. Do not write 
 - the sealed planning docs are missing basic execution structure, such as Initiative boundary, Milestone structure, Task Ledger, integration path, reference assignment, acceptance matrix, or residual-risk registration
 - the current next step cannot be determined uniquely
 - a new Initiative is starting but there is no clear first executable Task
-- the system is already in a stop state: waiting for the user, truly blocked, or already delivered
+- the system is already in a delivered stop state, or it is in waiting / blocked and this activation does not clearly resolve that stop reason
 
 ## Main Flow
 
@@ -77,7 +77,10 @@ After reading the formal docs, first decide whether the planning truth may legal
 4. If planning admission fails, stop and challenge the user directly to repair planning truth. Do not call skill: `rebuild-runtime` just to paper over illegal planning input, and do not enter any execution loop.
 5. If needed, then read the currently active review rolling doc in a targeted way. Only when document facts are still insufficient should you add the minimum necessary Git / test facts.
 6. Then decide directly:
-- if the system is clearly already in a waiting-for-user, truly blocked, or delivered stop state: stop and explain the current stop point
+- if the `Global State Doc` already records a delivered stop state such as `initiative_delivered`: stop and explain the current stop point
+- if the `Global State Doc` already records waiting or blocked: first check whether this activation clearly resolves that stop reason
+  - if not, stop at that state
+  - if yes, record that resume in `last_transition`, then continue from newer formal runtime truth instead of treating the stop as terminal
 - if `Global State Doc` is missing and no rolling doc exists: treat it as a new Initiative start
 - if `Global State Doc` is missing but rolling docs already exist, or if `Global State Doc` clearly conflicts with the total task doc or rolling docs: call skill: `rebuild-runtime`
 - if current progress clearly belongs to the Task review/repair loop, including continuing the currently bound Task, continuing repair on the current Task, or uniquely identifying the next ready Task: formally rebind `current_snapshot` and `next_action` to that Task if needed, then call skill: `task-loop`
@@ -108,6 +111,8 @@ Consume only the conclusion already confirmed in the previous step. Do not reint
 7. The system is already in a stop state: stop and enter no loop.
 
 If work will continue, first update the `Global State Doc` until it is clear enough. If the active object or active plane is about to change, the new `current_snapshot` and `next_action` must be written first so that a later `Supervisor` can quickly trace and recover the current progress state.
+
+When the active object is already in flight or has been recovered from an existing rolling doc, `current_snapshot` should preserve the active `coder_slot` and current object-local `round`. Only on first entry into a fresh runtime object with no rolling doc yet may `current_snapshot` temporarily omit them; the target loop must then initialize `coder_slot=coder` and object-local `round=1` before dispatching the first coder round.
 
 ### Step 5: Loop Back
 

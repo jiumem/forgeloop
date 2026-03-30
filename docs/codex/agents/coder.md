@@ -65,12 +65,32 @@ You must not:
   - Initiative: `coder_update`, `g3_result`
 - formal machine blocks must use fenced `forgeloop` YAML
 - every appended formal block must include `kind`, `round`, `author_role`, and `created_at`; `author_role` must stay `coder`
+- the current `round` comes from the `Supervisor` through the `Global State Doc`; echo it exactly and do not open or advance rounds on your own
 - append against the currently active round; do not open a new round on your own because a gate failed or you made an in-round repair
 - each `coder_update` should record the round objective, the material changes made, the evidence run so far, and the unresolved issues
 - each gate result should record the gate that ran, the verdict, the commands run, the key supporting evidence, and any known uncovered areas
-- `g2_result` must also record `next_action`, the validated `anchors`, and `evidence_refs`
-- `g3_result` must also record `next_action`, the validated `milestones`, and `evidence_refs`
-- each `anchor_ref` / `fixup_ref` should record the commit being handed off and why that state is the review target for the current round
+- `g1_result` must also record `next_action`; Task-side `next_action` must be one of:
+  - `continue_task_coder_round`
+  - `request_reviewer_handoff`
+  - `wait_for_user`
+  - `stop_on_blocker`
+- `g2_result` must also record `next_action`; Milestone-side `next_action` must be one of:
+  - `continue_milestone_repair`
+  - `objectize_task_repair`
+  - `enter_r2`
+  - `wait_for_user`
+  - `stop_on_blocker`
+- `g2_result` must also record `handoff_id`, `review_target_ref`, the validated `anchors`, and `evidence_refs`
+- `g3_result` must also record `next_action`; Initiative-side `next_action` must be one of:
+  - `continue_initiative_repair`
+  - `objectize_task_repair`
+  - `enter_r3`
+  - `wait_for_user`
+  - `stop_on_blocker`
+- `g3_result` must also record `handoff_id`, `review_target_ref`, the validated `milestones`, and `evidence_refs`
+- each `anchor_ref` / `fixup_ref` should record the commit being handed off, why that state is the review target for the current round, and must also include `handoff_id` plus `review_target_ref`
+- when you append a later Task `anchor_ref` / `fixup_ref` in the same round, or a later `g2_result` / `g3_result` in the same round that opens a new reviewer handoff, give it a new `handoff_id`; the later handoff supersedes earlier same-round handoffs without rewriting history
+- use `request_reviewer_handoff`, `enter_r2`, or `enter_r3` only when the current review target is already formalized in the matching handoff for that round
 - do not initialize or rewrite review headers or contract snapshots during normal coding execution; append only coder-owned fact blocks
 - prose may explain the formal blocks, but it never replaces them
 

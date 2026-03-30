@@ -13,12 +13,24 @@ The formal input surface contains only the Initiative static truth trio `design_
 
 Hard boundaries:
 - recover only the logical `coder_slot`, never the physical `agent_id`
+- recover the current object-local `round`, never invent a new round
 - write to the `Global State Doc` only when necessary
 - if the `Global State Doc` does not exist, you may initialize `global_state_header`
 - if the existing `global_state_header` conflicts with static truth-source bindings, you may correct `global_state_header` first
 - the only updatable blocks are `global_state_header`, `current_snapshot`, `next_action`, and `last_transition`
 - do not write any rolling doc body content
 - do not modify the static truth sources and do not create a second state model in JSON / notes / hidden memory
+
+## Shared Runtime Recovery Law
+
+- `round` is object-local and supervisor-owned through the `Global State Doc`; coder and reviewers only echo it in rolling docs
+- if the existing `Global State Doc` still agrees with newer formal facts, preserve its `round`; otherwise recover `round` from the active rolling doc when that rolling doc exposes one unique current round
+- the current review handoff is object-local:
+  - Task: the latest `anchor_ref` or `fixup_ref` in the current round
+  - Milestone: the latest `g2_result` in the current round whose `next_action=enter_r2`
+  - Initiative: the latest `g3_result` in the current round whose `next_action=enter_r3`
+- a review result is actionable only when its `round`, `handoff_id`, and `review_target_ref` match that current handoff exactly; if multiple review results match one current handoff, only the latest appended matching block is actionable
+- a new round opens only on first entry into an object, after a reviewer requests same-object repair, or after callback semantics from an objectized repair task explicitly say the source object should enter the next round
 
 ## When To Trigger
 
@@ -49,36 +61,35 @@ This skill does not handle the following:
 3. Determine the active object and next action
 - Read the latest formal block's explicit `next_action` first. If it does not conflict with object facts and the intended next step is clear enough, recover from that `next_action` first.
 - If the current active task is a repair task objectized from an upper-layer object, and `last_transition` still clearly records its source Milestone / Initiative, return-hook rolling doc, and callback round semantics, treat that callback information as the primary basis for recovering the upper loop. Do not misread it as an ordinary standalone Task that already ended.
-- `coder_slot` recovery rules:
+- `coder_slot` and `round` recovery rules:
   - if `current_snapshot.coder_slot` in the existing `Global State Doc` is still consistent with the newest formal facts, reuse it directly
+  - if `current_snapshot.round` in the existing `Global State Doc` is still consistent with the newest formal facts, reuse it directly
   - if the `Global State Doc` is missing or distorted, recover `coder_slot` from the header of the rolling doc judged to be active
-  - if the active rolling doc header lacks `coder_slot`, or multiple candidates provide conflicting `coder_slot` values, stop and ask the user directly
+  - if the `Global State Doc` is missing or distorted, recover `round` from the active rolling doc when one unique current round is exposed
+  - if the active rolling doc header lacks `coder_slot`, the active rolling doc does not expose one unique current round, or multiple candidates provide conflicting `coder_slot` / `round` values, stop and ask the user directly
 - Task candidates:
-  - if the latest `r1_result.next_action` clearly says to continue current Task repair, that the Task is complete, to select the next ready object, to wait for the user, or that there is a blocker, recover from it first
-  - if the current Task is a repair task with callback information and `r1_result=clean`, prefer recovering the next step of its source Milestone / Initiative rather than ordinary frontier selection
-  - if there is only `coder_update`, or the latest `g1_result=fail`: continue the current Task coder round
-  - if `g1_result=pass` and a valid `anchor/fixup` exists but there is no `r1_result`: enter `R1`
-  - if `r1_result=changes_requested`: continue current Task repair
-  - if `r1_result=clean`: enter `task_done` or `select_next_ready_object`
+  - if the latest actionable `r1_result.next_action` clearly says `continue_task_repair`, `return_to_source_object`, `select_next_ready_object`, `task_done`, `escalate_to_milestone`, `wait_for_user`, or `stop_on_blocker`, recover from it first
+  - if the current Task is a repair task with callback information and the latest actionable `r1_result` is `verdict=clean` with `next_action=return_to_source_object`, prefer recovering the next step of its source Milestone / Initiative rather than ordinary frontier selection
+  - if there is only `coder_update`, or the latest `g1_result.next_action=continue_task_coder_round`, or the latest `g1_result=fail`: continue the current Task coder round
+  - if the latest `g1_result.next_action=request_reviewer_handoff`, the current handoff is unique, and there is no actionable `r1_result` yet: enter `R1`
 - Milestone candidates:
-  - if the latest `g2_result.next_action` or `r2_result.next_action` clearly says to continue current Milestone repair, objectize a repair task, enter `R2`, enter the higher-level review entry, select the next ready object, wait for the user, or identifies a blocker, recover from it first
-  - if `g2_result=repair_required` or `r2_result=changes_requested` and the issue is still inside the current Milestone radius: continue current Milestone repair
+  - if the latest actionable `r2_result.next_action` clearly says `continue_milestone_repair`, `objectize_task_repair`, `enter_initiative_review`, `select_next_ready_object`, `wait_for_user`, or `stop_on_blocker`, recover from it first
+  - if the latest `g2_result.next_action` clearly says `continue_milestone_repair`, `objectize_task_repair`, `enter_r2`, `wait_for_user`, or `stop_on_blocker`, recover from it first when no actionable `r2_result` overrides it
   - if a repair task has already been formally objectized: the active plane returns to Task
-  - if `g2_result=pass` and there is no `r2_result`: enter `R2`
-  - if `r2_result=clean`: enter frontier selection or Initiative review entry
+  - if the latest `g2_result.next_action=enter_r2`, the current handoff is unique, and there is no actionable `r2_result` yet: enter `R2`
 - Initiative candidates:
-  - if the latest `g3_result.next_action` or `r3_result.next_action` clearly says to continue current Initiative repair, objectize a repair task, enter `R3`, that the Initiative is complete, to wait for the user, or identifies a blocker, recover from it first
-  - if `g3_result=repair_required` or `r3_result=changes_requested` and the issue is still inside the current Initiative radius: continue current Initiative repair
+  - if the latest actionable `r3_result.next_action` clearly says `continue_initiative_repair`, `objectize_task_repair`, `mark_initiative_delivered`, `wait_for_user`, or `stop_on_blocker`, recover from it first
+  - if the latest `g3_result.next_action` clearly says `continue_initiative_repair`, `objectize_task_repair`, `enter_r3`, `wait_for_user`, or `stop_on_blocker`, recover from it first when no actionable `r3_result` overrides it
   - if a repair task has already been formally objectized: the active plane returns to Task
-  - if `g3_result=pass` and there is no `r3_result`: enter `R3`
-  - if `r3_result=clean`: enter Initiative done / delivery complete
+  - if the latest `g3_result.next_action=enter_r3`, the current handoff is unique, and there is no actionable `r3_result` yet: enter `R3`
+  - if the latest actionable `r3_result.next_action=mark_initiative_delivered`: recover to the delivered stop state
 - Only if the newer formal block lacks `next_action`, or the `next_action` wording is still insufficient to determine the next step uniquely, should you fall back to inference from the old `verdict` plus surrounding formal facts. If that still conflicts or is still not unique, stop and ask the user directly.
-- If the active plane, active object, or next action still cannot be determined uniquely, stop and ask the user directly.
+- If the active plane, active object, active `round`, or next action still cannot be determined uniquely, stop and ask the user directly.
 
 4. Rewrite the minimum control plane
 - If the `Global State Doc` does not exist, initialize `global_state_header` first
 - If the existing `global_state_header` conflicts with the Initiative binding or the planning doc ref, correct `global_state_header` first
-- Write `current_snapshot` as the uniquely recovered active plane / active object / `coder_slot`
+- Write `current_snapshot` as the uniquely recovered active plane / active object / `coder_slot` / current object-local `round`
 - Write `next_action` as the uniquely recovered next step
 - Write `last_transition` as a recovery transition explaining why the control plane was rebuilt
 - After writing, immediately hand control back to skill: `run-initiative` so the upstream dispatcher can reconfirm and continue
@@ -104,7 +115,7 @@ Never:
 ## Completion Criteria
 
 On correct completion, all of the following should be true:
-- the current active plane, active object, and `coder_slot` can be recovered uniquely
+- the current active plane, active object, active `round`, and `coder_slot` can be recovered uniquely
 - the `Global State Doc` exists, and `current_snapshot`, `next_action`, and `last_transition` are self-consistent
 - the upstream dispatcher can re-enter `run-initiative` and continue without hidden context
 - no second runtime truth source has been created outside the four formal runtime docs

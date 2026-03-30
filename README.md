@@ -12,7 +12,7 @@ Forgeloop is built from a customized adaptation of [obra/superpowers](https://gi
 
 ## Workflow
 
-1. `run-planning` is the planning entry: it binds the active Initiative planning surface and routes into the confirmed planning stage.
+1. `run-planning` is the planning entry: it binds the active Initiative's planning inputs plus minimum planning control plane, then routes into the confirmed planning stage.
 2. `planning-loop` is the internal single-stage planning closure skill used by `run-planning`.
 3. `run-initiative` is the runtime entry: it binds the active Initiative, runs planning admission, calls `using-git-worktrees` when needed, and resumes the correct closure loop.
 4. `task-loop`, `milestone-loop`, and `initiative-loop` perform Task, Milestone, and Initiative closure.

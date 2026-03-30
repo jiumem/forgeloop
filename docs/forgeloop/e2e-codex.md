@@ -75,7 +75,26 @@ Pass criteria:
 - the response is exactly `planner`
 - Codex logs show it read `~/.codex/forgeloop/skills/planning-loop/SKILL.md`
 
-### 3. Runtime Recovery Dispatch
+### 3. Planning Reviewer Handoff Intent
+
+Prompt:
+
+```text
+Use the planning-loop skill. Reply with exactly the planner-side next_action value that formally requests reviewer dispatch and nothing else.
+```
+
+Expected result:
+
+```text
+request_reviewer_handoff
+```
+
+Pass criteria:
+
+- the response is exactly `request_reviewer_handoff`
+- Codex logs show it read `~/.codex/forgeloop/skills/planning-loop/SKILL.md`
+
+### 4. Runtime Recovery Dispatch
 
 Prompt:
 
@@ -94,7 +113,7 @@ Pass criteria:
 - the response is exactly that skill name
 - Codex logs show it read `~/.codex/forgeloop/skills/run-initiative/SKILL.md`
 
-### 4. Task Review Dispatch
+### 5. Task Review Dispatch
 
 Prompt:
 
@@ -113,6 +132,25 @@ Pass criteria:
 - the response is exactly `task_reviewer`
 - Codex logs show it read `~/.codex/forgeloop/skills/task-loop/SKILL.md`
 
+### 6. Initiative Delivery Stop
+
+Prompt:
+
+```text
+Use the initiative-loop skill. Reply with exactly the clean Initiative review next_action value that routes the system into the delivered stop state and nothing else.
+```
+
+Expected result:
+
+```text
+mark_initiative_delivered
+```
+
+Pass criteria:
+
+- the response is exactly `mark_initiative_delivered`
+- Codex logs show it read `~/.codex/forgeloop/skills/initiative-loop/SKILL.md`
+
 ## Example Commands
 
 ```bash
@@ -126,10 +164,16 @@ codex exec -C "$tmpdir" --sandbox read-only --skip-git-repo-check \
   'Use the planning-loop skill. Reply with exactly the continuous planning author role name that this skill dispatches.'
 
 codex exec -C "$tmpdir" --sandbox read-only --skip-git-repo-check \
+  'Use the planning-loop skill. Reply with exactly the planner-side next_action value that formally requests reviewer dispatch and nothing else.'
+
+codex exec -C "$tmpdir" --sandbox read-only --skip-git-repo-check \
   'Use the run-initiative skill. Reply with exactly the recovery skill name it calls when runtime state is missing or conflicts with formal docs.'
 
 codex exec -C "$tmpdir" --sandbox read-only --skip-git-repo-check \
   'Use the task-loop skill. Reply with exactly the custom reviewer agent name it dispatches for Task formal review.'
+
+codex exec -C "$tmpdir" --sandbox read-only --skip-git-repo-check \
+  'Use the initiative-loop skill. Reply with exactly the clean Initiative review next_action value that routes the system into the delivered stop state and nothing else.'
 ```
 
 ## Release Interpretation

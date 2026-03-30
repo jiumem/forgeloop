@@ -120,6 +120,47 @@ skills/initiative-loop/SKILL.md:coder
 skills/initiative-loop/SKILL.md:initiative_reviewer
 EOF
 
+while IFS=':' read -r file pattern; do
+  if [ -z "$file" ]; then
+    continue
+  fi
+
+  if ! rg -q "$pattern" "$file"; then
+    echo "planning protocol check failed for ${file}: missing ${pattern}"
+    exit 1
+  fi
+done <<'EOF'
+skills/planning-loop/SKILL.md:request_reviewer_handoff
+skills/planning-loop/SKILL.md:latest `planner_update` in the current round is the current planner intent
+skills/planning-loop/references/planning-rolling-doc.md:request_reviewer_handoff
+skills/planning-loop/references/planning-rolling-doc.md:only the latest appended matching block is actionable
+skills/run-planning/SKILL.md:stay visible as a reopen route
+skills/planning-loop/SKILL.md:planner_slot=planner
+skills/planning-loop/SKILL.md:round=1
+EOF
+
+while IFS=':' read -r file pattern; do
+  if [ -z "$file" ]; then
+    continue
+  fi
+
+  if ! rg -q "$pattern" "$file"; then
+    echo "runtime protocol check failed for ${file}: missing ${pattern}"
+    exit 1
+  fi
+done <<'EOF'
+skills/task-loop/SKILL.md:handoff_id
+skills/task-loop/SKILL.md:continue_task_coder_round
+skills/milestone-loop/SKILL.md:enter_r2
+skills/milestone-loop/SKILL.md:handoff_id
+skills/initiative-loop/SKILL.md:mark_initiative_delivered
+skills/initiative-loop/SKILL.md:initiative_delivered
+skills/rebuild-runtime/SKILL.md:mark_initiative_delivered
+skills/rebuild-runtime/SKILL.md:current object-local `round`
+agents/coder.toml:request_reviewer_handoff
+agents/initiative_reviewer.toml:mark_initiative_delivered
+EOF
+
 if [ ! -f "docs/forgeloop/agents.md" ]; then
   echo "missing agent inventory doc: docs/forgeloop/agents.md"
   exit 1

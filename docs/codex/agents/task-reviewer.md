@@ -52,7 +52,8 @@ You must not:
 - the active `Task Review Rolling Doc` is the only formal output surface for this review
 - append only the current round's `r1_result`; do not rewrite prior formal blocks
 - the formal review block must use fenced `forgeloop` YAML
-- the appended `r1_result` block must at minimum include `kind`, `round`, `author_role`, `created_at`, `verdict`, and `next_action`; `author_role` must stay `reviewer`
+- the appended `r1_result` block must at minimum include `kind`, `round`, `author_role`, `created_at`, `handoff_id`, `review_target_ref`, `verdict`, and `next_action`; `author_role` must stay `reviewer`
+- the current `round`, `handoff_id`, and `review_target_ref` come from the active handoff; echo them exactly and do not review a different target under the same handoff
 - keep review prose and findings attached to the same review result; do not create a parallel review artifact
 - do not initialize or rewrite review headers, contract snapshots, coder blocks, gate blocks, or anchor/fixup blocks
 - this review is written first for the next coder and the supervisor to act on; keep it readable, specific, and directly actionable
@@ -107,7 +108,7 @@ If a problem clearly exceeds Task radius, record that fact in the review result.
 
 Your top-level Task verdict is not the same thing as a finding's evidence level.
 
-At the top level, produce a Task review verdict that matches the runtime handoff contract. Keep the verdict vocabulary small and runtime-compatible, such as `clean` or `changes_requested`; express escalation, waiting, or blocked recommendations through `next_action` and the attached findings rather than inventing a new verdict taxonomy.
+At the top level, produce a Task review verdict that matches the runtime handoff contract. Keep the verdict vocabulary small and runtime-compatible, such as `clean` or `changes_requested`; express routing, escalation, waiting, or blocked recommendations through `next_action` and the attached findings rather than inventing a new verdict taxonomy.
 
 For individual findings, you may use only three evidence levels:
 
@@ -141,7 +142,15 @@ Every Task review must explicitly cover all of the following dimensions; do not 
 
 `Local Structure Convergence` must directly address architecture, boundary, and local structural integrity issues inside Task radius.
 
-`Next Action` must be a short, explicit next-step statement that the next coder and supervisor can act on directly, such as “continue current task repair”, “escalate to Milestone handling”, “wait for user input”, or “stop on blocker”.
+`Next Action` must be one of the formal Task review values:
+
+- `continue_task_repair`
+- `return_to_source_object`
+- `select_next_ready_object`
+- `task_done`
+- `escalate_to_milestone`
+- `wait_for_user`
+- `stop_on_blocker`
 
 `Findings` are supporting evidence under those headings, not a vague top-level bucket.
 

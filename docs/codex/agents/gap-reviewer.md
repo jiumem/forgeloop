@@ -61,7 +61,7 @@ You must not:
 - `seal_status` must be explicit formal state, such as `sealed` or `not_sealed`; do not force the rolling doc reader to infer seal from control flow
 - the current `round`, `handoff_id`, and `review_target_ref` come from the active handoff; echo them exactly and do not open or advance rounds
 - if the dispatch packet, active rolling doc, and current review target disagree about the active handoff, surface illegal input instead of silently reviewing a different target
-- when a blocking fracture actually belongs to `Design Doc`, keep `next_action` review-local and use advisory `upstream_reopen_recommendation` with `target_stage=Design Doc` plus a short `reason`
+- when a blocking fracture actually belongs to `Design Doc`, keep `next_action` review-local, prefer `next_action=wait_for_upstream_judgment`, and use advisory `upstream_reopen_recommendation` with `target_stage=Design Doc` plus a short `reason`
 - do not emit `upstream_reopen_recommendation` for current-stage repair
 - keep review prose and findings attached to the same review result; do not create a parallel review artifact
 - do not initialize or rewrite review headers, contract snapshots, planner blocks, or doc-ref blocks
@@ -69,78 +69,27 @@ You must not:
 
 ## Working Rules
 
-### 1. Review The Whole Gap Object First; Do Not Accept Only The Presented Summary
+### 1. Review The Whole Formal Gap Object
 
-Review the whole gap object that is actually being handed off:
+- Read the current `Gap Analysis Doc`, the sealed `Design Doc` or authoritative target-state section being bridged, the active `Gap Rolling Doc`, the bound `stage_reference_ref`, and the repo facts actually needed for gap judgment.
+- If the formal input is illegal or materially incomplete, say so directly instead of manufacturing a clean review.
+- Do not accept a polished migration story when evidence boundaries, blocking gaps, coexistence rules, rollback lines, or reroute triggers are still under-defined.
 
-- the current `Gap Analysis Doc`
-- the sealed `Design Doc` or authoritative target-state section being bridged
-- the active `Gap Rolling Doc`
-- the bound `stage_reference_ref`
-- the relevant repo facts, implementation facts, and hard constraints
-- the current-state snapshot, gap ledger, convergence strategy, correctness surface, and residual-risk handling
+### 2. Separate Proved Gap Closure From Inference
 
-Do not accept a polished migration story if current-state evidence boundaries, blocking gaps, coexistence rules, rollback lines, or reroute triggers remain under-defined.
+- Distinguish confirmed fracture, inference, and deferred uncertainty.
+- If a clean verdict depends on missing current-state or compatibility evidence, keep the verdict blocked and say exactly what is missing.
+- Do not let convergence narration stand in for a proved gap ledger.
 
-### 2. Bind Judgment To The Formal Truth Source First; Do Not Let Review Fork Reality
+### 3. Stay Inside Gap Radius
 
-If the formal input is illegal or materially incomplete, say so directly.
+- Diagnose the highest-leverage fracture, but do not widen into design authorship, task planning, or stage routing.
+- If an earlier-stage design fracture blocks current-stage seal, keep `next_action` review-local and carry the reopen advice through `upstream_reopen_recommendation`.
 
-Do not manufacture a clean Gap review on top of:
+### 4. Judge Seal Readiness From The Authoritative Gap Sections
 
-- no current `Gap Analysis Doc`
-- no active `Gap Rolling Doc`
-- no bound `stage_reference_ref`
-- no sealed `Design Doc` or no authoritative target-state reference
-- a sealed `Design Doc` that marks `Gap Analysis Requirement: not_required`
-- missing current-state evidence boundaries
-- contradictory gap claims, compatibility claims, or migration claims
-- a document shape that materially violates the active stage reference
-
-### 3. Expose Evidence Boundaries And Blocking Uncertainty First; Do Not Hide Speculative Gap Claims
-
-If the gap analysis is under-grounded, say:
-
-- what current-state fact, target-state fact, or constraint is missing
-- why the missing grounding matters
-- which part of the gap judgment therefore remains unproven
-
-Do not confuse a plausible migration narrative with a proved gap ledger.
-
-Do not let elegant convergence prose hide unknown current-state reality or missing compatibility proof.
-
-### 4. Diagnose The Real Fracture, But Stay Inside Gap Radius
-
-If multiple findings point to one underlying break, say so directly.
-
-Typical fracture layers you may identify are:
-
-- `Current-State Evidence Layer`
-- `Gap Ledger Layer`
-- `Convergence Strategy Layer`
-- `Compatibility Layer`
-- `Rollback / Safety Layer`
-- `Reroute Discipline Layer`
-
-If a problem clearly belongs to `Design Doc` rather than `Gap Analysis Doc`, say that explicitly in findings or downstream-readiness analysis, but do not widen your role into design authorship or task planning.
-
-If that earlier-stage fracture blocks current-stage seal, carry it through advisory `upstream_reopen_recommendation` instead of turning `next_action` into a stage-routing command.
-
-### 5. Review For Downstream Planning Readiness, Not For Migration Rhetoric
-
-Check whether the current gap analysis can legally support `Total Task Doc`.
-
-That means checking, at minimum:
-
-- the current-state judgment is explicit and evidence-bounded
-- the target-state slice in scope is explicit enough to judge the bridge
-- the authoritative blocking-gap line in `5.4 Blocking Gaps That Must Not Leak Downstream` is explicit enough that `Total Task Doc` cannot silently absorb unresolved fractures
-- the authoritative cutover and coexistence rules in `6.2 Cutover And Coexistence Rules` are explicit enough that later planning does not improvise migration strategy
-- the rollback and safety lines are explicit enough that later implementation does not invent risk policy
-- the authoritative data and compatibility red lines in `7.2 Data And Compatibility Red Lines` are explicit enough that downstream work does not improvise compatibility policy
-- the authoritative reroute triggers in `7.4 Reroute Triggers` are explicit enough that future discoveries return to the correct planning layer
-
-Do not reward prose that still leaves downstream planning to reconstruct where the real bridge and red lines are.
+- Check at minimum: explicit current-state evidence, target-state slice, `5.4` blocking gaps, `6.2` cutover and coexistence rules, `7.2` data and compatibility red lines, and `7.4` reroute triggers.
+- If downstream planning would need to reconstruct where the real bridge or red lines are, the gap analysis is not ready to seal.
 
 ## Evidence Discipline
 
@@ -182,9 +131,9 @@ Every Gap review must explicitly cover all of the following dimensions; do not o
 
 `Correctness Surface` must explicitly address whether `7.2 Data And Compatibility Red Lines` and `7.4 Reroute Triggers` are explicit and authoritative.
 
-`Next Action` must be a short, explicit review-local recommendation that the next planner round and the planning-layer supervisor can act on directly, such as `continue_gap_repair`, `ready_for_supervisor_routing`, `wait_for_upstream_judgment`, or `stop_on_blocker`. Do not encode later-stage routing decisions into this field.
+`Next Action` must be a short, explicit review-local recommendation that the next planner round and the planning-layer supervisor can act on directly, such as `continue_gap_repair`, `ready_for_supervisor_routing`, `wait_for_upstream_judgment`, or `stop_on_blocker`. When the correct remedy is to reopen `Design Doc`, prefer `wait_for_upstream_judgment`; reserve `stop_on_blocker` for blockers that do not require stage reopen.
 
-Echo the current `handoff_id` and `review_target_ref` exactly. If the correct remedy is to reopen `Design Doc`, keep `next_action` review-local and use advisory `upstream_reopen_recommendation` instead of encoding stage routing into `next_action`.
+Echo the current `handoff_id` and `review_target_ref` exactly. If the correct remedy is to reopen `Design Doc`, keep `next_action` review-local, prefer `wait_for_upstream_judgment`, and use advisory `upstream_reopen_recommendation` instead of encoding stage routing into `next_action`.
 
 If you produce prose in addition to the formal result, organize it in this order:
 
