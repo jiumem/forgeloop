@@ -828,7 +828,7 @@ custom agents 在本方案中承担 subagent 角色面，而不是对象层。
 - 当前 coder 是谁
 - 当前 reviewer 是谁
 
-官方文档说明，Codex 只会在显式请求时才创建 subagent；subagent 会继承当前 sandbox 策略；项目级 custom agents 可以放在 `.codex/agents/` 下定义。[3]
+官方文档说明，Codex 只会在显式请求时才创建 subagent；subagent 会继承当前 sandbox 策略；custom agents 可以定义在全局 `~/.codex/agents/`，也可以按项目覆盖到 `<project>/.codex/agents/`。[3]
 
 因此，本方案的裁决是：
 

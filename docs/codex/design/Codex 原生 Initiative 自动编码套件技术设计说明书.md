@@ -59,7 +59,7 @@ repo 内的运行文档是协作真理源；本地如需生成 JSON 视图、解
 coder 是 Initiative 执行期内持续持有实现 ownership 的单一角色；reviewer 在每次 `R1 / R2 / R3` 时都 fresh 派生。
 
 第六，**subagent 的系统提示词应单列为独立文档资产。**  
-本文档只定义它们放在哪里、如何装配进 `.codex/agents/`、如何与 skills / scripts 接线，不直接承载提示词正文。
+本文档只定义它们放在哪里、如何装配进 Codex agent 存储、如何与 skills / scripts 接线，不直接承载提示词正文。
 
 第七，**运行态必须可从文档与工程真理源重建。**  
 任何本地派生视图或缓存丢失后，系统仍应能从 Initiative 总任务文档、repo 内运行文档、Git/PR 事实与结构化 commit 恢复主状态。
@@ -252,20 +252,32 @@ docs/
 
 ### 4.2 runtime manifest 与装配路径
 
-subagent 在实际 Codex 运行时的 manifest 仍应落在：
+subagent 的**可执行 manifest 真理源**固定为：
 
 ```text
-.codex/agents/
+plugins/forgeloop/agents/
+```
+
+实际 Codex 运行时，默认应 materialize 到全局 Codex agent 存储：
+
+```text
+~/.codex/agents/
+```
+
+如需项目级覆盖，可改为 materialize 到：
+
+```text
+<project>/.codex/agents/
 ```
 
 推荐装配关系如下：
 
-- `docs/codex/agents/coder.md` -> `.codex/agents/coder.toml`
-- `docs/codex/agents/task-reviewer.md` -> `.codex/agents/task_reviewer.toml`
-- `docs/codex/agents/milestone-reviewer.md` -> `.codex/agents/milestone_reviewer.toml`
-- `docs/codex/agents/initiative-reviewer.md` -> `.codex/agents/initiative_reviewer.toml`
+- `plugins/forgeloop/agents/coder.toml` -> `~/.codex/agents/coder.toml`
+- `plugins/forgeloop/agents/task_reviewer.toml` -> `~/.codex/agents/task_reviewer.toml`
+- `plugins/forgeloop/agents/milestone_reviewer.toml` -> `~/.codex/agents/milestone_reviewer.toml`
+- `plugins/forgeloop/agents/initiative_reviewer.toml` -> `~/.codex/agents/initiative_reviewer.toml`
 
-提示词正文真理源只认 `docs/codex/agents/*.md`，本文档不再为任何中间 prompt 装配产物规定固定路径。
+`docs/codex/agents/*.md` 只保留 reference mirror 法位；可执行提示词正文只认 `plugins/forgeloop/agents/*.toml`。
 
 ### 4.3 命名规则
 
@@ -701,35 +713,47 @@ v1 的优先实现方式应是：
 
 ### 6.2 系统提示词源文档位置
 
-subagent 系统提示词正文的真理源位置固定为：
+subagent 系统提示词的**可执行真理源**固定为：
+
+```text
+plugins/forgeloop/agents/
+```
+
+设计追踪与阅读导航可保留在：
 
 ```text
 docs/codex/agents/
 ```
 
-推荐最小集合如下：
+推荐最小执行集合如下：
 
-- `README.md`
-- `coder.md`
-- `task-reviewer.md`
-- `milestone-reviewer.md`
-- `initiative-reviewer.md`
+- `planner.toml`
+- `coder.toml`
+- `task_reviewer.toml`
+- `milestone_reviewer.toml`
+- `initiative_reviewer.toml`
 
-这些文档负责定义：
+这些 manifest 负责定义：
 
 - 角色职责
 - 输出纪律
 - 允许读取的文档面
 - 禁止越权的边界
 
-它们不在本文档里展开正文。
+`docs/codex/agents/*.md` 如保留，只承担 reference mirror 职责。
 
 ### 6.3 runtime manifest 位置
 
-真正供 Codex runtime 识别的 custom agent manifest 位置固定为：
+真正供 Codex runtime 识别的 custom agent manifest 位置固定为 Codex agent 存储：
 
 ```text
-.codex/agents/
+~/.codex/agents/
+```
+
+如需项目级覆盖，则使用：
+
+```text
+<project>/.codex/agents/
 ```
 
 manifest 至少负责表达：
@@ -740,8 +764,9 @@ manifest 至少负责表达：
 - `reasoning_effort`
 - `developer_instructions` 或其引用方式
 
-如果需要把 `docs/codex/agents/*.md` 编译或同步进 runtime 层，应由专门脚本完成。
-本文档不允许人工维护两套独立 prompt 文本。
+这些 manifest 应从 `plugins/forgeloop/agents/*.toml` materialize 进入目标项目。
+如果需要维护 `docs/codex/agents/*.md` reference mirror，应由专门脚本或明确治理流程同步。
+本文档不允许人工维护两套独立 prompt 真源。
 
 ### 6.4 skills 与 scripts 的边界
 
@@ -1011,8 +1036,10 @@ Git 帮助动作只承接确定性工程操作：
 
 本文档封板后，下游文档应按以下方式承接：
 
-- `docs/codex/agents/*.md` 负责写具体系统提示词
-- `.codex/agents/*.toml` 负责写 runtime manifest
+- `plugins/forgeloop/agents/*.toml` 负责写可执行系统提示词与 manifest
+- `~/.codex/agents/*.toml` 负责承接默认全局 runtime 副本
+- `<project>/.codex/agents/*.toml` 在需要时承接项目级覆盖副本
+- `docs/codex/agents/*.md` 如保留，只负责 reference mirror 与设计追踪
 - skill 设计与构建规范负责定义 skills 如何调用这些角色
 - 专项实施作战计划书负责把本技术设计拆成具体 PR 序列
 
@@ -1029,7 +1056,7 @@ Git 帮助动作只承接确定性工程操作：
 `docs/codex/runtime/<initiative_key>/` 承担正式协作真理源；本地派生缓存如需存在，也不再占据固定正式路径。
 
 第四，subagent 的落位已经明确：  
-`Supervisor` 在主线程，`coder` 是持续单一角色，`reviewer` 在每次 `R1 / R2 / R3` 时 fresh 派生，提示词正文单列到 `docs/codex/agents/`。
+`Supervisor` 在主线程，`coder` 是持续单一角色，`reviewer` 在每次 `R1 / R2 / R3` 时 fresh 派生；可执行提示词真理源固定在 `plugins/forgeloop/agents/`，默认运行时 materialize 到 `~/.codex/agents/`，需要时再落项目级覆盖。
 
 第五，formal Gate / Review 的存在方式已经收敛：  
 不再单独造文件，而是作为 typed machine block 追加在对应 rolling doc 中。

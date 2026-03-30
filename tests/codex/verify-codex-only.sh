@@ -16,20 +16,20 @@ expected_agents=(
   initiative_reviewer
 )
 
+expected_skills=(
+  run-planning
+  planning-loop
+  run-initiative
+  rebuild-runtime
+  task-loop
+  milestone-loop
+  initiative-loop
+  using-git-worktrees
+)
+
 unexpected_paths=(
-  skills/brainstorming
-  skills/dispatching-parallel-agents
-  skills/finishing-a-development-branch
-  skills/flat-tasks-loop
-  skills/receiving-code-review
-  skills/requesting-code-review
-  skills/systematic-debugging
-  skills/test-driven-development
-  skills/using-forgeloop
-  skills/verification-before-completion
-  skills/writing-plans
-  agents/design_challenger.toml
-  agents/code_reviewer.toml
+  skills
+  agents
   tests/brainstorm-server
 )
 
@@ -40,6 +40,7 @@ for path in \
   .opencode \
   hooks \
   commands \
+  scripts/install.sh \
   scripts/install.ps1 \
   tests/claude-code \
   tests/opencode \
@@ -57,11 +58,6 @@ do
   fi
 done
 
-if [ ! -f "scripts/install.sh" ]; then
-  echo "missing install script: scripts/install.sh"
-  exit 1
-fi
-
 for path in "${unexpected_paths[@]}"; do
   if [ -e "$path" ]; then
     echo "unexpected legacy path remains: $path"
@@ -70,10 +66,10 @@ for path in "${unexpected_paths[@]}"; do
 done
 
 for agent in "${expected_agents[@]}"; do
-  agent_path="agents/${agent}.toml"
+  agent_path="plugins/forgeloop/agents/${agent}.toml"
 
   if [ ! -f "$agent_path" ]; then
-    echo "missing custom agent: $agent_path"
+    echo "missing packaged custom agent: $agent_path"
     exit 1
   fi
 
@@ -88,7 +84,7 @@ for agent in "${expected_agents[@]}"; do
   fi
 done
 
-for agent_path in agents/*.toml; do
+for agent_path in plugins/forgeloop/agents/*.toml; do
   agent_name="$(basename "$agent_path" .toml)"
 
   if [[ ! " ${expected_agents[*]} " =~ " ${agent_name} " ]]; then
@@ -96,6 +92,49 @@ for agent_path in agents/*.toml; do
     exit 1
   fi
 done
+
+for skill in "${expected_skills[@]}"; do
+  skill_path="plugins/forgeloop/skills/${skill}"
+
+  if [ ! -d "$skill_path" ]; then
+    echo "missing packaged skill directory: $skill_path"
+    exit 1
+  fi
+done
+
+python3 - <<'PY'
+import json
+from pathlib import Path
+
+plugin_manifest = Path("plugins/forgeloop/.codex-plugin/plugin.json")
+marketplace_manifest = Path(".agents/plugins/marketplace.json")
+
+if not plugin_manifest.is_file():
+    raise SystemExit(f"missing plugin manifest: {plugin_manifest}")
+
+if not marketplace_manifest.is_file():
+    raise SystemExit(f"missing marketplace manifest: {marketplace_manifest}")
+
+plugin = json.loads(plugin_manifest.read_text())
+marketplace = json.loads(marketplace_manifest.read_text())
+
+assert plugin["name"] == "forgeloop", plugin["name"]
+assert plugin["skills"] == "./skills/", plugin["skills"]
+assert marketplace["name"] == "forgeloop-local", marketplace["name"]
+
+entries = marketplace.get("plugins", [])
+assert isinstance(entries, list) and entries, "marketplace plugins missing"
+entry = next((item for item in entries if item.get("name") == "forgeloop"), None)
+assert entry is not None, "forgeloop marketplace entry missing"
+assert entry["source"]["path"] == "./plugins/forgeloop", entry["source"]["path"]
+assert entry["policy"]["installation"] == "AVAILABLE", entry["policy"]["installation"]
+assert entry["policy"]["authentication"] == "ON_INSTALL", entry["policy"]["authentication"]
+PY
+
+if [ ! -f "plugins/forgeloop/scripts/materialize-agents.sh" ]; then
+  echo "missing plugin materialization script"
+  exit 1
+fi
 
 while IFS=':' read -r file agent; do
   if [ -z "$file" ]; then
@@ -107,17 +146,58 @@ while IFS=':' read -r file agent; do
     exit 1
   fi
 done <<'EOF'
-skills/run-planning/SKILL.md:planning-loop
-skills/planning-loop/SKILL.md:planner
-skills/planning-loop/SKILL.md:design_reviewer
-skills/planning-loop/SKILL.md:gap_reviewer
-skills/planning-loop/SKILL.md:plan_reviewer
-skills/task-loop/SKILL.md:coder
-skills/task-loop/SKILL.md:task_reviewer
-skills/milestone-loop/SKILL.md:coder
-skills/milestone-loop/SKILL.md:milestone_reviewer
-skills/initiative-loop/SKILL.md:coder
-skills/initiative-loop/SKILL.md:initiative_reviewer
+plugins/forgeloop/skills/run-planning/SKILL.md:planning-loop
+plugins/forgeloop/skills/planning-loop/SKILL.md:planner
+plugins/forgeloop/skills/planning-loop/SKILL.md:design_reviewer
+plugins/forgeloop/skills/planning-loop/SKILL.md:gap_reviewer
+plugins/forgeloop/skills/planning-loop/SKILL.md:plan_reviewer
+plugins/forgeloop/skills/task-loop/SKILL.md:coder
+plugins/forgeloop/skills/task-loop/SKILL.md:task_reviewer
+plugins/forgeloop/skills/milestone-loop/SKILL.md:coder
+plugins/forgeloop/skills/milestone-loop/SKILL.md:milestone_reviewer
+plugins/forgeloop/skills/initiative-loop/SKILL.md:coder
+plugins/forgeloop/skills/initiative-loop/SKILL.md:initiative_reviewer
+EOF
+
+while IFS=':' read -r file pattern; do
+  if [ -z "$file" ]; then
+    continue
+  fi
+
+  if ! rg -q "$pattern" "$file"; then
+    echo "planning protocol check failed for ${file}: missing ${pattern}"
+    exit 1
+  fi
+done <<'EOF'
+plugins/forgeloop/skills/planning-loop/SKILL.md:request_reviewer_handoff
+plugins/forgeloop/skills/planning-loop/SKILL.md:latest `planner_update` in the current round is the current planner intent
+plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md:request_reviewer_handoff
+plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md:only the latest appended matching block is actionable
+plugins/forgeloop/skills/run-planning/SKILL.md:stay visible as a reopen route
+plugins/forgeloop/skills/planning-loop/SKILL.md:planner_slot=planner
+plugins/forgeloop/skills/planning-loop/SKILL.md:round=1
+EOF
+
+while IFS=':' read -r file pattern; do
+  if [ -z "$file" ]; then
+    continue
+  fi
+
+  if ! rg -q "$pattern" "$file"; then
+    echo "runtime protocol check failed for ${file}: missing ${pattern}"
+    exit 1
+  fi
+done <<'EOF'
+plugins/forgeloop/skills/task-loop/SKILL.md:handoff_id
+plugins/forgeloop/skills/task-loop/SKILL.md:continue_task_coder_round
+plugins/forgeloop/skills/milestone-loop/SKILL.md:enter_r2
+plugins/forgeloop/skills/milestone-loop/SKILL.md:handoff_id
+plugins/forgeloop/skills/initiative-loop/SKILL.md:mark_initiative_delivered
+plugins/forgeloop/skills/initiative-loop/SKILL.md:initiative_delivered
+plugins/forgeloop/skills/rebuild-runtime/SKILL.md:mark_initiative_delivered
+plugins/forgeloop/skills/rebuild-runtime/SKILL.md:current object-local `round`
+plugins/forgeloop/agents/coder.toml:request_reviewer_handoff
+plugins/forgeloop/agents/initiative_reviewer.toml:mark_initiative_delivered
 EOF
 
 if [ ! -f "docs/forgeloop/agents.md" ]; then
@@ -138,10 +218,10 @@ if rg -n \
   -g 'docs/forgeloop/install.md' \
   -g 'docs/forgeloop/testing.md' \
   -g 'docs/forgeloop/agents.md' \
-  -g 'docs/forgeloop/e2e-codex.md' \
-  -g 'agents/*.toml' \
-  -g 'scripts/install.sh' \
-  -g 'skills/**/*.md' \
+  -g 'plugins/forgeloop/.codex-plugin/plugin.json' \
+  -g 'plugins/forgeloop/agents/*.toml' \
+  -g 'plugins/forgeloop/scripts/materialize-agents.sh' \
+  -g 'plugins/forgeloop/skills/**/*.md' \
   -g '.github/**/*.md' \
   -g '!tests/codex/verify-codex-only.sh' \
   'Claude Code|OpenCode|Gemini CLI|Cursor|Skill tool|Task tool|TodoWrite|CLAUDE\.md|GEMINI\.md|~/.agents/skills' \
@@ -154,9 +234,8 @@ fi
 
 if rg -n \
   -g 'docs/forgeloop/*.md' \
-  -g 'agents/*.toml' \
-  -g 'scripts/install.sh' \
-  -g 'skills/**/*.md' \
+  -g 'plugins/forgeloop/agents/*.toml' \
+  -g 'plugins/forgeloop/skills/**/*.md' \
   -g '.github/**/*.md' \
   -g '!docs/forgeloop/agents.md' \
   'Superpowers|superpowers' \

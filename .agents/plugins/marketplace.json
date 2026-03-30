@@ -1,0 +1,20 @@
+{
+  "name": "forgeloop-local",
+  "interface": {
+    "displayName": "Forgeloop Local"
+  },
+  "plugins": [
+    {
+      "name": "forgeloop",
+      "source": {
+        "source": "local",
+        "path": "./plugins/forgeloop"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

@@ -1,58 +1,83 @@
 # Forgeloop for Codex
 
-Forgeloop is distributed here as a Codex-only skill pack. There are no plugin manifests, marketplace hooks, or secondary platform adapters left in this repository.
-
-`0.3.0` does not require a Python package install step. Clone the repository, install the skills link, and then materialize the suite's agent manifests into each target Codex project.
+Forgeloop `0.3.0` installs through a repo-local Codex plugin package at `plugins/forgeloop/`. It remains a Codex-native workflow layer rather than a Python package.
 
 ## Install
 
+Use this path when you are working inside this repository in the Codex app.
+
+1. Clone or update the repository.
+2. Restart Codex so it reloads the repo marketplace at `.agents/plugins/marketplace.json`.
+3. Open the Plugins directory in Codex.
+4. Choose the repo marketplace `Forgeloop Local`.
+5. Install the `Forgeloop` plugin.
+6. Materialize the custom agent manifests into Codex global agent storage:
+
 ```bash
-git clone https://github.com/jiumem/forgeloop.git ~/.codex/forgeloop
-bash ~/.codex/forgeloop/scripts/install.sh --yes --source ~/.codex/forgeloop
-bash ~/.codex/forgeloop/scripts/install.sh --yes --source ~/.codex/forgeloop --project-dir /path/to/project
+bash plugins/forgeloop/scripts/materialize-agents.sh
 ```
 
-If you're already inside a checkout of this repository, `bash scripts/install.sh --yes` is enough.
+7. If a specific project should use a project-local override instead, materialize into that project explicitly:
 
-## How Discovery Works
-
-Codex loads skills from `~/.codex/skills/`. This repository exposes its bundled skills through:
-
-```text
-~/.codex/skills/forgeloop -> ~/.codex/forgeloop/skills
+```bash
+bash plugins/forgeloop/scripts/materialize-agents.sh --project-dir /path/to/project
 ```
 
-That keeps the working copy updateable with `git pull` while making the skills visible to Codex.
+## What the plugin installs
 
-## Custom Agents
+- The plugin exposes the distributable skill mirror under `plugins/forgeloop/skills/`.
+- The plugin marketplace entry lives at `.agents/plugins/marketplace.json`.
+- The plugin keeps a distributable copy of the custom agent manifests under `plugins/forgeloop/agents/`.
 
-This repository keeps its custom agent source manifests in `agents/`.
+## What still needs a manual step
 
-- Skills are installed globally through `~/.codex/skills/forgeloop`
-- The installer writes the runtime manifests into `<project>/.codex/agents/`
-- Re-run the installer for each project where you want the Forgeloop agent layer available
+Codex plugins currently cover the installable workflow bundle, but Forgeloop still relies on custom agent manifests. Installing the plugin does not by itself populate either global Codex agent storage or a project-local `.codex/agents/`, so you must run `materialize-agents.sh` once after install.
 
 ## Updating
 
+1. Pull the latest repository changes.
+2. Restart Codex so it reloads the repo marketplace and plugin files.
+3. Re-run the global agent materialization step:
+
 ```bash
-cd ~/.codex/forgeloop && git pull
-bash ~/.codex/forgeloop/scripts/install.sh --yes --source ~/.codex/forgeloop
-bash ~/.codex/forgeloop/scripts/install.sh --yes --source ~/.codex/forgeloop --project-dir /path/to/project
+bash plugins/forgeloop/scripts/materialize-agents.sh
+```
+
+4. If you use project-local overrides, re-run the project-scoped form for each affected project:
+
+```bash
+bash plugins/forgeloop/scripts/materialize-agents.sh --project-dir /path/to/project
 ```
 
 ## Uninstalling
 
+1. Uninstall `Forgeloop` from the Codex Plugins directory.
+2. Remove the global agent manifests if you no longer want the role layer:
+
 ```bash
-rm ~/.codex/skills/forgeloop
-rm -rf ~/.codex/forgeloop
+rm -f "${CODEX_HOME:-$HOME/.codex}/agents/"{planner,design_reviewer,gap_reviewer,plan_reviewer,coder,task_reviewer,milestone_reviewer,initiative_reviewer}.toml
+```
+
+3. If you also created project-local overrides, remove those copies too:
+
+```bash
+rm -f /path/to/project/.codex/agents/{planner,design_reviewer,gap_reviewer,plan_reviewer,coder,task_reviewer,milestone_reviewer,initiative_reviewer}.toml
 ```
 
 ## Troubleshooting
 
-If the skills do not show up:
+If the plugin does not show up:
 
-1. Check the symlink: `ls -la ~/.codex/skills/forgeloop`
-2. Run the installer in doctor mode: `bash ~/.codex/forgeloop/scripts/install.sh --doctor --source ~/.codex/forgeloop`
-3. Check skill files exist: `find ~/.codex/skills/forgeloop -maxdepth 2 -name SKILL.md`
-4. Check project agents exist: `find /path/to/project/.codex/agents -maxdepth 1 -name '*.toml'`
-5. Restart Codex
+1. Check the repo marketplace exists: `cat .agents/plugins/marketplace.json`
+2. Check the plugin manifest exists: `cat plugins/forgeloop/.codex-plugin/plugin.json`
+3. Restart Codex after pulling the latest repository state
+
+If the custom agents do not show up globally:
+
+1. Re-run `bash plugins/forgeloop/scripts/materialize-agents.sh`
+2. Check global agents exist: `find "${CODEX_HOME:-$HOME/.codex}/agents" -maxdepth 1 -name '*.toml'`
+
+If the custom agents do not show up in a project-local override:
+
+1. Re-run `bash plugins/forgeloop/scripts/materialize-agents.sh --project-dir /path/to/project`
+2. Check project agents exist: `find /path/to/project/.codex/agents -maxdepth 1 -name '*.toml'`
