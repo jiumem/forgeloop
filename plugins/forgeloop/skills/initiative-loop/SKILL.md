@@ -16,6 +16,11 @@ You are not responsible for writing code, writing `r3_result`, directly repairin
 - `g3_result.next_action` must be one of: `continue_initiative_repair`, `objectize_task_repair`, `enter_r3`, `wait_for_user`, `stop_on_blocker`
 - `r3_result.next_action` must be one of: `continue_initiative_repair`, `objectize_task_repair`, `mark_initiative_delivered`, `wait_for_user`, `stop_on_blocker`
 
+## Canonical Runtime Contract Refs
+
+- shared `Global State Doc` contract -> `../run-initiative/references/global-state.md`
+- `Initiative Review Rolling Doc` contract -> `../run-initiative/references/initiative-review-rolling-doc.md`
+
 ## Truth Sources And Hard Boundaries
 
 The formal input surface contains only the Initiative static truth trio `design_ref`, `gap_analysis_ref`, and `total_task_doc_ref` (`gap_analysis_ref` may be `N/A` for some Initiative types), the `Global State Doc`, the current `Initiative Review Rolling Doc`, the Milestone review docs / supporting evidence included in the current Initiative delivery candidate, and the necessary release / rollout / deployment / flag / readiness / test facts.
@@ -27,12 +32,13 @@ Hard boundaries:
 - the current Initiative round closes only when `r3_result` is written; if the coder still needs repair inside the current Initiative during `G3`, it stays in the same round
 - a new round opens only on first entry into the Initiative, after `r3_result.next_action=continue_initiative_repair`, or when callback semantics from an objectized repair task explicitly say the Initiative should enter the next round
 - the `Initiative Review Rolling Doc` is the only formal document for `G3 / R3`; the `Global State Doc` may contain only `current_snapshot`, `next_action`, and `last_transition`
+- when reading, writing, initializing, or repairing runtime state, the `Global State Doc` and the `Initiative Review Rolling Doc` must follow the canonical contract refs above; do not improvise block shape or `next_action` spelling from memory or older design examples
 - if `next_action` changes the active object or active plane, `current_snapshot` must be updated at the same time; only when still advancing within the same Initiative may you update only `next_action` and `last_transition`
 - if `G3` or `R3` finds a code problem, the default is `continue_initiative_repair` with the same `coder_slot` in the same Initiative and rerun `G3`; only when the repair needs an independent Task contract, a clearly new object boundary, or obviously exceeds the current Initiative closure radius should it be objectized into a repair task through the `Global State Doc` and fall back to `task-loop`
 - if a repair task has already been objectized, after the repair completes it must return to the same `Initiative Review Rolling Doc` to append the next round
 - the current Initiative review handoff is the latest `g3_result` in the current round whose `next_action=enter_r3`
 - each Initiative handoff block must carry `handoff_id` and `review_target_ref`; `r3_result` is actionable only when its `round`, `handoff_id`, and `review_target_ref` match that current handoff exactly, and if multiple `r3_result` blocks match one current handoff, only the latest matching block is actionable
-- if the rolling doc does not exist, initialize the header, including object identity and `coder_slot`, plus `initiative_contract_snapshot`; after initialization, the rolling doc becomes the only collaboration surface, and on first entry write `coder_slot=coder` and `round=1` into the header and `current_snapshot`
+- if the rolling doc does not exist, initialize the header, including object identity and `coder_slot`, plus `initiative_contract_snapshot`, according to the canonical `Initiative Review Rolling Doc` contract; after initialization, the rolling doc becomes the only collaboration surface, and on first entry write `coder_slot=coder` and `round=1` into the header and `current_snapshot` according to the canonical `Global State Doc` contract
 
 ## Workflow
 
@@ -42,7 +48,7 @@ Hard boundaries:
 - Confirm that the Initiative has entered the delivery-review window: required Milestones are already clean, and there is no higher-priority blocker
 - If the `Global State Doc` conflicts with the rolling doc, hand control back to `rebuild-runtime`
 - If the current Initiative cannot be confirmed uniquely, the contract is missing, the delivery-review window has not opened, or the facts show the system should wait for the user, stop
-- If the rolling doc does not exist, initialize only the header, including object identity and `coder_slot`, plus `initiative_contract_snapshot`
+- If the rolling doc does not exist, initialize only the header, including object identity and `coder_slot`, plus `initiative_contract_snapshot`, according to the canonical `Initiative Review Rolling Doc` contract
 
 2. Update the minimum control plane
 - `current_snapshot` points to the current active initiative, `coder_slot`, and the current Initiative-local `round`

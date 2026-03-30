@@ -2,7 +2,7 @@
 
 Run all checks from the repository root.
 
-For `0.4.0`, the release gate is the Codex workflow checks below. There is no Python package build, lint, or typecheck gate for this version.
+For `0.5.0`, the release gate is the Codex workflow checks below. There is no Python package build, lint, or typecheck gate for this version.
 
 ## 1. Plugin package smoke test
 

@@ -15,9 +15,21 @@ Git worktrees create isolated workspaces sharing the same repository, allowing w
 
 **Naming principle:** Worktree names follow Initiative identity; branch names follow the current main closure boundary.
 
-**Announce at start:** "I'm using the using-git-worktrees skill to set up an isolated workspace."
+**Announce at start:** "I'm using the using-git-worktrees skill to bind or prepare an isolated workspace."
 
-**Reuse rule:** This skill decides whether to reuse the current workspace or create a new worktree. Callers should not invent their own definition of a "safe isolated workspace."
+**Reuse rule:** This skill decides whether to reuse the current workspace or create a new worktree. Callers should not invent their own definition of a correctly bound or execution-ready Initiative workspace.
+
+## Execution Modes
+
+This skill supports two caller intents:
+
+- `bind_only`: bind the active Initiative workspace and target branch so the caller may materialize workspace-local refs and inspect or recover runtime state. In this mode, do naming, location selection, ignore verification, reuse or worktree creation, and safe branch selection as needed, but do not run repo setup or baseline verification.
+- `execution_ready`: first satisfy `bind_only`, then run repo-obvious setup and baseline verification before returning ready for execution.
+
+If the caller explicitly names one of these modes, follow it. If the caller does not name a mode:
+
+- default to `bind_only` when the caller only needs workspace identity for routing, recovery, or runtime-doc reads
+- default to `execution_ready` when the caller is about to enter coder or reviewer execution work
 
 ## Naming Contract
 
@@ -42,13 +54,13 @@ If the target branch already exists but is not attached to another worktree:
 
 Before reusing the current workspace, first honor any explicit user location override.
 
-If the user explicitly names a worktree location, that location wins. Do not reuse the current workspace instead just because it was prepared earlier in the workflow.
+If the user explicitly names a worktree location, that location wins. Do not reuse the current workspace instead just because it was already bound or prepared earlier in the workflow.
 
-Only when there is no explicit user location override should you decide whether the current workspace is already a prepared implementation environment.
+Only when there is no explicit user location override should you decide whether the current workspace is already the intended Initiative workspace for the requested mode.
 
 You may reuse the current workspace only when one of these is true:
-- It was already prepared earlier in this same workflow by `forgeloop:using-git-worktrees`
-- The user explicitly says the current workspace is the prepared environment to continue using
+- It was already bound or prepared earlier in this same workflow by `forgeloop:using-git-worktrees`
+- The user explicitly says the current workspace is the intended Initiative workspace to continue using
 
 If neither condition is true, create a new worktree by following this skill.
 
@@ -58,7 +70,8 @@ If you reuse the current workspace:
 - If the current branch already matches the intended `BRANCH_NAME`, continue
 - If the current branch does not match but the workspace is clean enough to switch, switch or create the intended `BRANCH_NAME` in this same Initiative worktree
 - If the workspace is not clean enough to switch branches safely, stop and surface the conflict
-- Verify the project setup and clean baseline for the current workspace before returning ready
+- In `bind_only`, stop here once workspace and branch binding are correct
+- In `execution_ready`, verify the project setup and clean baseline for the current workspace before returning ready
 - Report that the current Initiative worktree was reused instead of creating a new worktree
 
 Do not let callers or local guesswork bypass this rule.
@@ -152,7 +165,9 @@ If the reuse rule above is satisfied, stay in the current workspace and skip wor
 - If the current branch does not match but the workspace is clean enough to switch, switch or create the intended `BRANCH_NAME` in this same Initiative worktree.
 - If the workspace is not clean enough to switch safely, stop and surface the conflict.
 
-Then continue with project setup and baseline verification in the current workspace.
+In `bind_only`, return once workspace and branch binding are confirmed.
+
+In `execution_ready`, continue with project setup and baseline verification in the current workspace.
 
 ### 1.6. Decide Branch Name
 
@@ -198,7 +213,9 @@ else
 fi
 ```
 
-### 3. Run Project Setup
+### 3. Run Project Setup (`execution_ready` only)
+
+If the current mode is `bind_only`, skip this step.
 
 Do not guess generic dependency installers.
 
@@ -222,7 +239,9 @@ if [ -f Cargo.toml ]; then cargo check; fi
 
 If no setup command can be identified without guessing, stop and surface the gap instead of defaulting to `npm install`, `pip install -r requirements.txt`, `poetry install`, or similar generic installers.
 
-### 4. Verify Clean Baseline
+### 4. Verify Clean Baseline (`execution_ready` only)
+
+If the current mode is `bind_only`, skip this step.
 
 Run the smallest repo-appropriate baseline verification after setup. Prefer commands already documented by the repo or already implied by the current project toolchain.
 
@@ -242,6 +261,16 @@ If no baseline command can be uniquely determined, stop and surface the gap inst
 
 ### 5. Report Location
 
+In `bind_only`, report the bound workspace and branch without claiming execution readiness:
+
+```
+Workspace bound at <full-path>
+Branch bound as <branch-name>
+Ready for runtime-state reads or later execution preparation
+```
+
+In `execution_ready`, report readiness:
+
 ```
 Worktree ready at <full-path>
 Tests passing (<N> tests, 0 failures)
@@ -259,6 +288,8 @@ Ready to implement <feature-name>
 | No explicit worktree provided | Derive `WORKTREE_NAME = codex/<initiative-key>` |
 | Branch already exists and is checked out elsewhere | Stop and surface conflict |
 | Branch already exists but is free | Reuse that branch |
+| Caller needs only runtime-state reads or recovery | Use `bind_only` |
+| Caller is about to enter execution loop | Use `execution_ready` |
 | Reusing current Initiative worktree on the wrong branch | Switch only if clean enough; otherwise stop |
 | AGENTS.md specifies location | Use it |
 | `.worktrees/` exists | Use it (verify ignored) |
@@ -312,7 +343,7 @@ Ready to implement <feature-name>
 ## Example Workflow
 
 ```
-You: I'm using the using-git-worktrees skill to set up an isolated workspace.
+You: I'm using the using-git-worktrees skill to bind or prepare an isolated workspace.
 
 [Check .worktrees/ - exists]
 [Verify ignored - git check-ignore confirms .worktrees/ is ignored]
@@ -333,7 +364,7 @@ Ready to implement milestone MS-001 for Initiative INIT-001
 **Never:**
 - Create worktree without verifying it's ignored (project-local)
 - Edit `.gitignore` or create a commit from this skill
-- Skip baseline test verification
+- Skip baseline test verification in `execution_ready`
 - Proceed with failing tests without asking
 - Assume directory location when ambiguous
 - Override an explicit user location request with reuse logic
@@ -344,6 +375,8 @@ Ready to implement milestone MS-001 for Initiative INIT-001
 **Always:**
 - Honor explicit user location overrides before reuse checks
 - Decide the branch name before `git worktree add`
+- Use `bind_only` when the caller only needs workspace identity for runtime-state reads or recovery
+- Use `execution_ready` before entering coder or reviewer execution work
 - Reuse the current Initiative worktree when possible, even if the branch needs to be switched, but only when the workspace is clean enough
 - Reuse the current Initiative worktree when possible instead of creating a second worktree for the same Initiative
 - Follow directory priority: user override > AGENTS.md > existing dirs > default global root
@@ -354,7 +387,7 @@ Ready to implement milestone MS-001 for Initiative INIT-001
 ## Integration
 
 **Called by:**
-- **run-initiative** - REQUIRED before entering `task-loop`, `milestone-loop`, or `initiative-loop` when execution needs an isolated workspace
+- **run-initiative** - use `bind_only` before reading workspace-local runtime docs, and upgrade to `execution_ready` only before entering `task-loop`, `milestone-loop`, or `initiative-loop`
 - Any execution-side skill needing isolated workspace
 
 **Pairs with:**

@@ -16,6 +16,11 @@ You are not responsible for writing code, writing `r2_result`, directly repairin
 - `g2_result.next_action` must be one of: `continue_milestone_repair`, `objectize_task_repair`, `enter_r2`, `wait_for_user`, `stop_on_blocker`
 - `r2_result.next_action` must be one of: `continue_milestone_repair`, `objectize_task_repair`, `enter_initiative_review`, `select_next_ready_object`, `wait_for_user`, `stop_on_blocker`
 
+## Canonical Runtime Contract Refs
+
+- shared `Global State Doc` contract -> `../run-initiative/references/global-state.md`
+- `Milestone Review Rolling Doc` contract -> `../run-initiative/references/milestone-review-rolling-doc.md`
+
 ## Truth Sources And Hard Boundaries
 
 The formal input surface contains only the Initiative static truth trio `design_ref`, `gap_analysis_ref`, and `total_task_doc_ref` (`gap_analysis_ref` may be `N/A` for some Initiative types), the `Global State Doc`, the current `Milestone Review Rolling Doc`, the Task anchors / Task review docs included in the current Milestone review, and the necessary Git / PR / merge-base / test facts.
@@ -27,12 +32,13 @@ Hard boundaries:
 - the current Milestone round closes only when `r2_result` is written; if the coder still needs repair inside the current Milestone during `G2`, it stays in the same round
 - a new round opens only on first entry into the Milestone, after `r2_result.next_action=continue_milestone_repair`, or when callback semantics from an objectized repair task explicitly say the Milestone should enter the next round
 - the `Milestone Review Rolling Doc` is the only formal document for `G2 / R2`; the `Global State Doc` may contain only `current_snapshot`, `next_action`, and `last_transition`
+- when reading, writing, initializing, or repairing runtime state, the `Global State Doc` and the `Milestone Review Rolling Doc` must follow the canonical contract refs above; do not improvise block shape or `next_action` spelling from memory or older design examples
 - if `next_action` changes the active object or active plane, `current_snapshot` must be updated at the same time; only when still advancing within the same Milestone may you update only `next_action` and `last_transition`
 - if `G2` or `R2` finds a code problem, the default is `continue_milestone_repair` with the same `coder_slot` in the same Milestone and rerun `G2`; only when the repair needs an independent Task contract, a clearly new object boundary, or obviously exceeds the current Milestone closure radius should it be objectized into a repair task through the `Global State Doc` and fall back to `task-loop`
 - if a repair task has already been objectized, after the repair completes it must return to the same `Milestone Review Rolling Doc` to append the next round
 - the current Milestone review handoff is the latest `g2_result` in the current round whose `next_action=enter_r2`
 - each Milestone handoff block must carry `handoff_id` and `review_target_ref`; `r2_result` is actionable only when its `round`, `handoff_id`, and `review_target_ref` match that current handoff exactly, and if multiple `r2_result` blocks match one current handoff, only the latest matching block is actionable
-- if the rolling doc does not exist, initialize the header, including object identity and `coder_slot`, plus `milestone_contract_snapshot`; after initialization, the rolling doc becomes the only collaboration surface, and on first entry write `coder_slot=coder` and `round=1` into the header and `current_snapshot`
+- if the rolling doc does not exist, initialize the header, including object identity and `coder_slot`, plus `milestone_contract_snapshot`, according to the canonical `Milestone Review Rolling Doc` contract; after initialization, the rolling doc becomes the only collaboration surface, and on first entry write `coder_slot=coder` and `round=1` into the header and `current_snapshot` according to the canonical `Global State Doc` contract
 
 ## Workflow
 
@@ -42,7 +48,7 @@ Hard boundaries:
 - Confirm that the Milestone has entered the stage-review window: required Tasks are already `DONE`, and there is no higher-priority blocker
 - If the `Global State Doc` conflicts with the rolling doc, hand control back to `rebuild-runtime`
 - If the current Milestone cannot be confirmed uniquely, the contract is missing, the stage-review window has not opened, or the facts show the system should wait for the user, stop
-- If the rolling doc does not exist, initialize only the header, including object identity and `coder_slot`, plus `milestone_contract_snapshot`
+- If the rolling doc does not exist, initialize only the header, including object identity and `coder_slot`, plus `milestone_contract_snapshot`, according to the canonical `Milestone Review Rolling Doc` contract
 
 2. Update the minimum control plane
 - `current_snapshot` points to the current active milestone, `coder_slot`, and the current Milestone-local `round`

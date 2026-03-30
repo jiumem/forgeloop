@@ -79,6 +79,8 @@
 - `1.4 已封板决策（Sealed Decisions）`：只概括那些已经 sealed、并且实质影响执行地图的上游决策
 - `1.5 执行边界（Execution Boundary）`：这是说明当前 `Total Task Doc` 承载什么、不承载什么的唯一权威区块
 - `1.6 Initiative 法定引用指派（Initiative Reference Assignment）`：这是下游使用的 Initiative 层法定参考入口的唯一权威区块
+- `1.6 Initiative 法定引用指派（Initiative Reference Assignment）` 中的 repo-local durable refs 必须使用 repo-root-relative path；这同样适用于 `.forgeloop/` 下的 runtime control-plane refs
+- 不要在 `1.6` 中写当前 workspace 绝对路径、worktree 绝对路径或 shell-cwd-relative path；如果下游执行时需要绝对路径，应在 active workspace 已绑定后从同一个 repo-root-relative ref materialize
 - 这一节要证明执行地图继承的是 sealed 上游真值，而不是本地临时即兴推导
 
 ### 2. Initiative 总览（Initiative）
@@ -95,6 +97,7 @@
 - `3.2 Milestone 依赖（Milestone Dependencies）`：定义 Milestone 之间的串行、并行与收敛关系
 - `3.3 Milestone 验收（Milestone Acceptance）`：定义每个 Milestone 的验收线
 - `3.4 Milestone 法定引用指派（Milestone Reference Assignment）`：这是每个 Milestone 法定参考入口的唯一权威区块
+- `3.4 Milestone 法定引用指派（Milestone Reference Assignment）` 中的 repo-local refs 也必须保持 repo-root-relative durable form；不要把某个主工作区或旧 worktree 的绝对路径写成法定真值
 - `Milestone List` 中的 `Planned PR Model` 默认应为 `Single PR`；只有当某个 Milestone 必须保持为单一状态边界、且无法合理切成新 Milestone 时，才使用 `多 PR 例外（Multi-PR Exception）`
 
 ### 4. Task 账本（Task Ledger）
@@ -115,6 +118,7 @@
   - `验收（Acceptance）`
   - `Task 局部风险 / 备注（Task-local Risks / Notes）`
 - `Refs` 是必填字段，不是装饰
+- repo-local `Design Refs`、`Gap Refs`、`Spec Refs` 应保持 repo-root-relative durable form；不要把 workspace-specific absolute path 当成法定 ref
 - `Action` 应说明“改什么”，而不是把实现步骤按行教程式展开
 - 下游 `coder` 不应该为了重建基本 Task 边界而被迫重新通读整份文档
 
@@ -150,6 +154,7 @@
 - 每条边界、验收规则与法定引用指派都只保留一个真理源；如果另一个区块才是权威来源，就明确引用，不要在别处重新裁决
 - 验收真理必须保持单一来源：`2.4 成功标准（Success Criteria）` 管 Initiative 成功，`3.3 Milestone 验收（Milestone Acceptance）` 管 Milestone 验收，`4.2 Task 定义（Task Definitions）` 管 Task 验收；`6` 只能索引这些区块并指向证据
 - 把 `1.5 执行边界（Execution Boundary）`、`1.6 Initiative 法定引用指派（Initiative Reference Assignment）`、`3.4 Milestone 法定引用指派（Milestone Reference Assignment）`、`4.2 Task 定义（Task Definitions）`、`5.1 默认集成模型（Default Integration Model）` 与 `6.4 证据入口（Evidence Entrypoints）` 视为本文档的结构核心，不能退化成模糊散文
+- repo-local formal refs 只保留一种 durable path semantics：repo-root-relative；如果为了人类阅读额外提供 markdown link 或解释，那也不能让 workspace-specific absolute path 成为唯一法定值
 - 所谓 full refinement，意味着所有对象、依赖、验收线与集成路径都已经明确，而不是堆一堆教程式实现细节
 - 任何未决裁决都不得进入 `Total Task Doc`
 
@@ -176,6 +181,7 @@
 - 上游 planning 引用明确
 - `1.3 差距分析引用（Gap Analysis Refs）` 与 sealed `Design Doc` 中的 `Gap Analysis Requirement` 保持一致
 - `1.5 执行边界（Execution Boundary）` 明确
+- 所有 repo-local formal refs 都使用 repo-root-relative durable value，而不是当前 workspace 或某个 worktree 的绝对路径
 - Initiative 成功标准明确
 - 完整的 Milestone 结构与依赖明确
 - Initiative 与 Milestone 的法定引用指派明确

@@ -13,6 +13,14 @@ The planning side uses one control spine plus one internal stage skill:
 - `planner` and stage reviewers perform formal handoff inside stage-specific planning rolling docs
 - `planning-loop` is the internal second-layer stage skill that handles exactly one confirmed planning stage per dispatch
 
+## Delegation Contract
+
+`run-planning` is a multi-agent dispatch skill.
+
+If this skill has been invoked, treat that invocation itself as user authorization for the `Supervisor` to dispatch the required planning subagents through `planning-loop` for the current stage. Do not stop only to re-ask for ordinary planner / reviewer delegation.
+
+If the current environment still prevents that downstream delegation, or if you will not actually continue with delegated planning execution in this activation, stop immediately and ask the user directly. Never treat that situation as permission for the `Supervisor` to continue by personally doing `planner` or stage-reviewer work.
+
 ## Goal
 
 In this framework, you act as the planning-layer `Supervisor` dispatcher. You are responsible only for:
@@ -47,6 +55,7 @@ The `Planning State Doc` holds only the minimum planning control plane: `current
 - the current Initiative or planning stage cannot be confirmed uniquely
 - the `Planning State Doc` and planning artifacts conflict and the active stage, `planner_slot`, or current stage-local `round` cannot be recovered uniquely
 - the repository is missing the canonical stage reference or rolling-doc contract needed for the active stage
+- the confirmed current planning next step requires entering `planning-loop`, but the required downstream planner / reviewer delegation is unavailable, blocked, or will not actually be performed in this activation
 - planning is already in `sealed_planning_docs_ready`, or it is in a waiting / blocked stop state that this activation does not clearly resolve
 
 ## Main Flow
@@ -118,6 +127,7 @@ After `planning-loop` returns, reread the `Planning State Doc`.
 Never:
 
 - dispatch `planner`, `design_reviewer`, `gap_reviewer`, or `plan_reviewer` directly from this skill
+- treat inability or unwillingness to continue with the required delegated planning execution as permission for a single-agent fallback
 - silently continue from one planning stage into the next after `planning-loop` has already recorded a cross-stage route
 - overwrite a still-valid `planner_slot` or current stage-local `round` with thinner stage-only state
 - guess the active planning stage, `planner_slot`, or current round when formal planning truth does not expose one unique answer

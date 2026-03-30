@@ -16,6 +16,11 @@ You are not responsible for writing code, writing `r1_result`, rewriting Milesto
 - `g1_result.next_action` must be one of: `continue_task_coder_round`, `request_reviewer_handoff`, `wait_for_user`, `stop_on_blocker`
 - `r1_result.next_action` must be one of: `continue_task_repair`, `return_to_source_object`, `select_next_ready_object`, `task_done`, `escalate_to_milestone`, `wait_for_user`, `stop_on_blocker`
 
+## Canonical Runtime Contract Refs
+
+- shared `Global State Doc` contract -> `../run-initiative/references/global-state.md`
+- `Task Review Rolling Doc` contract -> `../run-initiative/references/task-review-rolling-doc.md`
+
 ## Truth Sources And Hard Boundaries
 
 The formal input surface contains only the Initiative static truth trio `design_ref`, `gap_analysis_ref`, and `total_task_doc_ref` (`gap_analysis_ref` may be `N/A` for some Initiative types), the `Global State Doc`, the current `Task Review Rolling Doc`, and the necessary Git / test / commit facts.
@@ -28,10 +33,11 @@ Hard boundaries:
 - a round closes only when `r1_result` is written; `G1 fail` stays in the same round
 - a new round opens only on first entry into the Task or after `r1_result.next_action=continue_task_repair`
 - the `Global State Doc` may contain only `current_snapshot`, `next_action`, and `last_transition`
+- when reading, writing, initializing, or repairing runtime state, the `Global State Doc` and the `Task Review Rolling Doc` must follow the canonical contract refs above; do not improvise block shape or `next_action` spelling from memory or older design examples
 - if `next_action` changes the active object or active plane, `current_snapshot` must be updated at the same time; only when still advancing within the same Task may you update only `next_action` and `last_transition`
 - the current Task review handoff is the latest `anchor_ref` or `fixup_ref` in the current round
 - each Task handoff block must carry `handoff_id` and `review_target_ref`; `r1_result` is actionable only when its `round`, `handoff_id`, and `review_target_ref` match that current handoff exactly, and if multiple `r1_result` blocks match one current handoff, only the latest matching block is actionable
-- if only a bounded task brief exists and the rolling doc does not, it may be used to initialize the header, including object identity and `coder_slot`, plus `task_contract_snapshot`; after initialization, the rolling doc becomes the only collaboration surface
+- if only a bounded task brief exists and the rolling doc does not, it may be used to initialize the header, including object identity and `coder_slot`, plus `task_contract_snapshot`, according to the canonical `Task Review Rolling Doc` contract; after initialization, the rolling doc becomes the only collaboration surface
 
 ## Workflow
 
@@ -40,7 +46,7 @@ Hard boundaries:
 - Confirm that the active task is unique, the workspace is executable, the rolling doc matches the active task, `coder_slot` is unique, and the current Task-local `round` is unique when it already exists
 - If the `Global State Doc` conflicts with the rolling doc, hand control back to `rebuild-runtime`
 - If the current Task cannot be confirmed uniquely, the contract is missing, or the facts show the system should wait for the user, stop
-- If the rolling doc does not exist, initialize only the header, including object identity and `coder_slot`, plus `task_contract_snapshot`; write `coder_slot=coder` into the header and `current_snapshot`, and write `round=1` into the `Global State Doc` before dispatching the first coder round
+- If the rolling doc does not exist, initialize only the header, including object identity and `coder_slot`, plus `task_contract_snapshot`, according to the canonical `Task Review Rolling Doc` contract; write `coder_slot=coder` into the header and `current_snapshot`, and write `round=1` into the `Global State Doc` according to the canonical `Global State Doc` contract before dispatching the first coder round
 
 2. Update the minimum control plane
 - `current_snapshot` points to the current active task, `coder_slot`, and the current Task-local `round`

@@ -334,7 +334,7 @@ findings:
   - id: R1-001
     severity: major
     summary: 缺失异常路径测试
-next_action: coder_repair
+next_action: continue_task_repair
 ```
 ````
 
@@ -379,6 +379,7 @@ next_action: coder_repair
 - header 与 contract snapshot 只写一次
 - 之后每一轮只追加正式事实块
 - 不再引入 `coder_round_open`、`reviewer_round_open`、`supervisor_transition`、事件账本这类仪式性块
+- `Global State Doc.next_action` 必须直接复用当前 runtime loop 的正式路由词表；不要再发明平行 supervisor 动作名，例如 `dispatch_coder_continue_task`
 
 ### 5.3 `Global State Doc` 结构
 
@@ -402,24 +403,25 @@ updated_at: ...
 ```forgeloop
 kind: current_snapshot
 active_plane: task
-active_milestone: MS-002
-active_task: TASK-002-API
-active_loop: task_execution
+initiative_key: INIT-001
+milestone_key: MS-002
+task_key: TASK-002-API
 coder_slot: CODER-1
+round: 1
 ```
 
 ```forgeloop
 kind: next_action
-owner: supervisor
-action: dispatch_coder_continue_task
+action: continue_task_coder_round
 blocking_reason: null
+updated_at: ...
 ```
 
 ```forgeloop
 kind: last_transition
 updated_at: ...
-from_state: IN_R1
-to_state: TASK_DONE
+from_action: enter_r1
+to_action: task_done
 reason: r1_clean
 ```
 ````
@@ -601,7 +603,7 @@ evidence_adequacy: pass
 residual_risks:
   - 兼容层仍保留双真值
 required_follow_ups:
-  - continue_current_milestone_repair
+  - continue_milestone_repair
   - rerun_g2_after_stage_boundary_fix
 ```
 ````
@@ -612,7 +614,7 @@ required_follow_ups:
 - header 绑定对象身份与当前逻辑 `coder_slot`，用于恢复 continuity
 - `G2` 由同一个 coder 负责执行并写块，`Supervisor` 不直接写 `g2_result`
 - `R2` 发现代码问题时，不允许 reviewer 直接修补代码
-- 若 `G2` 自身已经给出 `repair_required` 一类结论，默认仍留在当前 Milestone 内修补并重跑 `G2`
+- 若 `G2` 自身已经给出 `continue_milestone_repair` 一类结论，默认仍留在当前 Milestone 内修补并重跑 `G2`
 - 只有修补已经需要独立 Task 合同、明确新对象边界或明显超出当前 Milestone 收口半径时，才对象化为新的 repair task，并在 `Global State Doc` 中更新当前状态
 - 若已对象化为 repair task，回修完成后，回到同一份 `Milestone Review Rolling Doc` 追加下一 round
 
@@ -684,7 +686,7 @@ residual_risks: []
 - `Initiative Review Rolling Doc` 是 append-only，header 与 contract snapshot 固定后不回改
 - header 绑定对象身份与当前逻辑 `coder_slot`，用于恢复 continuity
 - `G3` 也由同一个 coder 执行
-- 若 `G3` 自身已经给出 `repair_required` 一类结论，默认仍留在当前 Initiative 内修补并重跑 `G3`
+- 若 `G3` 自身已经给出 `continue_initiative_repair` 一类结论，默认仍留在当前 Initiative 内修补并重跑 `G3`
 - `R3` 发现要改代码时，也默认先留在当前 Initiative 内修补；只有修补已经需要独立 Task 合同、明确新对象边界或明显超出当前 Initiative 收口半径时，才对象化为 repair task
 - `R3 clean` 后，`Global State Doc` 才能把 Initiative 标记为 `DONE`
 
@@ -998,7 +1000,7 @@ Git 帮助动作只承接确定性工程操作：
 
 第五，**Milestone / Initiative 循环测试**
 
-- `G2 / G3 repair_required` 与 `R2 / R3 changes_requested` 在当前对象半径内时，会继续留在当前 loop 修补
+- `G2 continue_milestone_repair / G3 continue_initiative_repair` 与 `R2 / R3 changes_requested` 在当前对象半径内时，会继续留在当前 loop 修补
 - 只有修补需要对象化时，才会回落 repair task
 - 不允许 reviewer 或 Supervisor 越权直接改代码
 

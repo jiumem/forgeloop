@@ -12,10 +12,39 @@ The Initiative execution loop uses one control spine plus three execution loops:
 - coder and reviewer perform formal handoff inside object-level review rolling docs
 - the system enters the Task, Milestone, or Initiative review/repair loop based on the current progress position
 
+## Delegation Contract
+
+`run-initiative` is a multi-agent dispatch skill.
+
+If this skill has been invoked, treat that invocation itself as user authorization for the `Supervisor` to dispatch the required coder / reviewer subagents for the current next step. Do not stop only to re-ask for ordinary coder / reviewer delegation.
+
+If the current environment still prevents delegation, or if you will not actually dispatch the required coder / reviewer subagents in this activation, stop immediately and ask the user directly. Never treat that situation as permission for the `Supervisor` to continue by personally doing coder or reviewer work.
+
+## Canonical Ref Semantics
+
+For repo-local formal sources, durable truth and execution-time materialization are different things.
+
+The durable value of each repo-local source slot should be one canonical repo-root-relative ref. This applies to `design_ref`, `gap_analysis_ref`, `total_task_doc_ref`, and the runtime control-plane refs under `.forgeloop/`.
+
+Do not store current-workspace absolute paths, worktree-specific absolute paths, or shell-cwd-relative paths as durable planning truth.
+
+If a concrete runtime read, write, or subagent dispatch needs an absolute filesystem path, first bind the active Initiative workspace, then materialize that absolute path from the same canonical repo-root-relative ref. The materialized absolute path is an ephemeral execution value, not a durable ref to write back into planning truth.
+
+## Runtime Control-Plane Contracts
+
+The runtime control plane also has fixed repository-owned contract refs relative to this skill root:
+
+- shared `Global State Doc` contract -> `references/global-state.md`
+- `Task Review Rolling Doc` contract -> `references/task-review-rolling-doc.md`
+- `Milestone Review Rolling Doc` contract -> `references/milestone-review-rolling-doc.md`
+- `Initiative Review Rolling Doc` contract -> `references/initiative-review-rolling-doc.md`
+
+These contract refs are not Initiative-specific planning truth. They are the canonical bootstrap and recovery contracts for runtime cold start, runtime rebuild, and rolling-doc initialization. Do not improvise runtime block shape or `next_action` spelling from memory, old examples, or chat summaries when these refs are available.
+
 ## Goal
 
 In this framework, you act as the `Supervisor` dispatcher. You are responsible only for:
-- binding the formal source paths for the current Initiative
+- binding the formal source refs for the current Initiative
 - running the execution-side planning admission check before any runtime dispatch
 - determining the current next step, or whether to stop, rebuild, or ask the user
 - updating the `Global State Doc` when needed
@@ -45,6 +74,7 @@ Each update exists only to support the current next-step dispatch. Do not write 
 - the sealed design doc is missing, unfinished, or lacks an explicit `Gap Analysis Requirement`
 - the sealed design doc requires gap analysis but the gap analysis doc is missing, unfinished, or inconsistent with the total task doc
 - the sealed planning docs are missing basic execution structure, such as Initiative boundary, Milestone structure, Task Ledger, integration path, reference assignment, acceptance matrix, or residual-risk registration
+- the confirmed next step requires coder or reviewer dispatch, but delegation is unavailable, blocked, or will not actually be performed in this activation
 - the current next step cannot be determined uniquely
 - a new Initiative is starting but there is no clear first executable Task
 - the system is already in a delivered stop state, or it is in waiting / blocked and this activation does not clearly resolve that stop reason
@@ -53,20 +83,21 @@ Each update exists only to support the current next-step dispatch. Do not write 
 
 ### Step 1: Bind Input
 
-First bind the formal source paths for the current Initiative.
+First bind the formal source refs for the current Initiative.
 
 1. Use the user-provided `planning_doc_path`, `initiative_key`, or the only verifiable active Initiative in the current workspace to bind the current Initiative. If it cannot be verified uniquely, ask the user directly.
 2. Prefer exploring under the parent path of the user-provided total task doc. Only if that is insufficient should you continue under the repo `docs/` tree.
-3. At most seven formal source slots must be confirmed: `design_ref`, `gap_analysis_ref`, `total_task_doc_ref`, `global_state_doc_ref`, `task_review_rolling_doc_root_ref`, `milestone_review_rolling_doc_root_ref`, and `initiative_review_rolling_doc_ref`.
+3. At most seven formal source slots must be confirmed as canonical refs: `design_ref`, `gap_analysis_ref`, `total_task_doc_ref`, `global_state_doc_ref`, `task_review_rolling_doc_root_ref`, `milestone_review_rolling_doc_root_ref`, and `initiative_review_rolling_doc_ref`.
 4. `gap_analysis_ref` may be `N/A` only when the sealed `Design Doc` explicitly marks `Gap Analysis Requirement: not_required`.
-5. The four runtime slots may temporarily point to missing files or directories on cold start, but the canonical paths must already be uniquely confirmed.
-6. If `design_ref` or `total_task_doc_ref` is missing, if `gap_analysis_ref` is required but missing, or if `total_task_doc_ref` cannot identify the Initiative reference entry clearly, stop, do not write `Global State Doc`, and ask the user to provide or confirm the missing information.
+5. The four runtime slots may temporarily point to missing files or directories on cold start, but the canonical repo-root-relative refs must already be uniquely confirmed.
+6. For repo-local targets, the durable value of each source slot must be a repo-root-relative ref. Do not bind current-workspace absolute paths, worktree-specific absolute paths, or shell-cwd-relative paths here.
+7. If `design_ref` or `total_task_doc_ref` is missing, if `gap_analysis_ref` is required but missing, or if `total_task_doc_ref` cannot identify the Initiative reference entry clearly, stop, do not write `Global State Doc`, and ask the user to provide or confirm the missing information.
 
 ### Step 2: Run Planning Admission And Determine The Current Next Step
 
 After reading the formal docs, first decide whether the planning truth may legally enter runtime, then determine the current next step directly.
 
-1. Read `total_task_doc_ref` and `global_state_doc_ref` first.
+1. Read `total_task_doc_ref` first.
 2. Read `design_ref` before any runtime routing. Read `gap_analysis_ref` when the sealed `Design Doc` marks `Gap Analysis Requirement: required`, or when the upstream planning refs disagree and the conflict must be resolved.
 3. Inside this skill, perform a thin planning admission check. At minimum confirm all of the following:
 - `total_task_doc_ref` is sealed and not obviously unfinished
@@ -75,8 +106,9 @@ After reading the formal docs, first decide whether the planning truth may legal
 - the Initiative boundary and success criteria are explicit enough to execute
 - the Milestone structure, Task Ledger, branch and PR integration path, legal reference assignments, acceptance matrix, and global residual risks are explicit enough to act on
 4. If planning admission fails, stop and challenge the user directly to repair planning truth. Do not call skill: `rebuild-runtime` just to paper over illegal planning input, and do not enter any execution loop.
-5. If needed, then read the currently active review rolling doc in a targeted way. Only when document facts are still insufficient should you add the minimum necessary Git / test facts.
-6. Then decide directly:
+5. If runtime routing depends on workspace-local runtime docs and the active Initiative workspace is not already confirmed, do Step 3 first in `bind_only` mode. Only after Step 3 has bound the active workspace and materialized the runtime refs may you read `global_state_doc_ref` or any runtime rolling doc.
+6. After active workspace binding when needed, read `global_state_doc_ref` first among runtime docs. If needed, then read the currently active review rolling doc in a targeted way. Only when document facts are still insufficient should you add the minimum necessary Git / test facts.
+7. Then decide directly:
 - if the `Global State Doc` already records a delivered stop state such as `initiative_delivered`: stop and explain the current stop point
 - if the `Global State Doc` already records waiting or blocked: first check whether this activation clearly resolves that stop reason
   - if not, stop at that state
@@ -87,36 +119,43 @@ After reading the formal docs, first decide whether the planning truth may legal
 - if current progress clearly belongs to a Milestone review/repair loop: formally rebind `current_snapshot` and `next_action` to that Milestone if needed, then call skill: `milestone-loop`
 - if current progress clearly belongs to the Initiative review/repair loop: formally rebind `current_snapshot` and `next_action` to that Initiative if needed, then call skill: `initiative-loop`
 - if the facts do not conflict but the current next step still cannot be determined uniquely: ask the user directly
-7. You may confirm only one next step or one clear stop point. If facts conflict, call skill: `rebuild-runtime`; if they are ambiguous, ask the user.
+8. You may confirm only one next step or one clear stop point. If facts conflict, call skill: `rebuild-runtime`; if they are ambiguous, ask the user.
 
-### Step 3: Hand Environment Preparation To The Worktree Skill
+### Step 3: Bind The Active Initiative Workspace
 
-Do this only when the current next step requires calling skill: `task-loop`, skill: `milestone-loop`, or skill: `initiative-loop`.
+Do this whenever runtime routing or loop execution needs workspace-local runtime docs.
 
-1. If the current next step is to stop, ask the user, or call skill: `rebuild-runtime`, skip this step.
-2. If the current next step is to enter skill: `task-loop`, skill: `milestone-loop`, or skill: `initiative-loop`, call skill: `using-git-worktrees` first.
-3. Whether to reuse the current workspace, switch branches, or create a worktree is decided entirely by `using-git-worktrees`; `run-initiative` must not pre-judge whether the current workspace is already prepared.
-4. If `using-git-worktrees` returns ready, continue to Step 4. If it exposes a conflict, waiting state, or blocker, stop at that point.
+1. If planning admission has already failed, or if the current stop point is already clear without reading workspace-local runtime docs, skip this step.
+2. If runtime routing depends on `global_state_doc_ref` or any rolling doc and the current workspace is not already confirmed as the active Initiative workspace, call skill: `using-git-worktrees` first in `bind_only` mode.
+3. `bind_only` means: confirm or create or reuse the active Initiative workspace and target branch so runtime refs may be materialized and read, but do not require repo setup or baseline verification yet.
+4. Whether to reuse the current workspace, switch branches, or create a worktree is decided entirely by `using-git-worktrees`; `run-initiative` must not pre-judge whether the current workspace is already prepared.
+5. Once the active Initiative workspace is confirmed, materialize `global_state_doc_ref`, `task_review_rolling_doc_root_ref`, `milestone_review_rolling_doc_root_ref`, and `initiative_review_rolling_doc_ref` against that workspace. From that point onward in this activation, use only those materialized paths for runtime reads and writes.
+6. Never write the materialized absolute paths back into the `Total Task Doc` or any other durable planning truth.
+7. If `using-git-worktrees` in `bind_only` mode exposes a conflict, waiting state, or blocker, stop at that point.
 
-### Step 4: Execute The Current Next Step
+### Step 4: Prepare Execution And Execute The Current Next Step
 
-Consume only the conclusion already confirmed in the previous step. Do not reinterpret the facts.
+Consume only the conclusion already confirmed in the previous step. Do not reinterpret the facts, and do not rematerialize runtime refs against a different workspace mid-activation.
 
-1. New Initiative start: after planning admission has already passed, initialize the minimum `Global State Doc`. If there is a clear first executable Task, bind `current_snapshot` to that Task, switch `next_action` to the current Task coder round, then call skill: `task-loop`. Otherwise stop and challenge the user directly.
-2. Existing Initiative resumes into the Task review/repair loop: if the Task that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then call skill: `task-loop`.
-3. Existing Initiative resumes into the Milestone review/repair loop: if the Milestone that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then call skill: `milestone-loop`.
-4. Existing Initiative resumes into the Initiative review/repair loop: if the Initiative that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then call skill: `initiative-loop`.
-5. `rebuild-runtime` is required: call skill: `rebuild-runtime`.
-6. User confirmation is required: stop and ask the minimum necessary question.
-7. The system is already in a stop state: stop and enter no loop.
+1. If the confirmed next step is to call skill: `task-loop`, skill: `milestone-loop`, or skill: `initiative-loop`, ensure the already bound active Initiative workspace is `execution_ready` first. If this activation has only done `bind_only` so far, call skill: `using-git-worktrees` again in `execution_ready` mode against that same active workspace before dispatching the loop.
+2. `execution_ready` means the active Initiative workspace has completed repo-obvious setup and baseline verification strongly enough to enter coder or reviewer execution.
+3. If `using-git-worktrees` in `execution_ready` mode exposes a conflict, waiting state, or blocker, stop at that point.
 
-If work will continue, first update the `Global State Doc` until it is clear enough. If the active object or active plane is about to change, the new `current_snapshot` and `next_action` must be written first so that a later `Supervisor` can quickly trace and recover the current progress state.
+4. New Initiative start: after planning admission has already passed, initialize the minimum `Global State Doc`. If there is a clear first executable Task, bind `current_snapshot` to that Task, switch `next_action` to the current Task coder round, then call skill: `task-loop`. Otherwise stop and challenge the user directly.
+5. Existing Initiative resumes into the Task review/repair loop: if the Task that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then call skill: `task-loop`.
+6. Existing Initiative resumes into the Milestone review/repair loop: if the Milestone that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then call skill: `milestone-loop`.
+7. Existing Initiative resumes into the Initiative review/repair loop: if the Initiative that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then call skill: `initiative-loop`.
+8. `rebuild-runtime` is required: call skill: `rebuild-runtime`.
+9. User confirmation is required: stop and ask the minimum necessary question.
+10. The system is already in a stop state: stop and enter no loop.
+
+If work will continue, first update the materialized `Global State Doc` in the active Initiative workspace until it is clear enough. If the active object or active plane is about to change, the new `current_snapshot` and `next_action` must be written first so that a later `Supervisor` can quickly trace and recover the current progress state.
 
 When the active object is already in flight or has been recovered from an existing rolling doc, `current_snapshot` should preserve the active `coder_slot` and current object-local `round`. Only on first entry into a fresh runtime object with no rolling doc yet may `current_snapshot` temporarily omit them; the target loop must then initialize `coder_slot=coder` and object-local `round=1` before dispatching the first coder round.
 
 ### Step 5: Loop Back
 
-After any loop returns, reread the `Global State Doc` and the active rolling doc that was just modified. Do not infer from cached expectations about what should have happened in the previous round. Go straight back to Step 2 and re-determine the current next step.
+After any loop returns, reread the materialized `Global State Doc` and the active rolling doc in the same active Initiative workspace that was just modified. Do not infer from cached expectations about what should have happened in the previous round. Go straight back to Step 2 and re-determine the current next step.
 
 Keep advancing until one of these stop points appears:
 - waiting for human judgment
@@ -134,6 +173,7 @@ Never:
 - use skill: `rebuild-runtime` to compensate for illegal or unfinished planning truth
 - create a second state model inside JSON, notes, or hidden memory
 - let `run-initiative` execute `G1`, `G2`, `G3`, `R1`, `R2`, or `R3` itself
+- treat inability or unwillingness to dispatch the required coder / reviewer subagents as permission for a single-agent fallback
 - silently replace the current coder with a new logical owner
 - continue advancing when `Global State Doc` already explicitly says to wait for the user
 

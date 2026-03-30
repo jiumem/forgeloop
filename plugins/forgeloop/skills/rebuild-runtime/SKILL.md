@@ -7,6 +7,13 @@ description: Use when the runtime control plane is missing, conflicting, or cann
 
 `rebuild-runtime` does recovery only. It does not code, it does not review, and it does not replace `run-initiative` for ongoing dispatch. Here you act as a recovery-state `Supervisor`: rebuild the minimum runnable control plane from the formal truth sources and engineering facts, then hand the system back upstream.
 
+## Canonical Runtime Contract Refs
+
+- shared `Global State Doc` contract -> `../run-initiative/references/global-state.md`
+- `Task Review Rolling Doc` contract -> `../run-initiative/references/task-review-rolling-doc.md`
+- `Milestone Review Rolling Doc` contract -> `../run-initiative/references/milestone-review-rolling-doc.md`
+- `Initiative Review Rolling Doc` contract -> `../run-initiative/references/initiative-review-rolling-doc.md`
+
 ## Truth Sources And Hard Boundaries
 
 The formal input surface contains only the Initiative static truth trio `design_ref`, `gap_analysis_ref`, and `total_task_doc_ref` (`gap_analysis_ref` may be `N/A` for some Initiative types), the `Global State Doc`, the three layers of review rolling docs, and the necessary Git / PR / commit / test facts.
@@ -15,11 +22,12 @@ Hard boundaries:
 - recover only the logical `coder_slot`, never the physical `agent_id`
 - recover the current object-local `round`, never invent a new round
 - write to the `Global State Doc` only when necessary
-- if the `Global State Doc` does not exist, you may initialize `global_state_header`
-- if the existing `global_state_header` conflicts with static truth-source bindings, you may correct `global_state_header` first
+- if the `Global State Doc` does not exist, you may initialize `global_state_header` only according to the canonical `Global State Doc` contract
+- if the existing `global_state_header` conflicts with static truth-source bindings, you may correct `global_state_header` first, but only according to the canonical `Global State Doc` contract
 - the only updatable blocks are `global_state_header`, `current_snapshot`, `next_action`, and `last_transition`
 - do not write any rolling doc body content
 - do not modify the static truth sources and do not create a second state model in JSON / notes / hidden memory
+- do not invent runtime block shape or `next_action` spelling from memory or older design examples when the canonical runtime contract refs above are available
 
 ## Shared Runtime Recovery Law
 
@@ -87,11 +95,11 @@ This skill does not handle the following:
 - If the active plane, active object, active `round`, or next action still cannot be determined uniquely, stop and ask the user directly.
 
 4. Rewrite the minimum control plane
-- If the `Global State Doc` does not exist, initialize `global_state_header` first
-- If the existing `global_state_header` conflicts with the Initiative binding or the planning doc ref, correct `global_state_header` first
-- Write `current_snapshot` as the uniquely recovered active plane / active object / `coder_slot` / current object-local `round`
-- Write `next_action` as the uniquely recovered next step
-- Write `last_transition` as a recovery transition explaining why the control plane was rebuilt
+- If the `Global State Doc` does not exist, initialize `global_state_header` first according to the canonical `Global State Doc` contract
+- If the existing `global_state_header` conflicts with the Initiative binding or the planning doc ref, correct `global_state_header` first according to the canonical `Global State Doc` contract
+- Write `current_snapshot` as the uniquely recovered active plane / active object / `coder_slot` / current object-local `round`, using the canonical `Global State Doc` contract
+- Write `next_action` as the uniquely recovered next step, using the canonical runtime routing vocabulary from the `Global State Doc` contract
+- Write `last_transition` as a recovery transition explaining why the control plane was rebuilt, using the canonical `Global State Doc` contract
 - After writing, immediately hand control back to skill: `run-initiative` so the upstream dispatcher can reconfirm and continue
 
 ## Stop Conditions
