@@ -218,7 +218,6 @@ if rg -n \
   -g 'docs/forgeloop/install.md' \
   -g 'docs/forgeloop/testing.md' \
   -g 'docs/forgeloop/agents.md' \
-  -g 'docs/forgeloop/e2e-codex.md' \
   -g 'plugins/forgeloop/.codex-plugin/plugin.json' \
   -g 'plugins/forgeloop/agents/*.toml' \
   -g 'plugins/forgeloop/scripts/materialize-agents.sh' \

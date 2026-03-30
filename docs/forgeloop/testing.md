@@ -22,9 +22,3 @@ This fails if removed platform files come back, if the packaged skill or agent m
 
 It also checks that the packaged custom agent manifests under `plugins/forgeloop/agents/` are present and declare the required fields.
 It also checks that every shipped workflow dispatch file points at a declared packaged custom agent, so new agent roles cannot be added half-way.
-
-## 3. Manual Codex E2E verification
-
-Use the release checklist in [docs/forgeloop/e2e-codex.md](docs/forgeloop/e2e-codex.md).
-
-This is intentionally a manual verification step for real Codex runtime behavior, not a CI-style repository test.
