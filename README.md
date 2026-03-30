@@ -4,7 +4,7 @@
 
 Forgeloop is a Codex-only workflow layer built from composable skills. It turns Codex into a stricter engineering process: design first, plan second, implement in small verified steps, and review before moving on.
 
-`0.3.0` is intentionally shipped as a Codex skill pack, not as a Python package.
+`0.3.0` ships as a repo-local Codex plugin package. It is not a Python package.
 
 ## Origin
 
@@ -20,28 +20,46 @@ Forgeloop is built from a customized adaptation of [obra/superpowers](https://gi
 
 These skills are meant to be mandatory workflow constraints, not optional suggestions.
 
-The suite's custom agent manifests live in [`agents/`](agents). They cover the planning roles `planner`, `design_reviewer`, `gap_reviewer`, and `plan_reviewer`, plus the runtime workflow roles `coder`, `task_reviewer`, `milestone_reviewer`, and `initiative_reviewer`. The installer materializes them into a target project's `.codex/agents/`.
+The suite's custom agent manifests live in [`plugins/forgeloop/agents/`](plugins/forgeloop/agents). They cover the planning roles `planner`, `design_reviewer`, `gap_reviewer`, and `plan_reviewer`, plus the runtime workflow roles `coder`, `task_reviewer`, `milestone_reviewer`, and `initiative_reviewer`. Those manifests are materialized into Codex global agent storage by default, or into a target project's `.codex/agents/` when you pass `--project-dir`.
 
 ## Installation
 
-If you're inside this checkout, install with:
+Forgeloop installation has two separate steps:
+
+1. Install the plugin in Codex.
+2. Materialize the custom agents with the script below.
+
+### 1. Install the plugin in Codex
+
+This first step is interactive. Use either:
+
+- the Codex desktop app Plugins directory, or
+- the Codex CLI plugin picker via `/plugins`
+
+Use this flow:
+
+1. Restart Codex after pulling the latest repository state.
+2. Open the Plugins directory in Codex.
+3. Choose the repo marketplace `Forgeloop Local`.
+4. Install the `Forgeloop` plugin.
+
+### 2. Materialize the custom agents
+
+After the plugin is installed, run:
 
 ```bash
-bash scripts/install.sh --yes
+bash plugins/forgeloop/scripts/materialize-agents.sh
 ```
 
-If you want a managed checkout in `~/.codex/forgeloop`, use:
+That installs the Forgeloop custom agents into Codex global agent storage.
+
+If you need a project-local override instead, run:
 
 ```bash
-git clone https://github.com/jiumem/forgeloop.git ~/.codex/forgeloop
-bash ~/.codex/forgeloop/scripts/install.sh --yes --source ~/.codex/forgeloop
+bash plugins/forgeloop/scripts/materialize-agents.sh --project-dir /path/to/project
 ```
 
-To enable the same agent layer in a Codex project:
-
-```bash
-bash ~/.codex/forgeloop/scripts/install.sh --yes --source ~/.codex/forgeloop --project-dir /path/to/project
-```
+The script does not install the plugin itself. Plugin installation is still an interactive Codex step.
 
 Detailed setup notes live in [docs/forgeloop/install.md](docs/forgeloop/install.md).
 The shipped custom agent set is documented in [docs/forgeloop/agents.md](docs/forgeloop/agents.md).

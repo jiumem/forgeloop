@@ -1,0 +1,37 @@
+{
+  "name": "forgeloop",
+  "version": "0.3.0",
+  "description": "Structured engineering workflow for Codex.",
+  "author": {
+    "name": "Forgeloop",
+    "url": "https://github.com/jiumem/forgeloop"
+  },
+  "homepage": "https://github.com/jiumem/forgeloop",
+  "repository": "https://github.com/jiumem/forgeloop",
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "workflow",
+    "planning",
+    "review"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Forgeloop",
+    "shortDescription": "Design-plan-implement-review workflow for Codex",
+    "longDescription": "A strict Codex workflow layer for planning, execution, runtime recovery, and staged review.",
+    "developerName": "Forgeloop",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/jiumem/forgeloop",
+    "defaultPrompt": [
+      "Use Forgeloop to start planning for this initiative.",
+      "Use Forgeloop to resume initiative execution.",
+      "Use Forgeloop to rebuild runtime state."
+    ],
+    "brandColor": "#0F766E"
+  }
+}

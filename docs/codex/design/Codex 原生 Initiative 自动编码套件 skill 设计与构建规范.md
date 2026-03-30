@@ -7,7 +7,7 @@
 | 文档名称 | Codex 原生 Initiative 自动编码套件 skill 设计与构建规范 |
 | 文档层级 | Codex 落地方案层 / skill 体系设计规范 |
 | 文档定位 | 约束本项目后续 skills 的法位、拆分、合同、目录结构与验收方法 |
-| 适用范围 | `.agents/skills/` 下的 repo-local skills 以及与其协作的 scripts / references / assets / custom agents |
+| 适用范围 | `plugins/forgeloop/skills/` 下的插件内置 skills 以及与其协作的 scripts / references / assets / custom agents |
 | 非目标 | 不替代单个 skill 的 `SKILL.md`；不替代总体机制文档；不替代技术设计说明书 |
 
 ## 0. 文档定位

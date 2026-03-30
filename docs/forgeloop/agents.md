@@ -1,10 +1,10 @@
 # Forgeloop Custom Agents
 
-Forgeloop 0.3.0 ships a small, explicit set of custom agent source manifests under `agents/`.
+Forgeloop 0.3.0 ships a small, explicit set of custom agent manifests under `plugins/forgeloop/agents/`.
 
 These agents are the stable role layer for the built-in workflow skills. They are intentionally narrow. The skill decides when to dispatch them and binds the formal input surface; the custom agent defines how that role should think and what it should return.
 
-All Forgeloop custom agents default to `gpt-5.4` with `high` reasoning effort. Model policy lives in the agent TOML files, not in individual workflow skills. The installer copies these manifests into the target project's `.codex/agents/`.
+All Forgeloop custom agents default to `gpt-5.4` with `high` reasoning effort. Model policy lives in the agent TOML files, not in individual workflow skills. `plugins/forgeloop/scripts/materialize-agents.sh` copies those manifests into Codex global agent storage by default, or into a target project's `.codex/agents/` when `--project-dir` is supplied.
 
 ## Shipped Agent Set
 
@@ -74,4 +74,10 @@ All Forgeloop custom agents default to `gpt-5.4` with `high` reasoning effort. M
 
 ## Current Contract
 
-The current Forgeloop custom agent set includes eight agents. If a workflow needs another named role, add it explicitly under `agents/`, wire it from the relevant skill, and extend the repository self-checks in `tests/codex/verify-codex-only.sh`.
+The current Forgeloop custom agent set includes eight agents. If a workflow needs another named role, add it explicitly under `plugins/forgeloop/agents/`, wire it from the relevant packaged skill, and extend the repository self-checks in `tests/codex/verify-codex-only.sh`.
+
+## Packaging Notes
+
+- `plugins/forgeloop/agents/` is the source-of-truth manifest location for custom agents.
+- `plugins/forgeloop/skills/` is the source-of-truth skill location for the shipped workflow package.
+- `plugins/forgeloop/scripts/materialize-agents.sh` copies the manifests into `${CODEX_HOME:-~/.codex}/agents` by default, or into a target project's `.codex/agents/` when requested.

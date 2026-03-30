@@ -6,8 +6,8 @@
 | --- | --- |
 | Document Name | Codex-Native Initiative Coding Suite Role Prompt Charter |
 | Document Layer | Codex implementation layer / role prompt layer |
-| Document Role | Master design charter for role prompts; runtime execution follows `agents/*.toml` |
-| Scope | Design constraints for `agents/*.toml` and reference mirrors in `docs/codex/agents/*.md` |
+| Document Role | Master design charter for role prompts; runtime execution follows `plugins/forgeloop/agents/*.toml` |
+| Scope | Design constraints for `plugins/forgeloop/agents/*.toml` and reference mirrors in `docs/codex/agents/*.md` |
 | Non-Goals | Does not replace runtime manifests directly; does not rewrite the mechanism or technical design docs |
 
 ## 0. Document Role
@@ -28,7 +28,7 @@ As a result, this document does not directly answer:
 - how the `coder` runtime manifest should be written line by line
 - how the concrete field templates for `task reviewer / milestone reviewer / initiative reviewer` should be written
 
-Those belong in `agents/*.toml`; `docs/codex/agents/*.md` should remain reference mirrors for design traceability and navigation, not a second editable truth source.
+Those belong in `plugins/forgeloop/agents/*.toml`; `docs/codex/agents/*.md` should remain reference mirrors for design traceability and navigation, not a second editable truth source.
 
 ## 1. Three Shared Pathologies The Role Prompt System Must Resist
 
@@ -257,14 +257,14 @@ But each one should inherit and operationalize the three pathologies from this c
 
 After this charter, concrete role docs should land directly in:
 
-- `agents/planner.toml`
-- `agents/design_reviewer.toml`
-- `agents/gap_reviewer.toml`
-- `agents/plan_reviewer.toml`
-- `agents/coder.toml`
-- `agents/task_reviewer.toml`
-- `agents/milestone_reviewer.toml`
-- `agents/initiative_reviewer.toml`
+- `plugins/forgeloop/agents/planner.toml`
+- `plugins/forgeloop/agents/design_reviewer.toml`
+- `plugins/forgeloop/agents/gap_reviewer.toml`
+- `plugins/forgeloop/agents/plan_reviewer.toml`
+- `plugins/forgeloop/agents/coder.toml`
+- `plugins/forgeloop/agents/task_reviewer.toml`
+- `plugins/forgeloop/agents/milestone_reviewer.toml`
+- `plugins/forgeloop/agents/initiative_reviewer.toml`
 
 If design traceability is still desired, keep lightweight reference mirrors:
 
