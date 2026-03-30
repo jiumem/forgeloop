@@ -354,10 +354,8 @@ Ready to implement milestone MS-001 for Initiative INIT-001
 ## Integration
 
 **Called by:**
-- **brainstorming** - Use when approved work should move into an isolated implementation workspace
-- **task-loop** - REQUIRED before executing any tasks
-- **flat-tasks-loop** - REQUIRED before executing any tasks
-- Any skill needing isolated workspace
+- **run-initiative** - REQUIRED before entering `task-loop`, `milestone-loop`, or `initiative-loop` when execution needs an isolated workspace
+- Any execution-side skill needing isolated workspace
 
 **Pairs with:**
-- **finishing-a-development-branch** - REQUIRED for cleanup after work complete
+- **rebuild-runtime** - Use after workspace recovery only when the runtime control plane itself cannot be resumed directly

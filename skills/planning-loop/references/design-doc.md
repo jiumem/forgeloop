@@ -119,7 +119,7 @@
 - `6.1 已封板决策（Sealed Decisions）`：记录已经形式封板的决策；不要在这里重新定义实现自由度边界，必要时引用 `5.4`
 - `6.2 被否定方案（Rejected Alternatives）`：只记录那些下游角色可能会重新打开的现实备选方案
 - `6.3 为什么胜出切法会赢（Why The Winning Cut Wins）`：解释为什么当前切法是在当前主要矛盾下最好的结构选择
-- 不要保留 brainstorming 历史或纯风格偏好争论
+- 不要保留前期讨论历史或纯风格偏好争论
 
 ### 7. 正确性表面（Correctness Surface）
 

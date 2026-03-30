@@ -1,6 +1,6 @@
 # Forgeloop Custom Agents
 
-Forgeloop 0.2.0 ships a small, explicit set of custom agent source manifests under `agents/`.
+Forgeloop 0.3.0 ships a small, explicit set of custom agent source manifests under `agents/`.
 
 These agents are the stable role layer for the built-in workflow skills. They are intentionally narrow. The skill decides when to dispatch them and binds the formal input surface; the custom agent defines how that role should think and what it should return.
 
@@ -29,13 +29,6 @@ All Forgeloop custom agents default to `gpt-5.4` with `high` reasoning effort. M
 - Purpose: execute the formal Gap Analysis Doc review, write only to the active `Gap Rolling Doc`, and judge whether gap closure is factually grounded and ready to advance
 - Returns: Gap-stage formal review result in the active `Gap Rolling Doc`
 
-### `design_challenger`
-
-- Stage: pre-planning design review
-- Used by: `brainstorming`
-- Purpose: stress-test a design brief or design draft before it moves into planning
-- Returns: `Design Critique` with `blocking | major | minor` findings
-
 ### `plan_reviewer`
 
 - Stage: Total-task-stage formal review inside planning
@@ -49,13 +42,6 @@ All Forgeloop custom agents default to `gpt-5.4` with `high` reasoning effort. M
 - Used by: `task-loop`, `milestone-loop`, `initiative-loop`
 - Purpose: act as the single continuous coding owner, execute `G1` / `G2` / `G3` as assigned, and append coder facts to the active rolling doc
 - Returns: formal coder and gate facts in the active rolling doc
-
-### `code_reviewer`
-
-- Stage: implementation review
-- Used by: `requesting-code-review`
-- Purpose: review production readiness, test quality, regressions, and maintainability for the provided review scope
-- Returns: strengths, findings by severity, and a readiness assessment for the reviewed scope
 
 ### `task_reviewer`
 
@@ -88,4 +74,4 @@ All Forgeloop custom agents default to `gpt-5.4` with `high` reasoning effort. M
 
 ## Current Contract
 
-The current Forgeloop custom agent set includes ten agents. If a workflow needs another named role, add it explicitly under `agents/`, wire it from the relevant skill, and extend the repository self-checks in `tests/codex/verify-codex-only.sh`.
+The current Forgeloop custom agent set includes eight agents. If a workflow needs another named role, add it explicitly under `agents/`, wire it from the relevant skill, and extend the repository self-checks in `tests/codex/verify-codex-only.sh`.

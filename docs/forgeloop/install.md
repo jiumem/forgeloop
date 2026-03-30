@@ -2,7 +2,7 @@
 
 Forgeloop is distributed here as a Codex-only skill pack. There are no plugin manifests, marketplace hooks, or secondary platform adapters left in this repository.
 
-`0.2.0` does not require a Python package install step. Clone the repository, install the skills link, and then materialize the suite's agent manifests into each target Codex project.
+`0.3.0` does not require a Python package install step. Clone the repository, install the skills link, and then materialize the suite's agent manifests into each target Codex project.
 
 ## Install
 

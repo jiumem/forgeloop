@@ -37,79 +37,81 @@ Run all `codex exec` checks against that temporary directory with `-C "$tmpdir"`
 
 ## Verification Cases
 
-### 1. Startup Skill
+### 1. Planning Entry
 
 Prompt:
 
 ```text
-Use the using-forgeloop skill. Reply with exactly the sentence inside the SUBAGENT-STOP block and nothing else.
+Use the run-planning skill. Reply with exactly the internal stage skill name that it dispatches and nothing else.
 ```
 
 Expected result:
 
 ```text
-If you were dispatched as a subagent to execute a specific task, skip this skill.
+planning-loop
 ```
 
 Pass criteria:
 
 - the response matches exactly
-- Codex logs show it read `~/.codex/forgeloop/skills/using-forgeloop/SKILL.md`
+- Codex logs show it read `~/.codex/forgeloop/skills/run-planning/SKILL.md`
 
-### 2. Brainstorming Gate
+### 2. Planning Stage Author
 
 Prompt:
 
 ```text
-Use the brainstorming skill. Reply with one sentence describing the hard gate in that skill, with no bullet points.
+Use the planning-loop skill. Reply with exactly the continuous planning author role name that this skill dispatches.
 ```
 
 Expected result:
 
-- the reply clearly states that no implementation work may begin until a design has been presented and approved
+```text
+planner
+```
 
 Pass criteria:
 
-- the answer reflects the hard gate from the skill
-- Codex logs show it read `~/.codex/forgeloop/skills/brainstorming/SKILL.md`
+- the response is exactly `planner`
+- Codex logs show it read `~/.codex/forgeloop/skills/planning-loop/SKILL.md`
 
-### 3. Writing Plans Skill
+### 3. Runtime Recovery Dispatch
 
 Prompt:
 
 ```text
-Use the writing-plans skill. Reply with exactly the required sub-skill name that plan headers must mention for agentic workers.
+Use the run-initiative skill. Reply with exactly the recovery skill name it calls when runtime state is missing or conflicts with formal docs.
 ```
 
 Expected result:
 
 ```text
-forgeloop:task-loop
+rebuild-runtime
 ```
 
 Pass criteria:
 
 - the response is exactly that skill name
-- Codex logs show it read `~/.codex/forgeloop/skills/writing-plans/SKILL.md`
+- Codex logs show it read `~/.codex/forgeloop/skills/run-initiative/SKILL.md`
 
-### 4. Code Review Dispatch
+### 4. Task Review Dispatch
 
 Prompt:
 
 ```text
-Use the requesting-code-review skill. Reply with exactly the custom agent name that this skill dispatches.
+Use the task-loop skill. Reply with exactly the custom reviewer agent name it dispatches for Task formal review.
 ```
 
 Expected result:
 
 ```text
-code_reviewer
+task_reviewer
 ```
 
 Pass criteria:
 
-- the response is exactly `code_reviewer`
-- Codex logs show it read `~/.codex/forgeloop/skills/requesting-code-review/SKILL.md`
+- the response is exactly `task_reviewer`
+- Codex logs show it read `~/.codex/forgeloop/skills/task-loop/SKILL.md`
 
 ## Example Commands
 
@@ -118,16 +120,16 @@ tmpdir=$(mktemp -d)
 git init -q "$tmpdir"
 
 codex exec -C "$tmpdir" --sandbox read-only --skip-git-repo-check \
-  'Use the using-forgeloop skill. Reply with exactly the sentence inside the SUBAGENT-STOP block and nothing else.'
+  'Use the run-planning skill. Reply with exactly the internal stage skill name that it dispatches and nothing else.'
 
 codex exec -C "$tmpdir" --sandbox read-only --skip-git-repo-check \
-  'Use the brainstorming skill. Reply with one sentence describing the hard gate in that skill, with no bullet points.'
+  'Use the planning-loop skill. Reply with exactly the continuous planning author role name that this skill dispatches.'
 
 codex exec -C "$tmpdir" --sandbox read-only --skip-git-repo-check \
-  'Use the writing-plans skill. Reply with exactly the required sub-skill name that plan headers must mention for agentic workers.'
+  'Use the run-initiative skill. Reply with exactly the recovery skill name it calls when runtime state is missing or conflicts with formal docs.'
 
 codex exec -C "$tmpdir" --sandbox read-only --skip-git-repo-check \
-  'Use the requesting-code-review skill. Reply with exactly the custom agent name that this skill dispatches.'
+  'Use the task-loop skill. Reply with exactly the custom reviewer agent name it dispatches for Task formal review.'
 ```
 
 ## Release Interpretation
@@ -138,7 +140,6 @@ Release confidence is high when:
 
 - install smoke test passes
 - codex-only repository check passes
-- brainstorm server integration test passes
 - this manual Codex E2E checklist passes in a fresh session
 
 ## Common Failure Modes

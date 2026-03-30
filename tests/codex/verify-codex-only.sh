@@ -9,13 +9,28 @@ expected_agents=(
   planner
   design_reviewer
   gap_reviewer
-  design_challenger
   plan_reviewer
   coder
   task_reviewer
   milestone_reviewer
   initiative_reviewer
-  code_reviewer
+)
+
+unexpected_paths=(
+  skills/brainstorming
+  skills/dispatching-parallel-agents
+  skills/finishing-a-development-branch
+  skills/flat-tasks-loop
+  skills/receiving-code-review
+  skills/requesting-code-review
+  skills/systematic-debugging
+  skills/test-driven-development
+  skills/using-forgeloop
+  skills/verification-before-completion
+  skills/writing-plans
+  agents/design_challenger.toml
+  agents/code_reviewer.toml
+  tests/brainstorm-server
 )
 
 for path in \
@@ -46,6 +61,13 @@ if [ ! -f "scripts/install.sh" ]; then
   echo "missing install script: scripts/install.sh"
   exit 1
 fi
+
+for path in "${unexpected_paths[@]}"; do
+  if [ -e "$path" ]; then
+    echo "unexpected legacy path remains: $path"
+    exit 1
+  fi
+done
 
 for agent in "${expected_agents[@]}"; do
   agent_path="agents/${agent}.toml"
@@ -85,8 +107,6 @@ while IFS=':' read -r file agent; do
     exit 1
   fi
 done <<'EOF'
-skills/brainstorming/SKILL.md:design_challenger
-skills/brainstorming/design-challenger-prompt.md:design_challenger
 skills/run-planning/SKILL.md:planning-loop
 skills/planning-loop/SKILL.md:planner
 skills/planning-loop/SKILL.md:design_reviewer
@@ -98,7 +118,6 @@ skills/milestone-loop/SKILL.md:coder
 skills/milestone-loop/SKILL.md:milestone_reviewer
 skills/initiative-loop/SKILL.md:coder
 skills/initiative-loop/SKILL.md:initiative_reviewer
-skills/requesting-code-review/SKILL.md:code_reviewer
 EOF
 
 if [ ! -f "docs/forgeloop/agents.md" ]; then

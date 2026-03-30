@@ -2,7 +2,7 @@
 
 Run all checks from the repository root.
 
-For `0.2.0`, the release gate is the Codex workflow and brainstorm-server checks below. There is no Python package build, lint, or typecheck gate for this version.
+For `0.3.0`, the release gate is the Codex workflow checks below. There is no Python package build, lint, or typecheck gate for this version.
 
 ## 1. Install script smoke test
 
@@ -24,17 +24,7 @@ This fails if removed platform files come back or if the remaining runtime docs 
 It also checks that the suite's custom agent source manifests under `agents/` are present and declare the required fields.
 It also checks that every shipped workflow dispatch file points at a declared custom agent, so new agent roles cannot be added half-way.
 
-## 3. Brainstorm server integration test
-
-```bash
-cd tests/brainstorm-server
-pnpm install
-node server.test.js
-```
-
-This verifies the browser companion server still serves pages, injects helper code, records user events, and broadcasts reloads.
-
-## 4. Manual Codex E2E verification
+## 3. Manual Codex E2E verification
 
 Use the release checklist in [docs/forgeloop/e2e-codex.md](docs/forgeloop/e2e-codex.md).
 
