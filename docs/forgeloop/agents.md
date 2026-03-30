@@ -8,6 +8,27 @@ All Forgeloop custom agents default to `gpt-5.4` with `high` reasoning effort. M
 
 ## Shipped Agent Set
 
+### `planner`
+
+- Stage: planning authoring
+- Used by: `run-planning` via `planning-loop`
+- Purpose: act as the single continuous planning owner, write and repair the current `Design Doc`, optional `Gap Analysis Doc`, or `Total Task Doc`, and append planner facts to the active planning rolling doc
+- Returns: formal planner facts and current document refs in the active planning rolling doc
+
+### `design_reviewer`
+
+- Stage: Design-stage formal review inside planning
+- Used by: `run-planning` via `planning-loop`
+- Purpose: execute the formal Design Doc review, write only to the active `Design Rolling Doc`, and judge whether design closure is structurally sound and ready to advance
+- Returns: Design-stage formal review result in the active `Design Rolling Doc`
+
+### `gap_reviewer`
+
+- Stage: Gap-stage formal review inside planning
+- Used by: `run-planning` via `planning-loop`
+- Purpose: execute the formal Gap Analysis Doc review, write only to the active `Gap Rolling Doc`, and judge whether gap closure is factually grounded and ready to advance
+- Returns: Gap-stage formal review result in the active `Gap Rolling Doc`
+
 ### `design_challenger`
 
 - Stage: pre-planning design review
@@ -17,10 +38,10 @@ All Forgeloop custom agents default to `gpt-5.4` with `high` reasoning effort. M
 
 ### `plan_reviewer`
 
-- Stage: plan validation
-- Used by: `writing-plans`
-- Purpose: verify the implementation plan is complete, aligned to the spec, and executable without an engineer getting stuck
-- Returns: `Plan Review`
+- Stage: Total-task-stage formal review inside planning
+- Used by: `run-planning` via `planning-loop`
+- Purpose: execute the formal `Total Task Doc` review, write only to the active `Plan Rolling Doc`, and judge whether the execution map is structurally complete and ready to seal
+- Returns: Plan-stage formal review result in the active `Plan Rolling Doc`
 
 ### `coder`
 
@@ -65,6 +86,6 @@ All Forgeloop custom agents default to `gpt-5.4` with `high` reasoning effort. M
 - Do not add agents that duplicate an existing role with different wording
 - Do not use a custom agent when a built-in `default`, `worker`, or `explorer` agent is enough
 
-## 0.2.0 Contract
+## Current Contract
 
-For 0.2.0, these seven agents are the official Forgeloop custom agent set. If a workflow needs another named role, add it explicitly under `agents/`, wire it from the relevant skill, and extend the repository self-checks in `tests/codex/verify-codex-only.sh`.
+The current Forgeloop custom agent set includes ten agents. If a workflow needs another named role, add it explicitly under `agents/`, wire it from the relevant skill, and extend the repository self-checks in `tests/codex/verify-codex-only.sh`.

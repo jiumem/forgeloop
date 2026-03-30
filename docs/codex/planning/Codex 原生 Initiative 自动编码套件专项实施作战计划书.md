@@ -195,7 +195,7 @@ R0 / MVP Alpha
 
 | 能力组 | 目标 | 典型 skills / 组件 |
 | --- | --- | --- |
-| 控制面 | 解析、重建、调度、恢复 | `run-initiative`、`planning-preflight`、`rebuild-runtime`、`select-frontier` |
+| 控制面 | 规划侧调度、规划输入准入、解析、重建、调度、恢复 | `run-planning`、`planning-loop`、`run-initiative`、`rebuild-runtime`、`select-frontier` |
 | Task Core | Task 内执行与正式 Task 收口 | `task-loop`、`g1-task-gate`、`cut-anchor`、`r1-task-review` |
 | Milestone Seal | PR 与阶段正式收口 | `open-milestone-pr`、`g2-milestone-gate`、`r2-milestone-review` |
 | Initiative Seal | 交付候选与总体正式收口 | `g3-initiative-gate`、`r3-initiative-review` |
@@ -235,8 +235,8 @@ R0 / MVP Alpha
 交付最小可运行主链：
 
 ```text
-Initiative 文档
-  -> planning_preflight
+run_initiative
+  -> planning admission check
   -> rebuild_runtime
   -> select_frontier
   -> select_ready_tasks
@@ -245,6 +245,8 @@ Initiative 文档
   -> anchor / fixup
   -> R1
 ```
+
+这里的 planning admission check 只是 `run-initiative` 内部的一段执行侧 control plane 准入检查，不是独立 skill，也不是规划循环主链的最后一个 authoring 节点。
 
 **这一版的用户承诺**
 
@@ -408,7 +410,7 @@ all milestones MERGED
 
 `PR-02`：runtime rebuild 与 scheduler
 
-- 目标：实现 `planning_preflight()`、`rebuild_initiative_state()`、`select_frontier()`、`select_ready_tasks()`
+- 目标：在 `run-initiative` 内部实现 planning admission check，并实现 `rebuild_initiative_state()`、`select_frontier()`、`select_ready_tasks()`
 - 依赖：`PR-01`
 - 验收：可从 plan 与现有 artifacts 重建 state
 

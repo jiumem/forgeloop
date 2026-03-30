@@ -22,7 +22,7 @@ Forgeloop is built from a customized adaptation of [obra/superpowers](https://gi
 
 These skills are meant to be mandatory workflow constraints, not optional suggestions.
 
-The suite's custom agent manifests live in [`agents/`](agents). They now cover the runtime workflow roles `coder`, `task_reviewer`, `milestone_reviewer`, and `initiative_reviewer`, plus auxiliary roles such as `design_challenger`, `plan_reviewer`, and `code_reviewer`. The installer materializes them into a target project's `.codex/agents/`.
+The suite's custom agent manifests live in [`agents/`](agents). They now cover the planning roles `planner`, `design_reviewer`, `gap_reviewer`, and `plan_reviewer`, the runtime workflow roles `coder`, `task_reviewer`, `milestone_reviewer`, and `initiative_reviewer`, plus auxiliary roles such as `design_challenger` and `code_reviewer`. The installer materializes them into a target project's `.codex/agents/`.
 
 ## Installation
 
@@ -53,6 +53,8 @@ The shipped custom agent set is documented in [docs/forgeloop/agents.md](docs/fo
 **Planning and execution**
 - `using-forgeloop`
 - `brainstorming`
+- `run-planning`
+- `planning-loop` (internal planning stage skill)
 - `writing-plans`
 - `run-initiative`
 - `task-loop`

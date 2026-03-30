@@ -97,8 +97,8 @@ skill 不适合承载：
 
 在本项目中，典型应做成 skill 的包括：
 
+- `run-planning`
 - `run-initiative`
-- `planning-preflight`
 - `task-loop`
 - `g1-task-gate`
 - `cut-anchor`
@@ -151,6 +151,7 @@ skill 负责组织这些角色，角色本身不应反向替代 skill。
 - 只是某个大 skill 的一步，且无法独立复用
 - 只是 prompt 片段，没有明确工作流边界
 - 只是把一个 shell 命令包装成一个目录
+- 只是某个 control-plane skill 内部的一段 admission / validation 检查，例如 `run-initiative` 内部的 planning admission check
 
 ## 3. skill 分类体系
 
@@ -166,8 +167,8 @@ skill 负责组织这些角色，角色本身不应反向替代 skill。
 
 典型 skills：
 
+- `run-planning`
 - `run-initiative`
-- `planning-preflight`
 - `rebuild-runtime`
 - `select-frontier`
 - `replay-runtime`
@@ -768,7 +769,6 @@ skill 可以生成或消费本地派生缓存，但必须遵守：
 
 `R0` 只应建设最小核心集：
 
-- `planning-preflight`
 - `rebuild-runtime`
 - `run-initiative`
 - `task-loop`
@@ -808,3 +808,6 @@ skill 可以生成或消费本地派生缓存，但必须遵守：
 用一句话概括：
 
 > **本项目的 skill 体系，不追求数量，而追求边界清晰、合同稳定、可测试、可发版。**
+
+planning preflight 应视为 `run-initiative` 内部的 execution control plane step。
+它负责接纳或拒绝 sealed planning docs 进入 runtime，不单独建成 skill，也不属于 planning authoring 主链。

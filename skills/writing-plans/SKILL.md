@@ -110,19 +110,13 @@ git commit -m "feat: add specific feature"
 - Reference relevant skills by exact skill name
 - DRY, YAGNI, TDD, frequent commits
 
-## Plan Review Loop
+## Review Boundary
 
-After writing the complete plan:
+`writing-plans` does not dispatch `plan_reviewer`.
 
-1. Dispatch a single `plan_reviewer` custom agent (see plan-document-reviewer-prompt.md) with precisely crafted review context — never your session history. This keeps the reviewer focused on the plan, not your thought process.
-   - Provide: path to the plan document, path to spec document
-2. If ❌ Issues Found: fix the issues, re-dispatch reviewer for the whole plan
-3. If ✅ Approved: proceed to execution handoff
+Formal `Total Task Doc` review now belongs exclusively to `run-planning`, where the internal `planning-loop` stage skill lets `plan_reviewer` write only to the active `Plan Rolling Doc` against the sealed planning truth surface.
 
-**Review loop guidance:**
-- Same agent that wrote the plan fixes it (preserves context)
-- If loop exceeds 3 iterations, surface to human for guidance
-- Reviewers are advisory — explain disagreements if you believe feedback is incorrect
+Do not reuse `plan_reviewer` from this skill, and do not simulate a shadow review loop here.
 
 ## Execution Handoff
 

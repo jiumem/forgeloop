@@ -1,0 +1,174 @@
+---
+name: planning-loop
+description: Internal planning stage skill used by `run-planning` when one confirmed stage needs formal authoring or repair of a `Design Doc`, optional `Gap Analysis Doc`, or `Total Task Doc`; this skill dispatches the `planner` for the active planning stage and maintains the minimum planning control plane
+---
+
+# Planning Loop
+
+`planning-loop` is the internal second-layer planning stage skill under `run-planning`. It handles only one confirmed planning stage for one Initiative. Here you act as the planning-stage `Supervisor`: maintain the minimum control plane, keep a single `planner_slot`, dispatch the same `planner` across authoring rounds, and decide only whether the current stage should continue repair, hand off for review, escalate upward for judgment, or stop.
+
+This skill is single-stage per dispatch. If a clean review routes the Initiative to another planning stage, write that cross-stage route into the `Planning State Doc`, stop, and let the next `run-planning` activation re-bind the new active stage and dispatch `planning-loop` explicitly. Do not silently continue across stage boundaries inside the same activation.
+
+This v0 skill establishes the formal dispatch surface for `planner`, `design_reviewer`, `gap_reviewer`, and `plan_reviewer`.
+
+## Stage Reference Binding
+
+Each planning stage must bind exactly one canonical `stage_reference_ref`.
+
+- `Design Doc` -> `references/design-doc.md`
+- `Gap Analysis Doc` -> `references/gap-analysis.md`
+- `Total Task Doc` -> `references/total-task-doc.md`
+
+The formal value of `stage_reference_ref` should be a path relative to the current skill root. Do not store it as a shell-cwd-relative path or a repository-root-relative path. If a concrete dispatch mechanism needs an absolute filesystem path at send time, it may materialize one from the same canonical skill-root-relative ref, but the rolling doc contract should keep the skill-root-relative form as the durable truth.
+
+`stage_reference_ref` belongs to the active planning rolling doc's contract snapshot, not to the `Planning State Doc`.
+
+The active rolling doc contract snapshot is the formal bridge between the workflow layer and subagents. `planner` and the current stage reviewer must receive `stage_reference_ref` explicitly in every dispatch packet; they must not rely on discovering references from directory layout or session memory.
+
+## Shared Rolling Doc Contract
+
+Every planning stage also binds the same canonical `rolling_doc_contract_ref`.
+
+- shared planning rolling-doc contract -> `references/planning-rolling-doc.md`
+
+The formal value of `rolling_doc_contract_ref` should be a path relative to the current skill root.
+
+`rolling_doc_contract_ref` belongs to the active planning rolling doc's contract snapshot, not to the `Planning State Doc`.
+
+The stage reference controls artifact shape and stage-local judgment. The shared rolling-doc contract controls communication-plane shape, block legality, round law, handoff law, and stale-result handling.
+
+## Stage Reviewer Binding
+
+- `Design Doc` -> `design_reviewer`
+- `Gap Analysis Doc` -> `gap_reviewer`
+- `Total Task Doc` -> `plan_reviewer`
+
+## Truth Sources And Hard Boundaries
+
+The formal planning input surface contains only:
+
+- the current requirement baseline or `design draft`
+- the `Planning State Doc`
+- the active planning rolling doc for the current stage
+- the current formal planning artifact, if it already exists
+- any already sealed upstream planning artifacts for the same Initiative
+- repo facts, implementation facts, constraint facts, and the stage-specific reference required by the current stage
+
+Hard boundaries:
+
+- only `planner` may write the current planning artifact and append planner-owned blocks to the active planning rolling doc
+- `planning-loop` may update only the `Planning State Doc`, plus rolling-doc header / contract-snapshot initialization when the current stage rolling doc does not yet exist
+- do not write review body text, code, or runtime control-plane state from this skill
+- if the active stage, active artifact, or active owner changes, record that transition in the `Planning State Doc`
+- if the active planning rolling doc does not exist, initialize only the header, including object identity and `planner_slot`, plus `planning_contract_snapshot`
+- `planning_contract_snapshot` must include at least: `stage`, `artifact_ref`, `stage_reference_ref`, `rolling_doc_contract_ref`, and the relevant upstream planning artifact refs
+- every `planner` dispatch and every formalized stage-reviewer dispatch must carry the same bound `stage_reference_ref` and `rolling_doc_contract_ref` explicitly
+- `Gap Analysis Requirement` becomes single-source planning truth only after `Design Doc` seals; once sealed, downstream planning must route from that line instead of re-inferring requirement from chat memory or loose Initiative labels
+- if the planning inputs conflict or the current stage cannot be confirmed uniquely, stop and ask for clarification instead of improvising a new planning object
+
+## Workflow
+
+1. Bind the current planning stage
+- Read the requirement or `design draft`, the `Planning State Doc`, the active planning rolling doc when it exists, the current stage artifact when it exists, and the minimum repo facts needed to confirm the stage boundary
+- Bind the canonical `stage_reference_ref` for the active stage before dispatch
+- Bind the canonical `rolling_doc_contract_ref` before dispatch
+- Confirm that the Initiative and active stage are unique, the formal artifact path is known, the rolling doc path is known or can be initialized uniquely, `planner_slot` is unique, the current stage-local `round` is unique, `stage_reference_ref` is uniquely confirmed, and `rolling_doc_contract_ref` is uniquely confirmed
+- If the active stage has no canonical stage reference formalized in the repository yet, stop and surface that blocker explicitly
+- If the `Planning State Doc` conflicts with the rolling doc, the active artifact, the bound `stage_reference_ref`, or the bound `rolling_doc_contract_ref`, stop and hand control back to the caller
+- If the rolling doc does not exist, initialize only the header, including object identity and `planner_slot`, plus `planning_contract_snapshot`
+
+2. Update the minimum planning control plane
+- `current_snapshot` points to the current Initiative, active stage, active artifact path, rolling doc path, `planner_slot`, and the current stage-local `round`
+- `next_action` must stay inside the formal planning-stage state space for this Initiative: planner repair, reviewer handoff, supervisor routing between planning stages, sealed planning output, or waiting / blocked stop states
+- `last_transition` records entering, resuming, or reassigning the current planning stage when needed
+- `round` is stage-local and supervisor-owned through the `Planning State Doc`; `planner` and reviewers only echo it in the rolling doc and must not advance it on their own
+- open a new round only when entering a stage for the first time, re-entering the same stage after review-requested changes, or reopening an earlier sealed stage
+- Do not write planner body text into the `Planning State Doc`
+
+3. Dispatch the `planner`
+- Keep only one logical `planner_slot` for the current planning stage
+- Reuse the same `planner` thread when possible; if the physical thread is lost, you may assign a successor agent but must preserve the same `planner_slot`
+- Default to `fork_context=false`
+- The planner input must explicitly carry: active stage identity, requirement or `design draft`, the `Planning State Doc` path, the active planning rolling doc path, the current artifact path, the current `round`, the bound `stage_reference_ref`, the bound `rolling_doc_contract_ref`, and any sealed upstream planning artifacts
+- The planner reads artifact-shape rules from `stage_reference_ref` and communication-plane rules from `rolling_doc_contract_ref`; do not inline or restate the full reference text in the dispatch packet unless a referenced file is missing or unreadable
+
+4. Handle the planner result
+- Decide only from the active planning rolling doc and formal planning artifacts, not from chat summaries
+- The current reviewer handoff is the latest stage-local `*_ref` block for the current round
+- A reviewer result is actionable only when its `round`, `handoff_id`, and `review_target_ref` match that current handoff exactly; stale or mismatched review results remain history and must not drive routing
+- If the latest `planner_update` still shows unresolved issues with `next_action=repair`, let the same `planner_slot` continue inside the same stage
+- If the latest `planner_update` is review-ready and the active stage is `Design Doc`, switch `next_action` to reviewer handoff and dispatch `design_reviewer` with the same `stage_reference_ref`, the same `rolling_doc_contract_ref`, the current `round`, the current `handoff_id`, and the current `review_target_ref`
+- If the latest `planner_update` is review-ready and the active stage is `Gap Analysis Doc`, switch `next_action` to reviewer handoff and dispatch `gap_reviewer` with the same `stage_reference_ref`, the same `rolling_doc_contract_ref`, the current `round`, the current `handoff_id`, and the current `review_target_ref`
+- If the latest `planner_update` is review-ready and the active stage is `Total Task Doc`, switch `next_action` to reviewer handoff and dispatch `plan_reviewer` with the same `stage_reference_ref`, the same `rolling_doc_contract_ref`, the current `round`, the current `handoff_id`, and the current `review_target_ref`
+- If `needs_upstream_judgment` or `blocked_on` is present, update the `Planning State Doc` to a waiting or blocked stop state, then stop
+
+5. Handle the `design_reviewer` result
+- Decide only from the active `Design Rolling Doc` and the formal `Design Doc`, not from chat summaries
+- If the latest actionable `design_review_result` has `verdict=clean`, `seal_status=sealed`, and `next_action=ready_for_supervisor_routing`, route from the supervisor layer: keep the sealed `Design Doc` as the completed stage truth, read the explicit `Gap Analysis Requirement` from that sealed `Design Doc`, switch `next_action` to `advance_to_gap_analysis` when that line is `required`, otherwise `advance_to_total_task_doc`, then stop so the next `run-planning` activation can re-bind the next active stage explicitly
+- If the sealed `Design Doc` lacks an explicit `Gap Analysis Requirement` line, stop and surface the illegal stage truth explicitly instead of inferring route intent
+- If the latest actionable `design_review_result` includes `upstream_reopen_recommendation`, stop and surface the illegal review output explicitly because `Design Doc` has no earlier planning stage
+- If the latest actionable `design_review_result` has `verdict=changes_requested`, `seal_status=not_sealed`, and `next_action=continue_design_repair`, increment the design-stage `round` in the `Planning State Doc`, switch `next_action` back to design repair, and keep the same `planner_slot`
+- If the latest actionable `design_review_result` has `verdict=changes_requested`, `seal_status=not_sealed`, and `next_action=wait_for_upstream_judgment`, update the `Planning State Doc` to a waiting stop state, then stop
+- If the latest actionable `design_review_result` has `verdict=changes_requested`, `seal_status=not_sealed`, and `next_action=stop_on_blocker`, update the `Planning State Doc` to a blocked stop state, then stop
+- If the latest actionable `design_review_result` lacks explicit `seal_status`, or carries any other contradictory review state combination, stop and surface the illegal review output explicitly instead of inferring intent
+
+6. Handle the `gap_reviewer` result
+- Decide only from the active `Gap Rolling Doc` and the formal `Gap Analysis Doc`, not from chat summaries
+- If the latest actionable `gap_review_result` has `verdict=clean`, `seal_status=sealed`, and `next_action=ready_for_supervisor_routing`, route from the supervisor layer: keep the sealed `Gap Analysis Doc` as the completed stage truth, switch `next_action` to `advance_to_total_task_doc`, then stop so the next `run-planning` activation can re-bind the next active stage explicitly
+- If the latest actionable `gap_review_result` has `verdict=changes_requested`, `seal_status=not_sealed`, `next_action=wait_for_upstream_judgment`, and `upstream_reopen_recommendation.target_stage=Design Doc`, route from the supervisor layer: switch `next_action` to `reopen_to_design`, record that cross-stage reopen route in the `Planning State Doc`, then stop so the next `run-planning` activation can re-bind `Design Doc` explicitly
+- If the latest actionable `gap_review_result` has `verdict=changes_requested`, `seal_status=not_sealed`, and `next_action=continue_gap_repair`, increment the gap-stage `round` in the `Planning State Doc`, switch `next_action` back to gap repair, and keep the same `planner_slot`
+- If the latest actionable `gap_review_result` has `verdict=changes_requested`, `seal_status=not_sealed`, and `next_action=wait_for_upstream_judgment`, update the `Planning State Doc` to a waiting stop state, then stop
+- If the latest actionable `gap_review_result` has `verdict=changes_requested`, `seal_status=not_sealed`, and `next_action=stop_on_blocker`, update the `Planning State Doc` to a blocked stop state, then stop
+- If the latest actionable `gap_review_result` carries `upstream_reopen_recommendation` with any target other than `Design Doc`, stop and surface the illegal review output explicitly instead of inferring intent
+- If the latest actionable `gap_review_result` lacks explicit `seal_status`, or carries any other contradictory review state combination, stop and surface the illegal review output explicitly instead of inferring intent
+
+7. Handle the `plan_reviewer` result
+- Decide only from the active `Plan Rolling Doc` and the formal `Total Task Doc`, not from chat summaries
+- If the latest actionable `plan_review_result` has `verdict=clean`, `seal_status=sealed`, and `next_action=ready_for_supervisor_routing`, route from the supervisor layer: switch `next_action` to `sealed_planning_docs_ready`, update the `Planning State Doc` to a sealed-planning-output stop state, then stop
+- If the latest actionable `plan_review_result` has `verdict=changes_requested`, `seal_status=not_sealed`, `next_action=wait_for_upstream_judgment`, and `upstream_reopen_recommendation.target_stage=Gap Analysis Doc`, route from the supervisor layer: switch `next_action` to `reopen_to_gap_analysis`, record that cross-stage reopen route in the `Planning State Doc`, then stop so the next `run-planning` activation can re-bind `Gap Analysis Doc` explicitly
+- If the latest actionable `plan_review_result` has `verdict=changes_requested`, `seal_status=not_sealed`, `next_action=wait_for_upstream_judgment`, and `upstream_reopen_recommendation.target_stage=Design Doc`, route from the supervisor layer: switch `next_action` to `reopen_to_design`, record that cross-stage reopen route in the `Planning State Doc`, then stop so the next `run-planning` activation can re-bind `Design Doc` explicitly
+- If the latest actionable `plan_review_result` has `verdict=changes_requested`, `seal_status=not_sealed`, and `next_action=continue_plan_repair`, increment the plan-stage `round` in the `Planning State Doc`, switch `next_action` back to total-task-doc repair, and keep the same `planner_slot`
+- If the latest actionable `plan_review_result` has `verdict=changes_requested`, `seal_status=not_sealed`, and `next_action=wait_for_upstream_judgment`, update the `Planning State Doc` to a waiting stop state, then stop
+- If the latest actionable `plan_review_result` has `verdict=changes_requested`, `seal_status=not_sealed`, and `next_action=stop_on_blocker`, update the `Planning State Doc` to a blocked stop state, then stop
+- If the latest actionable `plan_review_result` carries `upstream_reopen_recommendation` with any target other than `Design Doc` or `Gap Analysis Doc`, stop and surface the illegal review output explicitly instead of inferring intent
+- If the latest actionable `plan_review_result` lacks explicit `seal_status`, or carries any other contradictory review state combination, stop and surface the illegal review output explicitly instead of inferring intent
+
+## Stop Conditions
+
+Stop immediately and hand control back upstream or to the user when:
+
+- the active planning stage cannot be confirmed uniquely
+- the requirement, `design draft`, or required upstream planning artifacts are missing
+- the active stage has no canonical `stage_reference_ref`
+- the active stage has no canonical `rolling_doc_contract_ref`
+- the `Planning State Doc` conflicts with the active rolling doc, current artifact, bound `stage_reference_ref`, or bound `rolling_doc_contract_ref`
+- the current stage-local `round` or current open `handoff_id` cannot be confirmed uniquely
+- the sealed `Design Doc` lacks an explicit `Gap Analysis Requirement` line when downstream routing depends on it
+- the current stage requires a reviewer contract that is not yet formalized in the repository
+- the planner exposes a real blocker or requests explicit human judgment
+
+## Red Lines
+
+Never:
+
+- dispatch multiple planners concurrently for the same planning stage
+- let `planner` or a reviewer discover the stage reference implicitly from folder layout instead of receiving `stage_reference_ref` explicitly
+- let `planner` or a reviewer discover the shared rolling-doc contract implicitly from folder layout or memory instead of receiving or binding `rolling_doc_contract_ref`
+- let this skill write planner body content into the rolling doc
+- re-decide `Gap Analysis Requirement` from chat summaries or loose Initiative labels after `Design Doc` has sealed it
+- treat a stale or mismatched review result as the current stage truth
+- invent a reviewer contract that does not exist in the repository
+- continue into runtime execution from this skill
+- create a second planning state model outside the `Planning State Doc` and active planning rolling doc
+
+## Completion Criteria
+
+On correct completion, all of the following should be true:
+
+- the current planning stage can be recovered uniquely from the `Planning State Doc` and active planning rolling doc
+- `planner_slot` continuity is unambiguous
+- stage-local `round` continuity is unambiguous
+- the current rolling doc contract snapshot binds one unambiguous `stage_reference_ref` and one unambiguous `rolling_doc_contract_ref`
+- the current actionable `handoff_id` can be recovered uniquely whenever the stage is in reviewer handoff or review-result state
+- the current artifact is either still in repair, formally ready for review handoff, explicitly stopped on upstream judgment, stopped on an explicit cross-stage route to the next planning stage, or formally sealed as planning output
+- no second planning truth source has been created outside the formal planning docs

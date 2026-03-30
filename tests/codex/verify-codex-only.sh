@@ -6,6 +6,9 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 
 expected_agents=(
+  planner
+  design_reviewer
+  gap_reviewer
   design_challenger
   plan_reviewer
   coder
@@ -84,8 +87,11 @@ while IFS=':' read -r file agent; do
 done <<'EOF'
 skills/brainstorming/SKILL.md:design_challenger
 skills/brainstorming/design-challenger-prompt.md:design_challenger
-skills/writing-plans/SKILL.md:plan_reviewer
-skills/writing-plans/plan-document-reviewer-prompt.md:plan_reviewer
+skills/run-planning/SKILL.md:planning-loop
+skills/planning-loop/SKILL.md:planner
+skills/planning-loop/SKILL.md:design_reviewer
+skills/planning-loop/SKILL.md:gap_reviewer
+skills/planning-loop/SKILL.md:plan_reviewer
 skills/task-loop/SKILL.md:coder
 skills/task-loop/SKILL.md:task_reviewer
 skills/milestone-loop/SKILL.md:coder

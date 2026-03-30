@@ -6,7 +6,7 @@
 > **定位**：Agent 编程项目的正式规划法
 > **适用范围**：大任务、强规划、快开发、分层验证与审查的软件工程项目
 > **不适用范围**：一次性脚本、短期实验、无需主干收敛与发布纪律的临时代码
-> **核心目标**：把真实需求在进入实现前，压缩为一份**单篇总任务文档**；该文档应同时具备**执行对象、动态编排、集成路径、验收矩阵与风险账本**，作为后续 Planner / Coder / Reviewer 与 Codex 执行循环的合法输入
+> **核心目标**：把真实需求在进入实现前，串行定稿为一组正式 planning docs：`Design Doc`、条件性的 `Gap Analysis Doc` 与作为执行入口的**单篇总任务文档**；其中总任务文档应同时具备**执行对象、集成路径、验收矩阵与风险账本**，作为后续 Planner / Coder / Reviewer 与 Codex 执行循环的合法输入
 
 ---
 
@@ -14,9 +14,9 @@
 
 本文档只回答一个问题：
 
-> **如何把一个需求，规划成一份正式的总任务文档。**
+> **如何把一个需求，规划成一组正式 planning docs，并最终形成合法的总任务文档。**
 
-这里的“总任务文档”不是待办清单，不是产品 PRD，也不是设计说明的简写版。它是一个已经承接了前置裁决结果的**执行总图**。没有这张总图，后续实现再快，也只会把局部正确堆成系统性熵增。
+这里的“总任务文档”不是待办清单，不是产品 PRD，也不是设计说明的简写版。它是一个已经承接了前置裁决结果的**执行总图**。而在它之前，规划循环还必须先形成 `Design Doc` 与条件性的 `Gap Analysis Doc`。没有这组 planning docs，后续实现再快，也只会把局部正确堆成系统性熵增。
 
 本文档与上位文档的关系必须先钉死：
 
@@ -24,7 +24,7 @@
 | ---------- | ---- | ------------------------------------------------------------------ |
 | **执行模型法典** | 上位宪法 | 本文档只继承，不重定义 Initiative / Milestone / Task / PR / Gate / Review 的法位 |
 | **核心术语表**  | 上位词典 | 本文档只使用，不重新发明术语                                                     |
-| **本规划模型**  | 规划法  | 定义“如何从前置设计进入总任务文档”                                                 |
+| **本规划模型**  | 规划法  | 定义“如何从需求与 design draft 串行定稿出 planning docs，并进入总任务文档”          |
 
 因此，本文档**不讨论**以下内容：
 
@@ -42,21 +42,24 @@
 
 整套规划模型可以压缩为一句话：
 
-> **规划不是列待办，而是形成一份单篇总任务文档。**
+> **规划不是列待办，而是串行定稿出一组 planning docs；其中总任务文档是执行总图。**
 
 这份文档必须把一个已完成前置裁决的需求，压缩成如下执行结构：
 
-> **Initiative → Milestone 总表 → Workstream → Task Ledger → 分支与 PR 集成路径 → 验收矩阵 → 全局残余风险与后续动作**
+> **Initiative → Milestone 总表 → Task Ledger → 分支与 PR 集成路径 → 验收矩阵 → 全局残余风险与后续动作**
 
 这里最关键的不是信息量，而是法位顺序。整套方法论的基础是：
 
-| 层次          | 本质                                       |
-| ----------- | ---------------------------------------- |
-| **静态执行对象**  | Initiative / Milestone / Task            |
-| **动态编排结构**  | Workstream / 依赖关系 / Agent 分配 / 分支与 PR 路径 |
-| **成立与裁决依据** | 验收矩阵 / 残余风险 / 前置文档引用                     |
+| 层次          | 本质                           |
+| ----------- | ---------------------------- |
+| **静态执行对象**  | Initiative / Milestone / Task |
+| **动态集成结构**  | 依赖关系 / 分支与 PR 路径             |
+| **成立与裁决依据** | 验收矩阵 / 残余风险 / 前置文档引用         |
 
-因此，规划阶段真正产出的不是“任务描述”，而是**执行图**。
+`Workstream` 法位保留，但在当前版本中正式封停。
+原因是当前 Agent 全自动化编码循环已经在执行层内部吸收了大部分并行吞吐；此时再在规划层显式建立 `Workstream`，边际收益不足，且容易与 `Milestone / Task` 长出额外对象层与双真值。
+
+因此，规划阶段真正产出的不是“任务描述”，而是**一组有法位顺序的 planning docs**；其中最终对执行层生效的是总任务文档这张执行图。
 这张执行图必须能够同时支持四件事：
 
 * 让 Planner 证明边界已经收口
@@ -131,8 +134,7 @@
 它回答的是：
 
 > **这个 Initiative 将被切成哪些 Milestone。**
-> **每个 Milestone 下沿哪些 Workstream 推进。**
-> **每条线上的 Task 是什么。**
+> **每个 Milestone 下有哪些 Task。**
 > **这些 Task 如何进入分支与 PR 集成路径。**
 > **各层到什么程度算成立。**
 
@@ -168,7 +170,7 @@
 | 职责     | 含义                                            |
 | ------ | --------------------------------------------- |
 | **索引** | 指向方案设计文档、差距分析文档、规范切片                          |
-| **收敛** | 定义 Initiative / Milestone / WS / Task / PR 路径 |
+| **收敛** | 定义 Initiative / Milestone / Task / PR 路径 |
 | **裁决** | 定义边界、依赖、验收与残余风险                               |
 
 因此，Coder 的职责不是等任务文档把一切讲完，而是：
@@ -199,14 +201,14 @@
 
 ---
 
-### 3.3 静态对象先于动态编排
+### 3.3 静态对象先于动态集成
 
-静态执行对象是骨架，动态编排结构是挂在骨架上的作战图。
+静态执行对象是骨架，动态集成结构是挂在骨架上的收敛图。
 顺序绝不能反。
 
-> **先有 Initiative / Milestone / Task，后有 Workstream / 依赖图 / Agent 分配 / PR 路径。**
+> **先有 Initiative / Milestone / Task，后有依赖图 / PR 路径。**
 
-一旦先谈并行、先谈 PR、先谈分工，而对象边界尚未成立，后续编排就只是在放大语义模糊。
+一旦先谈并行、先谈 PR，而对象边界尚未成立，后续集成设计就只是在放大语义模糊。
 
 ---
 
@@ -273,11 +275,10 @@
 ### 3.3 Milestone Acceptance
 ### 3.4 Milestone Reference Assignment
 
-## 4. Workstream & Agent Allocation
-### 4.1 Workstream List
-### 4.2 Workstream Boundaries
-### 4.3 Dependency Graph
-### 4.4 Agent Allocation
+## 4. Reserved Workstream Slot (Suspended)
+### 4.1 Suspension Status
+### 4.2 Reopen Conditions
+### 4.3 Legacy Workstream Notes (if applicable)
 
 ## 5. Task Ledger
 ### 5.1 Task List
@@ -299,6 +300,8 @@
 ### 8.1 Global Residual Risks
 ### 8.2 Follow-Ups
 ```
+
+当 `Workstream` 处于 `Suspended` 状态时，面向当前执行层的 operative reference 可以省略这一保留区块，不再占用 active section number；但上位法位与恢复入口仍以上述完整骨架为准。
 
 ---
 
@@ -416,47 +419,28 @@
 
 ---
 
-### 4.5 Workstream 与 Agent 分配区块
+### 4.5 Workstream 保留法位（当前封停）
 
-这部分是动态编排核心。
-它不创造新对象层，只负责说明当前 Initiative 如何组织并行作战。
+`Workstream` 在当前版本中不再作为正式规划对象层启用。
+这一节保留的目的，是为未来可能的治理重启留下法位，而不是要求当前 Planner 继续在总任务文档中创造一层并行作战结构。
 
 ```markdown
-## 4. Workstream & Agent Allocation
+## 4. Reserved Workstream Slot (Suspended)
 
-### 4.1 Workstream List
-| WS | Responsibility | Parallelizable | Depends On |
-|---|---|---|---|
-| WS-A |  |  |  |
-| WS-B |  |  |  |
-| WS-C |  |  |  |
+### 4.1 Suspension Status
+- 当前状态：Suspended
+- 当前版本不建立 Workstream 正式对象层
+- 当前并行主要由 Initiative 级拆分与 Task 内部 Agent 并行承担
 
-### 4.2 Workstream Boundaries
-- WS-A 边界：
-- WS-B 边界：
-- WS-C 边界：
+### 4.2 Reopen Conditions
+- 只有在治理层正式恢复 Workstream 法位后，才允许重启
+- 未恢复前，不得在总任务文档中自造 WS 名称与 WS 边界
 
-### 4.3 Dependency Graph
-- WS 依赖关系：
-- 关键 Task 依赖关系：
-- 关键里程碑汇合点：
-
-### 4.4 Agent Allocation
-| Line / WS / PR | Recommended Executor | Parallelizable | Depends On |
-|---|---|---|---|
-| WS-A | Agent-A / User / Shared |  |  |
-| WS-B | Agent-B / User / Shared |  |  |
-| M1 PR | Agent-C / User / Shared |  |  |
+### 4.3 Legacy Workstream Notes
+- 若历史材料中存在 Workstream 术语，可在此记录映射
+- 但当前文档中的正式执行真值仍以 Initiative / Milestone / Task / PR 路径为准
+- 若无历史遗留，写明：N/A
 ```
-
-`Recommended Executor` 允许使用以下值：
-
-* Agent-A / Agent-B / Agent-C
-* User
-* Shared
-* Review-first
-
-这样规划输出才真正从“结构图”进入“作战图”。
 
 ---
 
@@ -469,11 +453,11 @@ Task Ledger 必须全量展开。
 ## 5. Task Ledger
 
 ### 5.1 Task List
-| Task | Milestone | WS | Summary | Depends On |
-|---|---|---|---|---|
-| T001 | M1 | WS-A |  |  |
-| T002 | M1 | WS-B |  |  |
-| T003 | M2 | WS-A |  |  |
+| Task | Milestone | Summary | Depends On |
+|---|---|---|---|
+| T001 | M1 |  |  |
+| T002 | M1 |  |  |
+| T003 | M2 |  |  |
 
 ### 5.2 Task Definitions
 
@@ -687,24 +671,21 @@ Milestone 必须按状态成立来写，而不是按施工顺序来写。
 
 ---
 
-### 5.4 Workstream 与 Agent 分配填写规则
+### 5.4 Workstream 封停规则
 
-Workstream 只能按以下三件事切分：
+当前版本中，`Workstream` 只保留法位，不进入正式执行图。
 
-| 切分标准     | 含义             |
-| -------- | -------------- |
-| **责任边界** | 谁持有事实源与职责      |
-| **耦合关系** | 哪些线可并行，哪些线必须串行 |
-| **验证边界** | 每条线如何进入收敛与回归检查 |
+因此，正确写法是：
 
-因此，错误切法包括：
+* 在第 4 节明确写出 `Suspended`
+* 若存在历史 `Workstream` 术语，只做遗留映射，不做当前真值
+* 让 Task、Milestone、依赖关系与 PR 路径直接承担正式执行索引
 
-* 按人头切
-* 按页面切
-* 按目录切
+错误写法包括：
 
-Agent 分配区块也不能只写“待分配”。
-因为并行作战图若没有执行分配，就不是真正的执行图。
+* 在未恢复治理法位前自行新造 WS
+* 用 WS 重新包一层 Task
+* 用 WS 掩盖 Milestone 或 Task 切法不清
 
 ---
 
@@ -719,7 +700,7 @@ Task 的合法定义必须同时具备以下字段：
 | **Action**       | 它到底改什么                 |
 | **Output**       | 它会产出什么                 |
 | **Non-Goals**    | 它明确不做什么                |
-| **Dependencies** | 它依赖哪些上游 Task / WS / PR |
+| **Dependencies** | 它依赖哪些上游 Task / PR |
 | **Acceptance**   | 它如何被判定成立               |
 
 这里最关键的一条，是总任务文档对 coder 的边界：
@@ -797,7 +778,7 @@ PR 规划规则必须继承上位宪法，保持如下顺序：
 这里的“生成”不是拼接文档，而是将上游裁决压缩为：
 
 * 静态执行对象
-* 动态编排结构
+* 依赖与集成路径
 * 验收矩阵
 * 风险账本
 
@@ -807,6 +788,9 @@ PR 规划规则必须继承上位宪法，保持如下顺序：
 
 总任务文档写完后，还不能直接开工。
 必须先做一次封板检查，确认它已经具备进入 coder / reviewer / Codex 循环的合法输入质量。
+
+这次封板检查的法位属于执行侧准入，而不是规划作者继续写文档的延长步骤。
+也就是说，规划循环的职责是把 planning docs 定稿到可候选输入；真正接纳这组 planning truth 进入执行循环的，是执行侧 `Supervisor` 在启动或恢复 Initiative 时，于 `run-initiative` 内部先做的 planning admission check。
 
 ---
 
@@ -820,7 +804,7 @@ PR 规划规则必须继承上位宪法，保持如下顺序：
 | 变更级别                  | 处理方式                          |
 | --------------------- | ----------------------------- |
 | **Task 内局部调整**        | 可直接修订 Task 字段、PR 路径与验收索引      |
-| **Workstream / 依赖变化** | 必须回改总任务文档的并行与集成区块             |
+| **Task 依赖 / 集成路径变化** | 必须回改总任务文档的依赖与集成区块             |
 | **Milestone 边界变化**    | 必须回改 Milestone 总表，并重新检查 PR 路径 |
 | **Initiative 目标变化**   | 必须返回方案设计文档重新裁决                |
 | **现状理解发生变化**          | 对重构 / 迁移类任务，必须回改差距分析文档        |
@@ -835,14 +819,14 @@ PR 规划规则必须继承上位宪法，保持如下顺序：
 
 一份总任务文档只有同时满足以下条件，才允许进入实施循环。
 
+这些条件应由执行侧准入步骤统一检查，而不是靠 planning 作者在退出规划循环时自我宣告通过。
+
 | 条件                    | 含义              |
 | --------------------- | --------------- |
 | **前置方案已封板**           | 方案设计文档已完成关键裁决   |
 | **差距已封板**             | 适用时，差距分析已完成关键识别 |
 | **Initiative 已定义**    | 问题、边界、成功标准已明确   |
 | **Milestone 已全量定义**   | 全量阶段断点已明确       |
-| **Workstream 已建立**    | 并行作战线与依赖关系已明确   |
-| **Agent 分配已给出**       | 并行图已进入作战图       |
 | **Task Ledger 已全量细化** | 所有 Task 具备完整字段，且可独立装配局部执行包 |
 | **分支与 PR 路径已明确**      | 集成路径不是事后临时拼装    |
 | **Reference 入口已指派**     | Milestone / Initiative 的法定参考入口已显式指定 |
@@ -873,7 +857,7 @@ PR 规划规则必须继承上位宪法，保持如下顺序：
 ### 9.2 对象层禁止事项
 
 * 把 Milestone 写成施工步骤
-* 把 Workstream 升格为第四层主对象
+* 在当前封停口径下私自重启 Workstream 为正式对象层
 * 把 PR 当作 Initiative 本体
 * 把 Branch 当作 Milestone 本体
 
@@ -891,8 +875,7 @@ PR 规划规则必须继承上位宪法，保持如下顺序：
 
 ### 9.4 编排层禁止事项
 
-* 按人头切 Workstream，不按耦合切
-* 没有 Agent 分配却宣称可以并行
+* 在当前封停口径下自造 Workstream
 * 不写依赖关系就宣称存在 PR 序列
 * 默认使用多 PR，而不先审视 Milestone 是否应再切分
 
@@ -933,7 +916,7 @@ PR 规划规则必须继承上位宪法，保持如下顺序：
 
 ### 法则 6
 
-**动态编排随后挂接：Workstream、依赖关系、Agent 分配、分支与 PR 路径。**
+**动态集成随后挂接：依赖关系、分支与 PR 路径。**
 
 ### 法则 7
 
