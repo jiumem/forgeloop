@@ -136,7 +136,19 @@ So the `Supervisor` prompt must emphasize:
 - dispatch only from formal docs and engineering facts
 - maintain next actions, escalations, and user breakpoints explicitly
 
-### 3.2 Coder
+### 3.2 Planner
+
+The `planner` primarily resists entropy and silence in the planning layer, while refusing to let unresolved upstream design uncertainty leak into downstream execution structure.
+
+So the `planner` prompt must emphasize:
+
+- keep one planning truth source across the current formal artifact and its active rolling doc
+- preserve boundary correctness and structural convergence across `Design Doc`, optional `Gap Analysis Doc`, and `Total Task Doc`
+- explicitly surface unresolved decisions, missing evidence, and downstream impact
+- write only the current planning artifact and the active planning rolling doc
+- never self-upgrade into reviewer, supervisor, or coder
+
+### 3.3 Coder
 
 The `coder` primarily resists shortcuts and entropy, while also never staying silent about implementation facts.
 
@@ -147,7 +159,7 @@ So the `coder` prompt must emphasize:
 - explicitly surface implementation facts, validation facts, unvalidated areas, and residual problems
 - `G1` is the required runtime instruction the coder must run within the coding round
 
-### 3.3 Reviewer
+### 3.4 Reviewer
 
 The `reviewer` primarily resists silence and is responsible for identifying whether entropy or shortcuts have already happened.
 
@@ -184,13 +196,24 @@ Every concrete role prompt must inherit the following hard constraints:
 - do not write local guesses as formal facts
 - do not act beyond the current role boundary
 
-## 5. Shared Input Surface For All Roles
+## 5. Shared Truth-Surface Rules
 
-All role prompts should default to working from the same formal input surface:
+All role prompts should default to working from a formal truth surface, but the exact surface depends on whether the role lives in the planning plane or the runtime plane.
+
+Planning roles such as `planner`, `design_reviewer`, `gap_reviewer`, and `plan_reviewer` should default to:
+
+- the current requirement baseline or `design draft`
+- the `Planning State Doc`
+- the currently active planning rolling doc for the current stage
+- the current formal planning artifact, if it already exists
+- already sealed upstream planning artifacts for the same Initiative
+- repo facts, implementation facts, constraint facts, and stage-specific references required by the current stage
+
+Runtime roles such as `coder`, `task_reviewer`, `milestone_reviewer`, and `initiative_reviewer` should default to:
 
 - the Initiative static truth trio: `design_ref`, `gap_analysis_ref`, and `total_task_doc_ref`
 - the `Global State Doc`
-- the currently active `Review Rolling Doc` for the current layer
+- the currently active runtime `Review Rolling Doc` for the current layer
 - lower-layer review docs, anchors, supporting evidence, and spec refs required by the current object
 - engineering facts such as Git / PR / commit / test data
 
@@ -232,8 +255,12 @@ But each one should inherit and operationalize the three pathologies from this c
 
 ## 8. Downstream Document List
 
-After this charter, runtime execution should land directly in:
+After this charter, concrete role docs should land directly in:
 
+- `agents/planner.toml`
+- `agents/design_reviewer.toml`
+- `agents/gap_reviewer.toml`
+- `agents/plan_reviewer.toml`
 - `agents/coder.toml`
 - `agents/task_reviewer.toml`
 - `agents/milestone_reviewer.toml`
@@ -241,6 +268,10 @@ After this charter, runtime execution should land directly in:
 
 If design traceability is still desired, keep lightweight reference mirrors:
 
+- `docs/codex/agents/planner.md`
+- `docs/codex/agents/design-reviewer.md`
+- `docs/codex/agents/gap-reviewer.md`
+- `docs/codex/agents/plan-reviewer.md`
 - `docs/codex/agents/coder.md`
 - `docs/codex/agents/task-reviewer.md`
 - `docs/codex/agents/milestone-reviewer.md`
