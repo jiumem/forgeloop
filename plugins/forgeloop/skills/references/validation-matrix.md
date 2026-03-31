@@ -15,8 +15,9 @@
 | --- | --- | --- |
 | unique text anchor resolves | `slice` returns exactly one bounded slice | `anchor_slices.py slice` |
 | duplicate text anchor exists | `check` fails and names the duplicate selector | `anchor_slices.py check` |
+| illegal text anchor syntax exists | `check` fails and names the offending line | `anchor_slices.py check` |
 | missing text anchor requested | resolver stops with `missing_anchor` | `anchor_slices.py slice` |
-| minimal packet consumer gets legal selectors | consumer may stay on minimal-path read | workflow skills + agent manifests |
+| minimal packet consumer gets legal selectors | consumer may stay on minimal-path read | workflow skills + tracked reference mirrors |
 | selector legality fails | consumer promotes to explicit full-document fallback or blocks | workflow skills |
 | rolling doc has superseded same-handoff results | `current-effective` picks only the latest matching result | `anchor_slices.py derive` |
 | derived view is missing or stale | consumer may invalidate and reread formal doc | workflow skills + derived-view contract |
@@ -27,6 +28,7 @@
 
 - `tests/fixtures/anchor-slicing/anchors-ok.md`
 - `tests/fixtures/anchor-slicing/anchors-duplicate.md`
+- `tests/fixtures/anchor-slicing/anchors-illegal.md`
 - `tests/fixtures/anchor-slicing/task-review-sample.md`
 
 These fixtures are intentionally small. They prove contract behavior, not business-domain traces.

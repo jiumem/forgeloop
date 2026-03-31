@@ -11,6 +11,8 @@ from collections import defaultdict
 
 
 ANCHOR_RE = re.compile(r"^\s*<!--\s*forgeloop:anchor\s+([a-z0-9._/-]+)\s*-->\s*$")
+ANCHOR_MARKER_RE = re.compile(r"forgeloop:anchor")
+CODE_FENCE_RE = re.compile(r"^\s*```")
 FENCE_START = re.compile(r"^\s*```forgeloop\s*$")
 FENCE_END = re.compile(r"^\s*```\s*$")
 FIELD_PATTERNS = {
@@ -44,17 +46,39 @@ def read_lines(path: pathlib.Path) -> list[str]:
     return path.read_text().splitlines()
 
 
+def iter_non_fenced_lines(lines: list[str]):
+    in_fenced_block = False
+    for line_no, line in enumerate(lines, start=1):
+        if CODE_FENCE_RE.match(line):
+            in_fenced_block = not in_fenced_block
+            continue
+        if not in_fenced_block:
+            yield line_no, line
+
+
 def collect_anchor_occurrences(lines: list[str]) -> dict[str, list[int]]:
     occurrences: dict[str, list[int]] = defaultdict(list)
-    for line_no, line in enumerate(lines, start=1):
+    for line_no, line in iter_non_fenced_lines(lines):
         match = ANCHOR_RE.match(line)
         if match:
             occurrences[match.group(1)].append(line_no)
     return occurrences
 
 
+def find_illegal_anchor_lines(lines: list[str]) -> list[int]:
+    illegal_lines: list[int] = []
+    for line_no, line in iter_non_fenced_lines(lines):
+        if ANCHOR_MARKER_RE.search(line) and not ANCHOR_RE.match(line):
+            illegal_lines.append(line_no)
+    return illegal_lines
+
+
 def parse_anchors(path: pathlib.Path) -> list[Anchor]:
     lines = read_lines(path)
+    illegal_lines = find_illegal_anchor_lines(lines)
+    if illegal_lines:
+        rendered = ",".join(str(line_no) for line_no in illegal_lines)
+        raise ValueError(f"{path}: illegal anchor syntax on line(s): {rendered}")
     occurrences = collect_anchor_occurrences(lines)
     duplicates = {selector: locs for selector, locs in occurrences.items() if len(locs) > 1}
     if duplicates:
@@ -64,7 +88,7 @@ def parse_anchors(path: pathlib.Path) -> list[Anchor]:
         raise ValueError(f"{path}: duplicate anchors found: {rendered}")
 
     anchors: list[tuple[str, int]] = []
-    for line_no, line in enumerate(lines, start=1):
+    for line_no, line in iter_non_fenced_lines(lines):
         match = ANCHOR_RE.match(line)
         if match:
             anchors.append((match.group(1), line_no))

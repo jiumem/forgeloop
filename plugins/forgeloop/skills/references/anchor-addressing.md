@@ -12,7 +12,10 @@
 ## Anchor Syntax
 
 - A stable text anchor is one standalone Markdown comment line:
-  - `<!-- forgeloop:anchor <selector> -->`
+
+```text
+<!-- forgeloop:anchor <selector> -->
+```
 - `<selector>` is doc-local and machine-readable.
 - Allowed characters are `[a-z0-9._/-]`.
 - The anchor comment must appear immediately before the section or block it addresses.
@@ -36,7 +39,9 @@ The following surfaces must expose stable text anchors for hot-path consumption:
 - planning rolling-doc contract reference
 - runtime control-plane contract references: `Global State Doc`, Task/Milestone/Initiative review rolling-doc contracts
 - workflow skill sections that define packet shape, fallback law, admission law, or object-local routing
-- executable agent manifests and reference mirrors when they describe consumer-facing packet expectations
+- Markdown reference mirrors and human-readable contract docs that describe consumer-facing packet expectations
+
+Executable manifests are still part of the formal contract surface, but under the current Markdown-comment anchor syntax they are validated indirectly through the tracked skill docs and reference mirrors that bind their packet semantics. They are not themselves required to embed Markdown text anchors.
 
 Consumers may expose more anchors than this minimum, but they must not rely on hidden or implicit sections outside this coverage set.
 

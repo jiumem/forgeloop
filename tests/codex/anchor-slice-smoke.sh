@@ -12,10 +12,6 @@ python3 plugins/forgeloop/scripts/anchor_slices.py check \
   docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md \
   docs/initiatives/active/anchor-sliced-dispatch-optimization/gap-analysis.md \
   docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md \
-  .forgeloop/anchor-sliced-dispatch-optimization/planning-state.md \
-  .forgeloop/anchor-sliced-dispatch-optimization/design-rolling.md \
-  .forgeloop/anchor-sliced-dispatch-optimization/gap-rolling.md \
-  .forgeloop/anchor-sliced-dispatch-optimization/plan-rolling.md \
   plugins/forgeloop/skills/references/anchor-addressing.md \
   plugins/forgeloop/skills/references/derived-views.md \
   plugins/forgeloop/skills/references/validation-matrix.md \
@@ -30,6 +26,13 @@ if python3 plugins/forgeloop/scripts/anchor_slices.py check \
   tests/fixtures/anchor-slicing/anchors-duplicate.md
 then
   echo "duplicate-anchor fixture unexpectedly passed"
+  exit 1
+fi
+
+if python3 plugins/forgeloop/scripts/anchor_slices.py check \
+  tests/fixtures/anchor-slicing/anchors-illegal.md
+then
+  echo "illegal-anchor fixture unexpectedly passed"
   exit 1
 fi
 
