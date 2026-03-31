@@ -4,7 +4,15 @@ Forgeloop 0.5.0 ships a small, explicit set of custom agent manifests under `plu
 
 These agents are the stable role layer for the built-in workflow skills. They are intentionally narrow. The skill decides when to dispatch them and binds the formal input surface; the custom agent defines how that role should think and what it should return.
 
-All Forgeloop custom agents default to `gpt-5.4` with `high` reasoning effort. Model policy lives in the agent TOML files, not in individual workflow skills. `plugins/forgeloop/scripts/materialize-agents.sh` copies those manifests into Codex global agent storage by default, or into a target project's `.codex/agents/` when `--project-dir` is supplied.
+Model policy lives in the agent TOML files, not in individual workflow skills. The current packaged defaults are:
+
+- planning agents: `gpt-5.4` with `high` reasoning effort
+- runtime `coder`: `gpt-5.3-codex` with `high` reasoning effort
+- runtime reviewers: `gpt-5.4` with `medium` reasoning effort
+
+The runtime `Supervisor` is not shipped as a custom agent manifest. It runs in the user-controlled Codex entry session, so the current recommendation is to run that entry session at `gpt-5.4` with `medium` reasoning effort.
+
+`plugins/forgeloop/scripts/materialize-agents.sh` copies those manifests into Codex global agent storage by default, or into a target project's `.codex/agents/` when `--project-dir` is supplied.
 
 ## Shipped Agent Set
 

@@ -200,6 +200,29 @@ plugins/forgeloop/agents/coder.toml:request_reviewer_handoff
 plugins/forgeloop/agents/initiative_reviewer.toml:mark_initiative_delivered
 EOF
 
+while IFS=':' read -r file pattern; do
+  if [ -z "$file" ]; then
+    continue
+  fi
+
+  if ! rg -q "$pattern" "$file"; then
+    echo "runtime model policy check failed for ${file}: missing ${pattern}"
+    exit 1
+  fi
+done <<'EOF'
+plugins/forgeloop/agents/coder.toml:^model = "gpt-5.3-codex"$
+plugins/forgeloop/agents/coder.toml:^model_reasoning_effort = "high"$
+plugins/forgeloop/agents/task_reviewer.toml:^model = "gpt-5.4"$
+plugins/forgeloop/agents/task_reviewer.toml:^model_reasoning_effort = "medium"$
+plugins/forgeloop/agents/milestone_reviewer.toml:^model = "gpt-5.4"$
+plugins/forgeloop/agents/milestone_reviewer.toml:^model_reasoning_effort = "medium"$
+plugins/forgeloop/agents/initiative_reviewer.toml:^model = "gpt-5.4"$
+plugins/forgeloop/agents/initiative_reviewer.toml:^model_reasoning_effort = "medium"$
+docs/forgeloop/agents.md:gpt-5.3-codex
+docs/forgeloop/agents.md:gpt-5.4
+docs/forgeloop/agents.md:Supervisor
+EOF
+
 if [ ! -f "docs/forgeloop/agents.md" ]; then
   echo "missing agent inventory doc: docs/forgeloop/agents.md"
   exit 1

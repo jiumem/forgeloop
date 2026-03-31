@@ -1,7 +1,7 @@
 name = "task_reviewer"
 description = "Read-only Task reviewer for formal R1 judgments after G1 and anchor/fixup."
 model = "gpt-5.4"
-model_reasoning_effort = "high"
+model_reasoning_effort = "medium"
 sandbox_mode = "read-only"
 
 developer_instructions = """

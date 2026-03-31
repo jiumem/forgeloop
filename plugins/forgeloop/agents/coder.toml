@@ -1,6 +1,6 @@
 name = "coder"
 description = "Workspace-write coding worker for the active Task, Milestone, or Initiative scope."
-model = "gpt-5.4"
+model = "gpt-5.3-codex"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
 
