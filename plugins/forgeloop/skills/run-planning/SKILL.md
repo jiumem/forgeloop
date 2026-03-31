@@ -13,6 +13,8 @@ The planning side uses one control spine plus one internal stage skill:
 - `planner` and stage reviewers perform formal handoff inside stage-specific planning rolling docs
 - `planning-loop` is the internal second-layer stage skill that handles exactly one confirmed planning stage per dispatch
 
+The default planning packet is anchor-addressed: authoritative refs first, doc-local selectors second, optional minimal slices third, and explicit full-document fallback only on legality failure or cold-start recovery.
+
 ## Delegation Contract
 
 `run-planning` is a multi-agent dispatch skill.

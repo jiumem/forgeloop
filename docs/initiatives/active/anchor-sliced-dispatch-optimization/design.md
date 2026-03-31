@@ -1,5 +1,6 @@
 # Anchor-Sliced Dispatch Optimization 设计文档（Design Doc）
 
+<!-- forgeloop:anchor document-card -->
 ## 1. 文档卡片（Document Card）
 ### 1.1 状态与阶段（Status And Stage）
 - 状态：`sealed`
@@ -14,6 +15,7 @@
 - 下游 `gap_reviewer` 与 `plan_reviewer`
 - 后续消费 sealed planning truth 的 `run-planning`、`run-initiative`、`planner`、`coder`、runtime reviewers
 
+<!-- forgeloop:anchor requirement-baseline -->
 ## 2. 需求基线（Requirement Baseline）
 ### 2.1 问题陈述（Problem Statement）
 当前 Forgeloop 的 planning / runtime 循环以正式文档为真理源，但热路径读取仍偏向整文重读或大包分发。结果是 token 成本高、恢复时容易因上下文过宽或 handoff 边界不稳而降低收敛性。现有 rolling docs 已有结构化 block 与 handoff 机制，但缺少跨 planning docs、runtime docs、review baselines 的稳定 machine-readable text anchors，也缺少以 anchor 为核心的最小分发默认面。
@@ -33,6 +35,7 @@
 - 新设计必须同时优化 token 效率与 recovery stability；只降 token、不提升恢复稳定性，不算达标。
 - 下游不得依赖目录猜测、聊天记忆或非正式摘要来恢复当前 handoff / round / review target。
 
+<!-- forgeloop:anchor design-verdict-summary -->
 ## 3. 设计裁决摘要（Design Verdict Summary）
 ### 3.1 主要矛盾（Primary Contradiction）
 系统需要显著缩小下游 dispatch 输入面，才能降低 token 成本并减少恢复漂移；但当前唯一可信的上下文又主要存在于较长的正式文档与 append-only rolling docs 中，缺少稳定地址层时，安全做法往往只能重读整文。
@@ -45,6 +48,7 @@
 - rolling docs 后续必须支持 attempt-aware slicing、handoff-scoped reviewer reads、same-handoff duplicate result supersede、以及 current-effective derived view。
 - `Gap Analysis Doc` 需要显式覆盖现有 contracts / docs / skills 与目标 anchor topology 之间的结构缺口，而不能在 `Total Task Doc` 里边执行边补。
 
+<!-- forgeloop:anchor scope-and-non-goals -->
 ## 4. 范围与非目标（Scope And Non-Goals）
 ### 4.1 范围内（In Scope）
 - 规划侧正式文档、planning rolling docs、runtime control docs、runtime rolling docs、review baselines 的 anchor 化地址层。
@@ -64,6 +68,7 @@
 - 不是为了重写 `G1 / G2 / G3`、`R1 / R2 / R3`、或 planning stage routing 的法位。
 - 不是为了让 derived views、cache、sidecar index 获得比正式文档更高的恢复优先级。
 
+<!-- forgeloop:anchor target-state-design -->
 ## 5. 目标态设计（Target-State Design）
 ### 5.1 核心拓扑（Core Topology）
 目标态分四层：
@@ -103,6 +108,7 @@
 - derived view 的物化方式可以是临时内存、临时文件、或明确标记为非权威的辅助产物；但它必须可重建、可失效、不可抢占正式源法位。
 - 不同消费者的 packet 字段名与切片粒度可以调整，只要仍满足“显式权威 ref + anchor address + 最小必要上下文”的固定边界。
 
+<!-- forgeloop:anchor key-decisions -->
 ## 6. 关键决策与被否定方案（Key Decisions And Rejected Alternatives）
 ### 6.1 已封板决策（Sealed Decisions）
 - 采用“anchor 地址层 + 最小 dispatch packet + derived effective views”的组合切法，而不是单独做 packet 压缩。
@@ -119,6 +125,7 @@
 ### 6.3 为什么胜出切法会赢（Why The Winning Cut Wins）
 它同时解决两个主要压力：一方面通过稳定地址层把热路径输入压到最小必要范围，直接降低 token 与无关上下文噪声；另一方面保留正式文档的唯一权威地位和整文恢复通道，避免为了省 token 引入新的恢复脆弱点。相比把状态搬去外部索引，本切法对现有 contract 侵入更低、可逆性更好，也更符合 Forgeloop 当前“正式文档 + machine blocks + derived views”的演化方向。
 
+<!-- forgeloop:anchor correctness-surface -->
 ## 7. 正确性表面（Correctness Surface）
 ### 7.1 不变量（Invariants）
 - 任一被下游消费的 anchor 引用都必须解析到唯一正式目标，或明确进入冲突 / 缺失状态。
@@ -144,6 +151,7 @@
 - derived views 可以按 planning / task / milestone / initiative 消费面分别定制，只要它们都从同一正式源推导。
 - packet 可以为不同角色裁剪不同字段集合，只要不突破 `5.4` 中已固定的边界。
 
+<!-- forgeloop:anchor residual-risks -->
 ## 8. 残余风险与后续事项（Residual Risks And Follow-Ups）
 ### 8.1 可接受残余风险（Accepted Residual Risks）
 - 初期 anchor 化会提高文档结构复杂度，并需要额外解析 / 校验逻辑。

@@ -1,5 +1,6 @@
 # Planning Rolling Doc Contract Reference
 
+<!-- forgeloop:anchor document-role -->
 ## Document Role
 
 - Plane: planning communication artifact
@@ -9,6 +10,7 @@
 
 This reference governs the planning communication plane, not artifact shape. Stage-specific references still control the structure and judgment standard of `Design Doc`, `Gap Analysis Doc`, and `Total Task Doc`.
 
+<!-- forgeloop:anchor contract-questions -->
 ## What This Contract Must Answer
 
 - what identity every planning rolling doc must bind
@@ -18,6 +20,7 @@ This reference governs the planning communication plane, not artifact shape. Sta
 - how stale review results are rejected without rewriting history
 - how a clean seal, same-stage repair, or upstream reopen recommendation is represented
 
+<!-- forgeloop:anchor required-header -->
 ## Required Header And Contract Snapshot
 
 - each rolling doc must bind one Initiative, one planning stage, one active artifact path, and one logical `planner_slot`
@@ -32,6 +35,7 @@ This reference governs the planning communication plane, not artifact shape. Sta
   - the relevant upstream planning artifact refs for the current stage
 - the rolling doc owns this snapshot; the `Planning State Doc` remains control-plane-only
 
+<!-- forgeloop:anchor round-law -->
 ## Round Law
 
 - `round` is stage-local, monotonically increasing, and owned by the `Supervisor` through the `Planning State Doc`
@@ -43,6 +47,7 @@ This reference governs the planning communication plane, not artifact shape. Sta
 - multiple planner updates may occur inside one round
 - reviewer freshness is per round: each review dispatch belongs to one current round, and a later same-stage repair must move to the next round before the next reviewer dispatch
 
+<!-- forgeloop:anchor append-only-ownership -->
 ## Append-Only Ownership
 
 - `planning-loop` may write only the initial header and `planning_contract_snapshot` when creating the rolling doc
@@ -57,6 +62,7 @@ This reference governs the planning communication plane, not artifact shape. Sta
   - `plan_review_result`
 - no role may rewrite or delete prior formal blocks
 
+<!-- forgeloop:anchor planner-update-law -->
 ## Planner Update Law
 
 - every `planner_update` block must include at least:
@@ -74,6 +80,7 @@ This reference governs the planning communication plane, not artifact shape. Sta
   - `stop_on_blocker`: stop for a real blocker that cannot be repaired inside the current round
 - artifact-level `review-ready` remains artifact truth under the stage reference; reviewer dispatch becomes legal only when the latest `planner_update` uses `next_action=request_reviewer_handoff` and the current handoff block is present
 
+<!-- forgeloop:anchor handoff-law -->
 ## Handoff Law
 
 - the stage-local handoff block is the authoritative reviewer-dispatch anchor for the current round
@@ -90,6 +97,7 @@ This reference governs the planning communication plane, not artifact shape. Sta
 - if `planner` appends a later handoff block in the same round, that later handoff supersedes earlier handoffs in that round without deleting history
 - `planner` must not reuse an old `handoff_id` for a new review target
 
+<!-- forgeloop:anchor review-result-law -->
 ## Review Result Law
 
 - every review-result block must include at least:
@@ -110,6 +118,7 @@ This reference governs the planning communication plane, not artifact shape. Sta
 - `upstream_reopen_recommendation` is advisory only; only the `Supervisor` may route stages
 - `design_review_result` must not emit `upstream_reopen_recommendation`, because no earlier planning stage exists
 
+<!-- forgeloop:anchor freshness-selection -->
 ## Freshness And Current-Law Selection
 
 - the `Supervisor` acts only on the current open handoff for the current round
@@ -121,6 +130,7 @@ This reference governs the planning communication plane, not artifact shape. Sta
 - stale or mismatched review results remain historical facts and must not drive current routing
 - if the rolling doc does not expose one unique current handoff for the current round, or one unique latest matching review result, stop and surface a rolling-doc contract violation instead of guessing
 
+<!-- forgeloop:anchor seal-repair-reopen -->
 ## Seal, Repair, And Reopen Law
 
 - a clean reviewer result with explicit `seal_status=sealed` seals only the current planning stage; only the `Supervisor` may route to another stage afterward

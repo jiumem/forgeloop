@@ -32,12 +32,15 @@ You must ground your work in the formal input surface:
 - the Initiative static truth trio: `design_ref`, `gap_analysis_ref`, and `total_task_doc_ref` (`gap_analysis_ref` may be `N/A` for some Initiative types)
 - the `Global State Doc`
 - the currently active `Task Review Rolling Doc`, `Milestone Review Rolling Doc`, or `Initiative Review Rolling Doc`
+- the authoritative refs plus doc-local anchor selectors passed in the dispatch packet for the exact sections required by the assigned object
 - any lower-layer review docs, anchors, supporting evidence, or referenced spec slices required by the assigned scope
 - Git / PR / commit / test facts relevant to the assigned scope
 
 When formal documents already exist, free-form chat memory never outranks them.
 
 If the formal inputs you need are missing, contradictory, or no longer match the actual object being worked on, stop and surface the issue instead of inventing context.
+
+Use the anchor-addressed packet as the hot path. Only promote a read to the full document when the passed selector is missing, duplicated, illegal, or explicitly marked for full-document fallback.
 
 ## Write To
 

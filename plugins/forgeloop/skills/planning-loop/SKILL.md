@@ -5,12 +5,14 @@ description: Internal planning stage skill used by `run-planning` when one confi
 
 # Planning Loop
 
+<!-- forgeloop:anchor role -->
 `planning-loop` is the internal planning-stage skill under `run-planning`. It handles one confirmed planning stage for one Initiative. Here you act as the planning-stage `Supervisor`: maintain the minimum control plane, keep one `planner_slot`, dispatch the same `planner` across authoring rounds, and decide only whether the current stage should continue repair, hand off for review, escalate for judgment, or stop.
 
 This skill is single-stage per dispatch. If a clean review routes the Initiative to another planning stage, write that cross-stage route into the `Planning State Doc`, stop, and let the next `run-planning` activation bind the new active stage explicitly. Do not continue across stage boundaries inside the same activation.
 
 This v0 skill establishes the formal dispatch surface for `planner`, `design_reviewer`, `gap_reviewer`, and `plan_reviewer`.
 
+<!-- forgeloop:anchor stage-reference-binding -->
 ## Stage Reference Binding
 
 Each planning stage must bind exactly one canonical `stage_reference_ref`.
@@ -25,6 +27,7 @@ The formal value of `stage_reference_ref` should be a path relative to the curre
 
 The active rolling doc contract snapshot is the formal bridge between the workflow layer and subagents. `planner` and the current stage reviewer must receive `stage_reference_ref` explicitly in every dispatch packet; they must not rely on discovering references from directory layout or session memory.
 
+<!-- forgeloop:anchor shared-rolling-doc-contract -->
 ## Shared Rolling Doc Contract
 
 Every planning stage also binds the same canonical `rolling_doc_contract_ref`.
@@ -37,18 +40,21 @@ The formal value of `rolling_doc_contract_ref` should be a path relative to the 
 
 The stage reference controls artifact shape and stage-local judgment. The shared rolling-doc contract controls communication-plane shape, block legality, round law, handoff law, and stale-result handling.
 
+<!-- forgeloop:anchor stage-reviewer-binding -->
 ## Stage Reviewer Binding
 
 - `Design Doc` -> `design_reviewer`
 - `Gap Analysis Doc` -> `gap_reviewer`
 - `Total Task Doc` -> `plan_reviewer`
 
+<!-- forgeloop:anchor stage-local-vocabulary -->
 ## Stage-Local Vocabulary
 
 - `Design Doc` uses handoff block `design_doc_ref`, review-result block `design_review_result`, and same-stage repair action `continue_design_repair`
 - `Gap Analysis Doc` uses handoff block `gap_analysis_ref`, review-result block `gap_review_result`, and same-stage repair action `continue_gap_repair`
 - `Total Task Doc` uses handoff block `total_task_doc_ref`, review-result block `plan_review_result`, and same-stage repair action `continue_plan_repair`
 
+<!-- forgeloop:anchor truth-sources-boundaries -->
 ## Truth Sources And Hard Boundaries
 
 The formal planning input surface contains only:
@@ -59,6 +65,7 @@ The formal planning input surface contains only:
 - the current formal planning artifact, if it already exists
 - any already sealed upstream planning artifacts for the same Initiative
 - repo facts, implementation facts, constraint facts, and the stage-specific reference required by the current stage
+- the shared anchor-addressing contract at `../references/anchor-addressing.md`
 
 Hard boundaries:
 
@@ -71,9 +78,12 @@ Hard boundaries:
 - if `last_transition` records a reopen into the current stage, preserve or recover the existing `planner_slot` and open the next stage-local round instead of resuming the previously sealed round
 - `planning_contract_snapshot` must include at least: `stage`, `artifact_ref`, `stage_reference_ref`, `rolling_doc_contract_ref`, and the relevant upstream planning artifact refs
 - every `planner` dispatch and every formalized stage-reviewer dispatch must carry the same bound `stage_reference_ref` and `rolling_doc_contract_ref` explicitly
+- every planning dispatch packet must also carry the doc-local anchor selectors needed for the current consumer, and may inline only the minimal slices rebuilt from those same authoritative refs
+- if any selector is missing, duplicated, or otherwise illegal, planning dispatch must promote that read to an explicit full-document fallback instead of guessing
 - `Gap Analysis Requirement` becomes single-source planning truth only after `Design Doc` seals; once sealed, downstream planning must route from that line instead of re-inferring requirement from chat memory or loose Initiative labels
 - if the planning inputs conflict or the current stage cannot be confirmed uniquely, stop and ask for clarification instead of improvising a new planning object
 
+<!-- forgeloop:anchor workflow -->
 ## Workflow
 
 1. Bind the current planning stage
@@ -100,8 +110,8 @@ Hard boundaries:
 - Keep only one logical `planner_slot` for the current planning stage
 - Reuse the same `planner` thread when possible; if the physical thread is lost, you may assign a successor agent but must preserve the same `planner_slot`
 - Default to `fork_context=false`
-- The planner input must explicitly carry: active stage identity, requirement or `design draft`, the `Planning State Doc` path, the active planning rolling doc path, the current artifact path, the current `round`, the bound `stage_reference_ref`, the bound `rolling_doc_contract_ref`, and any sealed upstream planning artifacts
-- The planner reads artifact-shape rules from `stage_reference_ref` and communication-plane rules from `rolling_doc_contract_ref`; do not inline or restate the full reference text in the dispatch packet unless a referenced file is missing or unreadable
+- The planner input must explicitly carry: active stage identity, requirement or `design draft`, the `Planning State Doc` path, the active planning rolling doc path, the current artifact path, the current `round`, the bound `stage_reference_ref`, the bound `rolling_doc_contract_ref`, the anchor selectors for the exact planning-artifact and rolling-doc surfaces needed in the round, and any sealed upstream planning artifacts
+- The planner reads artifact-shape rules from `stage_reference_ref`, communication-plane rules from `rolling_doc_contract_ref`, and selector legality from `../references/anchor-addressing.md`; do not inline or restate the full reference text in the dispatch packet unless a referenced file is missing, unreadable, or has promoted to explicit full-document fallback
 
 4. Handle the planner result
 - Decide only from the active planning rolling doc and formal planning artifacts, not from chat summaries
@@ -109,7 +119,7 @@ Hard boundaries:
 - The current reviewer handoff is the latest stage-local handoff block for the current round
 - A review result is actionable only when its `round`, `handoff_id`, and `review_target_ref` match that current handoff exactly; stale or mismatched review results remain history and must not drive routing
 - If the latest `planner_update` carries `next_action=continue_stage_repair`, keep the same `planner_slot`, map the `Planning State Doc` back to the current stage's repair action, and continue in the same round
-- If the latest `planner_update` carries `next_action=request_reviewer_handoff`, the rolling doc must expose one unique current handoff for the same round; if it does, switch `next_action` to reviewer handoff and dispatch the reviewer bound to the current stage with the same `stage_reference_ref`, the same `rolling_doc_contract_ref`, the current `round`, the current `handoff_id`, and the current `review_target_ref`
+- If the latest `planner_update` carries `next_action=request_reviewer_handoff`, the rolling doc must expose one unique current handoff for the same round; if it does, switch `next_action` to reviewer handoff and dispatch the reviewer bound to the current stage with the same `stage_reference_ref`, the same `rolling_doc_contract_ref`, the current `round`, the current `handoff_id`, the current `review_target_ref`, and the selectors for the exact artifact and rolling-doc slices under review
 - If the latest `planner_update` carries `next_action=wait_for_upstream_judgment`, update the `Planning State Doc` to a waiting stop state, then stop
 - If the latest `planner_update` carries `next_action=stop_on_blocker`, update the `Planning State Doc` to a blocked stop state, then stop
 - If the latest `planner_update` uses any other control intent, or tries to drive reviewer dispatch without both `next_action=request_reviewer_handoff` and one unique current handoff block, stop and surface the illegal planner output explicitly
@@ -131,6 +141,7 @@ Hard boundaries:
   - when the actionable result has `verdict=changes_requested`, `seal_status=not_sealed`, and `next_action=stop_on_blocker`, update the `Planning State Doc` to a blocked stop state, then stop
 - If the sealed `Design Doc` lacks an explicit `Gap Analysis Requirement` line when clean seal routing depends on it, stop and surface the illegal stage truth explicitly instead of inferring route intent
 
+<!-- forgeloop:anchor stop-conditions -->
 ## Stop Conditions
 
 Stop immediately and hand control back upstream or to the user when:
@@ -145,6 +156,7 @@ Stop immediately and hand control back upstream or to the user when:
 - the current stage requires a reviewer contract that is not yet formalized in the repository
 - the planner exposes a real blocker or requests explicit human judgment
 
+<!-- forgeloop:anchor red-lines -->
 ## Red Lines
 
 Never:
@@ -159,6 +171,7 @@ Never:
 - continue into runtime execution from this skill
 - create a second planning state model outside the `Planning State Doc` and active planning rolling doc
 
+<!-- forgeloop:anchor completion-criteria -->
 ## Completion Criteria
 
 On correct completion, all of the following should be true:

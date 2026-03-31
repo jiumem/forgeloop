@@ -1,5 +1,6 @@
 # Anchor-Sliced Dispatch Optimization 总任务文档（Total Task Doc）
 
+<!-- forgeloop:anchor input-baseline -->
 ## 1. 前置输入与决策基线（Input Baseline And Sealed Decisions）
 ### 1.1 需求摘要（Requirement Summary）
 - 本 Initiative 的执行目标是在不新增第二真理源的前提下，把 Forgeloop 的 planning / runtime 热路径从默认整文读取收缩为 `authoritative repo-root-relative refs + anchor selectors + 最小必要切片`。
@@ -35,6 +36,7 @@
 | `milestone_review_rolling_doc_root_ref` | `.forgeloop/anchor-sliced-dispatch-optimization/milestone-review/` | Milestone `G2 / R2` 根目录 |
 | `initiative_review_rolling_doc_ref` | `.forgeloop/anchor-sliced-dispatch-optimization/initiative-review.md` | Initiative `G3 / R3` 唯一 rolling doc |
 
+<!-- forgeloop:anchor initiative-overview -->
 ## 2. Initiative 总览（Initiative）
 ### 2.1 背景（Background）
 - 当前 repo 已有 planning/runtime 正式合同与 object-level review loops，但热路径仍主要靠整文或整份 rolling doc 读取。
@@ -61,6 +63,7 @@
 | `IC-4` | derived current-effective / handoff-scoped / attempt-aware 视图可从正式 rolling docs 重建，且不会改变 `round`、`handoff_id`、`review_target_ref`、freshness、或 repo-root-relative durable refs 的现有法律语义。 |
 | `IC-5` | `.forgeloop/anchor-sliced-dispatch-optimization/initiative-review.md` 能基于三个 Milestone review docs 与其 evidence 完成 clean `R3` 判断并支持 `mark_initiative_delivered`，且 residual risks 只剩法律允许保留的非阻塞项。 |
 
+<!-- forgeloop:anchor milestone-master-table -->
 ## 3. Milestone 总表（Milestone Master Table）
 ### 3.1 Milestone 列表（Milestone List）
 | Milestone Key | Slice | Task Keys | Planned PR Model |
@@ -92,6 +95,7 @@
 | `ASDO-M2` | `.forgeloop/anchor-sliced-dispatch-optimization/milestone-review/ASDO-M2.md` | `milestone-rounds/asdo-m2/r<round>` | `ASDO-T4`, `ASDO-T5`, `ASDO-T6` |
 | `ASDO-M3` | `.forgeloop/anchor-sliced-dispatch-optimization/milestone-review/ASDO-M3.md` | `milestone-rounds/asdo-m3/r<round>` | `ASDO-T7`, `ASDO-T8`, `ASDO-T9` |
 
+<!-- forgeloop:anchor task-ledger -->
 ## 4. Task 账本（Task Ledger）
 ### 4.1 Task 列表（Task List）
 | Task Key | Milestone | Summary | Dependencies |
@@ -141,18 +145,18 @@
 - `差距引用（Gap Refs）`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/gap-analysis.md`
 - `规范引用（Spec Refs）`: `plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md`, `plugins/forgeloop/skills/run-initiative/references/global-state.md`, `plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md`, `plugins/forgeloop/skills/run-initiative/references/milestone-review-rolling-doc.md`, `plugins/forgeloop/skills/run-initiative/references/initiative-review-rolling-doc.md`
 - `输入（Input）`: `ASDO-T2` 的 resolution / legality contract，现有 planning/runtime 正式合同 refs。
-- `动作（Action）`: 在 planning docs、runtime control docs、review rolling-doc contracts 上暴露稳定可消费的 anchor surfaces，同时保留现有 block shape 与 freshness law。
-- `输出（Output）`: anchor-addressable formal surfaces，可供 planning/runtime packet 与 reviewer admission 精确读取。
+- `动作（Action）`: 在 planning docs、runtime control docs、review rolling-doc contracts、以及 review baselines 上暴露稳定可消费的 anchor surfaces，同时保留现有 block shape 与 freshness law。
+- `输出（Output）`: anchor-addressable formal surfaces，可供 planning/runtime packet、reviewer admission、以及 review baseline 消费面精确读取。
 - `非目标（Non-Goals）`: 不直接缩小 dispatch packet，不新增 derived views。
 - `依赖（Dependencies）`: `ASDO-T2`
-- `验收（Acceptance）`: required formal surfaces 都有可解析的 anchor 暴露面；现有 `round` / `handoff_id` / `review_target_ref` 法律语义未变；runtime cold-start refs 仍保持 repo-root-relative durable form。
+- `验收（Acceptance）`: required formal surfaces 都有可解析的 anchor 暴露面，其中包含 review baselines；现有 `round` / `handoff_id` / `review_target_ref` 法律语义未变；runtime cold-start refs 仍保持 repo-root-relative durable form。
 - `Task 局部风险 / 备注（Task-local Risks / Notes）`: 若某个正式表面只能通过覆写合同语义才可 anchorize，必须停止并建议 reopen 上游。
 
 **Task Definition: `ASDO-T4`**
 - `任务键（Task Key）`: `ASDO-T4`
 - `设计引用（Design Refs）`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md`
 - `差距引用（Gap Refs）`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/gap-analysis.md`
-- `规范引用（Spec Refs）`: `plugins/forgeloop/skills/planning-loop/SKILL.md`, `plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md`, `docs/codex/agents/planner.md`, `docs/codex/agents/design-reviewer.md`, `docs/codex/agents/gap-reviewer.md`, `docs/codex/agents/plan-reviewer.md`
+- `规范引用（Spec Refs）`: `plugins/forgeloop/skills/planning-loop/SKILL.md`, `plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md`, `plugins/forgeloop/agents/planner.toml`, `plugins/forgeloop/agents/design_reviewer.toml`, `plugins/forgeloop/agents/gap_reviewer.toml`, `plugins/forgeloop/agents/plan_reviewer.toml`
 - `输入（Input）`: `ASDO-T3` 产出的 planning-side anchor surfaces。
 - `动作（Action）`: 将 planning-stage planner / reviewer dispatch packet 改为默认消费 authoritative refs + anchor selectors + 必要切片。
 - `输出（Output）`: 更新后的 planning-loop dispatch 输入面与 reviewer handoff 读取面。
@@ -178,10 +182,10 @@
 - `任务键（Task Key）`: `ASDO-T6`
 - `设计引用（Design Refs）`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md`
 - `差距引用（Gap Refs）`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/gap-analysis.md`
-- `规范引用（Spec Refs）`: `plugins/forgeloop/skills/planning-loop/SKILL.md`, `plugins/forgeloop/skills/run-initiative/SKILL.md`, `docs/codex/agents/coder.md`, `docs/codex/agents/task-reviewer.md`, `docs/codex/agents/milestone-reviewer.md`, `docs/codex/agents/initiative-reviewer.md`, `docs/codex/agents/README.md`
+- `规范引用（Spec Refs）`: `plugins/forgeloop/skills/planning-loop/SKILL.md`, `plugins/forgeloop/skills/run-initiative/SKILL.md`, `plugins/forgeloop/agents/coder.toml`, `plugins/forgeloop/agents/task_reviewer.toml`, `plugins/forgeloop/agents/milestone_reviewer.toml`, `plugins/forgeloop/agents/initiative_reviewer.toml`, `plugins/forgeloop/agents/README.md`
 - `输入（Input）`: `ASDO-T5` 已固定的 planning/runtime dispatch contract shrink。
-- `动作（Action）`: 对 coder / reviewer / mirror consumers 做最小 packet contract 对齐，确保消费面与正式 skills/contracts 一致。
-- `输出（Output）`: 不再依赖整文默认输入面的 consumer mirrors 与相关说明。
+- `动作（Action）`: 对 coder / reviewer executable manifests 与 mirror consumers 做最小 packet contract 对齐，确保运行时消费面与正式 skills/contracts 一致。
+- `输出（Output）`: 已对齐的 executable manifests，以及不再依赖整文默认输入面的 consumer mirrors 与相关说明。
 - `非目标（Non-Goals）`: 不改写 sealed planning truth，不引入新的 agent control plane。
 - `依赖（Dependencies）`: `ASDO-T5`
 - `验收（Acceptance）`: consumer-facing mirrors 与正式 skills/contracts 不冲突；最小 packet 与 fallback 规则均可从正式 refs 恢复；不存在平行 prompt truth。
@@ -226,6 +230,7 @@
 - `验收（Acceptance）`: `run-initiative` planning admission 能接受新的 planning truth；migration 失败时仍可回滚到整文路径；三个 milestone review docs 与 initiative review doc 的 evidence chain 连续完整。
 - `Task 局部风险 / 备注（Task-local Risks / Notes）`: 若 cutover 仍依赖未决 authority line 或隐式人工步骤，则必须停在当前任务并修复，而不是伪装为 follow-up。
 
+<!-- forgeloop:anchor branch-and-pr -->
 ## 5. 分支与 PR 集成路径（Branch & PR Integration Path）
 ### 5.1 默认集成模型（Default Integration Model）
 - 默认规则是 `one Milestone -> one branch -> one PR -> one Milestone Review Rolling Doc`。
@@ -252,6 +257,7 @@
 3. `PR-3 / ASDO-M3`
 4. `PR-3` merge 后，以三个 Milestone review docs 作为 Initiative candidate 输入，进入 `.forgeloop/anchor-sliced-dispatch-optimization/initiative-review.md` 的 `G3 / R3`。
 
+<!-- forgeloop:anchor acceptance-matrix -->
 ## 6. 验收矩阵（Acceptance Matrix）
 ### 6.1 Task 验收索引（Task Acceptance Index）
 | Task Key | Acceptance Authority Ref | First Evidence Ref |
@@ -296,6 +302,7 @@
 | `.forgeloop/anchor-sliced-dispatch-optimization/initiative-review.md` | Initiative-level `G3 / R3` 交付候选与 residual-risk 最终判断入口 |
 | `plugins/forgeloop/skills/run-initiative/SKILL.md` | planning admission、runtime dispatch、与 cold-start / rebuild binding 规则入口 |
 
+<!-- forgeloop:anchor global-residual-risks -->
 ## 7. 全局残余风险与后续事项（Global Residual Risks & Follow-Ups）
 ### 7.1 全局残余风险（Global Residual Risks）
 - 初版 anchor coverage 与 slice granularity 可能偏粗，导致少量热路径仍暂时升级为整文 fallback；只要 fallback 显式合法，这属于可接受残余。

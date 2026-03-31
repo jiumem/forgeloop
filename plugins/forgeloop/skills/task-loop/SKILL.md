@@ -5,22 +5,28 @@ description: Use when the `Global State Doc` has uniquely confirmed that current
 
 # Task Loop
 
+<!-- forgeloop:anchor role -->
 `task-loop` handles only one confirmed Task. Here you act as the Task-layer `Supervisor`: maintain the minimum control plane, keep a single `coder_slot`, dispatch the same `coder` and a fresh `task_reviewer` each round, and use the facts from `G1`, `anchor / fixup`, and `R1` to decide whether the Task stays in the current round, enters `R1`, returns clean upstream, escalates, or stops.
 
 `coder_slot` is the logical owner identifier, not the physical `agent_id`; the current `agent_id` may change, but `coder_slot` does not.
 
 You are not responsible for writing code, writing `r1_result`, rewriting Milestone / Initiative dispatch, finishing the development branch, or maintaining any parallel state.
 
+<!-- forgeloop:anchor task-local-vocabulary -->
 ## Task-Local Vocabulary
 
 - `g1_result.next_action` must be one of: `continue_task_coder_round`, `request_reviewer_handoff`, `wait_for_user`, `stop_on_blocker`
 - `r1_result.next_action` must be one of: `continue_task_repair`, `return_to_source_object`, `select_next_ready_object`, `task_done`, `escalate_to_milestone`, `wait_for_user`, `stop_on_blocker`
 
+<!-- forgeloop:anchor canonical-runtime-contract-refs -->
 ## Canonical Runtime Contract Refs
 
 - shared `Global State Doc` contract -> `../run-initiative/references/global-state.md`
 - `Task Review Rolling Doc` contract -> `../run-initiative/references/task-review-rolling-doc.md`
+- shared anchor-addressing contract -> `../references/anchor-addressing.md`
+- shared derived-view contract -> `../references/derived-views.md`
 
+<!-- forgeloop:anchor truth-sources-boundaries -->
 ## Truth Sources And Hard Boundaries
 
 The formal input surface contains only the Initiative static truth trio `design_ref`, `gap_analysis_ref`, and `total_task_doc_ref` (`gap_analysis_ref` may be `N/A` for some Initiative types), the `Global State Doc`, the current `Task Review Rolling Doc`, and the necessary Git / test / commit facts.
@@ -34,11 +40,13 @@ Hard boundaries:
 - a new round opens only on first entry into the Task or after `r1_result.next_action=continue_task_repair`
 - the `Global State Doc` may contain only `current_snapshot`, `next_action`, and `last_transition`
 - when reading, writing, initializing, or repairing runtime state, the `Global State Doc` and the `Task Review Rolling Doc` must follow the canonical contract refs above; do not improvise block shape or `next_action` spelling from memory or older design examples
+- Task dispatch should consume authoritative refs plus doc-local selectors and only the minimal slices needed for the current Task handoff; if selector legality fails, promote that read to explicit full-document fallback
 - if `next_action` changes the active object or active plane, `current_snapshot` must be updated at the same time; only when still advancing within the same Task may you update only `next_action` and `last_transition`
 - the current Task review handoff is the latest `anchor_ref` or `fixup_ref` in the current round
 - each Task handoff block must carry `handoff_id` and `review_target_ref`; `r1_result` is actionable only when its `round`, `handoff_id`, and `review_target_ref` match that current handoff exactly, and if multiple `r1_result` blocks match one current handoff, only the latest matching block is actionable
 - if only a bounded task brief exists and the rolling doc does not, it may be used to initialize the header, including object identity and `coder_slot`, plus `task_contract_snapshot`, according to the canonical `Task Review Rolling Doc` contract; after initialization, the rolling doc becomes the only collaboration surface
 
+<!-- forgeloop:anchor workflow -->
 ## Workflow
 
 1. Bind the current Task
@@ -58,7 +66,7 @@ Hard boundaries:
 - Keep only one logical `coder_slot` for the current Task
 - Reuse the current `agent_id` while the physical thread is alive; if it is lost, you may assign a successor `agent_id`, but you must reuse the original `coder_slot` and record the succession
 - Default to `fork_context=false`
-- The coder input only needs to locate the current formal input surface: current Task identity, `design_ref`, `gap_analysis_ref`, `total_task_doc_ref`, the `Global State Doc` path, and the current `Task Review Rolling Doc` path
+- The coder input only needs to locate the current formal input surface: current Task identity, authoritative refs, the current handoff identifiers, the doc-local selectors for the required design/gap/plan/runtime sections, and any already materialized minimal slices
 - The coder returns its result to the `Task Review Rolling Doc` according to the contract
 
 4. Handle the coder result
@@ -73,7 +81,7 @@ Hard boundaries:
 
 5. Dispatch a fresh `task_reviewer`
 - Every `R1` round uses a freshly spawned reviewer, with `fork_context=false` by default
-- The reviewer reads `design_ref`, `gap_analysis_ref`, `total_task_doc_ref`, the `Global State Doc`, the current `Task Review Rolling Doc`, the current `anchor/fixup`, the current `round`, the current `handoff_id`, the current `review_target_ref`, and the necessary spec refs
+- The reviewer reads the same authoritative refs, the current handoff identifiers, the doc-local selectors for the review target and supporting spec slices, the current `anchor/fixup`, and only the minimal slices needed for Task-radius review unless fallback is triggered explicitly
 - The reviewer returns its result to the `Task Review Rolling Doc` according to the contract
 
 6. Handle `r1_result`
@@ -87,6 +95,7 @@ Hard boundaries:
 - If the current actionable `r1_result` has `verdict=changes_requested` and `next_action=stop_on_blocker`: the reviewer writes only the recommendation, the `Supervisor` writes blocked into the `Global State Doc`, then hands control back upstream
 - If the rolling doc does not expose one unique actionable `r1_result`, or if `verdict` and `next_action` do not form one legal combination above, stop and surface the illegal Task review output explicitly
 
+<!-- forgeloop:anchor stop-conditions -->
 ## Stop Conditions
 
 Stop immediately and hand control back upstream or to the user when:
@@ -96,6 +105,7 @@ Stop immediately and hand control back upstream or to the user when:
 - the current problem clearly exceeds Task radius and must escalate to Milestone
 - the coder or reviewer exposes a real blocker
 
+<!-- forgeloop:anchor red-lines -->
 ## Red Lines
 
 Never:
@@ -111,6 +121,7 @@ Never:
 - switch to Milestone / Initiative closure while the Task still has active repair
 - claim the Task is done without `r1_result: clean`
 
+<!-- forgeloop:anchor completion-criteria -->
 ## Completion Criteria
 
 On correct completion, all of the following should be true:

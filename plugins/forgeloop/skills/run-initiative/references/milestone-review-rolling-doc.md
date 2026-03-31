@@ -1,5 +1,6 @@
 # Milestone Review Rolling Doc Contract
 
+<!-- forgeloop:anchor purpose -->
 ## Purpose
 
 `Milestone Review Rolling Doc` is the only append-only formal collaboration surface for one Milestone.
@@ -12,6 +13,7 @@ It carries:
 - current Milestone review handoff
 - `R2` results
 
+<!-- forgeloop:anchor legal-machine-blocks -->
 ## Legal Machine Blocks
 
 - `milestone_review_header`
@@ -22,6 +24,7 @@ It carries:
 
 Header and contract snapshot are initialized once. All later formal facts append only.
 
+<!-- forgeloop:anchor canonical-milestone-vocabulary -->
 ## Canonical Milestone Vocabulary
 
 - `g2_result.next_action` must be one of:
@@ -38,12 +41,14 @@ Header and contract snapshot are initialized once. All later formal facts append
   - `wait_for_user`
   - `stop_on_blocker`
 
+<!-- forgeloop:anchor handoff-law -->
 ## Handoff Law
 
 - The current Milestone handoff is the latest `g2_result` in the current round whose `next_action=enter_r2`.
 - Every `g2_result` that opens reviewer handoff must include `handoff_id` and `review_target_ref`.
 - `R2` is actionable only when `round`, `handoff_id`, and `review_target_ref` match the current handoff exactly.
 
+<!-- forgeloop:anchor recommended-template -->
 ## Recommended Template
 
 ````markdown
@@ -97,6 +102,7 @@ required_follow_ups:
 ```
 ````
 
+<!-- forgeloop:anchor initialization-law -->
 ## Initialization Law
 
 When the rolling doc does not yet exist:

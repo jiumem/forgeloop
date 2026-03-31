@@ -1,5 +1,6 @@
 # Task Review Rolling Doc Contract
 
+<!-- forgeloop:anchor purpose -->
 ## Purpose
 
 `Task Review Rolling Doc` is the only append-only formal collaboration surface for one Task.
@@ -13,6 +14,7 @@ It carries:
 - `anchor / fixup` handoff blocks
 - `R1` results
 
+<!-- forgeloop:anchor legal-machine-blocks -->
 ## Legal Machine Blocks
 
 - `task_review_header`
@@ -25,6 +27,7 @@ It carries:
 
 Header and contract snapshot are initialized once. All later formal facts append only.
 
+<!-- forgeloop:anchor canonical-task-vocabulary -->
 ## Canonical Task Vocabulary
 
 - `g1_result.next_action` must be one of:
@@ -43,6 +46,7 @@ Header and contract snapshot are initialized once. All later formal facts append
 
 `request_reviewer_handoff` remains rolling-doc-local coder intent. Once one valid current handoff exists, the `Global State Doc` should materialize reviewer entry as `enter_r1` rather than copying `request_reviewer_handoff` directly.
 
+<!-- forgeloop:anchor handoff-law -->
 ## Handoff Law
 
 - The current Task handoff is the latest `anchor_ref` or `fixup_ref` in the current round.
@@ -50,6 +54,7 @@ Header and contract snapshot are initialized once. All later formal facts append
 - `R1` is actionable only when `round`, `handoff_id`, and `review_target_ref` match the current handoff exactly.
 - `anchor_ref` or `fixup_ref` is legal only after `G1 pass`.
 
+<!-- forgeloop:anchor recommended-template -->
 ## Recommended Template
 
 ````markdown
@@ -120,6 +125,7 @@ findings: []
 ```
 ````
 
+<!-- forgeloop:anchor initialization-law -->
 ## Initialization Law
 
 When the rolling doc does not yet exist:

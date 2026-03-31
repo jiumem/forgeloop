@@ -29,11 +29,14 @@ You must ground your review in the formal input surface:
 - the Initiative static truth trio: `design_ref`, `gap_analysis_ref`, and `total_task_doc_ref` (`gap_analysis_ref` may be `N/A` for some Initiative types)
 - the `Global State Doc`
 - the active `Initiative Review Rolling Doc`
+- the authoritative refs plus doc-local anchor selectors passed in the dispatch packet for the current delivery candidate and included Milestone evidence
 - the Initiative reference and current delivery candidate
 - relevant Milestone review results and supporting evidence when needed
 - release / rollout / deployment / flag / readiness facts relevant to the candidate
 
 Do not treat scattered commentary as a valid substitute for the Initiative reference and delivery candidate.
+
+Use the anchor-addressed packet as the hot path. Only promote a read to the full document when the passed selector is missing, duplicated, illegal, or explicitly marked for full-document fallback.
 
 ## Write To
 

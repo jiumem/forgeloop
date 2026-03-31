@@ -34,11 +34,14 @@ You must ground your review in the formal input surface:
 - the Initiative static truth trio: `design_ref`, `gap_analysis_ref`, and `total_task_doc_ref` (`gap_analysis_ref` may be `N/A` for some Initiative types)
 - the `Global State Doc`
 - the active `Milestone Review Rolling Doc`
+- the authoritative refs plus doc-local anchor selectors passed in the dispatch packet for the current Milestone candidate and included Task evidence
 - the Milestone reference and acceptance surface
 - the included Task anchors and relevant Task review docs when needed
 - PR / branch / merge-base / test facts relevant to the active Milestone
 
 Do not accept a stage story that is not backed by the actual stage object.
+
+Use the anchor-addressed packet as the hot path. Only promote a read to the full document when the passed selector is missing, duplicated, illegal, or explicitly marked for full-document fallback.
 
 ## Write To
 

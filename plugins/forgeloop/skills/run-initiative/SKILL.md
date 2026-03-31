@@ -5,6 +5,7 @@ description: Use when the user asks to advance, continue, or resume an Initiativ
 
 # Run Initiative
 
+<!-- forgeloop:anchor background -->
 ## Background
 
 The Initiative execution loop uses one control spine plus three execution loops:
@@ -12,6 +13,7 @@ The Initiative execution loop uses one control spine plus three execution loops:
 - coder and reviewer perform formal handoff inside object-level review rolling docs
 - the system enters the Task, Milestone, or Initiative review/repair loop based on the current progress position
 
+<!-- forgeloop:anchor delegation-contract -->
 ## Delegation Contract
 
 `run-initiative` is a multi-agent dispatch skill.
@@ -20,6 +22,7 @@ If this skill has been invoked, treat that invocation itself as user authorizati
 
 If the current environment still prevents delegation, or if you will not actually dispatch the required coder / reviewer subagents in this activation, stop immediately and ask the user directly. Never treat that situation as permission for the `Supervisor` to continue by personally doing coder or reviewer work.
 
+<!-- forgeloop:anchor canonical-ref-semantics -->
 ## Canonical Ref Semantics
 
 For repo-local formal sources, durable truth and execution-time materialization are different things.
@@ -30,6 +33,7 @@ Do not store current-workspace absolute paths, worktree-specific absolute paths,
 
 If a concrete runtime read, write, or subagent dispatch needs an absolute filesystem path, first bind the active Initiative workspace, then materialize that absolute path from the same canonical repo-root-relative ref. The materialized absolute path is an ephemeral execution value, not a durable ref to write back into planning truth.
 
+<!-- forgeloop:anchor runtime-control-plane-contracts -->
 ## Runtime Control-Plane Contracts
 
 The runtime control plane also has fixed repository-owned contract refs relative to this skill root:
@@ -38,9 +42,15 @@ The runtime control plane also has fixed repository-owned contract refs relative
 - `Task Review Rolling Doc` contract -> `references/task-review-rolling-doc.md`
 - `Milestone Review Rolling Doc` contract -> `references/milestone-review-rolling-doc.md`
 - `Initiative Review Rolling Doc` contract -> `references/initiative-review-rolling-doc.md`
+- shared anchor-addressing contract -> `../references/anchor-addressing.md`
+- shared derived-view contract -> `../references/derived-views.md`
+- shared validation matrix -> `../references/validation-matrix.md`
 
 These contract refs are not Initiative-specific planning truth. They are the canonical bootstrap and recovery contracts for runtime cold start, runtime rebuild, and rolling-doc initialization. Do not improvise runtime block shape or `next_action` spelling from memory, old examples, or chat summaries when these refs are available.
 
+Default runtime dispatch is anchor-addressed. Runtime packets should carry authoritative repo-root-relative refs, doc-local anchor selectors for the required formal surfaces, and only the minimum slices rebuilt from those selectors. Full-document reads remain legal only for cold start, runtime rebuild, anchor legality failure, or anchor conflict.
+
+<!-- forgeloop:anchor goal -->
 ## Goal
 
 In this framework, you act as the `Supervisor` dispatcher. You are responsible only for:
@@ -55,12 +65,14 @@ You are not responsible for:
 - writing any review rolling doc body content
 - maintaining parallel state outside the four formal runtime docs
 
+<!-- forgeloop:anchor core-rule -->
 ## Core Rule
 
 You only determine the current next step. You do not personally perform coding or review.
 
 Before any runtime loop dispatch, first decide whether the sealed planning docs are legal execution input. This planning admission check lives inside `run-initiative`; it is not a separate skill, it does not author planning docs, and it does not replace runtime recovery. It only accepts or rejects the current planning truth as a legal runtime starting point.
 
+<!-- forgeloop:anchor dispatch-rules -->
 ## Dispatch Rules
 
 Once the current next step is confirmed, call the required skill in order, or stop and ask the user. Only one skill may be called at a time: no parallelism, no skipped steps.
@@ -68,6 +80,7 @@ Once the current next step is confirmed, call the required skill in order, or st
 The `Global State Doc` carries only the minimum control-plane state: `current_snapshot`, `next_action`, `last_transition`, plus explicit waiting / blocked / done signals.
 Each update exists only to support the current next-step dispatch. Do not write coder / reviewer body content, do not keep process logs, and do not create a second state model outside the formal runtime docs.
 
+<!-- forgeloop:anchor when-to-stop -->
 ## When To Stop Or Ask The User
 
 - the total task doc is not sealed or is obviously unfinished
@@ -79,6 +92,7 @@ Each update exists only to support the current next-step dispatch. Do not write 
 - a new Initiative is starting but there is no clear first executable Task
 - the system is already in a delivered stop state, or it is in waiting / blocked and this activation does not clearly resolve that stop reason
 
+<!-- forgeloop:anchor main-flow -->
 ## Main Flow
 
 ### Step 1: Bind Input
@@ -99,16 +113,17 @@ After reading the formal docs, first decide whether the planning truth may legal
 
 1. Read `total_task_doc_ref` first.
 2. Read `design_ref` before any runtime routing. Read `gap_analysis_ref` when the sealed `Design Doc` marks `Gap Analysis Requirement: required`, or when the upstream planning refs disagree and the conflict must be resolved.
-3. Inside this skill, perform a thin planning admission check. At minimum confirm all of the following:
+3. When the current call site is not in cold start or rebuild recovery, prefer reading only the selectors required by the current admission or routing decision. If selector legality fails, promote that one read to explicit full-document fallback.
+4. Inside this skill, perform a thin planning admission check. At minimum confirm all of the following:
 - `total_task_doc_ref` is sealed and not obviously unfinished
 - `design_ref` is sealed and explicitly states `Gap Analysis Requirement: required | not_required`
 - if `Gap Analysis Requirement: required`, `gap_analysis_ref` exists, is sealed, and the `Total Task Doc` points to it explicitly; otherwise the `Total Task Doc` marks gap refs `N/A`
 - the Initiative boundary and success criteria are explicit enough to execute
 - the Milestone structure, Task Ledger, branch and PR integration path, legal reference assignments, acceptance matrix, and global residual risks are explicit enough to act on
-4. If planning admission fails, stop and challenge the user directly to repair planning truth. Do not call skill: `rebuild-runtime` just to paper over illegal planning input, and do not enter any execution loop.
-5. If runtime routing depends on workspace-local runtime docs and the active Initiative workspace is not already confirmed, do Step 3 first in `bind_only` mode. Only after Step 3 has bound the active workspace and materialized the runtime refs may you read `global_state_doc_ref` or any runtime rolling doc.
-6. After active workspace binding when needed, read `global_state_doc_ref` first among runtime docs. If needed, then read the currently active review rolling doc in a targeted way. Only when document facts are still insufficient should you add the minimum necessary Git / test facts.
-7. Then decide directly:
+5. If planning admission fails, stop and challenge the user directly to repair planning truth. Do not call skill: `rebuild-runtime` just to paper over illegal planning input, and do not enter any execution loop.
+6. If runtime routing depends on workspace-local runtime docs and the active Initiative workspace is not already confirmed, do Step 3 first in `bind_only` mode. Only after Step 3 has bound the active workspace and materialized the runtime refs may you read `global_state_doc_ref` or any runtime rolling doc.
+7. After active workspace binding when needed, read `global_state_doc_ref` first among runtime docs. If a valid derived current-effective view already exists and still matches the authoritative rolling doc, you may use it as a hot-path helper; otherwise read the authoritative rolling doc directly. Only when document facts are still insufficient should you add the minimum necessary Git / test facts.
+8. Then decide directly:
 - if the `Global State Doc` already records a delivered stop state such as `initiative_delivered`: stop and explain the current stop point
 - if the `Global State Doc` already records waiting or blocked: first check whether this activation clearly resolves that stop reason
   - if not, stop at that state
@@ -119,7 +134,7 @@ After reading the formal docs, first decide whether the planning truth may legal
 - if current progress clearly belongs to a Milestone review/repair loop: formally rebind `current_snapshot` and `next_action` to that Milestone if needed, then call skill: `milestone-loop`
 - if current progress clearly belongs to the Initiative review/repair loop: formally rebind `current_snapshot` and `next_action` to that Initiative if needed, then call skill: `initiative-loop`
 - if the facts do not conflict but the current next step still cannot be determined uniquely: ask the user directly
-8. You may confirm only one next step or one clear stop point. If facts conflict, call skill: `rebuild-runtime`; if they are ambiguous, ask the user.
+9. You may confirm only one next step or one clear stop point. If facts conflict, call skill: `rebuild-runtime`; if they are ambiguous, ask the user.
 
 ### Step 3: Bind The Active Initiative Workspace
 
@@ -163,6 +178,7 @@ Keep advancing until one of these stop points appears:
 - the user asked to pause
 - the Initiative has completed delivery
 
+<!-- forgeloop:anchor prohibitions -->
 ## Prohibitions
 
 Never:
@@ -177,6 +193,7 @@ Never:
 - silently replace the current coder with a new logical owner
 - continue advancing when `Global State Doc` already explicitly says to wait for the user
 
+<!-- forgeloop:anchor completion-criteria -->
 ## Completion Criteria
 
 After a correct `run-initiative` activation, the system should satisfy all of the following:

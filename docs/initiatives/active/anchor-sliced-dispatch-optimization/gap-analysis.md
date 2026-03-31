@@ -1,5 +1,6 @@
 # Anchor-Sliced Dispatch Optimization 差距分析文档（Gap Analysis Doc）
 
+<!-- forgeloop:anchor document-card -->
 ## 1. 文档卡片（Document Card）
 ### 1.1 状态与阶段（Status And Stage）
 - 状态：`sealed`
@@ -15,6 +16,7 @@
 - 下游 `plan_reviewer`
 - 后续消费 sealed planning truth 的 `run-planning`、`run-initiative`、`rebuild-runtime`、`planner`、`coder`、runtime reviewers
 
+<!-- forgeloop:anchor baseline-and-scope -->
 ## 2. 基线与范围（Baseline And Scope）
 ### 2.1 目标态引用（Target-State Reference）
 - 权威目标态来源：`docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md`
@@ -31,8 +33,8 @@
 
 ### 2.3 当前态覆盖范围（Current-State Coverage）
 - planning 侧：`run-planning`、`planning-loop`、planning stage references、planning rolling-doc contract、当前 Initiative 的 `Planning State Doc` 与 rolling docs。
-- runtime 侧：`run-initiative`、`rebuild-runtime`、`task-loop`、`milestone-loop`、`initiative-loop`、`Global State Doc` contract、三层 review rolling-doc contracts。
-- review / agent 侧：`planner`、`gap-reviewer`、`coder`、runtime reviewers 的 repo 内 reference mirrors，仅用于确认当前读写面与职责边界。
+- runtime 侧：`run-initiative`、`rebuild-runtime`、`task-loop`、`milestone-loop`、`initiative-loop`、`Global State Doc` contract、三层 review rolling-doc contracts、以及当前 repo 内 review baseline docs。
+- review / agent 侧：`planner`、`gap-reviewer`、`coder`、runtime reviewers 的 executable manifests 与 repo 内 reference mirrors；manifests 用于确认真实运行合同，mirrors 只用于确认对外说明面是否漂移。
 - 不纳入范围：具体 parser 实现、packet builder 代码、真实 runtime trace、或尚未存在的本 Initiative runtime docs。
 
 ### 2.4 差距闭合目标（Gap-Closure Goal）
@@ -48,6 +50,7 @@
 - 现有 `round`、`handoff_id`、`review_target_ref`、freshness law、repo-root-relative durable refs、以及 stage/runtime routing vocabulary 不能在下游被隐式重命名。
 - gap 阶段必须把 blocker 级差距关在本层；不能把“以后再定义 anchor 合法性 / 迁移规则”伪装成执行细节下放到 `Total Task Doc`。
 
+<!-- forgeloop:anchor gap-verdict-summary -->
 ## 3. 差距裁决摘要（Gap Verdict Summary）
 ### 3.1 当前态裁决（Current-State Verdict）
 - 当前 repo 已经具备强正式合同骨架：planning / runtime supervisor 分层、state docs 薄控制面、rolling-doc freshness law、以及对象级 handoff 规则都已成文。
@@ -64,10 +67,11 @@
 - 先补 `M1` 的地址层与对象覆盖矩阵，再在此基础上收缩 `M2` dispatch packet，最后处理 `M3` derived views、validation、与 migration/cutover。
 - 任何阶段只要 anchor legality、dispatch shrink、或 derived-view authority line 无法在不增设第二真理源的前提下成立，就必须在 Gap 层或更上游停住，而不是继续下放到执行计划。
 
+<!-- forgeloop:anchor current-state-snapshot -->
 ## 4. 当前态快照（Current-State Snapshot）
 ### 4.1 现有拓扑（Existing Topology）
 - planning 侧是两层 supervisor 结构：`run-planning` 负责绑定 Initiative 与 active stage，`planning-loop` 负责单 stage authoring / handoff / review routing。
-- planning 正式物包括 stage artifact、`Planning State Doc`、和对应 planning rolling doc；当前 Initiative 已存在 sealed `design.md`、`planning-state.md`、`design-rolling.md`、`gap-rolling.md`。
+- planning 正式物包括 stage artifact、`Planning State Doc`、和对应 planning rolling doc；当前 Initiative 已存在 sealed `design.md`、`planning-state.md`、`design-rolling.md`、`gap-rolling.md`、`plan-rolling.md`。
 - runtime 侧是 `run-initiative` + `rebuild-runtime` + `task-loop` / `milestone-loop` / `initiative-loop` 的控制面，配套一个 update-only `Global State Doc` 与三层 append-only review rolling docs。
 - 运行时对象层已经区分 Task / Milestone / Initiative 三个 review/repair loop，并用对象级 `handoff_id + review_target_ref + round` 维持 freshness。
 
@@ -95,6 +99,7 @@
   - 最终 anchor 语法、命名规则、解析器落点、物化载体。
   - 在真实 runtime trace 下，哪些消费者最需要更细粒度切片；当前 repo 证据只能证明“缺少合同”，不能证明“最终粒度”。
 
+<!-- forgeloop:anchor gap-ledger -->
 ## 5. 差距账本（Gap Ledger）
 ### 5.1 边界与职责差距（Boundary And Ownership Gaps）
 - 现有 planning/runtime supervisor 已清晰区分 control plane 与 rolling-doc body，但“谁负责 anchor identity / resolution / legality”尚无权威归属；若不先补齐，后续实现会把 parser、dispatcher、reviewer admission 混成一层。
@@ -124,6 +129,7 @@
   - 需要回答 current-effective view 如何从正式 rolling docs 推导、何时失效、如何验证、如何与旧整文读取共存、以及迁移失败如何回滚。
   - 若这点不先定，`Total Task Doc` 会被迫同时承担新投影层设计与执行计划，造成阶段泄漏。
 
+<!-- forgeloop:anchor convergence-strategy -->
 ## 6. 收敛策略（Convergence Strategy）
 ### 6.1 桥接形态（Bridge Shape）
 - 桥接不是重做 planning/runtime 骨架，而是在现有骨架上叠加一个受限地址层与可失效投影层。
@@ -150,6 +156,7 @@
 - 下游 coding/routing 工作必须把“整文恢复是显式 fallback，不是默认路径”作为绑定事实，同时也必须把“fallback 永远合法”作为安全事实。
 - 任何实现提案若试图把 packet、projection cache、或 slim view 提升为新的 durable source，应直接判定超出本 Gap 文档允许范围。
 
+<!-- forgeloop:anchor correctness-surface -->
 ## 7. 正确性表面（Correctness Surface）
 ### 7.1 迁移不变量（Migration Invariants）
 - 正式 planning artifacts、state docs、rolling docs 始终是唯一权威源。
@@ -174,6 +181,7 @@
 - 若 `M3` 发现 derived views 无法保持“可重建、可失效、非权威”的三条件，则不得继续下游执行；应在 Gap 层修复或建议 reopen 到 Design。
 - 若下游只能靠未证实的 runtime trace 假设来决定切片粒度或切换顺序，应先回到 Gap 层补足验证/迁移边界，而不是直接进入执行计划。
 
+<!-- forgeloop:anchor residual-risks -->
 ## 8. 残余风险与后续事项（Residual Risks And Follow-Ups）
 ### 8.1 可接受残余风险（Accepted Residual Risks）
 - 由于当前 repo 缺少本 Initiative 的 runtime doc 样本，`Total Task Doc` 仍需为验证矩阵补足实例化检查点；本文件只证明合同级缺口，不证明最终实现粒度。

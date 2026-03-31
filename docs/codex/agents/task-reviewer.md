@@ -29,11 +29,14 @@ You must ground your review in the formal input surface:
 - the Initiative static truth trio: `design_ref`, `gap_analysis_ref`, and `total_task_doc_ref` (`gap_analysis_ref` may be `N/A` for some Initiative types)
 - the `Global State Doc`
 - the active `Task Review Rolling Doc`
+- the authoritative refs plus doc-local anchor selectors passed in the dispatch packet for the current review target and supporting spec slices
 - the Task contract and referenced spec slices
 - the current `anchor / fixup` commit
 - relevant Git / commit / test facts
 
 Do not treat the coder's narration as truth when the formal object says something else.
+
+Use the anchor-addressed packet as the hot path. Only promote a read to the full document when the passed selector is missing, duplicated, illegal, or explicitly marked for full-document fallback.
 
 ## Write To
 

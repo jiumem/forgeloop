@@ -22,3 +22,11 @@ This fails if removed platform files come back, if the packaged skill or agent m
 
 It also checks that the packaged custom agent manifests under `plugins/forgeloop/agents/` are present and declare the required fields.
 It also checks that every shipped workflow dispatch file points at a declared packaged custom agent, so new agent roles cannot be added half-way.
+
+## 3. Anchor slice smoke test
+
+```bash
+bash tests/codex/anchor-slice-smoke.sh
+```
+
+This verifies the shared anchor-addressing contract, duplicate-anchor detection, slice materialization, and derived-view rebuilding on the shipped fixtures and selected formal reference docs.

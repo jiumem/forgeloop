@@ -1,5 +1,6 @@
 # Initiative Review Rolling Doc Contract
 
+<!-- forgeloop:anchor purpose -->
 ## Purpose
 
 `Initiative Review Rolling Doc` is the only append-only formal collaboration surface for one Initiative delivery loop.
@@ -12,6 +13,7 @@ It carries:
 - current Initiative review handoff
 - `R3` results
 
+<!-- forgeloop:anchor legal-machine-blocks -->
 ## Legal Machine Blocks
 
 - `initiative_review_header`
@@ -22,6 +24,7 @@ It carries:
 
 Header and contract snapshot are initialized once. All later formal facts append only.
 
+<!-- forgeloop:anchor canonical-initiative-vocabulary -->
 ## Canonical Initiative Vocabulary
 
 - `g3_result.next_action` must be one of:
@@ -37,12 +40,14 @@ Header and contract snapshot are initialized once. All later formal facts append
   - `wait_for_user`
   - `stop_on_blocker`
 
+<!-- forgeloop:anchor handoff-law -->
 ## Handoff Law
 
 - The current Initiative handoff is the latest `g3_result` in the current round whose `next_action=enter_r3`.
 - Every `g3_result` that opens reviewer handoff must include `handoff_id` and `review_target_ref`.
 - `R3` is actionable only when `round`, `handoff_id`, and `review_target_ref` match the current handoff exactly.
 
+<!-- forgeloop:anchor recommended-template -->
 ## Recommended Template
 
 ````markdown
@@ -98,6 +103,7 @@ required_follow_ups: []
 ```
 ````
 
+<!-- forgeloop:anchor initialization-law -->
 ## Initialization Law
 
 When the rolling doc does not yet exist:

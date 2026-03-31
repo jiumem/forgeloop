@@ -1,11 +1,13 @@
 # Global State Doc Contract
 
+<!-- forgeloop:anchor purpose -->
 ## Purpose
 
 `Global State Doc` is the only runtime-wide update-only control spine.
 
 It exists to let `run-initiative`, `task-loop`, `milestone-loop`, `initiative-loop`, and `rebuild-runtime` recover one current active object, one current runtime route, and one recent transition without inventing a second state model.
 
+<!-- forgeloop:anchor durable-rules -->
 ## Durable Rules
 
 - Only these machine blocks are legal here:
@@ -19,6 +21,7 @@ It exists to let `run-initiative`, `task-loop`, `milestone-loop`, `initiative-lo
 - `next_action` must use the canonical runtime routing vocabulary directly. Do not invent parallel supervisor-only names such as `dispatch_coder_continue_task`.
 - `request_reviewer_handoff` is a rolling-doc-local coder intent, not a legal `Global State Doc.next_action.action`. After a valid current handoff exists, the `Global State Doc` materializes reviewer entry as `enter_r1`, `enter_r2`, or `enter_r3`.
 
+<!-- forgeloop:anchor runtime-routing-vocabulary -->
 ## Canonical Runtime Routing Vocabulary
 
 `next_action.action` may only use these values:
@@ -48,6 +51,7 @@ It exists to let `run-initiative`, `task-loop`, `milestone-loop`, `initiative-lo
 
 If the current next step is derived from a rolling doc, preserve the same literal action value when it is already in this routing vocabulary.
 
+<!-- forgeloop:anchor recommended-template -->
 ## Recommended Template
 
 ````markdown
@@ -87,6 +91,7 @@ reason: initial_task_entry
 ```
 ````
 
+<!-- forgeloop:anchor field-guidance -->
 ## Field Guidance
 
 - `current_snapshot.active_plane` must be exactly one of `task`, `milestone`, or `initiative`.
@@ -95,6 +100,7 @@ reason: initial_task_entry
 - `round` is object-local and supervisor-owned.
 - `last_transition` may carry callback or recovery details when a repair task was objectized, but those details must remain transition-scoped rather than becoming a second state model.
 
+<!-- forgeloop:anchor bootstrap-law -->
 ## Bootstrap Law
 
 On runtime cold start or runtime rebuild:

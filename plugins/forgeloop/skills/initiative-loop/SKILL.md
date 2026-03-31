@@ -5,22 +5,28 @@ description: Use when the `Global State Doc` has uniquely confirmed that current
 
 # Initiative Loop
 
+<!-- forgeloop:anchor role -->
 `initiative-loop` handles only one confirmed Initiative. Here you act as the Initiative-layer `Supervisor`: maintain the minimum control plane, keep a single `coder_slot`, dispatch the same `coder` and a fresh `initiative_reviewer` each round, and use the facts from `G3`, `R3`, and objectized repair tasks when needed to decide whether the Initiative stays in the current layer, opens the next Initiative round, falls back to Task repair, reaches delivered stop, or stops.
 
 `coder_slot` is the logical owner identifier, not the physical `agent_id`; the current `agent_id` may change, but `coder_slot` does not.
 
 You are not responsible for writing code, writing `r3_result`, directly repairing Task code, rewriting any higher-level dispatch, performing governance actions outside finishing the development branch, or maintaining any parallel state.
 
+<!-- forgeloop:anchor initiative-local-vocabulary -->
 ## Initiative-Local Vocabulary
 
 - `g3_result.next_action` must be one of: `continue_initiative_repair`, `objectize_task_repair`, `enter_r3`, `wait_for_user`, `stop_on_blocker`
 - `r3_result.next_action` must be one of: `continue_initiative_repair`, `objectize_task_repair`, `mark_initiative_delivered`, `wait_for_user`, `stop_on_blocker`
 
+<!-- forgeloop:anchor canonical-runtime-contract-refs -->
 ## Canonical Runtime Contract Refs
 
 - shared `Global State Doc` contract -> `../run-initiative/references/global-state.md`
 - `Initiative Review Rolling Doc` contract -> `../run-initiative/references/initiative-review-rolling-doc.md`
+- shared anchor-addressing contract -> `../references/anchor-addressing.md`
+- shared derived-view contract -> `../references/derived-views.md`
 
+<!-- forgeloop:anchor truth-sources-boundaries -->
 ## Truth Sources And Hard Boundaries
 
 The formal input surface contains only the Initiative static truth trio `design_ref`, `gap_analysis_ref`, and `total_task_doc_ref` (`gap_analysis_ref` may be `N/A` for some Initiative types), the `Global State Doc`, the current `Initiative Review Rolling Doc`, the Milestone review docs / supporting evidence included in the current Initiative delivery candidate, and the necessary release / rollout / deployment / flag / readiness / test facts.
@@ -33,6 +39,7 @@ Hard boundaries:
 - a new round opens only on first entry into the Initiative, after `r3_result.next_action=continue_initiative_repair`, or when callback semantics from an objectized repair task explicitly say the Initiative should enter the next round
 - the `Initiative Review Rolling Doc` is the only formal document for `G3 / R3`; the `Global State Doc` may contain only `current_snapshot`, `next_action`, and `last_transition`
 - when reading, writing, initializing, or repairing runtime state, the `Global State Doc` and the `Initiative Review Rolling Doc` must follow the canonical contract refs above; do not improvise block shape or `next_action` spelling from memory or older design examples
+- Initiative dispatch should consume authoritative refs plus doc-local selectors and only the minimal slices needed for the delivery candidate; if selector legality fails, promote that read to explicit full-document fallback
 - if `next_action` changes the active object or active plane, `current_snapshot` must be updated at the same time; only when still advancing within the same Initiative may you update only `next_action` and `last_transition`
 - if `G3` or `R3` finds a code problem, the default is `continue_initiative_repair` with the same `coder_slot` in the same Initiative and rerun `G3`; only when the repair needs an independent Task contract, a clearly new object boundary, or obviously exceeds the current Initiative closure radius should it be objectized into a repair task through the `Global State Doc` and fall back to `task-loop`
 - if a repair task has already been objectized, after the repair completes it must return to the same `Initiative Review Rolling Doc` to append the next round
@@ -40,6 +47,7 @@ Hard boundaries:
 - each Initiative handoff block must carry `handoff_id` and `review_target_ref`; `r3_result` is actionable only when its `round`, `handoff_id`, and `review_target_ref` match that current handoff exactly, and if multiple `r3_result` blocks match one current handoff, only the latest matching block is actionable
 - if the rolling doc does not exist, initialize the header, including object identity and `coder_slot`, plus `initiative_contract_snapshot`, according to the canonical `Initiative Review Rolling Doc` contract; after initialization, the rolling doc becomes the only collaboration surface, and on first entry write `coder_slot=coder` and `round=1` into the header and `current_snapshot` according to the canonical `Global State Doc` contract
 
+<!-- forgeloop:anchor workflow -->
 ## Workflow
 
 1. Bind the current Initiative
@@ -60,7 +68,7 @@ Hard boundaries:
 - Continue reusing the same logical `coder_slot` for the current Initiative
 - Reuse the current `agent_id` while the physical thread is alive; if it is lost, you may assign a successor `agent_id`, but you must reuse the original `coder_slot` and record the succession
 - Default to `fork_context=false`
-- The coder input only needs to locate the current formal input surface: current Initiative identity, `design_ref`, `gap_analysis_ref`, `total_task_doc_ref`, the `Global State Doc` path, the current `Initiative Review Rolling Doc` path, and the entry points for the Milestone review docs / supporting evidence included in the Initiative candidate
+- The coder input only needs to locate the current formal input surface: current Initiative identity, authoritative refs, the current handoff identifiers, the selectors for the Initiative success criteria and included Milestone evidence, and any already materialized minimal slices
 - The coder returns its result to the `Initiative Review Rolling Doc` according to the contract
 
 4. Handle the coder result
@@ -75,7 +83,7 @@ Hard boundaries:
 
 5. Dispatch a fresh `initiative_reviewer`
 - Every `R3` round uses a freshly spawned reviewer, with `fork_context=false` by default
-- The reviewer reads `design_ref`, `gap_analysis_ref`, `total_task_doc_ref`, the `Global State Doc`, the current `Initiative Review Rolling Doc`, the current Initiative candidate's Milestone review docs / supporting evidence, the current `round`, the current `handoff_id`, the current `review_target_ref`, and related release / rollout / deployment / flag / readiness / test facts
+- The reviewer reads the same authoritative refs, the current handoff identifiers, the selectors for the Initiative success criteria and included Milestone evidence, and only the minimal slices needed for delivery-radius review unless fallback is triggered explicitly
 - The reviewer returns its result to the `Initiative Review Rolling Doc` according to the contract
 
 6. Handle `r3_result`
@@ -87,6 +95,7 @@ Hard boundaries:
 - If the current actionable `r3_result` has `verdict=changes_requested` and `next_action=stop_on_blocker`: the reviewer writes only the recommendation, the `Supervisor` writes blocked into the `Global State Doc`, then hands control back upstream
 - If the rolling doc does not expose one unique actionable `r3_result`, or if `verdict` and `next_action` do not form one legal combination above, stop and surface the illegal Initiative review output explicitly
 
+<!-- forgeloop:anchor stop-conditions -->
 ## Stop Conditions
 
 Stop immediately and hand control back upstream or to the user when:
@@ -96,6 +105,7 @@ Stop immediately and hand control back upstream or to the user when:
 - the workspace is not an executable implementation environment, or current facts show the system should wait for the user
 - the coder or reviewer exposes a real blocker
 
+<!-- forgeloop:anchor red-lines -->
 ## Red Lines
 
 Never:
@@ -111,6 +121,7 @@ Never:
 - claim delivery completion while the Initiative still has an active repair task
 - claim the Initiative is clean without `r3_result: clean`
 
+<!-- forgeloop:anchor completion-criteria -->
 ## Completion Criteria
 
 On correct completion, all of the following should be true:

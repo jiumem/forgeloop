@@ -5,15 +5,20 @@ description: Use when the runtime control plane is missing, conflicting, or cann
 
 # Rebuild Runtime
 
+<!-- forgeloop:anchor role -->
 `rebuild-runtime` does recovery only. It does not code, it does not review, and it does not replace `run-initiative` for ongoing dispatch. Here you act as a recovery-state `Supervisor`: rebuild the minimum runnable control plane from the formal truth sources and engineering facts, then hand the system back upstream.
 
+<!-- forgeloop:anchor canonical-runtime-contract-refs -->
 ## Canonical Runtime Contract Refs
 
 - shared `Global State Doc` contract -> `../run-initiative/references/global-state.md`
 - `Task Review Rolling Doc` contract -> `../run-initiative/references/task-review-rolling-doc.md`
 - `Milestone Review Rolling Doc` contract -> `../run-initiative/references/milestone-review-rolling-doc.md`
 - `Initiative Review Rolling Doc` contract -> `../run-initiative/references/initiative-review-rolling-doc.md`
+- shared anchor-addressing contract -> `../references/anchor-addressing.md`
+- shared derived-view contract -> `../references/derived-views.md`
 
+<!-- forgeloop:anchor truth-sources-boundaries -->
 ## Truth Sources And Hard Boundaries
 
 The formal input surface contains only the Initiative static truth trio `design_ref`, `gap_analysis_ref`, and `total_task_doc_ref` (`gap_analysis_ref` may be `N/A` for some Initiative types), the `Global State Doc`, the three layers of review rolling docs, and the necessary Git / PR / commit / test facts.
@@ -28,7 +33,9 @@ Hard boundaries:
 - do not write any rolling doc body content
 - do not modify the static truth sources and do not create a second state model in JSON / notes / hidden memory
 - do not invent runtime block shape or `next_action` spelling from memory or older design examples when the canonical runtime contract refs above are available
+- default to authoritative refs plus anchor selectors plus minimal slices when those selectors are legal; only cold-start or legality-failure recovery may promote reads to full documents
 
+<!-- forgeloop:anchor shared-runtime-recovery-law -->
 ## Shared Runtime Recovery Law
 
 - `round` is object-local and supervisor-owned through the `Global State Doc`; coder and reviewers only echo it in rolling docs
@@ -40,6 +47,7 @@ Hard boundaries:
 - a review result is actionable only when its `round`, `handoff_id`, and `review_target_ref` match that current handoff exactly; if multiple review results match one current handoff, only the latest appended matching block is actionable
 - a new round opens only on first entry into an object, after a reviewer requests same-object repair, or after callback semantics from an objectized repair task explicitly say the source object should enter the next round
 
+<!-- forgeloop:anchor when-to-trigger -->
 ## When To Trigger
 
 Trigger only in the following situations:
@@ -53,15 +61,17 @@ This skill does not handle the following:
 - cases that only need an implementation environment and should call skill: `using-git-worktrees`
 - cases where the current next step is already clear and recovery is unnecessary
 
+<!-- forgeloop:anchor workflow -->
 ## Workflow
 
 1. Bind the recovery surface
-- Read `total_task_doc_ref`, the existing `Global State Doc`, and the three rolling docs
+- Read `total_task_doc_ref`, the existing `Global State Doc`, and the three rolling docs through authoritative refs plus selectors when possible
 - If the static truth sources are missing, or the Initiative binding cannot be confirmed uniquely, stop and ask the user directly
 - If there is no rolling doc at all and no `Global State Doc`, treat it as a cold start, hand control back upstream, and do not write runtime state
 
 2. Determine the current formal frontier
 - First respect waiting / blocked / done signals that are consistent with the newer formal facts
+- Prefer current-effective derived views only when they can still be rebuilt from the same authoritative rolling docs without legality drift; otherwise invalidate them and reread the formal rolling docs
 - Otherwise, use the newest formal frontier that has not yet closed as the active candidate
 - If multiple candidates coexist, the fixed priority is: active Task repair / coder round > active Milestone review / repair > active Initiative review / repair > frontier selection after the last clean object
 - Chat summaries, cache, and session memory never participate in adjudication
@@ -102,6 +112,7 @@ This skill does not handle the following:
 - Write `last_transition` as a recovery transition explaining why the control plane was rebuilt, using the canonical `Global State Doc` contract
 - After writing, immediately hand control back to skill: `run-initiative` so the upstream dispatcher can reconfirm and continue
 
+<!-- forgeloop:anchor stop-conditions -->
 ## Stop Conditions
 
 Stop immediately and hand control back upstream or to the user when:
@@ -111,6 +122,7 @@ Stop immediately and hand control back upstream or to the user when:
 - there are no runtime docs and the case should be handled as a cold start
 - the facts show the system should wait for the user, but the waiting reason cannot be stated formally
 
+<!-- forgeloop:anchor red-lines -->
 ## Red Lines
 
 Never:
@@ -120,6 +132,7 @@ Never:
 - treat chat memory, cache, or local derived hints as formal truth sources
 - silently guess the active object, `coder_slot`, or next action
 
+<!-- forgeloop:anchor completion-criteria -->
 ## Completion Criteria
 
 On correct completion, all of the following should be true:

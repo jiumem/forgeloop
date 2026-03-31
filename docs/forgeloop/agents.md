@@ -14,6 +14,8 @@ The runtime `Supervisor` is not shipped as a custom agent manifest. It runs in t
 
 `plugins/forgeloop/scripts/materialize-agents.sh` copies those manifests into Codex global agent storage by default, or into a target project's `.codex/agents/` when `--project-dir` is supplied.
 
+All shipped workflow roles assume anchor-addressed minimal packets by default: authoritative refs, doc-local selectors, optional minimal slices, and explicit full-document fallback only on legality failure or recovery.
+
 ## Shipped Agent Set
 
 ### `planner`
