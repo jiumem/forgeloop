@@ -35,6 +35,21 @@ This reference governs the planning communication plane, not artifact shape. Sta
   - the relevant upstream planning artifact refs for the current stage
 - the rolling doc owns this snapshot; the `Planning State Doc` remains control-plane-only
 
+<!-- forgeloop:anchor legal-machine-blocks -->
+## Legal Machine Blocks
+
+- `planning_rolling_header`
+- `planning_contract_snapshot`
+- `planner_update`
+- `design_doc_ref`
+- `gap_analysis_ref`
+- `total_task_doc_ref`
+- `design_review_result`
+- `gap_review_result`
+- `plan_review_result`
+
+Header and contract snapshot are initialized once. All later formal facts append only.
+
 <!-- forgeloop:anchor round-law -->
 ## Round Law
 

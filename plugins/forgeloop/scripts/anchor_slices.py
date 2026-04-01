@@ -12,6 +12,7 @@ from collections import defaultdict
 
 
 ANCHOR_RE = re.compile(r"^\s*<!--\s*forgeloop:anchor\s+([a-z0-9._/-]+)\s*-->\s*$")
+SELECTOR_RE = re.compile(r"^[a-z0-9._/-]+$")
 ANCHOR_MARKER_RE = re.compile(r"forgeloop:anchor")
 CODE_FENCE_RE = re.compile(r"^\s*```")
 FENCE_START = re.compile(r"^\s*```forgeloop\s*$")
@@ -383,6 +384,9 @@ def check(paths: list[pathlib.Path]) -> int:
 
 
 def print_slice(doc: pathlib.Path, selector: str) -> int:
+    if not SELECTOR_RE.fullmatch(selector):
+        print(f"{doc}: illegal_selector {selector}", file=sys.stderr)
+        return 2
     anchors = {anchor.selector: anchor for anchor in parse_anchors(doc)}
     if selector not in anchors:
         print(f"{doc}: missing anchor {selector}", file=sys.stderr)

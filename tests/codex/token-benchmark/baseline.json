@@ -1,0 +1,793 @@
+{
+  "schema_version": 2,
+  "runtime_cutover": {
+    "contract_path": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md",
+    "runtime_scope": "runtime_only",
+    "planning_scope": "out_of_scope",
+    "current_mode": "minimal_preferred"
+  },
+  "method": {
+    "proof_target": "packet-shape + read-surface shrink",
+    "approx_token_formula": "ceil(chars / 4)",
+    "provider_tokenizer": "not_connected",
+    "telemetry": "not_connected"
+  },
+  "thresholds": {
+    "runtime_total_reduction_floor_pct": 45.0,
+    "runtime_task_hot_path_target_pct": 50.0
+  },
+  "scenarios": [
+    {
+      "name": "Runtime Cold Start",
+      "scope": "runtime",
+      "gating": "gating",
+      "bucket": "cold_path",
+      "task_hot_path": false,
+      "description": "Bind durable refs, admit planning truth, and initialize runtime without an existing active rolling doc.",
+      "fallback_points": [
+        "cold start may still promote individual reads to full documents on selector legality failure"
+      ],
+      "legacy": {
+        "read_set": [
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md",
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/gap-analysis.md",
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md",
+          "plugins/forgeloop/skills/run-initiative/SKILL.md",
+          "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md",
+          "plugins/forgeloop/skills/run-initiative/references/global-state.md"
+        ],
+        "stats": {
+          "chars": 85219,
+          "lines": 1285,
+          "words": 10027,
+          "approx_tokens": 21305
+        }
+      },
+      "minimal": {
+        "read_set": [
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md#requirement-baseline",
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md#target-state-design",
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/gap-analysis.md#baseline-and-scope",
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md#input-baseline",
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md#task-ledger",
+          "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md#current-mode",
+          "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md#default-read-law",
+          "plugins/forgeloop/skills/run-initiative/SKILL.md#canonical-ref-semantics",
+          "plugins/forgeloop/skills/run-initiative/SKILL.md#runtime-control-plane-contracts",
+          "plugins/forgeloop/skills/run-initiative/SKILL.md#main-flow",
+          "plugins/forgeloop/skills/run-initiative/references/global-state.md#durable-rules",
+          "plugins/forgeloop/skills/run-initiative/references/global-state.md#bootstrap-law"
+        ],
+        "stats": {
+          "chars": 42068,
+          "lines": 570,
+          "words": 4516,
+          "approx_tokens": 10517
+        }
+      },
+      "reduction_pct": 50.6
+    },
+    {
+      "name": "Runtime Resume Into Active Task",
+      "scope": "runtime",
+      "gating": "gating",
+      "bucket": "hot_path",
+      "task_hot_path": true,
+      "description": "Resume a running Task from thin control state plus the current rolling-doc frontier.",
+      "fallback_points": [
+        "selector legality failure",
+        "global-state and rolling-doc conflict"
+      ],
+      "legacy": {
+        "read_set": [
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md",
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/gap-analysis.md",
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md",
+          "plugins/forgeloop/skills/run-initiative/SKILL.md",
+          "plugins/forgeloop/skills/task-loop/SKILL.md",
+          "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md",
+          "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md",
+          "tests/codex/token-benchmark/fixtures/global-state-active-task.md",
+          "tests/fixtures/anchor-slicing/task-review-sample.md"
+        ],
+        "stats": {
+          "chars": 105622,
+          "lines": 1687,
+          "words": 12644,
+          "approx_tokens": 26406
+        }
+      },
+      "minimal": {
+        "read_set": [
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md#task-ledger",
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md#acceptance-matrix",
+          "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md#current-mode",
+          "plugins/forgeloop/skills/run-initiative/SKILL.md#main-flow",
+          "plugins/forgeloop/skills/task-loop/SKILL.md#truth-sources-boundaries",
+          "plugins/forgeloop/skills/task-loop/SKILL.md#workflow",
+          "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md#handoff-law",
+          "tests/codex/token-benchmark/fixtures/global-state-active-task.md#current-snapshot",
+          "tests/codex/token-benchmark/fixtures/global-state-active-task.md#next-action",
+          "tests/fixtures/anchor-slicing/task-review-sample.md::current-effective.md"
+        ],
+        "stats": {
+          "chars": 42350,
+          "lines": 541,
+          "words": 4863,
+          "approx_tokens": 10588
+        }
+      },
+      "reduction_pct": 59.9
+    },
+    {
+      "name": "Same-Task Same-Round Coder Continue",
+      "scope": "runtime",
+      "gating": "gating",
+      "bucket": "hot_path",
+      "task_hot_path": true,
+      "description": "Continue the same Task coder slot inside the current round without replaying full history.",
+      "fallback_points": [
+        "round ambiguity",
+        "handoff mismatch"
+      ],
+      "legacy": {
+        "read_set": [
+          "plugins/forgeloop/skills/task-loop/SKILL.md",
+          "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md",
+          "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md",
+          "tests/fixtures/anchor-slicing/task-review-sample.md",
+          "tests/codex/token-benchmark/fixtures/global-state-active-task.md"
+        ],
+        "stats": {
+          "chars": 30850,
+          "lines": 655,
+          "words": 3859,
+          "approx_tokens": 7713
+        }
+      },
+      "minimal": {
+        "read_set": [
+          "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md#current-mode",
+          "plugins/forgeloop/skills/task-loop/SKILL.md#truth-sources-boundaries",
+          "plugins/forgeloop/skills/task-loop/SKILL.md#task.cutover-mode-law",
+          "plugins/forgeloop/skills/task-loop/SKILL.md#workflow",
+          "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md#canonical-task-vocabulary",
+          "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md#handoff-law",
+          "tests/codex/token-benchmark/fixtures/global-state-active-task.md#current-snapshot",
+          "tests/fixtures/anchor-slicing/task-review-sample.md::attempt-aware/round-2.md"
+        ],
+        "stats": {
+          "chars": 16383,
+          "lines": 287,
+          "words": 1939,
+          "approx_tokens": 4096
+        }
+      },
+      "reduction_pct": 46.9
+    },
+    {
+      "name": "Same-Task Handoff To Fresh Reviewer",
+      "scope": "runtime",
+      "gating": "gating",
+      "bucket": "hot_path",
+      "task_hot_path": true,
+      "description": "Dispatch a fresh Task reviewer against only the current handoff surface.",
+      "fallback_points": [
+        "fresh reviewer first packet must still be self-sufficient",
+        "derived view invalidation"
+      ],
+      "legacy": {
+        "read_set": [
+          "plugins/forgeloop/skills/task-loop/SKILL.md",
+          "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md",
+          "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md",
+          "tests/fixtures/anchor-slicing/task-review-sample.md",
+          "plugins/forgeloop/agents/task_reviewer.toml"
+        ],
+        "stats": {
+          "chars": 38022,
+          "lines": 812,
+          "words": 5054,
+          "approx_tokens": 9506
+        }
+      },
+      "minimal": {
+        "read_set": [
+          "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md#current-mode",
+          "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md#fallback-law",
+          "plugins/forgeloop/skills/task-loop/SKILL.md#workflow",
+          "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md#handoff-law",
+          "tests/fixtures/anchor-slicing/task-review-sample.md::handoff-scoped/sample-r2-a1.md",
+          "plugins/forgeloop/agents/task_reviewer.toml"
+        ],
+        "stats": {
+          "chars": 20049,
+          "lines": 396,
+          "words": 2673,
+          "approx_tokens": 5013
+        }
+      },
+      "reduction_pct": 47.3
+    },
+    {
+      "name": "Milestone Review",
+      "scope": "runtime",
+      "gating": "gating",
+      "bucket": "hot_path",
+      "task_hot_path": false,
+      "description": "Hand off Milestone evidence without replaying all included Task history.",
+      "fallback_points": [
+        "multiple actionable results",
+        "selector legality failure"
+      ],
+      "legacy": {
+        "read_set": [
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md",
+          "plugins/forgeloop/skills/milestone-loop/SKILL.md",
+          "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md",
+          "plugins/forgeloop/skills/run-initiative/references/milestone-review-rolling-doc.md",
+          "tests/codex/token-benchmark/fixtures/milestone-review-sample.md"
+        ],
+        "stats": {
+          "chars": 55840,
+          "lines": 857,
+          "words": 6469,
+          "approx_tokens": 13960
+        }
+      },
+      "minimal": {
+        "read_set": [
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md#milestone-master-table",
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md#acceptance-matrix",
+          "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md#current-mode",
+          "plugins/forgeloop/skills/milestone-loop/SKILL.md#truth-sources-boundaries",
+          "plugins/forgeloop/skills/milestone-loop/SKILL.md#milestone.cutover-mode-law",
+          "plugins/forgeloop/skills/milestone-loop/SKILL.md#workflow",
+          "plugins/forgeloop/skills/run-initiative/references/milestone-review-rolling-doc.md#handoff-law",
+          "tests/codex/token-benchmark/fixtures/milestone-review-sample.md::current-effective.md"
+        ],
+        "stats": {
+          "chars": 23155,
+          "lines": 329,
+          "words": 2718,
+          "approx_tokens": 5789
+        }
+      },
+      "reduction_pct": 58.5
+    },
+    {
+      "name": "Initiative Review",
+      "scope": "runtime",
+      "gating": "gating",
+      "bucket": "hot_path",
+      "task_hot_path": false,
+      "description": "Review the delivery candidate against Milestone evidence and current initiative handoff only.",
+      "fallback_points": [
+        "initiative handoff drift",
+        "review target mismatch"
+      ],
+      "legacy": {
+        "read_set": [
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md",
+          "plugins/forgeloop/skills/initiative-loop/SKILL.md",
+          "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md",
+          "plugins/forgeloop/skills/run-initiative/references/initiative-review-rolling-doc.md",
+          "tests/codex/token-benchmark/fixtures/initiative-review-sample.md"
+        ],
+        "stats": {
+          "chars": 55912,
+          "lines": 857,
+          "words": 6454,
+          "approx_tokens": 13978
+        }
+      },
+      "minimal": {
+        "read_set": [
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md#acceptance-matrix",
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md#global-residual-risks",
+          "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md#current-mode",
+          "plugins/forgeloop/skills/initiative-loop/SKILL.md#truth-sources-boundaries",
+          "plugins/forgeloop/skills/initiative-loop/SKILL.md#initiative.cutover-mode-law",
+          "plugins/forgeloop/skills/initiative-loop/SKILL.md#workflow",
+          "plugins/forgeloop/skills/run-initiative/references/initiative-review-rolling-doc.md#handoff-law",
+          "tests/codex/token-benchmark/fixtures/initiative-review-sample.md::current-effective.md"
+        ],
+        "stats": {
+          "chars": 21445,
+          "lines": 309,
+          "words": 2479,
+          "approx_tokens": 5362
+        }
+      },
+      "reduction_pct": 61.6
+    },
+    {
+      "name": "Rebuild Runtime",
+      "scope": "runtime",
+      "gating": "gating",
+      "bucket": "cold_path",
+      "task_hot_path": false,
+      "description": "Recover the control plane from thin durable truth plus the newest actionable rolling-doc frontier.",
+      "fallback_points": [
+        "multiple active candidates coexist",
+        "derived view legality drift"
+      ],
+      "legacy": {
+        "read_set": [
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md",
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/gap-analysis.md",
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md",
+          "plugins/forgeloop/skills/rebuild-runtime/SKILL.md",
+          "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md",
+          "tests/codex/token-benchmark/fixtures/global-state-waiting.md",
+          "tests/codex/token-benchmark/fixtures/initiative-review-sample.md",
+          "tests/codex/token-benchmark/fixtures/milestone-review-sample.md"
+        ],
+        "stats": {
+          "chars": 74572,
+          "lines": 1191,
+          "words": 8351,
+          "approx_tokens": 18643
+        }
+      },
+      "minimal": {
+        "read_set": [
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md#input-baseline",
+          "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md#current-mode",
+          "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md#fallback-law",
+          "plugins/forgeloop/skills/rebuild-runtime/SKILL.md#truth-sources-boundaries",
+          "plugins/forgeloop/skills/rebuild-runtime/SKILL.md#shared-runtime-recovery-law",
+          "plugins/forgeloop/skills/rebuild-runtime/SKILL.md#workflow",
+          "tests/codex/token-benchmark/fixtures/global-state-waiting.md#current-snapshot",
+          "tests/codex/token-benchmark/fixtures/global-state-waiting.md#next-action",
+          "tests/codex/token-benchmark/fixtures/global-state-waiting.md#last-transition",
+          "tests/codex/token-benchmark/fixtures/initiative-review-sample.md::current-effective.md"
+        ],
+        "stats": {
+          "chars": 19276,
+          "lines": 330,
+          "words": 2163,
+          "approx_tokens": 4819
+        }
+      },
+      "reduction_pct": 74.2
+    },
+    {
+      "name": "Waiting Or Blocked Resume",
+      "scope": "runtime",
+      "gating": "gating",
+      "bucket": "cold_path",
+      "task_hot_path": false,
+      "description": "Resume from an explicit stop state without rescanning unrelated planning and runtime history.",
+      "fallback_points": [
+        "stop reason cannot be stated formally",
+        "resume invalidates the parked control state"
+      ],
+      "legacy": {
+        "read_set": [
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md",
+          "plugins/forgeloop/skills/run-initiative/SKILL.md",
+          "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md",
+          "plugins/forgeloop/skills/run-initiative/references/global-state.md",
+          "tests/codex/token-benchmark/fixtures/global-state-waiting.md"
+        ],
+        "stats": {
+          "chars": 63225,
+          "lines": 946,
+          "words": 7571,
+          "approx_tokens": 15807
+        }
+      },
+      "minimal": {
+        "read_set": [
+          "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md#current-mode",
+          "plugins/forgeloop/skills/run-initiative/SKILL.md#when-to-stop",
+          "plugins/forgeloop/skills/run-initiative/SKILL.md#main-flow",
+          "plugins/forgeloop/skills/run-initiative/references/global-state.md#durable-rules",
+          "plugins/forgeloop/skills/run-initiative/references/global-state.md#runtime-routing-vocabulary",
+          "tests/codex/token-benchmark/fixtures/global-state-waiting.md#current-snapshot",
+          "tests/codex/token-benchmark/fixtures/global-state-waiting.md#next-action",
+          "tests/codex/token-benchmark/fixtures/global-state-waiting.md#last-transition"
+        ],
+        "stats": {
+          "chars": 18418,
+          "lines": 287,
+          "words": 2283,
+          "approx_tokens": 4605
+        }
+      },
+      "reduction_pct": 70.9
+    },
+    {
+      "name": "same-task warm-path delta legal",
+      "scope": "runtime",
+      "gating": "gating",
+      "bucket": "hot_path",
+      "task_hot_path": true,
+      "description": "Continue the same Task on a legal warm path using a self-sufficient delta packet rather than replaying the full packet.",
+      "fallback_points": [
+        "delta legality is proven only while the active object, round, slot, and handoff surface stay stable",
+        "derived view invalidation"
+      ],
+      "legacy": {
+        "read_set": [
+          "plugins/forgeloop/skills/run-initiative/SKILL.md",
+          "plugins/forgeloop/skills/task-loop/SKILL.md",
+          "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md",
+          "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md",
+          "tests/codex/token-benchmark/fixtures/global-state-active-task.md",
+          "tests/fixtures/anchor-slicing/task-review-sample.md"
+        ],
+        "stats": {
+          "chars": 56389,
+          "lines": 975,
+          "words": 7459,
+          "approx_tokens": 14098
+        }
+      },
+      "minimal": {
+        "read_set": [
+          "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md#current-mode",
+          "plugins/forgeloop/skills/run-initiative/SKILL.md#runtime.warm-path-delta",
+          "plugins/forgeloop/skills/task-loop/SKILL.md#task.cutover-mode-law",
+          "plugins/forgeloop/skills/task-loop/SKILL.md#workflow",
+          "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md#canonical-task-vocabulary",
+          "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md#derived-view-usage",
+          "tests/codex/token-benchmark/fixtures/global-state-active-task.md#current-snapshot",
+          "tests/codex/token-benchmark/fixtures/global-state-active-task.md#next-action",
+          "tests/fixtures/anchor-slicing/task-review-sample.md::attempt-aware/round-2.md"
+        ],
+        "stats": {
+          "chars": 15702,
+          "lines": 303,
+          "words": 1780,
+          "approx_tokens": 3926
+        }
+      },
+      "reduction_pct": 72.2
+    },
+    {
+      "name": "same-task warm-path delta illegal -> full packet fallback",
+      "scope": "runtime",
+      "gating": "gating",
+      "bucket": "hot_path",
+      "task_hot_path": false,
+      "description": "When the same-task warm-path delta cannot prove legality because the formal frontier has advanced past the candidate round, the packet must fall back to an explicit full packet instead of sending delta-only state.",
+      "fallback_points": [
+        "warm-path delta legality failed",
+        "full packet fallback is required before continuing the same Task"
+      ],
+      "legacy": {
+        "read_set": [
+          "plugins/forgeloop/skills/run-initiative/SKILL.md",
+          "plugins/forgeloop/skills/task-loop/SKILL.md",
+          "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md",
+          "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md",
+          "tests/codex/token-benchmark/fixtures/global-state-active-task.md",
+          "tests/fixtures/anchor-slicing/task-review-sample.md"
+        ],
+        "stats": {
+          "chars": 56510,
+          "lines": 975,
+          "words": 7476,
+          "approx_tokens": 14128
+        }
+      },
+      "minimal": {
+        "read_set": [
+          "plugins/forgeloop/skills/run-initiative/SKILL.md",
+          "plugins/forgeloop/skills/task-loop/SKILL.md",
+          "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md",
+          "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md",
+          "tests/codex/token-benchmark/fixtures/global-state-active-task.md",
+          "tests/fixtures/anchor-slicing/task-review-sample.md"
+        ],
+        "stats": {
+          "chars": 56612,
+          "lines": 977,
+          "words": 7492,
+          "approx_tokens": 14153
+        }
+      },
+      "reduction_pct": -0.2,
+      "preconditions": [
+        {
+          "label": "active snapshot still points at round 2",
+          "type": "slice_contains",
+          "passed": true,
+          "include": [
+            "round: 2"
+          ],
+          "exclude": []
+        },
+        {
+          "label": "latest current frontier has already advanced to round 3",
+          "type": "derived_view_content",
+          "passed": true,
+          "include": [
+            "sample-r3-a1"
+          ],
+          "exclude": [
+            "sample-r2-a1"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "selector legality failure -> full-doc fallback",
+      "scope": "runtime",
+      "gating": "gating",
+      "bucket": "hot_path",
+      "task_hot_path": false,
+      "description": "If selector validation fails on a hot path, the benchmark first proves that failure with an executable probe and then measures the explicit full-document fallback packet.",
+      "fallback_points": [
+        "missing_anchor",
+        "duplicate_anchor",
+        "illegal_selector"
+      ],
+      "legacy": {
+        "read_set": [
+          "plugins/forgeloop/skills/run-initiative/SKILL.md",
+          "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md",
+          "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md",
+          "tests/codex/token-benchmark/fixtures/global-state-active-task.md",
+          "tests/fixtures/anchor-slicing/task-review-sample.md"
+        ],
+        "stats": {
+          "chars": 40398,
+          "lines": 771,
+          "words": 5227,
+          "approx_tokens": 10100
+        }
+      },
+      "minimal": {
+        "read_set": [
+          "plugins/forgeloop/skills/run-initiative/SKILL.md",
+          "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md",
+          "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md",
+          "tests/codex/token-benchmark/fixtures/global-state-active-task.md",
+          "tests/fixtures/anchor-slicing/task-review-sample.md"
+        ],
+        "stats": {
+          "chars": 40454,
+          "lines": 774,
+          "words": 5233,
+          "approx_tokens": 10114
+        }
+      },
+      "reduction_pct": -0.1,
+      "preconditions": [
+        {
+          "label": "illegal selector fixture is rejected by anchor validation",
+          "type": "command_failure",
+          "passed": true,
+          "returncode": 1,
+          "expected_exit": 1,
+          "stdout_excerpt": "",
+          "stderr_excerpt": "tests/fixtures/anchor-slicing/anchors-illegal.md: illegal anchor syntax on line(s): 3"
+        }
+      ]
+    },
+    {
+      "name": "planning cold entry",
+      "scope": "planning",
+      "gating": "report_only",
+      "bucket": "cold_path",
+      "task_hot_path": false,
+      "description": "Bind the current initiative and planning stage from durable references without treating provider token counts as authoritative evidence.",
+      "fallback_points": [
+        "selector legality failure",
+        "active planning stage cannot be confirmed uniquely"
+      ],
+      "legacy": {
+        "read_set": [
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md",
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/gap-analysis.md",
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md",
+          "plugins/forgeloop/skills/planning-loop/SKILL.md",
+          "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md",
+          "plugins/forgeloop/skills/references/anchor-addressing.md"
+        ],
+        "stats": {
+          "chars": 82761,
+          "lines": 1211,
+          "words": 9710,
+          "approx_tokens": 20691
+        }
+      },
+      "minimal": {
+        "read_set": [
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md#requirement-baseline",
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md#scope-and-non-goals",
+          "plugins/forgeloop/skills/planning-loop/SKILL.md#stage-reference-binding",
+          "plugins/forgeloop/skills/planning-loop/SKILL.md#shared-rolling-doc-contract",
+          "plugins/forgeloop/skills/planning-loop/SKILL.md#truth-sources-boundaries",
+          "plugins/forgeloop/skills/planning-loop/SKILL.md#workflow",
+          "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md#required-header",
+          "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md#round-law",
+          "plugins/forgeloop/skills/references/anchor-addressing.md#resolution-contract"
+        ],
+        "stats": {
+          "chars": 21996,
+          "lines": 314,
+          "words": 2705,
+          "approx_tokens": 5499
+        }
+      },
+      "reduction_pct": 73.4
+    },
+    {
+      "name": "same-stage planner continue",
+      "scope": "planning",
+      "gating": "report_only",
+      "bucket": "hot_path",
+      "task_hot_path": false,
+      "description": "Continue an already-open planning round from the active planner surface without replaying the full rolling doc every time.",
+      "fallback_points": [
+        "round ambiguity",
+        "derived view invalidation"
+      ],
+      "legacy": {
+        "read_set": [
+          "plugins/forgeloop/skills/planning-loop/SKILL.md",
+          "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md",
+          "tests/codex/token-benchmark/fixtures/planning-design-repair-sample.md"
+        ],
+        "stats": {
+          "chars": 29329,
+          "lines": 451,
+          "words": 3837,
+          "approx_tokens": 7333
+        }
+      },
+      "minimal": {
+        "read_set": [
+          "plugins/forgeloop/skills/planning-loop/SKILL.md#truth-sources-boundaries",
+          "plugins/forgeloop/skills/planning-loop/SKILL.md#workflow",
+          "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md#planner-update-law",
+          "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md#seal-repair-reopen",
+          "tests/codex/token-benchmark/fixtures/planning-design-repair-sample.md::attempt-aware/round-2.md"
+        ],
+        "stats": {
+          "chars": 16634,
+          "lines": 199,
+          "words": 2113,
+          "approx_tokens": 4159
+        }
+      },
+      "reduction_pct": 43.3
+    },
+    {
+      "name": "fresh planning reviewer handoff",
+      "scope": "planning",
+      "gating": "report_only",
+      "bucket": "hot_path",
+      "task_hot_path": false,
+      "description": "Dispatch a fresh planning reviewer from the current stage-local handoff surface instead of replaying the whole planning history.",
+      "fallback_points": [
+        "fresh reviewer packet must stay self-sufficient",
+        "handoff-scoped view invalidation"
+      ],
+      "legacy": {
+        "read_set": [
+          "plugins/forgeloop/skills/planning-loop/SKILL.md",
+          "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md",
+          "plugins/forgeloop/agents/design_reviewer.toml",
+          "tests/codex/token-benchmark/fixtures/planning-design-handoff-sample.md"
+        ],
+        "stats": {
+          "chars": 38069,
+          "lines": 609,
+          "words": 5137,
+          "approx_tokens": 9518
+        }
+      },
+      "minimal": {
+        "read_set": [
+          "plugins/forgeloop/skills/planning-loop/SKILL.md#stage-reviewer-binding",
+          "plugins/forgeloop/skills/planning-loop/SKILL.md#workflow",
+          "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md#handoff-law",
+          "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md#freshness-selection",
+          "tests/codex/token-benchmark/fixtures/planning-design-handoff-sample.md::handoff-scoped/design-r2-a1.md",
+          "plugins/forgeloop/agents/design_reviewer.toml"
+        ],
+        "stats": {
+          "chars": 23071,
+          "lines": 360,
+          "words": 3055,
+          "approx_tokens": 5768
+        }
+      },
+      "reduction_pct": 39.4
+    },
+    {
+      "name": "review changes requested -> reopen next round",
+      "scope": "planning",
+      "gating": "report_only",
+      "bucket": "hot_path",
+      "task_hot_path": false,
+      "description": "Expose review-driven reopen routing explicitly when a planning review requests upstream changes instead of hiding it in human interpretation.",
+      "fallback_points": [
+        "upstream reopen recommendation is missing or malformed",
+        "stale review result must not drive reopen routing"
+      ],
+      "legacy": {
+        "read_set": [
+          "plugins/forgeloop/skills/planning-loop/SKILL.md",
+          "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md",
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md",
+          "tests/codex/token-benchmark/fixtures/planning-gap-reopen-sample.md"
+        ],
+        "stats": {
+          "chars": 38999,
+          "lines": 625,
+          "words": 4892,
+          "approx_tokens": 9750
+        }
+      },
+      "minimal": {
+        "read_set": [
+          "plugins/forgeloop/skills/planning-loop/SKILL.md#workflow",
+          "plugins/forgeloop/skills/planning-loop/SKILL.md#stop-conditions",
+          "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md#review-result-law",
+          "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md#seal-repair-reopen",
+          "docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md#requirement-baseline",
+          "tests/codex/token-benchmark/fixtures/planning-gap-reopen-sample.md::current-effective.md"
+        ],
+        "stats": {
+          "chars": 16698,
+          "lines": 237,
+          "words": 1993,
+          "approx_tokens": 4175
+        }
+      },
+      "reduction_pct": 57.2
+    }
+  ],
+  "aggregates": {
+    "runtime": {
+      "scenario_count": 11,
+      "hot_path": {
+        "legacy_approx_tokens": 109889,
+        "minimal_approx_tokens": 59041,
+        "reduction_pct": 46.27214734868822
+      },
+      "cold_path": {
+        "legacy_approx_tokens": 55755,
+        "minimal_approx_tokens": 19941,
+        "reduction_pct": 64.23459779391982
+      },
+      "total": {
+        "legacy_approx_tokens": 165644,
+        "minimal_approx_tokens": 78982,
+        "reduction_pct": 52.31822462630702
+      },
+      "task_hot_path_average_reduction_pct": 56.575
+    },
+    "planning": {
+      "scenario_count": 4,
+      "hot_path": {
+        "legacy_approx_tokens": 26601,
+        "minimal_approx_tokens": 14102,
+        "reduction_pct": 46.986955377617384
+      },
+      "cold_path": {
+        "legacy_approx_tokens": 20691,
+        "minimal_approx_tokens": 5499,
+        "reduction_pct": 73.42322749021314
+      },
+      "total": {
+        "legacy_approx_tokens": 47292,
+        "minimal_approx_tokens": 19601,
+        "reduction_pct": 58.553243677577605
+      }
+    }
+  },
+  "runtime_gate": {
+    "scope": "runtime",
+    "gating": "gating",
+    "mode": "gating",
+    "failures": []
+  },
+  "baseline_compare": null
+}

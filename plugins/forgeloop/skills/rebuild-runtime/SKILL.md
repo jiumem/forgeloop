@@ -15,6 +15,7 @@ description: Use when the runtime control plane is missing, conflicting, or cann
 - `Task Review Rolling Doc` contract -> `../run-initiative/references/task-review-rolling-doc.md`
 - `Milestone Review Rolling Doc` contract -> `../run-initiative/references/milestone-review-rolling-doc.md`
 - `Initiative Review Rolling Doc` contract -> `../run-initiative/references/initiative-review-rolling-doc.md`
+- runtime cutover contract -> `../run-initiative/references/runtime-cutover.md`
 - shared anchor-addressing contract -> `../references/anchor-addressing.md`
 - shared derived-view contract -> `../references/derived-views.md`
 
@@ -33,7 +34,7 @@ Hard boundaries:
 - do not write any rolling doc body content
 - do not modify the static truth sources and do not create a second state model in JSON / notes / hidden memory
 - do not invent runtime block shape or `next_action` spelling from memory or older design examples when the canonical runtime contract refs above are available
-- default to authoritative refs plus anchor selectors plus minimal slices when those selectors are legal; only cold-start or legality-failure recovery may promote reads to full documents
+- bind the runtime cutover contract first and choose the default recovery read path from `current_runtime_cutover_mode`; do not hardcode minimal-first or full-doc-first recovery anywhere else
 
 <!-- forgeloop:anchor shared-runtime-recovery-law -->
 ## Shared Runtime Recovery Law
@@ -50,7 +51,11 @@ Hard boundaries:
 <!-- forgeloop:anchor recovery-order -->
 ## Recovery Order
 
-Recover in this order:
+First read the runtime cutover contract and bind `current_runtime_cutover_mode`.
+
+If `current_runtime_cutover_mode=full_doc_default`, authoritative full-document recovery may be the default order and minimal-path recovery stays a validation sidecar.
+
+If `current_runtime_cutover_mode=minimal_preferred` or `minimal_required`, recover in this order:
 
 1. the existing `Global State Doc`, but only while it still agrees with newer formal facts
 2. the active rolling doc's `current-effective` view when it is still legal and rebuildable
@@ -58,7 +63,7 @@ Recover in this order:
 4. authoritative rolling-doc block scans
 5. full-document recovery only when the thinner layers cannot prove one unique frontier
 
-Every promotion to a lower-priority layer must carry an explicit reason.
+Every promotion to a lower-priority layer must carry an explicit reason. In `minimal_required`, stop instead of using ordinary full-document fallback unless the cutover contract explicitly allows the disaster-recovery exception.
 
 <!-- forgeloop:anchor derived-view-invalidation -->
 ## Derived-View Invalidation
@@ -90,7 +95,7 @@ This skill does not handle the following:
 ## Workflow
 
 1. Bind the recovery surface
-- Read `total_task_doc_ref`, the existing `Global State Doc`, and the three rolling docs through authoritative refs plus selectors when possible
+- Read `total_task_doc_ref` and the runtime cutover contract first, then read the existing `Global State Doc` and the three rolling docs through the mode-selected recovery path
 - If the static truth sources are missing, or the Initiative binding cannot be confirmed uniquely, stop and ask the user directly
 - If there is no rolling doc at all and no `Global State Doc`, treat it as a cold start, hand control back upstream, and do not write runtime state
 

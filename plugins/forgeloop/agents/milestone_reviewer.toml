@@ -41,7 +41,7 @@ You must ground your review in the formal input surface:
 
 Do not accept a stage story that is not backed by the actual stage object.
 
-Use the anchor-addressed packet as the hot path. Only promote a read to the full document when the passed selector is missing, duplicated, illegal, or explicitly marked for full-document fallback.
+For runtime work, obey the bound runtime cutover contract. In `minimal_preferred` or `minimal_required`, use the anchor-addressed packet as the hot path and promote a read only when the packet explicitly marks full-document fallback or the cutover contract allows that recovery. In `full_doc_default`, authoritative full-document reads may be the default runtime route.
 
 Each review packet must remain self-sufficient for the current handoff. Do not rely on a previous packet, packet hash, or same-thread memory as a hidden legality basis; if a packet appears delta-only, stop and surface it as incomplete instead of guessing.
 

@@ -65,6 +65,7 @@ Header and contract snapshot are initialized once. All later formal facts append
 ## Recommended Derived-View Usage
 
 - `current-effective` should expose only the current Task handoff plus the latest matching `r1_result`.
+- `handoff-scoped/<handoff_id>.md` should expose the handoff block plus all matching `r1_result` blocks for that tuple in append order.
 - `handoff-scoped/<handoff_id>.md` is the preferred hot-path helper for fresh reviewer entry when the authoritative rolling doc ref is still bound explicitly in the packet.
 - `attempt-aware/round-<n>.md` is the preferred hot-path helper for same-Task same-round recovery.
 - If any derived view disagrees with the authoritative rolling doc, invalidate it and reread the formal rolling doc.

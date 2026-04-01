@@ -1,6 +1,8 @@
 [
   {
     "name": "Runtime Cold Start",
+    "scope": "runtime",
+    "gating": "gating",
     "bucket": "cold_path",
     "description": "Bind durable refs, admit planning truth, and initialize runtime without an existing active rolling doc.",
     "legacy_packet": [
@@ -8,6 +10,7 @@
       {"type": "full_doc", "path": "docs/initiatives/active/anchor-sliced-dispatch-optimization/gap-analysis.md"},
       {"type": "full_doc", "path": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md"},
       {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md"},
       {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/global-state.md"}
     ],
     "minimal_packet": [
@@ -16,6 +19,8 @@
       {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/gap-analysis.md", "anchor": "baseline-and-scope"},
       {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "input-baseline"},
       {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "task-ledger"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md", "anchor": "current-mode"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md", "anchor": "default-read-law"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/SKILL.md", "anchor": "canonical-ref-semantics"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/SKILL.md", "anchor": "runtime-control-plane-contracts"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/SKILL.md", "anchor": "main-flow"},
@@ -28,6 +33,8 @@
   },
   {
     "name": "Runtime Resume Into Active Task",
+    "scope": "runtime",
+    "gating": "gating",
     "bucket": "hot_path",
     "task_hot_path": true,
     "description": "Resume a running Task from thin control state plus the current rolling-doc frontier.",
@@ -37,6 +44,7 @@
       {"type": "full_doc", "path": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md"},
       {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/SKILL.md"},
       {"type": "full_doc", "path": "plugins/forgeloop/skills/task-loop/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md"},
       {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md"},
       {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/global-state-active-task.md"},
       {"type": "full_doc", "path": "tests/fixtures/anchor-slicing/task-review-sample.md"}
@@ -44,6 +52,7 @@
     "minimal_packet": [
       {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "task-ledger"},
       {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "acceptance-matrix"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md", "anchor": "current-mode"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/SKILL.md", "anchor": "main-flow"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/task-loop/SKILL.md", "anchor": "truth-sources-boundaries"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/task-loop/SKILL.md", "anchor": "workflow"},
@@ -59,17 +68,22 @@
   },
   {
     "name": "Same-Task Same-Round Coder Continue",
+    "scope": "runtime",
+    "gating": "gating",
     "bucket": "hot_path",
     "task_hot_path": true,
     "description": "Continue the same Task coder slot inside the current round without replaying full history.",
     "legacy_packet": [
       {"type": "full_doc", "path": "plugins/forgeloop/skills/task-loop/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md"},
       {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md"},
       {"type": "full_doc", "path": "tests/fixtures/anchor-slicing/task-review-sample.md"},
       {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/global-state-active-task.md"}
     ],
     "minimal_packet": [
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md", "anchor": "current-mode"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/task-loop/SKILL.md", "anchor": "truth-sources-boundaries"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/task-loop/SKILL.md", "anchor": "task.cutover-mode-law"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/task-loop/SKILL.md", "anchor": "workflow"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md", "anchor": "canonical-task-vocabulary"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md", "anchor": "handoff-law"},
@@ -83,16 +97,21 @@
   },
   {
     "name": "Same-Task Handoff To Fresh Reviewer",
+    "scope": "runtime",
+    "gating": "gating",
     "bucket": "hot_path",
     "task_hot_path": true,
     "description": "Dispatch a fresh Task reviewer against only the current handoff surface.",
     "legacy_packet": [
       {"type": "full_doc", "path": "plugins/forgeloop/skills/task-loop/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md"},
       {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md"},
       {"type": "full_doc", "path": "tests/fixtures/anchor-slicing/task-review-sample.md"},
       {"type": "full_doc", "path": "plugins/forgeloop/agents/task_reviewer.toml"}
     ],
     "minimal_packet": [
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md", "anchor": "current-mode"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md", "anchor": "fallback-law"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/task-loop/SKILL.md", "anchor": "workflow"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md", "anchor": "handoff-law"},
       {"type": "derived_view", "doc": "tests/fixtures/anchor-slicing/task-review-sample.md", "view": "handoff-scoped/sample-r2-a1.md"},
@@ -105,18 +124,23 @@
   },
   {
     "name": "Milestone Review",
+    "scope": "runtime",
+    "gating": "gating",
     "bucket": "hot_path",
     "description": "Hand off Milestone evidence without replaying all included Task history.",
     "legacy_packet": [
       {"type": "full_doc", "path": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md"},
       {"type": "full_doc", "path": "plugins/forgeloop/skills/milestone-loop/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md"},
       {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/milestone-review-rolling-doc.md"},
       {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/milestone-review-sample.md"}
     ],
     "minimal_packet": [
       {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "milestone-master-table"},
       {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "acceptance-matrix"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md", "anchor": "current-mode"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/milestone-loop/SKILL.md", "anchor": "truth-sources-boundaries"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/milestone-loop/SKILL.md", "anchor": "milestone.cutover-mode-law"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/milestone-loop/SKILL.md", "anchor": "workflow"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/milestone-review-rolling-doc.md", "anchor": "handoff-law"},
       {"type": "derived_view", "doc": "tests/codex/token-benchmark/fixtures/milestone-review-sample.md", "view": "current-effective.md"}
@@ -128,18 +152,23 @@
   },
   {
     "name": "Initiative Review",
+    "scope": "runtime",
+    "gating": "gating",
     "bucket": "hot_path",
     "description": "Review the delivery candidate against Milestone evidence and current initiative handoff only.",
     "legacy_packet": [
       {"type": "full_doc", "path": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md"},
       {"type": "full_doc", "path": "plugins/forgeloop/skills/initiative-loop/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md"},
       {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/initiative-review-rolling-doc.md"},
       {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/initiative-review-sample.md"}
     ],
     "minimal_packet": [
       {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "acceptance-matrix"},
       {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "global-residual-risks"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md", "anchor": "current-mode"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/initiative-loop/SKILL.md", "anchor": "truth-sources-boundaries"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/initiative-loop/SKILL.md", "anchor": "initiative.cutover-mode-law"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/initiative-loop/SKILL.md", "anchor": "workflow"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/initiative-review-rolling-doc.md", "anchor": "handoff-law"},
       {"type": "derived_view", "doc": "tests/codex/token-benchmark/fixtures/initiative-review-sample.md", "view": "current-effective.md"}
@@ -151,6 +180,8 @@
   },
   {
     "name": "Rebuild Runtime",
+    "scope": "runtime",
+    "gating": "gating",
     "bucket": "cold_path",
     "description": "Recover the control plane from thin durable truth plus the newest actionable rolling-doc frontier.",
     "legacy_packet": [
@@ -158,12 +189,15 @@
       {"type": "full_doc", "path": "docs/initiatives/active/anchor-sliced-dispatch-optimization/gap-analysis.md"},
       {"type": "full_doc", "path": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md"},
       {"type": "full_doc", "path": "plugins/forgeloop/skills/rebuild-runtime/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md"},
       {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/global-state-waiting.md"},
       {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/initiative-review-sample.md"},
       {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/milestone-review-sample.md"}
     ],
     "minimal_packet": [
       {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "input-baseline"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md", "anchor": "current-mode"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md", "anchor": "fallback-law"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/rebuild-runtime/SKILL.md", "anchor": "truth-sources-boundaries"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/rebuild-runtime/SKILL.md", "anchor": "shared-runtime-recovery-law"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/rebuild-runtime/SKILL.md", "anchor": "workflow"},
@@ -179,15 +213,19 @@
   },
   {
     "name": "Waiting Or Blocked Resume",
+    "scope": "runtime",
+    "gating": "gating",
     "bucket": "cold_path",
     "description": "Resume from an explicit stop state without rescanning unrelated planning and runtime history.",
     "legacy_packet": [
       {"type": "full_doc", "path": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md"},
       {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md"},
       {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/global-state.md"},
       {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/global-state-waiting.md"}
     ],
     "minimal_packet": [
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md", "anchor": "current-mode"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/SKILL.md", "anchor": "when-to-stop"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/SKILL.md", "anchor": "main-flow"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/global-state.md", "anchor": "durable-rules"},
@@ -199,6 +237,228 @@
     "fallback_points": [
       "stop reason cannot be stated formally",
       "resume invalidates the parked control state"
+    ]
+  },
+  {
+    "name": "same-task warm-path delta legal",
+    "scope": "runtime",
+    "gating": "gating",
+    "bucket": "hot_path",
+    "task_hot_path": true,
+    "description": "Continue the same Task on a legal warm path using a self-sufficient delta packet rather than replaying the full packet.",
+    "legacy_packet": [
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/task-loop/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md"},
+      {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/global-state-active-task.md"},
+      {"type": "full_doc", "path": "tests/fixtures/anchor-slicing/task-review-sample.md"}
+    ],
+    "minimal_packet": [
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md", "anchor": "current-mode"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/SKILL.md", "anchor": "runtime.warm-path-delta"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/task-loop/SKILL.md", "anchor": "task.cutover-mode-law"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/task-loop/SKILL.md", "anchor": "workflow"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md", "anchor": "canonical-task-vocabulary"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md", "anchor": "derived-view-usage"},
+      {"type": "slice", "doc": "tests/codex/token-benchmark/fixtures/global-state-active-task.md", "anchor": "current-snapshot"},
+      {"type": "slice", "doc": "tests/codex/token-benchmark/fixtures/global-state-active-task.md", "anchor": "next-action"},
+      {"type": "derived_view", "doc": "tests/fixtures/anchor-slicing/task-review-sample.md", "view": "attempt-aware/round-2.md"}
+    ],
+    "fallback_points": [
+      "delta legality is proven only while the active object, round, slot, and handoff surface stay stable",
+      "derived view invalidation"
+    ]
+  },
+  {
+    "name": "same-task warm-path delta illegal -> full packet fallback",
+    "scope": "runtime",
+    "gating": "gating",
+    "bucket": "hot_path",
+    "description": "When the same-task warm-path delta cannot prove legality because the formal frontier has advanced past the candidate round, the packet must fall back to an explicit full packet instead of sending delta-only state.",
+    "preconditions": [
+      {
+        "type": "slice_contains",
+        "label": "active snapshot still points at round 2",
+        "doc": "tests/codex/token-benchmark/fixtures/global-state-active-task.md",
+        "anchor": "current-snapshot",
+        "include": ["round: 2"]
+      },
+      {
+        "type": "derived_view_content",
+        "label": "latest current frontier has already advanced to round 3",
+        "doc": "tests/fixtures/anchor-slicing/task-review-sample-appended.md",
+        "view": "current-effective.md",
+        "include": ["sample-r3-a1"],
+        "exclude": ["sample-r2-a1"]
+      }
+    ],
+    "legacy_packet": [
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/task-loop/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md"},
+      {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/global-state-active-task.md"},
+      {"type": "full_doc", "path": "tests/fixtures/anchor-slicing/task-review-sample.md"}
+    ],
+    "minimal_packet": [
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/task-loop/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md"},
+      {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/global-state-active-task.md"},
+      {"type": "full_doc", "path": "tests/fixtures/anchor-slicing/task-review-sample.md"}
+    ],
+    "minimal_fallback_points": [
+      "warm-path delta legality failed",
+      "full packet fallback is required before continuing the same Task"
+    ],
+    "fallback_points": [
+      "warm-path delta legality failed",
+      "full packet fallback is required before continuing the same Task"
+    ]
+  },
+  {
+    "name": "selector legality failure -> full-doc fallback",
+    "scope": "runtime",
+    "gating": "gating",
+    "bucket": "hot_path",
+    "description": "If selector validation fails on a hot path, the benchmark first proves that failure with an executable probe and then measures the explicit full-document fallback packet.",
+    "preconditions": [
+      {
+        "type": "command_failure",
+        "label": "illegal selector fixture is rejected by anchor validation",
+        "command": ["python3", "plugins/forgeloop/scripts/anchor_slices.py", "check", "tests/fixtures/anchor-slicing/anchors-illegal.md"],
+        "expect_exit": 1,
+        "stderr_contains": "illegal anchor syntax"
+      }
+    ],
+    "legacy_packet": [
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md"},
+      {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/global-state-active-task.md"},
+      {"type": "full_doc", "path": "tests/fixtures/anchor-slicing/task-review-sample.md"}
+    ],
+    "minimal_packet": [
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md"},
+      {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/global-state-active-task.md"},
+      {"type": "full_doc", "path": "tests/fixtures/anchor-slicing/task-review-sample.md"}
+    ],
+    "minimal_fallback_points": [
+      "missing_anchor",
+      "duplicate_anchor",
+      "illegal_selector"
+    ],
+    "fallback_points": [
+      "missing_anchor",
+      "duplicate_anchor",
+      "illegal_selector"
+    ]
+  },
+  {
+    "name": "planning cold entry",
+    "scope": "planning",
+    "gating": "report_only",
+    "bucket": "cold_path",
+    "description": "Bind the current initiative and planning stage from durable references without treating provider token counts as authoritative evidence.",
+    "legacy_packet": [
+      {"type": "full_doc", "path": "docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md"},
+      {"type": "full_doc", "path": "docs/initiatives/active/anchor-sliced-dispatch-optimization/gap-analysis.md"},
+      {"type": "full_doc", "path": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/planning-loop/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/references/anchor-addressing.md"}
+    ],
+    "minimal_packet": [
+      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md", "anchor": "requirement-baseline"},
+      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md", "anchor": "scope-and-non-goals"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/SKILL.md", "anchor": "stage-reference-binding"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/SKILL.md", "anchor": "shared-rolling-doc-contract"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/SKILL.md", "anchor": "truth-sources-boundaries"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/SKILL.md", "anchor": "workflow"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md", "anchor": "required-header"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md", "anchor": "round-law"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/references/anchor-addressing.md", "anchor": "resolution-contract"}
+    ],
+    "fallback_points": [
+      "selector legality failure",
+      "active planning stage cannot be confirmed uniquely"
+    ]
+  },
+  {
+    "name": "same-stage planner continue",
+    "scope": "planning",
+    "gating": "report_only",
+    "bucket": "hot_path",
+    "description": "Continue an already-open planning round from the active planner surface without replaying the full rolling doc every time.",
+    "legacy_packet": [
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/planning-loop/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md"},
+      {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/planning-design-repair-sample.md"}
+    ],
+    "minimal_packet": [
+      {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/SKILL.md", "anchor": "truth-sources-boundaries"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/SKILL.md", "anchor": "workflow"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md", "anchor": "planner-update-law"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md", "anchor": "seal-repair-reopen"},
+      {"type": "derived_view", "doc": "tests/codex/token-benchmark/fixtures/planning-design-repair-sample.md", "view": "attempt-aware/round-2.md"}
+    ],
+    "fallback_points": [
+      "round ambiguity",
+      "derived view invalidation"
+    ]
+  },
+  {
+    "name": "fresh planning reviewer handoff",
+    "scope": "planning",
+    "gating": "report_only",
+    "bucket": "hot_path",
+    "description": "Dispatch a fresh planning reviewer from the current stage-local handoff surface instead of replaying the whole planning history.",
+    "legacy_packet": [
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/planning-loop/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/agents/design_reviewer.toml"},
+      {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/planning-design-handoff-sample.md"}
+    ],
+    "minimal_packet": [
+      {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/SKILL.md", "anchor": "stage-reviewer-binding"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/SKILL.md", "anchor": "workflow"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md", "anchor": "handoff-law"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md", "anchor": "freshness-selection"},
+      {"type": "derived_view", "doc": "tests/codex/token-benchmark/fixtures/planning-design-handoff-sample.md", "view": "handoff-scoped/design-r2-a1.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/agents/design_reviewer.toml"}
+    ],
+    "fallback_points": [
+      "fresh reviewer packet must stay self-sufficient",
+      "handoff-scoped view invalidation"
+    ]
+  },
+  {
+    "name": "review changes requested -> reopen next round",
+    "scope": "planning",
+    "gating": "report_only",
+    "bucket": "hot_path",
+    "description": "Expose review-driven reopen routing explicitly when a planning review requests upstream changes instead of hiding it in human interpretation.",
+    "legacy_packet": [
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/planning-loop/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md"},
+      {"type": "full_doc", "path": "docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md"},
+      {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/planning-gap-reopen-sample.md"}
+    ],
+    "minimal_packet": [
+      {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/SKILL.md", "anchor": "workflow"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/SKILL.md", "anchor": "stop-conditions"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md", "anchor": "review-result-law"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md", "anchor": "seal-repair-reopen"},
+      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md", "anchor": "requirement-baseline"},
+      {"type": "derived_view", "doc": "tests/codex/token-benchmark/fixtures/planning-gap-reopen-sample.md", "view": "current-effective.md"}
+    ],
+    "fallback_points": [
+      "upstream reopen recommendation is missing or malformed",
+      "stale review result must not drive reopen routing"
     ]
   }
 ]

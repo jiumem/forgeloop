@@ -23,7 +23,8 @@
   - one synthesized view of the current handoff plus only the latest matching actionable result for that handoff
   - it must not surface superseded same-handoff results as current
 - `handoff-scoped`
-  - one projection per `handoff_id` containing only the formal blocks relevant to that handoff
+  - one projection per `handoff_id` containing the handoff block plus every matching review-result block for the same tuple in append order
+  - it is historical and audit-friendly by design; it is not a latest-only view
   - it is the default hot-path helper for fresh reviewer entry when the authoritative rolling doc ref is still bound in the packet
 - `attempt-aware`
   - one projection per `round` containing the ordered formal blocks for that attempt

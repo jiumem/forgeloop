@@ -14,7 +14,7 @@ The runtime `Supervisor` is not shipped as a custom agent manifest. It runs in t
 
 `plugins/forgeloop/scripts/materialize-agents.sh` copies those manifests into Codex global agent storage by default, or into a target project's `.codex/agents/` when `--project-dir` is supplied.
 
-All shipped workflow roles assume anchor-addressed minimal packets by default: authoritative refs, doc-local selectors, optional minimal slices, and explicit full-document fallback only on legality failure or recovery.
+Runtime workflow roles obey the single runtime cutover contract in `plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md`. The current runtime target mode is `minimal_preferred`; `full_doc_default` remains the rollback mode; planning remains outside this cutover.
 
 ## Shipped Agent Set
 
