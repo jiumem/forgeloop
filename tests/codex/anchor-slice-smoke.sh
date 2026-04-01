@@ -358,4 +358,14 @@ then
   exit 1
 fi
 
+PLAN_RESULT_OUT="${TMP_ROOT}/planning-plan-review"
+python3 plugins/forgeloop/scripts/anchor_slices.py derive \
+  --doc tests/fixtures/anchor-slicing/planning-plan-review-sample.md \
+  --out "${PLAN_RESULT_OUT}"
+
+if ! rg -q "ready_for_supervisor_routing" "${PLAN_RESULT_OUT}/current-effective.md"; then
+  echo "planning plan current-effective view did not include the actionable plan review result"
+  exit 1
+fi
+
 echo "anchor slice smoke test passed"

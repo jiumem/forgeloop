@@ -24,6 +24,33 @@ FIELD_PATTERNS = {
     "review_target_ref": re.compile(r"^review_target_ref:\s*(.+?)\s*$"),
     "next_action": re.compile(r"^next_action:\s*(.+?)\s*$"),
     "verdict": re.compile(r"^verdict:\s*(.+?)\s*$"),
+    "requirement_fit": re.compile(r"^requirement_fit:\s*(.+?)\s*$"),
+    "boundary_correctness": re.compile(r"^boundary_correctness:\s*(.+?)\s*$"),
+    "structural_soundness": re.compile(r"^structural_soundness:\s*(.+?)\s*$"),
+    "downstream_planning_readiness": re.compile(r"^downstream_planning_readiness:\s*(.+?)\s*$"),
+    "correctness_surface": re.compile(r"^correctness_surface:\s*(.+?)\s*$"),
+    "current_state_evidence": re.compile(r"^current_state_evidence:\s*(.+?)\s*$"),
+    "gap_ledger_integrity": re.compile(r"^gap_ledger_integrity:\s*(.+?)\s*$"),
+    "convergence_strategy": re.compile(r"^convergence_strategy:\s*(.+?)\s*$"),
+    "execution_boundary": re.compile(r"^execution_boundary:\s*(.+?)\s*$"),
+    "object_map_integrity": re.compile(r"^object_map_integrity:\s*(.+?)\s*$"),
+    "acceptance_truth_integrity": re.compile(r"^acceptance_truth_integrity:\s*(.+?)\s*$"),
+    "integration_path": re.compile(r"^integration_path:\s*(.+?)\s*$"),
+    "runtime_readiness": re.compile(r"^runtime_readiness:\s*(.+?)\s*$"),
+    "residual_risk_boundary": re.compile(r"^residual_risk_boundary:\s*(.+?)\s*$"),
+    "functional_correctness": re.compile(r"^functional_correctness:\s*(.+?)\s*$"),
+    "validation_adequacy": re.compile(r"^validation_adequacy:\s*(.+?)\s*$"),
+    "local_structure_convergence": re.compile(r"^local_structure_convergence:\s*(.+?)\s*$"),
+    "local_regression_risk": re.compile(r"^local_regression_risk:\s*(.+?)\s*$"),
+    "stage_structure_convergence": re.compile(r"^stage_structure_convergence:\s*(.+?)\s*$"),
+    "mainline_merge_safety": re.compile(r"^mainline_merge_safety:\s*(.+?)\s*$"),
+    "delivery_readiness": re.compile(r"^delivery_readiness:\s*(.+?)\s*$"),
+    "release_safety": re.compile(r"^release_safety:\s*(.+?)\s*$"),
+    "evidence_adequacy": re.compile(r"^evidence_adequacy:\s*(.+?)\s*$"),
+    "residual_risks": re.compile(r"^residual_risks:\s*(.*?)\s*$"),
+    "required_follow_ups": re.compile(r"^required_follow_ups:\s*(.*?)\s*$"),
+    "open_issues": re.compile(r"^open_issues:\s*(.*?)\s*$"),
+    "findings": re.compile(r"^findings:\s*(.*?)\s*$"),
     "seal_status": re.compile(r"^seal_status:\s*(.+?)\s*$"),
     "initiative_key": re.compile(r"^initiative_key:\s*(.+?)\s*$"),
     "milestone_key": re.compile(r"^milestone_key:\s*(.+?)\s*$"),
@@ -37,6 +64,7 @@ FIELD_PATTERNS = {
     "author_role": re.compile(r"^author_role:\s*(.+?)\s*$"),
     "created_at": re.compile(r"^created_at:\s*(.+?)\s*$"),
 }
+PRESENCE_ONLY_FIELDS = frozenset({"residual_risks", "required_follow_ups", "open_issues", "findings"})
 
 
 @dataclasses.dataclass
@@ -109,19 +137,68 @@ BLOCK_SPECS = {
     ),
     "design_review_result": BlockSpec(
         required_fields=frozenset(
-            {"round", "author_role", "created_at", "handoff_id", "review_target_ref", "verdict", "seal_status", "next_action"}
+            {
+                "round",
+                "author_role",
+                "created_at",
+                "handoff_id",
+                "review_target_ref",
+                "verdict",
+                "seal_status",
+                "requirement_fit",
+                "boundary_correctness",
+                "structural_soundness",
+                "downstream_planning_readiness",
+                "correctness_surface",
+                "open_issues",
+                "next_action",
+                "findings",
+            }
         ),
         author_role="reviewer",
     ),
     "gap_review_result": BlockSpec(
         required_fields=frozenset(
-            {"round", "author_role", "created_at", "handoff_id", "review_target_ref", "verdict", "seal_status", "next_action"}
+            {
+                "round",
+                "author_role",
+                "created_at",
+                "handoff_id",
+                "review_target_ref",
+                "verdict",
+                "seal_status",
+                "current_state_evidence",
+                "gap_ledger_integrity",
+                "convergence_strategy",
+                "downstream_planning_readiness",
+                "correctness_surface",
+                "open_issues",
+                "next_action",
+                "findings",
+            }
         ),
         author_role="reviewer",
     ),
     "plan_review_result": BlockSpec(
         required_fields=frozenset(
-            {"round", "author_role", "created_at", "handoff_id", "review_target_ref", "verdict", "seal_status", "next_action"}
+            {
+                "round",
+                "author_role",
+                "created_at",
+                "handoff_id",
+                "review_target_ref",
+                "verdict",
+                "seal_status",
+                "execution_boundary",
+                "object_map_integrity",
+                "acceptance_truth_integrity",
+                "integration_path",
+                "runtime_readiness",
+                "residual_risk_boundary",
+                "open_issues",
+                "next_action",
+                "findings",
+            }
         ),
         author_role="reviewer",
     ),
@@ -151,7 +228,23 @@ BLOCK_SPECS = {
         author_role="coder",
     ),
     "r1_result": BlockSpec(
-        required_fields=frozenset({"round", "author_role", "created_at", "handoff_id", "review_target_ref", "verdict", "next_action"}),
+        required_fields=frozenset(
+            {
+                "round",
+                "author_role",
+                "created_at",
+                "handoff_id",
+                "review_target_ref",
+                "verdict",
+                "functional_correctness",
+                "validation_adequacy",
+                "local_structure_convergence",
+                "local_regression_risk",
+                "open_issues",
+                "next_action",
+                "findings",
+            }
+        ),
         author_role="reviewer",
         next_actions=frozenset(
             {
@@ -183,7 +276,24 @@ BLOCK_SPECS = {
         ),
     ),
     "r2_result": BlockSpec(
-        required_fields=frozenset({"round", "author_role", "created_at", "handoff_id", "review_target_ref", "verdict", "next_action"}),
+        required_fields=frozenset(
+            {
+                "round",
+                "author_role",
+                "created_at",
+                "handoff_id",
+                "review_target_ref",
+                "verdict",
+                "stage_structure_convergence",
+                "mainline_merge_safety",
+                "evidence_adequacy",
+                "residual_risks",
+                "open_issues",
+                "next_action",
+                "required_follow_ups",
+                "findings",
+            }
+        ),
         author_role="reviewer",
         next_actions=frozenset(
             {
@@ -212,7 +322,24 @@ BLOCK_SPECS = {
         ),
     ),
     "r3_result": BlockSpec(
-        required_fields=frozenset({"round", "author_role", "created_at", "handoff_id", "review_target_ref", "verdict", "next_action"}),
+        required_fields=frozenset(
+            {
+                "round",
+                "author_role",
+                "created_at",
+                "handoff_id",
+                "review_target_ref",
+                "verdict",
+                "delivery_readiness",
+                "release_safety",
+                "evidence_adequacy",
+                "residual_risks",
+                "open_issues",
+                "next_action",
+                "required_follow_ups",
+                "findings",
+            }
+        ),
         author_role="reviewer",
         next_actions=frozenset(
             {
@@ -355,7 +482,11 @@ def parse_forgeloop_blocks(path: pathlib.Path) -> list[ForgeloopBlock]:
                 for key, pattern in FIELD_PATTERNS.items():
                     match = pattern.match(stripped)
                     if match and key not in fields:
-                        fields[key] = match.group(1)
+                        captured = match.group(1)
+                        if key in PRESENCE_ONLY_FIELDS and not captured.strip():
+                            fields[key] = "__present__"
+                        else:
+                            fields[key] = captured
             blocks.append(ForgeloopBlock(raw=raw, start_line=start_line, fields=fields))
             in_block = False
             body = []

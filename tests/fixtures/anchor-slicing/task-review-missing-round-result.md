@@ -36,5 +36,11 @@ created_at: 2026-03-31T09:20:00Z
 handoff_id: sample-r1-a1
 review_target_ref: commits/sample-a1
 verdict: clean
+functional_correctness: pass
+validation_adequacy: pass
+local_structure_convergence: pass
+local_regression_risk: low
+open_issues: []
 next_action: task_done
+findings: []
 ```

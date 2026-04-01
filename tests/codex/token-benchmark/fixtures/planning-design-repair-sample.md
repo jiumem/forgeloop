@@ -46,7 +46,16 @@ handoff_id: design-r1-a1
 review_target_ref: docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md#design-v1
 verdict: changes_requested
 seal_status: not_sealed
+requirement_fit: one hard constraint is still not grounded in the target-state cut
+boundary_correctness: section 5.4 still leaks ownership decisions into downstream planning
+structural_soundness: the target-state structure remains under-defined
+downstream_planning_readiness: the next planning stage would need to infer missing design intent
+correctness_surface: invariants and contract lines remain incomplete
+open_issues:
+  - clarify the fixed-versus-flexible implementation boundary
 next_action: continue_design_repair
+findings:
+  - "[Confirmed] the current design handoff still leaves the design boundary implicit."
 ```
 
 ```forgeloop

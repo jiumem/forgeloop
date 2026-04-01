@@ -65,6 +65,8 @@ Header and contract snapshot are initialized once. All later formal facts append
 <!-- forgeloop:anchor recommended-template -->
 ## Recommended Template
 
+- `r3_result` field structure is owned by `plugins/forgeloop/agents/initiative_reviewer.toml`; this template is only an aligned example.
+
 ````markdown
 # Initiative Review Rolling Doc: day7-first-situation-closure
 
@@ -113,8 +115,14 @@ created_at: 2026-03-30T12:30:00Z
 handoff_id: init-day7-r1-h1
 review_target_ref: initiative-rounds/day7/r1
 verdict: clean
+delivery_readiness: pass
+release_safety: pass
+evidence_adequacy: pass
+residual_risks: []
+open_issues: []
 next_action: mark_initiative_delivered
 required_follow_ups: []
+findings: []
 ```
 ````
 

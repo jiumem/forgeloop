@@ -115,6 +115,7 @@ Header and contract snapshot are initialized once. All later formal facts append
 <!-- forgeloop:anchor review-result-law -->
 ## Review Result Law
 
+- `plugins/forgeloop/agents/design_reviewer.toml`, `plugins/forgeloop/agents/gap_reviewer.toml`, and `plugins/forgeloop/agents/plan_reviewer.toml` are the sole authorities for the field structure of `design_review_result`, `gap_review_result`, and `plan_review_result`; this shared contract must stay aligned and must not define a conflicting schema
 - every review-result block must include at least:
   - `kind`
   - `round`
@@ -125,6 +126,32 @@ Header and contract snapshot are initialized once. All later formal facts append
   - `verdict`
   - `seal_status`
   - `next_action`
+- `design_review_result` must additionally include:
+  - `requirement_fit`
+  - `boundary_correctness`
+  - `structural_soundness`
+  - `downstream_planning_readiness`
+  - `correctness_surface`
+  - `open_issues`
+  - `findings`
+- `gap_review_result` must additionally include:
+  - `current_state_evidence`
+  - `gap_ledger_integrity`
+  - `convergence_strategy`
+  - `downstream_planning_readiness`
+  - `correctness_surface`
+  - `open_issues`
+  - `findings`
+- `plan_review_result` must additionally include:
+  - `execution_boundary`
+  - `object_map_integrity`
+  - `acceptance_truth_integrity`
+  - `integration_path`
+  - `runtime_readiness`
+  - `residual_risk_boundary`
+  - `open_issues`
+  - `findings`
+- `open_issues` and `findings` may use either inline YAML lists or multi-line YAML list form, but they must remain attached to the same review-result block
 - `author_role` on a review-result block must stay `reviewer`
 - `handoff_id` and `review_target_ref` must echo the exact current handoff being judged
 - `gap_review_result` and `plan_review_result` may additionally carry advisory `upstream_reopen_recommendation` with:

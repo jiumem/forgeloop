@@ -43,6 +43,12 @@ created_at: 2026-03-31T10:50:00Z
 handoff_id: init-asdo-r1-h1
 review_target_ref: initiative-rounds/asdo/r1
 verdict: clean
+delivery_readiness: pass
+release_safety: pass
+evidence_adequacy: pass
+residual_risks: []
+open_issues: []
 next_action: mark_initiative_delivered
 required_follow_ups: []
+findings: []
 ```

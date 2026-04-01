@@ -54,7 +54,17 @@ created_at: 2026-03-31T09:20:00Z
 handoff_id: sample-r1-a1
 review_target_ref: commits/sample-a1
 verdict: changes_requested
+functional_correctness: pass
+validation_adequacy: fail
+local_structure_convergence: pass
+local_regression_risk: medium
+open_issues:
+  - Negative-path evidence is still missing for the current sample handoff.
 next_action: continue_task_repair
+findings:
+  - id: sample-r1-f1
+    evidence_level: Confirmed
+    summary: The sample handoff lacks the validation evidence required for a clean Task judgment.
 ```
 
 ```forgeloop
@@ -93,7 +103,13 @@ created_at: 2026-03-31T09:40:00Z
 handoff_id: sample-r2-a1
 review_target_ref: commits/sample-a2
 verdict: clean
+functional_correctness: pass
+validation_adequacy: pass
+local_structure_convergence: pass
+local_regression_risk: low
+open_issues: []
 next_action: task_done
+findings: []
 ```
 
 ```forgeloop
@@ -132,5 +148,11 @@ created_at: 2026-03-31T10:00:00Z
 handoff_id: sample-r3-a1
 review_target_ref: commits/sample-a3
 verdict: clean
+functional_correctness: pass
+validation_adequacy: pass
+local_structure_convergence: pass
+local_regression_risk: low
+open_issues: []
 next_action: task_done
+findings: []
 ```

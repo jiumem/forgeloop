@@ -66,6 +66,8 @@ Header and contract snapshot are initialized once. All later formal facts append
 <!-- forgeloop:anchor recommended-template -->
 ## Recommended Template
 
+- `r2_result` field structure is owned by `plugins/forgeloop/agents/milestone_reviewer.toml`; this template is only an aligned example.
+
 ````markdown
 # Milestone Review Rolling Doc: D7FS-M1
 
@@ -111,9 +113,20 @@ created_at: 2026-03-30T11:20:00Z
 handoff_id: ms-d7fs-m1-r1-h1
 review_target_ref: milestone-rounds/d7fs-m1/r1
 verdict: changes_requested
+stage_structure_convergence: fail
+mainline_merge_safety: fail
+evidence_adequacy: pass
+residual_risks:
+  - Current task anchors do not yet compose into one stable Milestone boundary.
+open_issues:
+  - The mainline integration surface is still carrying a split truth path.
 next_action: continue_milestone_repair
 required_follow_ups:
   - tighten HUD truth exposure
+findings:
+  - id: ms-d7fs-m1-r1-f1
+    evidence_level: Confirmed
+    summary: The current Milestone candidate still exposes a split truth path at the integration boundary.
 ```
 ````
 

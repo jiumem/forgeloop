@@ -73,6 +73,8 @@ Header and contract snapshot are initialized once. All later formal facts append
 <!-- forgeloop:anchor recommended-template -->
 ## Recommended Template
 
+- `r1_result` field structure is owned by `plugins/forgeloop/agents/task_reviewer.toml`; this template is only an aligned example.
+
 ````markdown
 # Task Review Rolling Doc: D7FS-T1
 
@@ -136,6 +138,11 @@ created_at: 2026-03-30T10:35:00Z
 handoff_id: task-d7fs-t1-r1-a1
 review_target_ref: commits/abc123
 verdict: clean
+functional_correctness: pass
+validation_adequacy: pass
+local_structure_convergence: pass
+local_regression_risk: low
+open_issues: []
 next_action: task_done
 findings: []
 ```

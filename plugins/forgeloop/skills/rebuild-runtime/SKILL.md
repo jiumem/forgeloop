@@ -137,7 +137,7 @@ This skill does not handle the following:
 
 4. Rewrite the minimum control plane
 - If the `Global State Doc` does not exist, initialize `global_state_header` first according to the canonical `Global State Doc` contract
-- If the existing `global_state_header` conflicts with the Initiative binding or the planning doc ref, correct `global_state_header` first according to the canonical `Global State Doc` contract
+- If the existing `global_state_header` conflicts with the Initiative binding or the `total_task_doc_ref`, correct `global_state_header` first according to the canonical `Global State Doc` contract
 - Write `current_snapshot` as the uniquely recovered active plane / active object / `coder_slot` / current object-local `round`, using the canonical `Global State Doc` contract
 - Write `next_action` as the uniquely recovered next step, using the canonical runtime routing vocabulary from the `Global State Doc` contract
 - Write `last_transition` as a recovery transition explaining why the control plane was rebuilt, using the canonical `Global State Doc` contract

@@ -4,7 +4,7 @@
 ```forgeloop
 kind: global_state_header
 initiative_key: anchor-sliced-dispatch-optimization
-planning_doc_ref: docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md
+total_task_doc_ref: docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md
 created_at: 2026-03-31T10:30:00Z
 updated_at: 2026-03-31T10:30:00Z
 ```

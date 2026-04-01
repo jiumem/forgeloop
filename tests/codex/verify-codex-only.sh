@@ -173,6 +173,12 @@ plugins/forgeloop/skills/planning-loop/SKILL.md:request_reviewer_handoff
 plugins/forgeloop/skills/planning-loop/SKILL.md:latest `planner_update` in the current round is the current planner intent
 plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md:request_reviewer_handoff
 plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md:only the latest appended matching block is actionable
+plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md:requirement_fit
+plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md:current_state_evidence
+plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md:execution_boundary
+plugins/forgeloop/scripts/anchor_slices.py:requirement_fit
+plugins/forgeloop/scripts/anchor_slices.py:current_state_evidence
+plugins/forgeloop/scripts/anchor_slices.py:execution_boundary
 plugins/forgeloop/skills/run-planning/SKILL.md:stay visible as a reopen route
 plugins/forgeloop/skills/planning-loop/SKILL.md:planner_slot=planner
 plugins/forgeloop/skills/planning-loop/SKILL.md:round=1
@@ -194,10 +200,16 @@ plugins/forgeloop/skills/milestone-loop/SKILL.md:enter_r2
 plugins/forgeloop/skills/milestone-loop/SKILL.md:handoff_id
 plugins/forgeloop/skills/initiative-loop/SKILL.md:mark_initiative_delivered
 plugins/forgeloop/skills/initiative-loop/SKILL.md:initiative_delivered
+plugins/forgeloop/skills/run-initiative/references/global-state.md:total_task_doc_ref
+plugins/forgeloop/skills/run-initiative/references/global-state.md:active_plane=frontier
+plugins/forgeloop/skills/run-initiative/references/global-state.md:callback_return_rolling_doc_ref
+plugins/forgeloop/skills/run-initiative/references/global-state.md:callback_round_behavior
 plugins/forgeloop/skills/rebuild-runtime/SKILL.md:mark_initiative_delivered
 plugins/forgeloop/skills/rebuild-runtime/SKILL.md:current object-local `round`
 plugins/forgeloop/agents/coder.toml:request_reviewer_handoff
 plugins/forgeloop/agents/initiative_reviewer.toml:mark_initiative_delivered
+tests/codex/token-benchmark/fixtures/global-state-active-task.md:total_task_doc_ref:
+tests/codex/token-benchmark/fixtures/global-state-waiting.md:total_task_doc_ref:
 EOF
 
 while IFS=':' read -r file pattern; do

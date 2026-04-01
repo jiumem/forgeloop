@@ -42,6 +42,12 @@ created_at: 2026-03-31T10:20:00Z
 handoff_id: ms-asdo-mx-r1-h1
 review_target_ref: milestone-rounds/asdo-mx/r1
 verdict: clean
+stage_structure_convergence: pass
+mainline_merge_safety: pass
+evidence_adequacy: pass
+residual_risks: []
+open_issues: []
 next_action: enter_initiative_review
 required_follow_ups: []
+findings: []
 ```

@@ -46,7 +46,16 @@ handoff_id: design-r1-a1
 review_target_ref: docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md#design-v1
 verdict: changes_requested
 seal_status: not_sealed
+requirement_fit: one hard constraint is still not mapped to the proposed target state
+boundary_correctness: section 5.4 still leaks design ownership into downstream planning
+structural_soundness: the object boundary remains unstable
+downstream_planning_readiness: the next planning stage would need to reconstruct hidden intent
+correctness_surface: invariants and contract lines remain under-specified
+open_issues:
+  - clarify the fixed-versus-flexible implementation line
 next_action: continue_design_repair
+findings:
+  - "[Confirmed] section 5.4 does not yet define a stable design boundary."
 ```
 
 ```forgeloop
@@ -58,5 +67,12 @@ handoff_id: design-r1-a1
 review_target_ref: docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md#design-v1
 verdict: clean
 seal_status: sealed
+requirement_fit: the design fully covers the requirement baseline
+boundary_correctness: boundary ownership is explicit and authoritative
+structural_soundness: the winning cut and topology are stable enough to seal
+downstream_planning_readiness: downstream planning can proceed without reconstructing hidden intent
+correctness_surface: invariants and contract boundaries are explicit
+open_issues: []
 next_action: ready_for_supervisor_routing
+findings: []
 ```

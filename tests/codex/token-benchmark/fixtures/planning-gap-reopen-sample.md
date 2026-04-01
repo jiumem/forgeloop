@@ -46,7 +46,16 @@ handoff_id: gap-r3-a1
 review_target_ref: docs/initiatives/active/anchor-sliced-dispatch-optimization/gap-analysis.md#gap-v3
 verdict: changes_requested
 seal_status: not_sealed
+current_state_evidence: current-state evidence is no longer sufficient for an authoritative gap ledger
+gap_ledger_integrity: blocking gaps in section 5.4 are no longer complete against the revised design baseline
+convergence_strategy: section 6.2 cannot stay authoritative while the bridged design slice has shifted
+downstream_planning_readiness: total task planning would inherit unresolved bridge logic
+correctness_surface: compatibility red lines and reroute triggers now depend on repaired design truth
+open_issues:
+  - design baseline changed after gap authoring started
 next_action: wait_for_upstream_judgment
 upstream_reopen_recommendation.target_stage: Design Doc
 upstream_reopen_recommendation.reason: design baseline changed after gap authoring started
+findings:
+  - "[Confirmed] the sealed design baseline moved after the current gap ledger was written."
 ```

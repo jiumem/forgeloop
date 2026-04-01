@@ -395,7 +395,7 @@ next_action: continue_task_repair
 ```forgeloop
 kind: global_state_header
 initiative_key: INIT-001
-planning_doc_ref: docs/initiatives/INIT-001.md
+total_task_doc_ref: docs/initiatives/INIT-001.md
 created_at: ...
 updated_at: ...
 ```
