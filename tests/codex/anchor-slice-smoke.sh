@@ -214,4 +214,28 @@ then
   exit 1
 fi
 
+if python3 plugins/forgeloop/scripts/anchor_slices.py derive \
+  --doc tests/fixtures/anchor-slicing/task-review-cross-round-result-mismatch.md \
+  --out "${TMP_ROOT}/cross-round-result-mismatch"
+then
+  echo "cross-round-result-mismatch fixture unexpectedly derived successfully"
+  exit 1
+fi
+
+if python3 plugins/forgeloop/scripts/anchor_slices.py derive \
+  --doc tests/fixtures/anchor-slicing/task-review-review-target-mismatch.md \
+  --out "${TMP_ROOT}/review-target-mismatch"
+then
+  echo "review-target-mismatch fixture unexpectedly derived successfully"
+  exit 1
+fi
+
+if python3 plugins/forgeloop/scripts/anchor_slices.py derive \
+  --doc tests/fixtures/anchor-slicing/task-review-unclosed-fence.md \
+  --out "${TMP_ROOT}/unclosed-fence"
+then
+  echo "unclosed-fence fixture unexpectedly derived successfully"
+  exit 1
+fi
+
 echo "anchor slice smoke test passed"

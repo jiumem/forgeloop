@@ -87,11 +87,40 @@ def item_text(item: dict[str, str], cache_root: pathlib.Path) -> str:
     raise ValueError(f"unsupported item type: {item_type}")
 
 
-def packet_stats(items: list[dict[str, str]], cache_root: pathlib.Path) -> tuple[TextStats, list[str]]:
-    combined = []
+def render_packet_envelope(items: list[dict[str, str]], labels: list[str], fallback_points: list[str] | None) -> str:
+    lines = ["# Dispatch Packet", ""]
+    for index, (item, label) in enumerate(zip(items, labels, strict=True), start=1):
+        lines.extend(
+            [
+                f"## Item {index}",
+                f"type: {item['type']}",
+                f"ref: {label}",
+            ]
+        )
+        if item["type"] == "slice":
+            lines.append("selector_mode: anchor")
+        if item["type"] == "derived_view":
+            lines.append("selector_mode: derived_view")
+        lines.append("")
+    if fallback_points:
+        lines.extend(["## Fallback Policy", ""])
+        for point in fallback_points:
+            lines.append(f"- {point}")
+        lines.append("")
+    return "\n".join(lines)
+
+
+def packet_stats(
+    items: list[dict[str, str]],
+    cache_root: pathlib.Path,
+    fallback_points: list[str] | None = None,
+) -> tuple[TextStats, list[str]]:
+    combined: list[str] = []
     labels = []
     for item in items:
         labels.append(item_label(item))
+    combined.append(render_packet_envelope(items, labels, fallback_points).strip())
+    for item in items:
         combined.append(item_text(item, cache_root).strip())
     joined = "\n\n".join(part for part in combined if part)
     return stats_for_text(joined), labels
@@ -124,8 +153,16 @@ def main() -> int:
         print("# Forgeloop Token Benchmark")
         print("")
         for scenario in scenarios:
-            legacy_stat, legacy_labels = packet_stats(scenario["legacy_packet"], tmpdir)
-            minimal_stat, minimal_labels = packet_stats(scenario["minimal_packet"], tmpdir)
+            legacy_stat, legacy_labels = packet_stats(
+                scenario["legacy_packet"],
+                tmpdir,
+                scenario.get("legacy_fallback_points"),
+            )
+            minimal_stat, minimal_labels = packet_stats(
+                scenario["minimal_packet"],
+                tmpdir,
+                scenario.get("minimal_fallback_points", scenario.get("fallback_points")),
+            )
             reduction = pct_reduction(legacy_stat.approx_tokens, minimal_stat.approx_tokens)
             bucket = scenario["bucket"]
 

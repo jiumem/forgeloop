@@ -41,7 +41,7 @@ The benchmark prints:
 
 - the legacy docs read set
 - the minimal packet read set
-- approximate packet size in chars / lines / words / approx tokens
+- approximate packet size in chars / lines / words / approx tokens, including packet wrapper metadata plus referenced body content
 - per-scenario reduction percentage
 - hot-path and cold-path aggregate reduction
 - Task hot-path average reduction
@@ -57,4 +57,4 @@ The script is also an acceptance gate:
 - The reported token numbers are approximate and intentionally deterministic.
 - The benchmark uses only tracked repo fixtures plus temporary derived views generated during the run.
 - Derived views are materialized into a temporary directory during the run and never become durable truth.
-- This benchmark proves packet-shape and read-surface shrinkage; it does not replace real provider telemetry.
+- This benchmark proves approximate packet-shape and read-surface shrinkage; it still does not replace real provider telemetry.

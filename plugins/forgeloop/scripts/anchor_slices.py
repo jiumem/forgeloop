@@ -361,6 +361,8 @@ def parse_forgeloop_blocks(path: pathlib.Path) -> list[ForgeloopBlock]:
             continue
         if in_block:
             body.append(line)
+    if in_block:
+        raise ValueError(f"{path}: unclosed forgeloop fence starting at line {start_line - 1}")
     return blocks
 
 
@@ -518,7 +520,29 @@ def validate_tuple_fields(doc: pathlib.Path, blocks: list[ForgeloopBlock], mode:
                 f"{block.fields.get('kind', 'unknown_kind')}@{block.start_line} missing {','.join(missing)}"
             )
     if violations:
-        raise ValueError(f"{doc}: malformed handoff/result blocks: {'; '.join(violations)}")
+        raise ValueError(f"{doc}: malformed block fields: {'; '.join(violations)}")
+
+
+def block_tuple(block: ForgeloopBlock) -> tuple[str, str, str]:
+    return (
+        block.fields["round"].strip(),
+        block.fields["handoff_id"].strip(),
+        block.fields["review_target_ref"].strip(),
+    )
+
+
+def validate_result_handoff_consistency(doc: pathlib.Path, blocks: list[ForgeloopBlock], mode: str) -> None:
+    handoff_tuples = {block_tuple(block) for block in blocks if is_handoff_block(mode, block.fields)}
+    violations: list[str] = []
+    for block in blocks:
+        if not is_result_block(mode, block.fields):
+            continue
+        result_tuple = block_tuple(block)
+        if result_tuple not in handoff_tuples:
+            rendered = "/".join(result_tuple)
+            violations.append(f"{block.fields.get('kind', 'unknown_kind')}@{block.start_line} has no matching handoff tuple {rendered}")
+    if violations:
+        raise ValueError(f"{doc}: result/handoff tuple mismatches: {'; '.join(violations)}")
 
 
 def collect_handoff_blocks(
@@ -568,6 +592,7 @@ def derive(doc: pathlib.Path, out: pathlib.Path) -> int:
     mode = detect_mode(blocks)
     validate_block_schema(doc, blocks, mode)
     validate_tuple_fields(doc, blocks, mode)
+    validate_result_handoff_consistency(doc, blocks, mode)
     grouped = latest_by_round(blocks, mode)
     handoff_index = collect_handoff_blocks(doc, blocks, mode)
     latest_round_data = latest_round(grouped)
@@ -647,6 +672,7 @@ def derive(doc: pathlib.Path, out: pathlib.Path) -> int:
     write_text(out / "current-effective.md", "\n".join(current_effective_lines).rstrip() + "\n")
 
     for handoff_id, handoff_block in handoff_index.items():
+        handoff_tuple = block_tuple(handoff_block)
         handoff_lines = [
             f"# Handoff-Scoped View: {handoff_id}",
             "",
@@ -660,10 +686,13 @@ def derive(doc: pathlib.Path, out: pathlib.Path) -> int:
             "",
         ]
         for block in blocks:
-            if block.fields.get("handoff_id") == handoff_id:
-                if block is handoff_block:
-                    continue
-                handoff_lines.extend(["```forgeloop", block.raw, "```", ""])
+            if block is handoff_block:
+                continue
+            if not is_result_block(mode, block.fields):
+                continue
+            if block_tuple(block) != handoff_tuple:
+                continue
+            handoff_lines.extend(["```forgeloop", block.raw, "```", ""])
         write_text(out / "handoff-scoped" / f"{handoff_id}.md", "\n".join(handoff_lines).rstrip() + "\n")
     return 0
 
