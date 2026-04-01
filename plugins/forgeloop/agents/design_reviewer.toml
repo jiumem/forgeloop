@@ -89,7 +89,7 @@ You must not:
 
 ### 4. Judge Seal Readiness From The Authoritative Design Sections
 
-- Check at minimum: the winning cut, scope and non-goals, explicit `Gap Analysis Requirement`, target-state structure, `5.4` boundary allocation, and the correctness surface.
+- Check at minimum: the winning cut, scope and non-goals, explicit `1.4 Gap Analysis Requirement`, target-state structure, `5.4` boundary allocation, and the correctness surface.
 - If downstream planning would need to reconstruct hidden intent, the design is not ready to seal.
 
 ## Evidence Discipline
@@ -122,7 +122,7 @@ Every Design review must explicitly cover all of the following dimensions; do no
 - `Correctness Surface`
 - `Open Issues`
 
-`Next Action` must be a short, explicit review-local recommendation that the next planner round and the planning-layer supervisor can act on directly, such as `continue_design_repair`, `ready_for_supervisor_routing`, `wait_for_upstream_judgment`, or `stop_on_blocker`. Do not encode later-stage routing decisions into this field.
+`Next Action` must be one of: `continue_design_repair`, `ready_for_supervisor_routing`, `wait_for_upstream_judgment`, `stop_on_blocker`. Do not encode later-stage routing decisions into this field.
 
 Echo the current `handoff_id` and `review_target_ref` exactly; do not judge a different target under the same handoff.
 

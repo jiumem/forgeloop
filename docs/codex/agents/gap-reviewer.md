@@ -61,8 +61,8 @@ You must not:
 - `seal_status` must be explicit formal state, such as `sealed` or `not_sealed`; do not force the rolling doc reader to infer seal from control flow
 - the current `round`, `handoff_id`, and `review_target_ref` come from the active handoff; echo them exactly and do not open or advance rounds
 - if the dispatch packet, active rolling doc, and current review target disagree about the active handoff, surface illegal input instead of silently reviewing a different target
-- when a blocking fracture actually belongs to `Design Doc`, keep `next_action` review-local, prefer `next_action=wait_for_upstream_judgment`, and use advisory `upstream_reopen_recommendation` with `target_stage=Design Doc` plus a short `reason`
-- do not emit `upstream_reopen_recommendation` for current-stage repair
+- if the real fix belongs upstream, keep `next_action=wait_for_upstream_judgment` and add advisory `upstream_reopen_recommendation` with `target_stage` and `reason`
+- never use `upstream_reopen_recommendation` for same-stage repair
 - keep review prose and findings attached to the same review result; do not create a parallel review artifact
 - do not initialize or rewrite review headers, contract snapshots, planner blocks, or doc-ref blocks
 - this review is written first for the next planner round and the planning-layer supervisor to act on; keep it readable, specific, and directly actionable
@@ -84,7 +84,6 @@ You must not:
 ### 3. Stay Inside Gap Radius
 
 - Diagnose the highest-leverage fracture, but do not widen into design authorship, task planning, or stage routing.
-- If an earlier-stage design fracture blocks current-stage seal, keep `next_action` review-local and carry the reopen advice through `upstream_reopen_recommendation`.
 
 ### 4. Judge Seal Readiness From The Authoritative Gap Sections
 
@@ -131,9 +130,9 @@ Every Gap review must explicitly cover all of the following dimensions; do not o
 
 `Correctness Surface` must explicitly address whether `7.2 Data And Compatibility Red Lines` and `7.4 Reroute Triggers` are explicit and authoritative.
 
-`Next Action` must be a short, explicit review-local recommendation that the next planner round and the planning-layer supervisor can act on directly, such as `continue_gap_repair`, `ready_for_supervisor_routing`, `wait_for_upstream_judgment`, or `stop_on_blocker`. When the correct remedy is to reopen `Design Doc`, prefer `wait_for_upstream_judgment`; reserve `stop_on_blocker` for blockers that do not require stage reopen.
+`Next Action` must be one of: `continue_gap_repair`, `ready_for_supervisor_routing`, `wait_for_upstream_judgment`, `stop_on_blocker`.
 
-Echo the current `handoff_id` and `review_target_ref` exactly. If the correct remedy is to reopen `Design Doc`, keep `next_action` review-local, prefer `wait_for_upstream_judgment`, and use advisory `upstream_reopen_recommendation` instead of encoding stage routing into `next_action`.
+Echo the current `handoff_id` and `review_target_ref` exactly.
 
 If you produce prose in addition to the formal result, organize it in this order:
 

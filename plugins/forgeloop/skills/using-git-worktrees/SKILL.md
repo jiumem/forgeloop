@@ -15,7 +15,7 @@ Git worktrees create isolated workspaces sharing the same repository, allowing w
 
 **Naming principle:** Worktree names follow Initiative identity; branch names follow the current main closure boundary.
 
-**Announce at start:** "I'm using the using-git-worktrees skill to bind or prepare an isolated workspace."
+When user-facing acknowledgement is useful, briefly state that workspace binding or preparation is in progress. Do not expose internal skill names unless the user explicitly asks.
 
 **Reuse rule:** This skill decides whether to reuse the current workspace or create a new worktree. Callers should not invent their own definition of a correctly bound or execution-ready Initiative workspace.
 
@@ -343,7 +343,7 @@ Ready to implement <feature-name>
 ## Example Workflow
 
 ```
-You: I'm using the using-git-worktrees skill to bind or prepare an isolated workspace.
+You: Binding the active workspace for runtime reads and execution.
 
 [Check .worktrees/ - exists]
 [Verify ignored - git check-ignore confirms .worktrees/ is ignored]

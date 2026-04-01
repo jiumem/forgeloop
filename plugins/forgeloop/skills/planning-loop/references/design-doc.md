@@ -31,6 +31,7 @@
 ### 1.1 状态与阶段（Status And Stage）
 ### 1.2 Initiative 类型（Initiative Type）
 ### 1.3 主要读者（Primary Readers）
+### 1.4 Gap Analysis Requirement
 
 ## 2. 需求基线（Requirement Baseline）
 ### 2.1 问题陈述（Problem Statement）
@@ -73,13 +74,14 @@
 
 ## 分节合同
 
+> 本文凡标注为“唯一权威区块”的小节，其他小节只能引用，不得重裁决；若需概括，只能做索引，不得改写边界。
+
 ### 1. 文档卡片（Document Card）
 
 - `1.1 状态与阶段（Status And Stage）`：标明当前文档状态，例如 `draft`、`review-ready` 或 `sealed`，并确认这是 `Design Doc` 阶段；这里写的是文档自身状态，不替代 rolling doc 里的 round、handoff 或 stop signal
-- `1.2 Initiative 类型（Initiative Type）`：当 Initiative 类型会实质影响下游 planning 时，明确写出其类型，例如 greenfield feature、refactor、migration、replacement、governance convergence
-- `1.2 Initiative 类型（Initiative Type）` 还必须显式写出 `Gap Analysis Requirement: required | not_required`
-- `Gap Analysis Requirement` 是 planning 阶段是否必须在 `Total Task Doc` 之前先有 `Gap Analysis Doc` 的唯一正式路由信号；一旦这份 `Design Doc` sealed，下游 planning 就不得再从聊天记忆或宽泛 Initiative 标签重新判断
+- `1.2 Initiative 类型（Initiative Type）`：只写 Initiative 类型；当 Initiative 类型会实质影响下游 planning 时，明确写出其类型，例如 greenfield feature、refactor、migration、replacement、governance convergence
 - `1.3 主要读者（Primary Readers）`：当这有助于避免误用时，写明当前主要读者
+- `1.4 Gap Analysis Requirement`：必须明确写 `required | not_required`；这是 planning 是否必须进入 `Gap Analysis Doc` 的唯一正式路由信号
 
 ### 2. 需求基线（Requirement Baseline）
 
@@ -116,7 +118,7 @@
 
 ### 6. 关键决策与被否定方案（Key Decisions And Rejected Alternatives）
 
-- `6.1 已封板决策（Sealed Decisions）`：记录已经形式封板的决策；不要在这里重新定义实现自由度边界，必要时引用 `5.4`
+- `6.1 已封板决策（Sealed Decisions）`：记录已封板决策；涉及实现自由度时直接引用 `5.4`，不再复述
 - `6.2 被否定方案（Rejected Alternatives）`：只记录那些下游角色可能会重新打开的现实备选方案
 - `6.3 为什么胜出切法会赢（Why The Winning Cut Wins）`：解释为什么当前切法是在当前主要矛盾下最好的结构选择
 - 不要保留前期讨论历史或纯风格偏好争论
@@ -169,7 +171,7 @@
 - 目标态明确
 - 成功标准明确
 - 范围边界明确
-- `Gap Analysis Requirement` 这一行明确
+- `1.4 Gap Analysis Requirement` 明确
 - 主要设计裁决明确
 - `5.4` 中关于“固定与可变”的权威界线明确
 - 正确性表面明确

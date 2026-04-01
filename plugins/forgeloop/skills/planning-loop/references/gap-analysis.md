@@ -75,6 +75,8 @@
 
 ## 分节合同
 
+> 本文凡标注为“唯一权威区块”的小节，其他小节只能引用，不得重裁决；若需概括，只能做索引，不得改写边界。
+
 ### 1. 文档卡片（Document Card）
 
 - `1.1 状态与阶段（Status And Stage）`：标明当前文档状态，例如 `draft`、`review-ready` 或 `sealed`，并确认这是 `Gap Analysis Doc` 阶段；这里写的是文档自身状态，不替代 rolling doc 里的 round、handoff 或 stop signal
@@ -117,7 +119,7 @@
 - `6.1 桥接形态（Bridge Shape）`：从结构层定义当前态到目标态的桥接形态
 - `6.2 切换与共存规则（Cutover And Coexistence Rules）`：这是旧路径与新路径如何共存、切换或退役的唯一权威区块
 - `6.3 回滚与安全红线（Rollback And Safety Lines）`：定义下游实现必须守住的回滚预期与安全线
-- `6.4 下游绑定影响（Downstream Binding Effects）`：概括哪些内容从现在开始对下游 planning 与 coding 构成绑定，但相关权威区块仍应以 `5.4` 与 `6.2` 为准
+- `6.4 下游绑定影响（Downstream Binding Effects）`：只索引已产生绑定力的收敛结论；权威仍在 `5.4` 与 `6.2`
 
 ### 7. 正确性表面（Correctness Surface）
 

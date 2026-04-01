@@ -23,7 +23,7 @@ This reference governs the planning communication plane, not artifact shape. Sta
 <!-- forgeloop:anchor required-header -->
 ## Required Header And Contract Snapshot
 
-- each rolling doc must bind one Initiative, one planning stage, one active artifact path, and one logical `planner_slot`
+- each rolling doc must bind one Initiative, one planning stage, one active `artifact_ref`, and one logical `planner_slot`
 - when the rolling doc does not yet exist, `planning-loop` may initialize only the header plus one `planning_contract_snapshot`
 - `planning_contract_snapshot` must include at least:
   - `kind`
@@ -156,10 +156,12 @@ Header and contract snapshot are initialized once. All later formal facts append
 - `open_issues` and `findings` may use either inline YAML lists or multi-line YAML list form, but they must remain attached to the same review-result block
 - `author_role` on a review-result block must stay `reviewer`
 - `handoff_id` and `review_target_ref` must echo the exact current handoff being judged
-- `gap_review_result` and `plan_review_result` may additionally carry advisory `upstream_reopen_recommendation` with:
-  - `target_stage`
-  - `reason`
-- `upstream_reopen_recommendation` is advisory only; only the `Supervisor` may route stages
+- review-side `next_action` vocabulary is closed:
+  - `design_review_result`: `continue_design_repair`, `ready_for_supervisor_routing`, `wait_for_upstream_judgment`, `stop_on_blocker`
+  - `gap_review_result`: `continue_gap_repair`, `ready_for_supervisor_routing`, `wait_for_upstream_judgment`, `stop_on_blocker`
+  - `plan_review_result`: `continue_plan_repair`, `ready_for_supervisor_routing`, `wait_for_upstream_judgment`, `stop_on_blocker`
+- if the real fix belongs upstream, keep `next_action=wait_for_upstream_judgment` and add advisory `upstream_reopen_recommendation` with `target_stage` and `reason`
+- never use `upstream_reopen_recommendation` for same-stage repair
 - `design_review_result` must not emit `upstream_reopen_recommendation`, because no earlier planning stage exists
 
 <!-- forgeloop:anchor freshness-selection -->
@@ -177,6 +179,8 @@ Header and contract snapshot are initialized once. All later formal facts append
 <!-- forgeloop:anchor seal-repair-reopen -->
 ## Seal, Repair, And Reopen Law
 
+- a stage is formally clean-sealed only when `verdict=clean`, `seal_status=sealed`, and `next_action=ready_for_supervisor_routing`
+- any other combination is non-sealing and must be treated as repair, wait, blocker, or reopen advice
 - a clean reviewer result with explicit `seal_status=sealed` seals only the current planning stage; only the `Supervisor` may route to another stage afterward
 - a reviewer result that requests same-stage repair closes the current handoff and requires the `Supervisor` to open the next round before redispatching `planner`
 - an upstream stage may reopen only through an explicit supervisor route recorded in the `Planning State Doc`

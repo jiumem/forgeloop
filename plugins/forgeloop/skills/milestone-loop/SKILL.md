@@ -104,13 +104,9 @@ Bind `../run-initiative/references/runtime-cutover.md` before deciding the Miles
 ## Workflow
 
 1. Bind the current Milestone
-- First read the runtime cutover contract and bind `current_runtime_cutover_mode`.
-- If `current_runtime_cutover_mode=full_doc_default`, authoritative full-document reads may be the default bind path; still keep any optional minimal packet self-sufficient.
-- If `current_runtime_cutover_mode=minimal_preferred` or `minimal_required`, read in this exact order:
-  - the minimum `Global State Doc` control plane needed to confirm active Milestone identity, `coder_slot`, and Milestone `round`
-  - `current-effective`, `handoff-scoped`, or `attempt-aware` only when the derived view is still legal and rebuildable from the same authoritative `Milestone Review Rolling Doc`
-  - the authoritative `Milestone Review Rolling Doc` blocks needed to confirm the current `g2_result` handoff, latest matching `r2_result`, or rolling-doc/header continuity
-  - full-document fallback only when selector legality fails, the derived view is stale or missing, the rolling doc must be initialized, or a formal conflict still cannot be resolved uniquely
+- First bind `current_runtime_cutover_mode`.
+- Follow the mode-selected read order defined by `../run-initiative/references/runtime-cutover.md`; use `../references/derived-views.md` only for legal hot-path helpers.
+- This loop specifies only the Milestone-specific proofs that must still be established after that shared read path.
 - Read the Milestone definition, relevant Task anchors / Task review docs, and the minimum engineering facts only after that runtime read order still leaves Milestone readiness, acceptance, or routing legality incomplete
 - Confirm that the active milestone is unique, the workspace is executable, the rolling doc matches the active milestone, `coder_slot` is unique, and the Milestone `round` is unique when it already exists
 - Confirm that the Milestone has entered the stage-review window: required Tasks are already `DONE`, and there is no higher-priority blocker
@@ -173,7 +169,7 @@ Stop immediately and hand control back upstream or to the user when:
 Never:
 - enter `R2` without a valid `g2_result`
 - silently replace the logical `coder_slot`
-- keep a bounded brief, temporary commentary, or chat summary as a second collaboration truth source
+- keep a temporary bootstrap note, temporary commentary, or chat summary as a second collaboration truth source
 - write coder / reviewer body content into the `Global State Doc`
 - dispatch multiple coders concurrently for the same Milestone
 - let the reviewer repair code

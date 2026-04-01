@@ -21,7 +21,7 @@ Each planning stage must bind exactly one canonical `stage_reference_ref`.
 - `Gap Analysis Doc` -> `references/gap-analysis.md`
 - `Total Task Doc` -> `references/total-task-doc.md`
 
-Store `stage_reference_ref` as a skill-root-relative path. Materialize an absolute path only at dispatch time when the runtime needs it. Keep the skill-root-relative form as durable truth in the rolling-doc contract snapshot.
+Bind `stage_reference_ref` as a repo-root-relative path. Materialize an absolute path only at dispatch time when needed. Keep the repo-root-relative form as the durable truth in the rolling-doc contract snapshot.
 
 `stage_reference_ref` belongs to the active planning rolling doc's contract snapshot, not to the `Planning State Doc`.
 
@@ -34,11 +34,12 @@ Every planning stage also binds the same canonical `rolling_doc_contract_ref`.
 
 - shared planning rolling-doc contract -> `references/planning-rolling-doc.md`
 
-Store `rolling_doc_contract_ref` the same way: skill-root-relative as durable truth, absolute only as an ephemeral dispatch value.
+Bind `rolling_doc_contract_ref` the same way: repo-root-relative as durable truth, absolute only as an ephemeral dispatch value.
 
 `rolling_doc_contract_ref` belongs to the active planning rolling doc's contract snapshot, not to the `Planning State Doc`.
 
 The stage reference controls artifact shape and stage judgment. The shared rolling-doc contract controls communication-plane shape, block legality, round law, handoff law, and stale-result handling.
+Framework contract refs and Initiative repo refs follow the same durable-path rule: repo-root-relative. Do not persist workspace-specific absolute paths in planning truth.
 
 <!-- forgeloop:anchor stage-reviewer-binding -->
 ## Stage Reviewer Binding
@@ -75,6 +76,7 @@ Formal inputs:
 - any already sealed upstream planning artifacts for the same Initiative
 - repo facts, implementation facts, constraint facts, and the stage-specific reference required by the current stage
 - the shared anchor-addressing contract at `../references/anchor-addressing.md`
+- the shared planning-state control reference at `../run-planning/references/planning-state.md`
 
 Hard boundaries:
 
@@ -100,7 +102,7 @@ Hard boundaries:
 - Read the requirement or `design draft`, the `Planning State Doc`, the active planning rolling doc when it exists, the current stage artifact when it exists, and the minimum repo facts needed to confirm the stage boundary
 - Bind the canonical `stage_reference_ref` for the active stage before dispatch
 - Bind the canonical `rolling_doc_contract_ref` before dispatch
-- Confirm that the Initiative and active stage are unique, the formal artifact path is known, the rolling doc path is known or can be initialized uniquely, `stage_reference_ref` is uniquely confirmed, and `rolling_doc_contract_ref` is uniquely confirmed
+- Confirm that the Initiative and active stage are unique, the formal `artifact_ref` is known, the `rolling_doc_ref` is known or can be initialized uniquely, `stage_reference_ref` is uniquely confirmed, and `rolling_doc_contract_ref` is uniquely confirmed
 - If the active planning rolling doc already exists, also confirm that `planner_slot` is unique and the stage `round` is unique
 - If the active planning rolling doc does not yet exist, it is legal to initialize the stage here with `planner_slot=planner` and `round=1`
 - If `last_transition` records an explicit reopen into this stage, recover `planner_slot` from the rolling doc when possible and open the next integer `round` instead of resuming the previously sealed round
@@ -109,7 +111,7 @@ Hard boundaries:
 - If the rolling doc does not exist, initialize only the header, including object identity and `planner_slot`, plus `planning_contract_snapshot`; write `planner_slot=planner` into the header and `current_snapshot`, and write `round=1` into the `Planning State Doc` before dispatching `planner`
 
 2. Update the minimum planning control plane
-- `current_snapshot` points to the current Initiative, active stage, active artifact path, rolling doc path, `planner_slot`, and the stage `round`; on first entry into a fresh stage with no prior rolling doc, use `planner_slot=planner` and `round=1`
+- `current_snapshot` must carry the current Initiative, stage, `artifact_ref`, `rolling_doc_ref`, `planner_slot`, and `round` whenever they are known; only a fresh stage with no rolling doc may omit `planner_slot` and `round` temporarily
 - `next_action` must stay inside the formal planning-stage state space for this Initiative: planner repair, reviewer handoff, supervisor routing between planning stages, sealed planning output, or waiting / blocked stop states
 - `last_transition` records entering, resuming, or reassigning the current planning stage when needed
 - `round` is stage-local and supervisor-owned through the `Planning State Doc`; `planner` and reviewers only echo it in the rolling doc and must not advance it on their own
@@ -120,7 +122,7 @@ Hard boundaries:
 - Keep only one logical `planner_slot` for the current planning stage
 - Reuse the same `planner` thread when possible; if the physical thread is lost, you may assign a successor agent but must preserve the same `planner_slot`
 - Default to `fork_context=false`
-- The planner input must explicitly carry: active stage identity, requirement or `design draft`, the `Planning State Doc` path, the active planning rolling doc path, the current artifact path, the current `round`, the bound `stage_reference_ref`, the bound `rolling_doc_contract_ref`, the anchor selectors for the exact planning-artifact and rolling-doc surfaces needed in the round, and any sealed upstream planning artifacts
+- The planner input must explicitly carry: active stage identity, requirement or `design draft`, the `Planning State Doc` ref or materialized path, the active `rolling_doc_ref`, the active `artifact_ref`, any materialized paths needed for dispatch, the current `round`, the bound `stage_reference_ref`, the bound `rolling_doc_contract_ref`, the anchor selectors for the exact planning-artifact and rolling-doc surfaces needed in the round, and any sealed upstream planning artifacts
 - The planner reads artifact-shape rules from `stage_reference_ref`, communication-plane rules from `rolling_doc_contract_ref`, and selector legality from `../references/anchor-addressing.md`; do not inline or restate the full reference text in the dispatch packet unless a referenced file is missing, unreadable, or has promoted to full-document fallback
 
 4. Handle planner output
@@ -133,7 +135,7 @@ Hard boundaries:
 
 5. Handle reviewer output
 - Use only the latest review result whose `round`, `handoff_id`, and `review_target_ref` match the current handoff.
-- `clean + sealed + ready_for_supervisor_routing`:
+- `clean seal`:
   - `Design Doc` -> route by sealed `Gap Analysis Requirement`
   - `Gap Analysis Doc` -> `advance_to_total_task_doc`
   - `Total Task Doc` -> `sealed_planning_docs_ready`

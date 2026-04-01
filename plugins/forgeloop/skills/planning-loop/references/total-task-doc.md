@@ -71,6 +71,8 @@
 
 ## 分节合同
 
+> 本文凡标注为“唯一权威区块”的小节，其他小节只能引用，不得重裁决；若需概括，只能做索引，不得改写边界。
+
 ### 1. 前置输入与决策基线（Input Baseline And Sealed Decisions）
 
 - `1.1 需求摘要（Requirement Summary）`：说明这张执行地图所满足的最小需求摘要
@@ -132,9 +134,11 @@
 
 ### 6. 验收矩阵（Acceptance Matrix）
 
-- `6.1 Task 验收索引（Task Acceptance Index）`：索引 Task 验收及其通常的首个证据入口，但不要重新定义 Task 验收；`4.2 Task 定义（Task Definitions）` 仍是权威来源
-- `6.2 Milestone 验收索引（Milestone Acceptance Index）`：索引 Milestone 验收及其通常的首个证据入口，但不要重新定义 Milestone 验收；`3.3 Milestone 验收（Milestone Acceptance）` 仍是权威来源
-- `6.3 Initiative 验收索引（Initiative Acceptance Index）`：索引 Initiative 验收及其通常的首个证据入口，但不要重新定义 Initiative 成功标准；`2.4 成功标准（Success Criteria）` 仍是权威来源
+> 第 6 节只做验收与证据索引，不重定义验收线；权威分别在 `2.4`、`3.3`、`4.2` 与 `6.4`。
+
+- `6.1 Task 验收索引（Task Acceptance Index）`：索引 Task 验收与首个证据入口
+- `6.2 Milestone 验收索引（Milestone Acceptance Index）`：索引 Milestone 验收与首个证据入口
+- `6.3 Initiative 验收索引（Initiative Acceptance Index）`：索引 Initiative 验收与首个证据入口
 - `6.4 证据入口（Evidence Entrypoints）`：这是下游验证与审查应当优先查看哪些证据入口的唯一权威区块
 - 这个矩阵是控制面索引，不是散文式复述
 

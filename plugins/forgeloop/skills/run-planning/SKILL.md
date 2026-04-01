@@ -13,6 +13,8 @@ The planning side uses one control spine plus one internal stage skill:
 - `planner` and stage reviewers perform formal handoff inside stage-specific planning rolling docs
 - `planning-loop` is the internal second-layer stage skill that handles exactly one confirmed planning stage per dispatch
 
+The `Planning State Doc` control contract lives at `references/planning-state.md`.
+
 The default planning packet is anchor-addressed: authoritative refs first, doc-local selectors second, optional minimal slices third, and full-document fallback only on legality failure or cold-start recovery.
 Planning packets must remain self-sufficient for the current stage and round. Do not rely on previous-packet memory, packet hashes, or delta-only continuation assumptions.
 
@@ -65,7 +67,7 @@ The `Planning State Doc` holds only the minimum planning control plane: `current
 
 First bind the formal planning sources for the current Initiative.
 
-1. Use the user-provided requirement baseline, `design draft`, planning artifact path, planning state path, `initiative_key`, or the only verifiable active planning object in the current workspace to bind the current Initiative. If it cannot be verified uniquely, ask the user.
+1. Use the user-provided requirement baseline, `design draft`, planning `artifact_ref`, `planning_state_doc_ref`, `initiative_key`, or the only verifiable active planning object in the current workspace to bind the current Initiative. If it cannot be verified uniquely, ask the user.
 2. Read the `Planning State Doc` first when it exists.
 3. Read only the minimum planning artifacts and planning rolling docs needed to confirm the active stage.
 4. If the active stage is already bound or the `Planning State Doc` looks distorted, read the active planning rolling doc deeply enough to recover `planner_slot` and the stage `round` when they already exist.
@@ -98,7 +100,7 @@ After reading the formal planning sources, decide whether planning should enter 
 
 Before dispatching, make the active planning stage explicit in the `Planning State Doc`.
 
-1. `current_snapshot` records the Initiative, active stage, artifact path, and rolling-doc path.
+1. `Planning State Doc` is the only planning control spine. `current_snapshot` carries the bound Initiative, active stage, active `artifact_ref`, active `rolling_doc_ref`, and when known `planner_slot` plus `round`; `next_action` carries only the current planning route or stop signal; `last_transition` carries only the most recent bind, recovery, resume, reopen, or cross-stage routing fact.
 2. When resuming an existing stage, preserve `planner_slot` and stage `round`.
 3. Only a fresh stage with no rolling doc may omit them temporarily; `planning-loop` must then initialize `planner_slot=planner` and `round=1`.
 4. `next_action` records entry into `planning-loop` for the bound stage.

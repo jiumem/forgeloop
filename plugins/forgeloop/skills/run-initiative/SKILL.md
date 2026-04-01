@@ -67,7 +67,7 @@ Before any runtime loop dispatch, first decide whether the sealed planning docs 
 <!-- forgeloop:anchor dispatch-rules -->
 ## Dispatch Rules
 
-Once the next step is confirmed, call the required skill in order, or stop and ask the user. Only one skill may be called at a time: no parallelism, no skipped steps.
+Once the next step is confirmed, dispatch exactly one downstream skill for that decision point, or stop and ask the user. Sequential redispatch after a skill returns is allowed only after rereading formal runtime state; parallel dispatch and speculative skipped steps are forbidden.
 
 The `Global State Doc` carries only the minimum control-plane state: `current_snapshot`, `next_action`, `last_transition`, plus explicit waiting / blocked / done signals.
 Each update exists only to support the current next-step dispatch. Do not write coder / reviewer body content, do not keep process logs, and do not create a second state model outside the formal runtime docs.
@@ -113,9 +113,9 @@ First bind the formal source refs for the current Initiative.
 7. Bind `runtime_cutover_ref=plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md` from the canonical runtime contract refs before any runtime routing or packet assembly.
 8. If `design_ref` or `total_task_doc_ref` is missing, if `gap_analysis_ref` is required but missing, or if `total_task_doc_ref` cannot identify the Initiative reference entry clearly, stop, do not write `Global State Doc`, and ask the user to provide or confirm the missing information.
 
-### Step 2: Run Planning Admission And Determine The Next Step
+### Step 2: Run Planning Admission
 
-After reading the formal docs, first decide whether the planning truth may legally enter runtime, then determine the next step directly.
+After binding the sealed planning refs, prove only runtime-admission legality.
 
 1. Read `total_task_doc_ref` first.
 2. Read `design_ref` before any runtime routing. Read `gap_analysis_ref` when the sealed `Design Doc` marks `Gap Analysis Requirement: required`, or when the upstream planning refs disagree and the conflict must be resolved.
@@ -128,31 +128,7 @@ After reading the formal docs, first decide whether the planning truth may legal
 - the Initiative boundary and success criteria are explicit enough to execute
 - the Milestone structure, Task Ledger, branch and PR integration path, legal reference assignments, acceptance matrix, and global residual risks are explicit enough to act on
 6. If planning admission fails, stop and ask the user to repair the planning truth. Do not call skill: `rebuild-runtime` just to paper over illegal planning input, and do not enter any execution loop.
-7. If runtime routing depends on workspace-local runtime docs and the active Initiative workspace is not already confirmed, do Step 3 first in `bind_only` mode. Only after Step 3 has bound the active workspace and materialized the runtime refs may you read `global_state_doc_ref` or any runtime rolling doc.
-8. After active workspace binding when needed, choose the runtime read order from `current_runtime_cutover_mode`:
-- `full_doc_default`: authoritative full documents may be the default runtime route
-- `minimal_preferred` or `minimal_required`: read `global_state_doc_ref` first, then legal derived views, then authoritative rolling-doc blocks, then full-document fallback only when the cutover contract still allows it
-9. Only when document facts are still insufficient should you add the minimum necessary Git / test facts.
-10. Then route by this priority:
-- delivered / waiting / blocked stop that is still consistent
-- cold start with no runtime docs
-- runtime rebuild when state is missing or conflicting
-- task loop when a Task is clearly active or next-ready
-- milestone loop when Milestone review/repair is clearly active
-- initiative loop when Initiative review/repair is clearly active
-- ask the user only when facts are legal but still ambiguous
-11. Apply the first matching case:
-- if the `Global State Doc` already records a delivered stop state such as `initiative_delivered`: stop and explain the stop point
-- if the `Global State Doc` already records waiting or blocked: first check whether this activation clearly resolves that stop reason
-  - if not, stop at that state
-  - if yes, record that resume in `last_transition`, then continue from newer formal runtime truth instead of treating the stop as terminal
-- if `Global State Doc` is missing and no rolling doc exists: treat it as a new Initiative start
-- if `Global State Doc` is missing but rolling docs already exist, or if `Global State Doc` clearly conflicts with the total task doc or rolling docs: call skill: `rebuild-runtime`
-- if current progress clearly belongs to the Task review/repair loop, including continuing the currently bound Task, continuing repair on the current Task, or uniquely identifying the next ready Task: formally rebind `current_snapshot` and `next_action` to that Task if needed, then call skill: `task-loop`
-- if current progress clearly belongs to a Milestone review/repair loop: formally rebind `current_snapshot` and `next_action` to that Milestone if needed, then call skill: `milestone-loop`
-- if current progress clearly belongs to the Initiative review/repair loop: formally rebind `current_snapshot` and `next_action` to that Initiative if needed, then call skill: `initiative-loop`
-- if the facts do not conflict but the next step still cannot be determined uniquely: ask the user
-12. You may confirm only one next step or one clear stop point. If facts conflict, call skill: `rebuild-runtime`; if they are ambiguous, ask the user.
+7. If admission passes and runtime routing still needs workspace-local runtime docs, continue to Step 3.
 
 ### Step 3: Bind The Active Initiative Workspace
 
@@ -166,7 +142,36 @@ Do this whenever runtime routing or loop execution needs workspace-local runtime
 6. Never write the materialized absolute paths back into the `Total Task Doc` or any other durable planning truth.
 7. If `using-git-worktrees` in `bind_only` mode exposes a conflict, waiting state, or blocker, stop at that point.
 
-### Step 4: Prepare Execution And Execute The Next Step
+### Step 4: Determine The Runtime Next Step
+
+Only after workspace binding when needed, choose the runtime read order from `current_runtime_cutover_mode`, read `global_state_doc_ref` or legal derived views or authoritative rolling-doc blocks in the allowed order, add minimum Git or test facts only when document facts remain insufficient, then route by priority.
+
+1. After active workspace binding when needed, choose the runtime read order from `current_runtime_cutover_mode`:
+- `full_doc_default`: authoritative full documents may be the default runtime route
+- `minimal_preferred` or `minimal_required`: read `global_state_doc_ref` first, then legal derived views, then authoritative rolling-doc blocks, then full-document fallback only when the cutover contract still allows it
+2. Only when document facts are still insufficient should you add the minimum necessary Git / test facts.
+3. Then route by this priority:
+- delivered / waiting / blocked stop that is still consistent
+- cold start with no runtime docs
+- runtime rebuild when state is missing or conflicting
+- task loop when a Task is clearly active or next-ready
+- milestone loop when Milestone review/repair is clearly active
+- initiative loop when Initiative review/repair is clearly active
+- ask the user only when facts are legal but still ambiguous
+4. Apply the first matching case:
+- if the `Global State Doc` already records a delivered stop state such as `initiative_delivered`: stop and explain the stop point
+- if the `Global State Doc` already records waiting or blocked: first check whether this activation clearly resolves that stop reason
+  - if not, stop at that state
+  - if yes, record that resume in `last_transition`, then continue from newer formal runtime truth instead of treating the stop as terminal
+- if `Global State Doc` is missing and no rolling doc exists: treat it as a new Initiative start
+- if `Global State Doc` is missing but rolling docs already exist, or if `Global State Doc` clearly conflicts with the total task doc or rolling docs: call skill: `rebuild-runtime`
+- if current progress clearly belongs to the Task review/repair loop, including continuing the currently bound Task, continuing repair on the current Task, or uniquely identifying the next ready Task: formally rebind `current_snapshot` and `next_action` to that Task if needed, then call skill: `task-loop`
+- if current progress clearly belongs to a Milestone review/repair loop: formally rebind `current_snapshot` and `next_action` to that Milestone if needed, then call skill: `milestone-loop`
+- if current progress clearly belongs to the Initiative review/repair loop: formally rebind `current_snapshot` and `next_action` to that Initiative if needed, then call skill: `initiative-loop`
+- if the facts do not conflict but the next step still cannot be determined uniquely: ask the user
+5. You may confirm only one next step or one clear stop point. If facts conflict, call skill: `rebuild-runtime`; if they are ambiguous, ask the user.
+
+### Step 5: Prepare Execution And Execute The Next Step
 
 Consume only the conclusion already confirmed in the previous step. Do not reinterpret the facts, and do not rematerialize runtime refs against a different workspace mid-activation.
 
@@ -186,7 +191,7 @@ If work will continue, first update the materialized `Global State Doc` in the a
 
 When the active object is already in flight or has been recovered from an existing rolling doc, `current_snapshot` should preserve the active `coder_slot` and object `round`. Only on first entry into a fresh runtime object with no rolling doc yet may `current_snapshot` temporarily omit them; the target loop must then initialize `coder_slot=coder` and `round=1` before dispatching the first coder round.
 
-### Step 5: Loop Back
+### Step 6: Loop Back
 
 After any loop returns, reread the materialized `Global State Doc` and the active rolling doc in the same active Initiative workspace that was just modified. Do not infer from cached expectations about what should have happened in the previous round. Go straight back to Step 2 and re-determine the next step.
 

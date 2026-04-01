@@ -66,8 +66,8 @@ You must not:
 - Echo `round`, `handoff_id`, and `review_target_ref` from the active handoff exactly.
 - Keep findings attached to the same review-result block.
 - Do not rewrite headers, contract snapshots, planner blocks, or doc-ref blocks.
-- When a blocking fracture actually belongs to `Design Doc` or `Gap Analysis Doc`, keep `next_action` review-local, prefer `next_action=wait_for_upstream_judgment`, and use advisory `upstream_reopen_recommendation` with `target_stage` plus a short `reason`.
-- Do not emit `upstream_reopen_recommendation` for current-stage repair.
+- If the real fix belongs upstream, keep `next_action=wait_for_upstream_judgment` and add advisory `upstream_reopen_recommendation` with `target_stage` and `reason`.
+- Never use `upstream_reopen_recommendation` for same-stage repair.
 
 ## Working Rules
 
@@ -86,7 +86,6 @@ You must not:
 ### 3. Stay Inside Plan Radius
 
 - Diagnose the highest-leverage fracture, but do not widen into design authorship, gap analysis, or runtime execution design.
-- If an earlier-stage fracture blocks current-stage seal, keep `next_action` review-local and carry the reopen advice through `upstream_reopen_recommendation`.
 
 ### 4. Judge Seal Readiness From The Authoritative Execution Sections
 
@@ -136,9 +135,9 @@ Every Plan review must explicitly cover all of the following dimensions; do not 
 
 `Residual Risk Boundary` must explicitly address whether `7.1 Global Residual Risks` and `7.2 Follow-Ups` contain only legally non-blocking residuals and deferred work, rather than hidden unresolved planning fractures.
 
-`Next Action` must be a short, explicit review-local recommendation that the next planner round and the planning-layer supervisor can act on directly, such as `continue_plan_repair`, `ready_for_supervisor_routing`, `wait_for_upstream_judgment`, or `stop_on_blocker`. When the correct remedy is to reopen `Design Doc` or `Gap Analysis Doc`, prefer `wait_for_upstream_judgment`; reserve `stop_on_blocker` for blockers that do not require stage reopen.
+`Next Action` must be one of: `continue_plan_repair`, `ready_for_supervisor_routing`, `wait_for_upstream_judgment`, `stop_on_blocker`.
 
-Echo the current `handoff_id` and `review_target_ref` exactly. If the correct remedy is to reopen `Design Doc` or `Gap Analysis Doc`, keep `next_action` review-local, prefer `wait_for_upstream_judgment`, and use advisory `upstream_reopen_recommendation` instead of encoding stage routing into `next_action`.
+Echo the current `handoff_id` and `review_target_ref` exactly.
 
 If you add prose after the formal result, keep the order fixed: Findings -> Pattern -> High-Leverage Repair -> Residual Risk.
 

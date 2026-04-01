@@ -45,7 +45,7 @@ Hard boundaries:
 - if `next_action` changes the active object or active plane, `current_snapshot` must be updated at the same time; only when still advancing within the same Task may you update only `next_action` and `last_transition`
 - the current Task review handoff is the latest `anchor_ref` or `fixup_ref` in the current round
 - each Task handoff block must carry `handoff_id` and `review_target_ref`; `r1_result` is actionable only when its `round`, `handoff_id`, and `review_target_ref` match that current handoff exactly, and if multiple `r1_result` blocks match one current handoff, only the latest matching block is actionable
-- if only a bounded task brief exists and the rolling doc does not, it may be used to initialize the header, including object identity and `coder_slot`, plus `task_contract_snapshot`, according to the canonical `Task Review Rolling Doc` contract; after initialization, the rolling doc becomes the only collaboration surface
+- if the rolling doc does not yet exist but the `Total Task Doc` plus a uniquely identified Task entry are sufficient to prove Task identity, initialize only the header and `task_contract_snapshot`; after initialization, the rolling doc becomes the only collaboration surface
 
 <!-- forgeloop:anchor task.packet-shape -->
 ## Task Packet Shape
@@ -105,13 +105,9 @@ Bind `../run-initiative/references/runtime-cutover.md` before deciding the Task 
 ## Workflow
 
 1. Bind the current Task
-- First read the runtime cutover contract and bind `current_runtime_cutover_mode`.
-- If `current_runtime_cutover_mode=full_doc_default`, authoritative full-document reads may be the default bind path; still keep any optional minimal packet self-sufficient.
-- If `current_runtime_cutover_mode=minimal_preferred` or `minimal_required`, read in this exact order:
-  - the minimum `Global State Doc` control plane needed to confirm active Task identity, `coder_slot`, and Task `round`
-  - `current-effective`, `handoff-scoped`, or `attempt-aware` only when the derived view is still legal and rebuildable from the same authoritative `Task Review Rolling Doc`
-  - the authoritative `Task Review Rolling Doc` blocks needed to confirm the current handoff, latest matching `r1_result`, or rolling-doc/header continuity
-  - full-document fallback only when selector legality fails, the derived view is stale or missing, the rolling doc must be initialized, or a formal conflict still cannot be resolved uniquely
+- First bind `current_runtime_cutover_mode`.
+- Follow the mode-selected read order defined by `../run-initiative/references/runtime-cutover.md`; use `../references/derived-views.md` only for legal hot-path helpers.
+- This loop specifies only the Task-specific proofs that must still be established after that shared read path.
 - Read the Task definition and the minimum engineering facts only after that runtime read order still leaves Task identity, acceptance, or execution legality incomplete
 - Confirm that the active task is unique, the workspace is executable, the rolling doc matches the active task, `coder_slot` is unique, and the Task `round` is unique when it already exists
 - If the `Global State Doc` conflicts with the rolling doc, hand control back to `rebuild-runtime`
@@ -173,7 +169,7 @@ Never:
 - enter `R1` without a formal anchor
 - treat `G1 fail` as if the round were closed
 - silently replace the logical `coder_slot`
-- keep a bounded brief long-term as a second collaboration truth source
+- keep a temporary bootstrap note long-term as a second collaboration truth source
 - write coder / reviewer body content into the `Global State Doc`
 - dispatch multiple coders concurrently for the same Task
 - let the reviewer repair code
