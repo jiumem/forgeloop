@@ -47,6 +47,41 @@ Hard boundaries:
 - each Milestone handoff block must carry `handoff_id` and `review_target_ref`; `r2_result` is actionable only when its `round`, `handoff_id`, and `review_target_ref` match that current handoff exactly, and if multiple `r2_result` blocks match one current handoff, only the latest matching block is actionable
 - if the rolling doc does not exist, initialize the header, including object identity and `coder_slot`, plus `milestone_contract_snapshot`, according to the canonical `Milestone Review Rolling Doc` contract; after initialization, the rolling doc becomes the only collaboration surface, and on first entry write `coder_slot=coder` and `round=1` into the header and `current_snapshot` according to the canonical `Global State Doc` contract
 
+<!-- forgeloop:anchor milestone.packet-shape -->
+## Milestone Packet Shape
+
+Milestone coder packets should carry only:
+
+- current Milestone identity and continuity metadata
+- authoritative refs
+- current `round` and `coder_slot`
+- the current `g2_result` handoff tuple when one already exists
+- the Milestone acceptance surface plus only the included Task evidence selectors required for the current candidate
+- only the minimum inline slices already rebuilt from those refs
+
+Milestone reviewer packets should carry only:
+
+- the same authoritative refs
+- current `round`, `handoff_id`, and `review_target_ref`
+- the minimal Milestone acceptance selectors and supporting Task evidence selectors needed for this review
+- an optional `handoff-scoped` or `current-effective` derived view when it is still legal and rebuildable
+
+Do not default to all included Task histories or unrelated Initiative history.
+
+<!-- forgeloop:anchor milestone.current-selection -->
+## Milestone Current Selection
+
+- the current Milestone handoff is always the latest `g2_result` in the current round whose `next_action=enter_r2`
+- the current actionable Milestone review result is always the latest matching `r2_result` for that handoff
+- stale or mismatched `r2_result` blocks remain history and must not drive routing
+
+<!-- forgeloop:anchor milestone.warm-path-delta -->
+## Milestone Warm-Path Delta
+
+Same-thread warm-path delta is legal only for the same Milestone, same workspace, same logical `coder_slot`, and same Milestone-local `round`.
+
+Return to a full packet immediately on Milestone change, round change, slot succession, handoff change, derived-view invalidation that requires promotion, selector legality failure, anchor conflict, or first reviewer entry into a handoff.
+
 <!-- forgeloop:anchor workflow -->
 ## Workflow
 

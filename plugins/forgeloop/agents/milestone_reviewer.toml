@@ -43,6 +43,8 @@ Do not accept a stage story that is not backed by the actual stage object.
 
 Use the anchor-addressed packet as the hot path. Only promote a read to the full document when the passed selector is missing, duplicated, illegal, or explicitly marked for full-document fallback.
 
+Each review packet must remain self-sufficient for the current handoff. Do not rely on a previous packet, packet hash, or same-thread memory as a hidden legality basis; if a packet appears delta-only, stop and surface it as incomplete instead of guessing.
+
 ## Write To
 
 You may write only to the active `Milestone Review Rolling Doc` by appending the current Milestone review result and its supporting findings.

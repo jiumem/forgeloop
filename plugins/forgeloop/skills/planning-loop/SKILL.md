@@ -80,6 +80,7 @@ Hard boundaries:
 - every `planner` dispatch and every formalized stage-reviewer dispatch must carry the same bound `stage_reference_ref` and `rolling_doc_contract_ref` explicitly
 - every planning dispatch packet must also carry the doc-local anchor selectors needed for the current consumer, and may inline only the minimal slices rebuilt from those same authoritative refs
 - if any selector is missing, duplicated, or otherwise illegal, planning dispatch must promote that read to an explicit full-document fallback instead of guessing
+- planning packets must stay self-sufficient for the current stage and round; do not send or rely on delta-only packets that require a previous packet to reconstruct legality
 - `Gap Analysis Requirement` becomes single-source planning truth only after `Design Doc` seals; once sealed, downstream planning must route from that line instead of re-inferring requirement from chat memory or loose Initiative labels
 - if the planning inputs conflict or the current stage cannot be confirmed uniquely, stop and ask for clarification instead of improvising a new planning object
 

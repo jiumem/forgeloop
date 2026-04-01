@@ -47,6 +47,41 @@ Hard boundaries:
 - each Initiative handoff block must carry `handoff_id` and `review_target_ref`; `r3_result` is actionable only when its `round`, `handoff_id`, and `review_target_ref` match that current handoff exactly, and if multiple `r3_result` blocks match one current handoff, only the latest matching block is actionable
 - if the rolling doc does not exist, initialize the header, including object identity and `coder_slot`, plus `initiative_contract_snapshot`, according to the canonical `Initiative Review Rolling Doc` contract; after initialization, the rolling doc becomes the only collaboration surface, and on first entry write `coder_slot=coder` and `round=1` into the header and `current_snapshot` according to the canonical `Global State Doc` contract
 
+<!-- forgeloop:anchor initiative.packet-shape -->
+## Initiative Packet Shape
+
+Initiative coder packets should carry only:
+
+- current Initiative identity and continuity metadata
+- authoritative refs
+- current `round` and `coder_slot`
+- the current `g3_result` handoff tuple when one already exists
+- only the Milestone evidence selectors, release/readiness selectors, and residual-risk selectors needed for the current delivery candidate
+- only the minimum inline slices already rebuilt from those refs
+
+Initiative reviewer packets should carry only:
+
+- the same authoritative refs
+- current `round`, `handoff_id`, and `review_target_ref`
+- only the Initiative delivery selectors and supporting Milestone evidence selectors needed for this review
+- an optional `handoff-scoped` or `current-effective` derived view when it is still legal and rebuildable
+
+Do not default to whole Milestone docs, unrelated Task histories, or obsolete delivery attempts.
+
+<!-- forgeloop:anchor initiative.current-selection -->
+## Initiative Current Selection
+
+- the current Initiative handoff is always the latest `g3_result` in the current round whose `next_action=enter_r3`
+- the current actionable Initiative review result is always the latest matching `r3_result` for that handoff
+- stale or mismatched `r3_result` blocks remain history and must not drive routing
+
+<!-- forgeloop:anchor initiative.warm-path-delta -->
+## Initiative Warm-Path Delta
+
+Same-thread warm-path delta is legal only for the same Initiative, same workspace, same logical `coder_slot`, and same Initiative-local `round`.
+
+Return to a full packet immediately on Initiative change, round change, slot succession, handoff change, derived-view invalidation that requires promotion, selector legality failure, anchor conflict, or first reviewer entry into a handoff.
+
 <!-- forgeloop:anchor workflow -->
 ## Workflow
 

@@ -54,6 +54,21 @@ Header and contract snapshot are initialized once. All later formal facts append
 - `R1` is actionable only when `round`, `handoff_id`, and `review_target_ref` match the current handoff exactly.
 - `anchor_ref` or `fixup_ref` is legal only after `G1 pass`.
 
+<!-- forgeloop:anchor latest-matching-result-law -->
+## Latest Matching Result Law
+
+- If multiple `r1_result` blocks exist, only the latest appended result whose `round`, `handoff_id`, and `review_target_ref` match the current handoff is actionable.
+- Older matching results remain history and must not be treated as current.
+- A mismatched or stale `r1_result` does not close the round.
+
+<!-- forgeloop:anchor derived-view-usage -->
+## Recommended Derived-View Usage
+
+- `current-effective` should expose only the current Task handoff plus the latest matching `r1_result`.
+- `handoff-scoped/<handoff_id>.md` is the preferred hot-path helper for fresh reviewer entry when the authoritative rolling doc ref is still bound explicitly in the packet.
+- `attempt-aware/round-<n>.md` is the preferred hot-path helper for same-Task same-round recovery.
+- If any derived view disagrees with the authoritative rolling doc, invalidate it and reread the formal rolling doc.
+
 <!-- forgeloop:anchor recommended-template -->
 ## Recommended Template
 

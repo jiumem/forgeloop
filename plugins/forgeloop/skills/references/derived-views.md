@@ -20,11 +20,14 @@
 ## View Types
 
 - `current-effective`
-  - one synthesized view of the latest actionable handoff and latest matching review result for each rolling doc
+  - one synthesized view of the current handoff plus only the latest matching actionable result for that handoff
+  - it must not surface superseded same-handoff results as current
 - `handoff-scoped`
   - one projection per `handoff_id` containing only the formal blocks relevant to that handoff
+  - it is the default hot-path helper for fresh reviewer entry when the authoritative rolling doc ref is still bound in the packet
 - `attempt-aware`
   - one projection per `round` containing the ordered formal blocks for that attempt
+  - it isolates same-object history within one round without changing durable `round` law
 
 These views may exist for planning rolling docs and runtime review rolling docs. The projection rules change by doc kind, but the authority line does not.
 
@@ -42,7 +45,9 @@ These views may exist for planning rolling docs and runtime review rolling docs.
 Invalidate the relevant derived view immediately when:
 
 - a newer formal block is appended to the source rolling doc
+- the source rolling doc now exposes multiple actionable results for what was previously one unique current handoff
 - the underlying handoff no longer matches the latest current handoff
+- the source packet can no longer prove selector legality for the formal inputs the view depends on
 - the source rolling doc no longer exposes one unique actionable result
 - an anchor selector in the projection input becomes missing, duplicated, or illegal
 

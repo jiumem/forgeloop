@@ -80,6 +80,86 @@ Once the current next step is confirmed, call the required skill in order, or st
 The `Global State Doc` carries only the minimum control-plane state: `current_snapshot`, `next_action`, `last_transition`, plus explicit waiting / blocked / done signals.
 Each update exists only to support the current next-step dispatch. Do not write coder / reviewer body content, do not keep process logs, and do not create a second state model outside the formal runtime docs.
 
+<!-- forgeloop:anchor runtime.packet-shape -->
+## Runtime Packet Shape
+
+Default runtime packets must carry only:
+
+- authoritative repo-root-relative refs
+- the current object identity plus continuity metadata such as active plane, `coder_slot`, and current `round` when already bound
+- the current handoff tuple when one already exists
+- the exact doc-local selectors required for the current admission, coding, or review step
+- only the minimum inline slices rebuilt from those same authoritative refs
+- explicit fallback mode and fallback reason when any read was promoted to a full document
+- optional derived-view refs only as clearly non-authoritative helpers
+
+Packets must not default to whole planning artifacts, whole rolling-doc histories, or unrelated upper-layer history.
+
+<!-- forgeloop:anchor runtime.admission-law -->
+## Runtime Admission Law
+
+Planning admission must start from the sealed planning truth and read only the minimum selectors required to prove runtime legality.
+
+At minimum, admission must prove:
+
+- the sealed `Design Doc` exposes an explicit `Gap Analysis Requirement`
+- the sealed `Total Task Doc` exposes execution boundary, Initiative ref assignment, and the active object definition needed for this dispatch
+- the sealed `Gap Analysis Doc` is read only when the sealed `Design Doc` requires it or when planning refs conflict
+
+If selector legality fails or the required legality proof still cannot be made uniquely, promote that read to explicit full-document fallback. Never guess past incomplete admission.
+
+<!-- forgeloop:anchor runtime.read-order -->
+## Runtime Read Order
+
+Runtime routing should read in this order:
+
+1. the minimum `Global State Doc` control plane
+2. the active rolling doc's `current-effective`, `handoff-scoped`, or `attempt-aware` view when that view is still legal and rebuildable from the same authoritative rolling doc
+3. the authoritative rolling doc blocks needed to confirm the current handoff or latest matching result
+4. full documents only for cold start, rebuild, selector legality failure, anchor conflict, or unresolved formal conflict
+
+This order is a hot-path default. It does not reduce the legality of explicit recovery reads.
+
+<!-- forgeloop:anchor runtime.fallback-law -->
+## Runtime Fallback Law
+
+Minimal-path failure has only two legal outcomes:
+
+- explicit full-document fallback with an explicit reason
+- explicit stop
+
+Do not silently widen the read set and do not silently retry with guessed context. Full-document fallback remains a recovery path, not a hidden convenience default.
+
+<!-- forgeloop:anchor runtime.full-doc-escalation -->
+## Runtime Full-Document Escalation
+
+Promote a read to explicit full-document fallback only when at least one of the following is true:
+
+- cold start requires first binding or initializing a formal runtime surface
+- runtime rebuild is in progress
+- selector legality cannot be proven
+- an anchor conflict or rolling-doc conflict appears
+- the active derived view is missing, stale, or exposes multiple actionable candidates instead of one unique frontier
+
+If none of these are true, stay on the minimal packet path.
+
+<!-- forgeloop:anchor runtime.warm-path-delta -->
+## Runtime Warm-Path Delta
+
+Supervisor-side warm-path delta is legal only when all of the following remain true:
+
+- the same supervisor thread is still alive
+- the same active object remains bound
+- the same active workspace remains bound
+- the same logical `coder_slot` remains bound
+- the same object-local `round` remains bound
+- the same authoritative refs still define the formal basis
+- the change is limited to newly appended formal blocks, selector changes, derived-view invalidation, or refreshed minimal slices
+
+Return to a full packet immediately on cold start, `rebuild-runtime`, workspace rebind, active object change, plane change, round change, slot succession, handoff change, selector legality failure, anchor conflict, or first reviewer entry into a handoff.
+
+Warm-path delta is a supervisor assembly optimization only. It must never become durable truth and must never rely on subagent memory as the only recovery basis.
+
 <!-- forgeloop:anchor when-to-stop -->
 ## When To Stop Or Ask The User
 

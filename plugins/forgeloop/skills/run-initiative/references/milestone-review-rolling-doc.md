@@ -48,6 +48,21 @@ Header and contract snapshot are initialized once. All later formal facts append
 - Every `g2_result` that opens reviewer handoff must include `handoff_id` and `review_target_ref`.
 - `R2` is actionable only when `round`, `handoff_id`, and `review_target_ref` match the current handoff exactly.
 
+<!-- forgeloop:anchor latest-matching-result-law -->
+## Latest Matching Result Law
+
+- If multiple `r2_result` blocks exist, only the latest appended result whose `round`, `handoff_id`, and `review_target_ref` match the current handoff is actionable.
+- Older matching results remain history and must not be treated as current.
+- A mismatched or stale `r2_result` does not close the round.
+
+<!-- forgeloop:anchor derived-view-usage -->
+## Recommended Derived-View Usage
+
+- `current-effective` should expose only the current Milestone handoff plus the latest matching `r2_result`.
+- `handoff-scoped/<handoff_id>.md` is the preferred hot-path helper for fresh `R2` entry when the authoritative rolling doc ref is still bound explicitly in the packet.
+- `attempt-aware/round-<n>.md` is the preferred hot-path helper for same-Milestone round recovery.
+- If any derived view disagrees with the authoritative rolling doc, invalidate it and reread the formal rolling doc.
+
 <!-- forgeloop:anchor recommended-template -->
 ## Recommended Template
 

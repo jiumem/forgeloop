@@ -21,6 +21,9 @@
 | selector legality fails | consumer promotes to explicit full-document fallback or blocks | workflow skills |
 | rolling doc has superseded same-handoff results | `current-effective` picks only the latest matching result | `anchor_slices.py derive` |
 | derived view is missing or stale | consumer may invalidate and reread formal doc | workflow skills + derived-view contract |
+| newer formal block invalidates a derived view | consumer rejects the stale view and rebuilds from the authoritative rolling doc | `anchor_slices.py derive` + workflow skills |
+| reviewer enters a handoff for the first time | packet stays self-sufficient and does not assume a previous packet | runtime reviewer manifests + loop skills |
+| delta conditions cannot be proven | supervisor falls back to a full packet instead of sending a delta-only packet | runtime loop skills + cutover notes |
 | migration cutover disabled | old full-document path remains legal | workflow skills + migration notes |
 
 <!-- forgeloop:anchor fixtures -->
@@ -40,6 +43,7 @@ Run from repo root:
 
 ```bash
 bash tests/codex/anchor-slice-smoke.sh
+bash tests/codex/token-benchmark/run.sh
 ```
 
-This check validates anchor syntax, duplicate detection, slice materialization, and derived-view rebuilding on the shipped fixtures and selected formal documents.
+These checks validate anchor syntax, duplicate detection, slice materialization, derived-view rebuilding, and representative packet-size baselines on the shipped fixtures and selected formal documents.

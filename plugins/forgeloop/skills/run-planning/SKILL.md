@@ -14,6 +14,7 @@ The planning side uses one control spine plus one internal stage skill:
 - `planning-loop` is the internal second-layer stage skill that handles exactly one confirmed planning stage per dispatch
 
 The default planning packet is anchor-addressed: authoritative refs first, doc-local selectors second, optional minimal slices third, and explicit full-document fallback only on legality failure or cold-start recovery.
+Planning packets must remain self-sufficient for the current stage and round. Do not rely on previous-packet memory, packet hashes, or delta-only continuation assumptions.
 
 ## Delegation Contract
 

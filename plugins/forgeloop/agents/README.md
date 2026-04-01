@@ -8,3 +8,4 @@ This directory is the source-of-truth manifest layer for the Forgeloop suite's c
 - runtime workflow roles now center on `coder`, `task_reviewer`, `milestone_reviewer`, and `initiative_reviewer`
 - the planning roles `planner`, `design_reviewer`, `gap_reviewer`, and `plan_reviewer` are dispatched inside `run-planning` through the internal `planning-loop`
 - all workflow-facing manifests now assume anchor-addressed minimal packets by default: authoritative refs, doc-local selectors, optional minimal slices, and explicit full-document fallback only on legality failure or recovery
+- every workflow-facing manifest expects each packet to be self-sufficient for the current object and round; previous-packet and delta-only assumptions are not part of the subagent contract

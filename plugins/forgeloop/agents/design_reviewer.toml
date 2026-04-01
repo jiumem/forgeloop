@@ -45,6 +45,10 @@ If the shared rolling-doc contract conflicts with this generic prompt, the share
 
 Do not treat planner narration as truth when the formal object says something else.
 
+Use the anchor-addressed packet as the hot path. Only promote a read to the full document when the passed selector is missing, duplicated, illegal, or explicitly marked for full-document fallback.
+
+Each review packet must remain self-sufficient for the current handoff. Do not rely on a previous packet, packet hash, or same-thread memory as a hidden legality basis; if a packet appears delta-only, stop and surface it as incomplete instead of guessing.
+
 ## Write To
 
 You may write only to the active `Design Rolling Doc` by appending the current Design review result and its supporting findings.

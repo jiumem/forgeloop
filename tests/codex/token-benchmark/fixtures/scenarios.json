@@ -1,0 +1,204 @@
+[
+  {
+    "name": "Runtime Cold Start",
+    "bucket": "cold_path",
+    "description": "Bind durable refs, admit planning truth, and initialize runtime without an existing active rolling doc.",
+    "legacy_packet": [
+      {"type": "full_doc", "path": "docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md"},
+      {"type": "full_doc", "path": "docs/initiatives/active/anchor-sliced-dispatch-optimization/gap-analysis.md"},
+      {"type": "full_doc", "path": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/global-state.md"}
+    ],
+    "minimal_packet": [
+      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md", "anchor": "requirement-baseline"},
+      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md", "anchor": "target-state-design"},
+      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/gap-analysis.md", "anchor": "baseline-and-scope"},
+      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "input-baseline"},
+      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "task-ledger"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/SKILL.md", "anchor": "canonical-ref-semantics"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/SKILL.md", "anchor": "runtime-control-plane-contracts"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/SKILL.md", "anchor": "main-flow"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/global-state.md", "anchor": "durable-rules"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/global-state.md", "anchor": "bootstrap-law"}
+    ],
+    "fallback_points": [
+      "cold start may still promote individual reads to full documents on selector legality failure"
+    ]
+  },
+  {
+    "name": "Runtime Resume Into Active Task",
+    "bucket": "hot_path",
+    "task_hot_path": true,
+    "description": "Resume a running Task from thin control state plus the current rolling-doc frontier.",
+    "legacy_packet": [
+      {"type": "full_doc", "path": "docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md"},
+      {"type": "full_doc", "path": "docs/initiatives/active/anchor-sliced-dispatch-optimization/gap-analysis.md"},
+      {"type": "full_doc", "path": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/task-loop/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md"},
+      {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/global-state-active-task.md"},
+      {"type": "full_doc", "path": "tests/fixtures/anchor-slicing/task-review-sample.md"}
+    ],
+    "minimal_packet": [
+      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "task-ledger"},
+      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "acceptance-matrix"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/SKILL.md", "anchor": "main-flow"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/task-loop/SKILL.md", "anchor": "truth-sources-boundaries"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/task-loop/SKILL.md", "anchor": "workflow"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md", "anchor": "handoff-law"},
+      {"type": "slice", "doc": "tests/codex/token-benchmark/fixtures/global-state-active-task.md", "anchor": "current-snapshot"},
+      {"type": "slice", "doc": "tests/codex/token-benchmark/fixtures/global-state-active-task.md", "anchor": "next-action"},
+      {"type": "derived_view", "doc": "tests/fixtures/anchor-slicing/task-review-sample.md", "view": "current-effective.md"}
+    ],
+    "fallback_points": [
+      "selector legality failure",
+      "global-state and rolling-doc conflict"
+    ]
+  },
+  {
+    "name": "Same-Task Same-Round Coder Continue",
+    "bucket": "hot_path",
+    "task_hot_path": true,
+    "description": "Continue the same Task coder slot inside the current round without replaying full history.",
+    "legacy_packet": [
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/task-loop/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md"},
+      {"type": "full_doc", "path": "tests/fixtures/anchor-slicing/task-review-sample.md"},
+      {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/global-state-active-task.md"}
+    ],
+    "minimal_packet": [
+      {"type": "slice", "doc": "plugins/forgeloop/skills/task-loop/SKILL.md", "anchor": "truth-sources-boundaries"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/task-loop/SKILL.md", "anchor": "workflow"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md", "anchor": "canonical-task-vocabulary"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md", "anchor": "handoff-law"},
+      {"type": "slice", "doc": "tests/codex/token-benchmark/fixtures/global-state-active-task.md", "anchor": "current-snapshot"},
+      {"type": "derived_view", "doc": "tests/fixtures/anchor-slicing/task-review-sample.md", "view": "attempt-aware/round-2.md"}
+    ],
+    "fallback_points": [
+      "round ambiguity",
+      "handoff mismatch"
+    ]
+  },
+  {
+    "name": "Same-Task Handoff To Fresh Reviewer",
+    "bucket": "hot_path",
+    "task_hot_path": true,
+    "description": "Dispatch a fresh Task reviewer against only the current handoff surface.",
+    "legacy_packet": [
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/task-loop/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md"},
+      {"type": "full_doc", "path": "tests/fixtures/anchor-slicing/task-review-sample.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/agents/task_reviewer.toml"}
+    ],
+    "minimal_packet": [
+      {"type": "slice", "doc": "plugins/forgeloop/skills/task-loop/SKILL.md", "anchor": "workflow"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md", "anchor": "handoff-law"},
+      {"type": "derived_view", "doc": "tests/fixtures/anchor-slicing/task-review-sample.md", "view": "handoff-scoped/sample-r2-a1.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/agents/task_reviewer.toml"}
+    ],
+    "fallback_points": [
+      "fresh reviewer first packet must still be self-sufficient",
+      "derived view invalidation"
+    ]
+  },
+  {
+    "name": "Milestone Review",
+    "bucket": "hot_path",
+    "description": "Hand off Milestone evidence without replaying all included Task history.",
+    "legacy_packet": [
+      {"type": "full_doc", "path": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/milestone-loop/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/milestone-review-rolling-doc.md"},
+      {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/milestone-review-sample.md"}
+    ],
+    "minimal_packet": [
+      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "milestone-master-table"},
+      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "acceptance-matrix"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/milestone-loop/SKILL.md", "anchor": "truth-sources-boundaries"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/milestone-loop/SKILL.md", "anchor": "workflow"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/milestone-review-rolling-doc.md", "anchor": "handoff-law"},
+      {"type": "derived_view", "doc": "tests/codex/token-benchmark/fixtures/milestone-review-sample.md", "view": "current-effective.md"}
+    ],
+    "fallback_points": [
+      "multiple actionable results",
+      "selector legality failure"
+    ]
+  },
+  {
+    "name": "Initiative Review",
+    "bucket": "hot_path",
+    "description": "Review the delivery candidate against Milestone evidence and current initiative handoff only.",
+    "legacy_packet": [
+      {"type": "full_doc", "path": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/initiative-loop/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/initiative-review-rolling-doc.md"},
+      {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/initiative-review-sample.md"}
+    ],
+    "minimal_packet": [
+      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "acceptance-matrix"},
+      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "global-residual-risks"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/initiative-loop/SKILL.md", "anchor": "truth-sources-boundaries"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/initiative-loop/SKILL.md", "anchor": "workflow"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/initiative-review-rolling-doc.md", "anchor": "handoff-law"},
+      {"type": "derived_view", "doc": "tests/codex/token-benchmark/fixtures/initiative-review-sample.md", "view": "current-effective.md"}
+    ],
+    "fallback_points": [
+      "initiative handoff drift",
+      "review target mismatch"
+    ]
+  },
+  {
+    "name": "Rebuild Runtime",
+    "bucket": "cold_path",
+    "description": "Recover the control plane from thin durable truth plus the newest actionable rolling-doc frontier.",
+    "legacy_packet": [
+      {"type": "full_doc", "path": "docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md"},
+      {"type": "full_doc", "path": "docs/initiatives/active/anchor-sliced-dispatch-optimization/gap-analysis.md"},
+      {"type": "full_doc", "path": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/rebuild-runtime/SKILL.md"},
+      {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/global-state-waiting.md"},
+      {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/initiative-review-sample.md"},
+      {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/milestone-review-sample.md"}
+    ],
+    "minimal_packet": [
+      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "input-baseline"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/rebuild-runtime/SKILL.md", "anchor": "truth-sources-boundaries"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/rebuild-runtime/SKILL.md", "anchor": "shared-runtime-recovery-law"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/rebuild-runtime/SKILL.md", "anchor": "workflow"},
+      {"type": "slice", "doc": "tests/codex/token-benchmark/fixtures/global-state-waiting.md", "anchor": "current-snapshot"},
+      {"type": "slice", "doc": "tests/codex/token-benchmark/fixtures/global-state-waiting.md", "anchor": "next-action"},
+      {"type": "slice", "doc": "tests/codex/token-benchmark/fixtures/global-state-waiting.md", "anchor": "last-transition"},
+      {"type": "derived_view", "doc": "tests/codex/token-benchmark/fixtures/initiative-review-sample.md", "view": "current-effective.md"}
+    ],
+    "fallback_points": [
+      "multiple active candidates coexist",
+      "derived view legality drift"
+    ]
+  },
+  {
+    "name": "Waiting Or Blocked Resume",
+    "bucket": "cold_path",
+    "description": "Resume from an explicit stop state without rescanning unrelated planning and runtime history.",
+    "legacy_packet": [
+      {"type": "full_doc", "path": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/global-state.md"},
+      {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/global-state-waiting.md"}
+    ],
+    "minimal_packet": [
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/SKILL.md", "anchor": "when-to-stop"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/SKILL.md", "anchor": "main-flow"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/global-state.md", "anchor": "durable-rules"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/global-state.md", "anchor": "runtime-routing-vocabulary"},
+      {"type": "slice", "doc": "tests/codex/token-benchmark/fixtures/global-state-waiting.md", "anchor": "current-snapshot"},
+      {"type": "slice", "doc": "tests/codex/token-benchmark/fixtures/global-state-waiting.md", "anchor": "next-action"},
+      {"type": "slice", "doc": "tests/codex/token-benchmark/fixtures/global-state-waiting.md", "anchor": "last-transition"}
+    ],
+    "fallback_points": [
+      "stop reason cannot be stated formally",
+      "resume invalidates the parked control state"
+    ]
+  }
+]

@@ -47,6 +47,31 @@ Hard boundaries:
 - a review result is actionable only when its `round`, `handoff_id`, and `review_target_ref` match that current handoff exactly; if multiple review results match one current handoff, only the latest appended matching block is actionable
 - a new round opens only on first entry into an object, after a reviewer requests same-object repair, or after callback semantics from an objectized repair task explicitly say the source object should enter the next round
 
+<!-- forgeloop:anchor recovery-order -->
+## Recovery Order
+
+Recover in this order:
+
+1. the existing `Global State Doc`, but only while it still agrees with newer formal facts
+2. the active rolling doc's `current-effective` view when it is still legal and rebuildable
+3. `handoff-scoped` and `attempt-aware` views for the active candidate
+4. authoritative rolling-doc block scans
+5. full-document recovery only when the thinner layers cannot prove one unique frontier
+
+Every promotion to a lower-priority layer must carry an explicit reason.
+
+<!-- forgeloop:anchor derived-view-invalidation -->
+## Derived-View Invalidation
+
+Invalidate a derived view and fall back to the authoritative rolling doc when:
+
+- a newer formal block was appended after the view was materialized
+- the view no longer points at the current handoff
+- the rolling doc now exposes multiple actionable results instead of one unique result
+- selector legality for the view's supporting formal inputs can no longer be proven
+
+Do not try to repair recovery by interpreting stale derived output as if it were newer formal truth.
+
 <!-- forgeloop:anchor when-to-trigger -->
 ## When To Trigger
 
@@ -72,6 +97,7 @@ This skill does not handle the following:
 2. Determine the current formal frontier
 - First respect waiting / blocked / done signals that are consistent with the newer formal facts
 - Prefer current-effective derived views only when they can still be rebuilt from the same authoritative rolling docs without legality drift; otherwise invalidate them and reread the formal rolling docs
+- If a derived view is invalid, record whether the reason was newer formal blocks, multiple actionable results, handoff mismatch, or selector legality failure before promoting recovery
 - Otherwise, use the newest formal frontier that has not yet closed as the active candidate
 - If multiple candidates coexist, the fixed priority is: active Task repair / coder round > active Milestone review / repair > active Initiative review / repair > frontier selection after the last clean object
 - Chat summaries, cache, and session memory never participate in adjudication

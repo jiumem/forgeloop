@@ -46,6 +46,45 @@ Hard boundaries:
 - each Task handoff block must carry `handoff_id` and `review_target_ref`; `r1_result` is actionable only when its `round`, `handoff_id`, and `review_target_ref` match that current handoff exactly, and if multiple `r1_result` blocks match one current handoff, only the latest matching block is actionable
 - if only a bounded task brief exists and the rolling doc does not, it may be used to initialize the header, including object identity and `coder_slot`, plus `task_contract_snapshot`, according to the canonical `Task Review Rolling Doc` contract; after initialization, the rolling doc becomes the only collaboration surface
 
+<!-- forgeloop:anchor task.packet-shape -->
+## Task Packet Shape
+
+Task coder packets should carry only:
+
+- current Task identity and continuity metadata
+- authoritative refs
+- current `round` and `coder_slot`
+- the current handoff tuple when one already exists
+- the Task definition and acceptance selectors plus the exact design/gap/plan/runtime selectors required for this round
+- only the minimum inline slices already rebuilt from those refs
+- callback information when this Task is an objectized repair task
+
+Task reviewer packets should carry only:
+
+- the same authoritative refs
+- current `round`, `handoff_id`, and `review_target_ref`
+- the current `anchor` or `fixup`
+- only the Task-radius selectors and slices required for this review
+- an optional `handoff-scoped` derived view when it is still legal and rebuildable
+
+Neither packet should default to the whole `Total Task Doc`, the whole Task rolling-doc history, or unrelated Milestone or Initiative history.
+
+<!-- forgeloop:anchor task.current-selection -->
+## Task Current Selection
+
+- the current Task handoff is always the latest `anchor_ref` or `fixup_ref` in the current round
+- the current actionable Task review result is always the latest matching `r1_result` for that handoff
+- a stale or mismatched `r1_result` remains history and must not drive routing
+
+<!-- forgeloop:anchor task.warm-path-delta -->
+## Task Warm-Path Delta
+
+Same-thread warm-path delta is legal only for the same Task, same workspace, same logical `coder_slot`, and same Task-local `round`.
+
+It may carry only newly appended formal blocks, selector changes, refreshed slices, or derived-view invalidation reasons.
+
+Return to a full packet immediately on Task change, round change, slot succession, handoff change, selector legality failure, anchor conflict, or first reviewer entry into a handoff.
+
 <!-- forgeloop:anchor workflow -->
 ## Workflow
 
