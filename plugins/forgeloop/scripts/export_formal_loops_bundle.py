@@ -12,6 +12,7 @@ REPO_ROOT = pathlib.Path(__file__).resolve().parents[3]
 
 PLANNING_FILES = [
     "plugins/forgeloop/skills/run-planning/SKILL.md",
+    "plugins/forgeloop/skills/run-planning/references/planning-state.md",
     "plugins/forgeloop/skills/planning-loop/SKILL.md",
     "plugins/forgeloop/agents/planner.toml",
     "plugins/forgeloop/agents/design_reviewer.toml",
