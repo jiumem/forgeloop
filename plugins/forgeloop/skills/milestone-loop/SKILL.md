@@ -6,7 +6,9 @@ description: Use when the `Global State Doc` has uniquely confirmed that current
 # Milestone Loop
 
 <!-- forgeloop:anchor role -->
-`milestone-loop` handles only one confirmed Milestone. Here you act as the Milestone-layer `Supervisor`: maintain the minimum control plane, keep a single `coder_slot`, dispatch the same `coder` and a fresh `milestone_reviewer` each round, and use the facts from `G2`, `R2`, and objectized repair tasks when needed to decide whether the Milestone stays in the current layer, opens the next Milestone round, falls back to Task repair, enters Initiative review, or stops.
+`milestone-loop` runs one confirmed Milestone only.
+
+You act as the Milestone `Supervisor`: keep the minimum control plane, preserve one logical `coder_slot`, dispatch the coder and a fresh `milestone_reviewer`, and route only from `G2`, `R2`, and any active repair-Task callback.
 
 `coder_slot` is the logical owner identifier, not the physical `agent_id`; the current `agent_id` may change, but `coder_slot` does not.
 
@@ -35,14 +37,14 @@ The formal input surface contains only the Initiative static truth trio `design_
 Hard boundaries:
 - `G2` may be run only by the coder in the current stage round, and it must be written into the `Milestone Review Rolling Doc`
 - `R2` may be run only by a fresh reviewer against the current formal Milestone object
-- `round` is Milestone-local and owned by the `Supervisor` through the `Global State Doc`; coder and reviewer echo it in the rolling doc but do not advance it themselves
+- `round` is Milestone round and owned by the `Supervisor` through the `Global State Doc`; coder and reviewer echo it in the rolling doc but do not advance it themselves
 - the current Milestone round closes only when `r2_result` is written; if the coder still needs repair inside the current Milestone during `G2`, it stays in the same round
 - a new round opens only on first entry into the Milestone, after `r2_result.next_action=continue_milestone_repair`, or when callback semantics from an objectized repair task explicitly say the Milestone should enter the next round
 - the `Milestone Review Rolling Doc` is the only formal document for `G2 / R2`; the `Global State Doc` may contain only `current_snapshot`, `next_action`, and `last_transition`
 - when reading, writing, initializing, or repairing runtime state, the `Global State Doc` and the `Milestone Review Rolling Doc` must follow the canonical contract refs above; do not improvise block shape or `next_action` spelling from memory or older design examples
 - Milestone dispatch default path is controlled only by the bound runtime cutover contract: `full_doc_default` may default to authoritative full documents, while `minimal_preferred` and `minimal_required` use authoritative refs plus doc-local selectors and only the minimal slices needed for the current stage candidate
 - if `next_action` changes the active object or active plane, `current_snapshot` must be updated at the same time; only when still advancing within the same Milestone may you update only `next_action` and `last_transition`
-- if `G2` or `R2` finds a code problem, the default is `continue_milestone_repair` with the same `coder_slot` in the same Milestone and rerun `G2`; only when the repair needs an independent Task contract, a clearly new object boundary, or obviously exceeds the current Milestone closure radius should it be objectized into a repair task through the `Global State Doc` and fall back to `task-loop`
+- if `G2` or `R2` finds a code problem, the default is `continue_milestone_repair` with the same `coder_slot` in the same Milestone and rerun `G2`; only when the repair needs an independent Task contract, a clearly new object boundary, or obviously exceeds the current Milestone closure radius should it be objectized into a repair Task through the `Global State Doc` and fall back to `task-loop`
 - if a repair task has already been objectized, after the repair completes it must return to the same `Milestone Review Rolling Doc` to append the next round
 - the current Milestone review handoff is the latest `g2_result` in the current round whose `next_action=enter_r2`
 - each Milestone handoff block must carry `handoff_id` and `review_target_ref`; `r2_result` is actionable only when its `round`, `handoff_id`, and `review_target_ref` match that current handoff exactly, and if multiple `r2_result` blocks match one current handoff, only the latest matching block is actionable
@@ -79,7 +81,7 @@ Do not default to all included Task histories or unrelated Initiative history.
 <!-- forgeloop:anchor milestone.warm-path-delta -->
 ## Milestone Warm-Path Delta
 
-Same-thread warm-path delta is legal only for the same Milestone, same workspace, same logical `coder_slot`, and same Milestone-local `round`.
+Same-thread warm-path delta is legal only for the same Milestone, same workspace, same logical `coder_slot`, and same Milestone `round`.
 
 Return to a full packet immediately on Milestone change, round change, slot succession, handoff change, derived-view invalidation that requires promotion, selector legality failure, anchor conflict, or first reviewer entry into a handoff.
 
@@ -93,7 +95,7 @@ Bind `../run-initiative/references/runtime-cutover.md` before deciding the Miles
   - minimal packets may still be assembled for validation, benchmark, or explicit sidecar use
 - `minimal_preferred`
   - minimal Milestone packets are the default
-  - selector legality failure, stale derived views, rolling-doc initialization, or unresolved formal conflict may promote one read to explicit full-document fallback
+  - selector legality failure, stale derived views, rolling-doc initialization, or unresolved formal conflict may promote one read to full-document fallback
 - `minimal_required`
   - minimal Milestone packets are required
   - ordinary legality failure should stop unless the cutover contract names a disaster-recovery exception
@@ -105,20 +107,20 @@ Bind `../run-initiative/references/runtime-cutover.md` before deciding the Miles
 - First read the runtime cutover contract and bind `current_runtime_cutover_mode`.
 - If `current_runtime_cutover_mode=full_doc_default`, authoritative full-document reads may be the default bind path; still keep any optional minimal packet self-sufficient.
 - If `current_runtime_cutover_mode=minimal_preferred` or `minimal_required`, read in this exact order:
-  - the minimum `Global State Doc` control plane needed to confirm active Milestone identity, `coder_slot`, and Milestone-local `round`
+  - the minimum `Global State Doc` control plane needed to confirm active Milestone identity, `coder_slot`, and Milestone `round`
   - `current-effective`, `handoff-scoped`, or `attempt-aware` only when the derived view is still legal and rebuildable from the same authoritative `Milestone Review Rolling Doc`
   - the authoritative `Milestone Review Rolling Doc` blocks needed to confirm the current `g2_result` handoff, latest matching `r2_result`, or rolling-doc/header continuity
-  - explicit full-document fallback only when selector legality fails, the derived view is stale or missing, the rolling doc must be initialized, or a formal conflict still cannot be resolved uniquely
+  - full-document fallback only when selector legality fails, the derived view is stale or missing, the rolling doc must be initialized, or a formal conflict still cannot be resolved uniquely
 - Read the Milestone definition, relevant Task anchors / Task review docs, and the minimum engineering facts only after that runtime read order still leaves Milestone readiness, acceptance, or routing legality incomplete
-- Confirm that the active milestone is unique, the workspace is executable, the rolling doc matches the active milestone, `coder_slot` is unique, and the current Milestone-local `round` is unique when it already exists
+- Confirm that the active milestone is unique, the workspace is executable, the rolling doc matches the active milestone, `coder_slot` is unique, and the Milestone `round` is unique when it already exists
 - Confirm that the Milestone has entered the stage-review window: required Tasks are already `DONE`, and there is no higher-priority blocker
 - If the `Global State Doc` conflicts with the rolling doc, hand control back to `rebuild-runtime`
 - If the current Milestone cannot be confirmed uniquely, the contract is missing, the stage-review window has not opened, or the facts show the system should wait for the user, stop
 - If the rolling doc does not exist, initialize only the header, including object identity and `coder_slot`, plus `milestone_contract_snapshot`, according to the canonical `Milestone Review Rolling Doc` contract
 
 2. Update the minimum control plane
-- `current_snapshot` points to the current active milestone, `coder_slot`, and the current Milestone-local `round`
-- `next_action` points to continuing the current Milestone coder round
+- `current_snapshot` points to the active milestone, `coder_slot`, and the Milestone `round`
+- `next_action.action = continue_milestone_repair`
 - Record entering the current round, resuming the current round, or coder succession in `last_transition` when needed
 - Do not write implementation details, review body text, or full test output into the `Global State Doc`
 
@@ -133,8 +135,8 @@ Bind `../run-initiative/references/runtime-cutover.md` before deciding the Miles
 - Decide only from the rolling doc and Git / PR facts, not from chat summaries
 - Read the latest `g2_result.next_action` first
 - If the latest `g2_result.next_action=continue_milestone_repair`: do not enter reviewer; let the same `coder_slot` continue Milestone repair inside the same round
-- If the latest `g2_result.next_action=objectize_task_repair`: create a repair task bound to the same `coder_slot` in the `Global State Doc`; `last_transition` must record that the repair task came from the current Milestone, which `Milestone Review Rolling Doc` it must return to on completion, and whether the callback should continue the current round or enter the next round; then switch `current_snapshot` to that Task, switch `next_action` to Task repair, and hand control back upstream
-- If the latest `g2_result.next_action=enter_r2`, and the current handoff is valid: switch `next_action` to entering `R2`
+- If the latest `g2_result.next_action=objectize_task_repair`: create a repair Task bound to the same `coder_slot` in the `Global State Doc`; `last_transition` must record that the repair Task came from the current Milestone, which `Milestone Review Rolling Doc` it must return to on completion, and whether the callback should continue the current round or enter the next round; then switch `current_snapshot` to that Task, set `next_action.action = continue_task_repair`, and hand control back upstream
+- If the latest `g2_result.next_action=enter_r2`, and the current handoff is valid: set `next_action.action = enter_r2`
 - If the latest `g2_result.next_action=wait_for_user`: write waiting into the `Global State Doc`, then stop
 - If the latest `g2_result.next_action=stop_on_blocker`: write blocked into the `Global State Doc`, then stop
 - Only if `next_action` is missing or still not explicit enough should you fall back to compatibility judgment from `verdict` plus surrounding formal facts
@@ -148,8 +150,8 @@ Bind `../run-initiative/references/runtime-cutover.md` before deciding the Miles
 - The current actionable `r2_result` is the latest matching review result for the current handoff
 - If the current actionable `r2_result` has `verdict=clean` and `next_action=enter_initiative_review`: update `last_transition`, move `current_snapshot` forward to the Initiative review entry, then hand control back upstream
 - If the current actionable `r2_result` has `verdict=clean` and `next_action=select_next_ready_object`: update `last_transition`, move `current_snapshot` forward to the corresponding entry point, then hand control back upstream
-- If the current actionable `r2_result` has `verdict=changes_requested` and `next_action=continue_milestone_repair`: increment the Milestone-local `round` in the `Global State Doc`, switch `next_action` to continuing current Milestone repair, and let the same `coder_slot` enter the next round
-- If the current actionable `r2_result` has `verdict=changes_requested` and `next_action=objectize_task_repair`: create a repair task bound to the same `coder_slot` only through the `Global State Doc`; `last_transition` must record that the repair task came from the current Milestone, which `Milestone Review Rolling Doc` it must return to on completion, and that the callback should enter the next round; then switch `current_snapshot` to that Task, switch `next_action` to Task repair, and hand control back upstream
+- If the current actionable `r2_result` has `verdict=changes_requested` and `next_action=continue_milestone_repair`: increment the Milestone `round` in the `Global State Doc`, set `next_action.action = continue_milestone_repair`, and let the same `coder_slot` enter the next round
+- If the current actionable `r2_result` has `verdict=changes_requested` and `next_action=objectize_task_repair`: create a repair Task bound to the same `coder_slot` only through the `Global State Doc`; `last_transition` must record that the repair Task came from the current Milestone, which `Milestone Review Rolling Doc` it must return to on completion, and that the callback should enter the next round; then switch `current_snapshot` to that Task, set `next_action.action = continue_task_repair`, and hand control back upstream
 - If the current actionable `r2_result` has `verdict=changes_requested` and `next_action=wait_for_user`: the reviewer writes only the recommendation, the `Supervisor` writes waiting into the `Global State Doc`, then hands control back upstream
 - If the current actionable `r2_result` has `verdict=changes_requested` and `next_action=stop_on_blocker`: the reviewer writes only the recommendation, the `Supervisor` writes blocked into the `Global State Doc`, then hands control back upstream
 - If the rolling doc does not expose one unique actionable `r2_result`, or if `verdict` and `next_action` do not form one legal combination above, stop and surface the illegal Milestone review output explicitly

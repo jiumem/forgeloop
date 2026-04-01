@@ -38,7 +38,7 @@ The following surfaces must expose stable text anchors for hot-path consumption:
 - sealed planning artifacts: `Design Doc`, `Gap Analysis Doc`, `Total Task Doc`
 - planning rolling-doc contract reference
 - runtime control-plane contract references: `Global State Doc`, Task/Milestone/Initiative review rolling-doc contracts
-- workflow skill sections that define packet shape, fallback law, admission law, or object-local routing
+- workflow skill sections that define packet shape, fallback law, admission law, or object routing
 - Markdown reference mirrors and human-readable contract docs that describe consumer-facing packet expectations
 
 Executable manifests are still part of the formal contract surface, but under the current Markdown-comment anchor syntax they are validated indirectly through the tracked skill docs and reference mirrors that bind their packet semantics. They are not themselves required to embed Markdown text anchors.
@@ -73,7 +73,7 @@ Given one `doc_ref + anchor_selector`, resolution may end in exactly one of thes
 
 All other states are failures. The consumer must either:
 
-- promote the read to an explicit full-document fallback, or
+- promote the read to a full-document fallback, or
 - stop on a formal blocker when full-document fallback is not legal for that call site
 
 No consumer may guess past a failed resolution.
@@ -87,7 +87,7 @@ No consumer may guess past a failed resolution.
 - `drift_requires_full_document`: the selector exists but the caller cannot prove the addressed slice is still a legal minimal read for this operation
 - `fallback_not_allowed`: the caller reached a failure state at a surface that legally requires explicit stop instead of full-document promotion
 
-Every failure must be reflected as either explicit full-document fallback or explicit stop. Silent downgrade or silent guessing is illegal.
+Every failure must become either full-document fallback or explicit stop. Silent downgrade and silent guessing are illegal.
 
 <!-- forgeloop:anchor legality-law -->
 ## Legality Law

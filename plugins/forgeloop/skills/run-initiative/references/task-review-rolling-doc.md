@@ -49,9 +49,10 @@ Header and contract snapshot are initialized once. All later formal facts append
 <!-- forgeloop:anchor handoff-law -->
 ## Handoff Law
 
-- The current Task handoff is the latest `anchor_ref` or `fixup_ref` in the current round.
+- The current handoff is the latest valid reviewer-entry block in the round.
+- `R1` is actionable only when `round`, `handoff_id`, and `review_target_ref` match that handoff exactly.
+- If multiple matching results exist, only the latest one is actionable.
 - Every `anchor_ref` and `fixup_ref` must include `handoff_id` and `review_target_ref`.
-- `R1` is actionable only when `round`, `handoff_id`, and `review_target_ref` match the current handoff exactly.
 - `anchor_ref` or `fixup_ref` is legal only after `G1 pass`.
 
 <!-- forgeloop:anchor latest-matching-result-law -->
@@ -68,7 +69,7 @@ Header and contract snapshot are initialized once. All later formal facts append
 - `handoff-scoped/<handoff_id>.md` should expose the handoff block plus all matching `r1_result` blocks for that tuple in append order.
 - `handoff-scoped/<handoff_id>.md` is the preferred hot-path helper for fresh reviewer entry when the authoritative rolling doc ref is still bound explicitly in the packet.
 - `attempt-aware/round-<n>.md` is the preferred hot-path helper for same-Task same-round recovery.
-- If any derived view disagrees with the authoritative rolling doc, invalidate it and reread the formal rolling doc.
+- Derived views are hot-path helpers only. If any view is missing, stale, or conflicts with the authoritative rolling doc, invalidate it and reread the rolling doc.
 
 <!-- forgeloop:anchor recommended-template -->
 ## Recommended Template

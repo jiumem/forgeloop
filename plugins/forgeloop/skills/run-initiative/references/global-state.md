@@ -73,7 +73,9 @@ It exists to let `run-initiative`, `task-loop`, `milestone-loop`, `initiative-lo
   - `wait_for_user`
   - `stop_on_blocker`
 
-If the current next step is derived from a rolling doc, preserve the same literal action value when it is already in this routing vocabulary.
+If a rolling doc already exposes a legal literal action from this vocabulary, preserve it.
+
+`mark_initiative_delivered` is a reviewer result. `initiative_delivered` is the dispatcher-written terminal stop state after that result has been accepted.
 
 <!-- forgeloop:anchor recommended-template -->
 ## Recommended Template

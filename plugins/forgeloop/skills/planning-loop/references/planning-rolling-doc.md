@@ -115,8 +115,8 @@ Header and contract snapshot are initialized once. All later formal facts append
 <!-- forgeloop:anchor review-result-law -->
 ## Review Result Law
 
-- `plugins/forgeloop/agents/design_reviewer.toml`, `plugins/forgeloop/agents/gap_reviewer.toml`, and `plugins/forgeloop/agents/plan_reviewer.toml` are the sole authorities for the field structure of `design_review_result`, `gap_review_result`, and `plan_review_result`; this shared contract must stay aligned and must not define a conflicting schema
-- every review-result block must include at least:
+- This contract owns the cross-stage minimum for every planning review result.
+- Every `*_review_result` block must include:
   - `kind`
   - `round`
   - `author_role`
@@ -126,7 +126,9 @@ Header and contract snapshot are initialized once. All later formal facts append
   - `verdict`
   - `seal_status`
   - `next_action`
-- `design_review_result` must additionally include:
+- Stage reviewer prompts may extend these blocks, but they must not remove or rename the fields listed here.
+- Stage-specific fields required for supervisor routing are:
+  - `design_review_result`:
   - `requirement_fit`
   - `boundary_correctness`
   - `structural_soundness`
@@ -134,7 +136,7 @@ Header and contract snapshot are initialized once. All later formal facts append
   - `correctness_surface`
   - `open_issues`
   - `findings`
-- `gap_review_result` must additionally include:
+  - `gap_review_result`:
   - `current_state_evidence`
   - `gap_ledger_integrity`
   - `convergence_strategy`
@@ -142,7 +144,7 @@ Header and contract snapshot are initialized once. All later formal facts append
   - `correctness_surface`
   - `open_issues`
   - `findings`
-- `plan_review_result` must additionally include:
+  - `plan_review_result`:
   - `execution_boundary`
   - `object_map_integrity`
   - `acceptance_truth_integrity`

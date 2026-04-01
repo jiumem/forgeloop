@@ -19,7 +19,7 @@
 | illegal selector input is requested | resolver stops with `illegal_selector` | `anchor_slices.py slice` |
 | missing text anchor requested | resolver stops with `missing_anchor` | `anchor_slices.py slice` |
 | minimal packet consumer gets legal selectors | consumer may stay on minimal-path read | workflow skills + tracked reference mirrors |
-| selector legality fails | consumer promotes to explicit full-document fallback or blocks | workflow skills |
+| selector legality fails | consumer promotes to full-document fallback or blocks | workflow skills |
 | rolling doc has superseded same-handoff results | `current-effective` picks only the latest matching result | `anchor_slices.py derive` |
 | `handoff-scoped` is read for one handoff | view includes the handoff block plus all matching results in append order | `anchor_slices.py derive` |
 | derived view is missing or stale | consumer may invalidate and reread formal doc | workflow skills + derived-view contract |

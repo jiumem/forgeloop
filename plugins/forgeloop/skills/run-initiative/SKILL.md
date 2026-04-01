@@ -1,6 +1,6 @@
 ---
 name: run-initiative
-description: Use when the user asks to advance, continue, or resume an Initiative; the entry accepts initiative_key or planning_doc_path and uses the sealed planning docs, Global State Doc, and necessary runtime docs to determine the current next step
+description: Use when the user asks to advance, continue, or resume an Initiative; the entry accepts initiative_key or planning_doc_path and uses the sealed planning docs, Global State Doc, and necessary runtime docs to determine the next step
 ---
 
 # Run Initiative
@@ -18,54 +18,29 @@ The Initiative execution loop uses one control spine plus three execution loops:
 
 `run-initiative` is a multi-agent dispatch skill.
 
-If this skill has been invoked, treat that invocation itself as user authorization for the `Supervisor` to dispatch the required coder / reviewer subagents for the current next step. Do not stop only to re-ask for ordinary coder / reviewer delegation.
+If this skill has been invoked, treat that invocation itself as user authorization for the `Supervisor` to dispatch the required coder / reviewer subagents for the next step. Do not stop only to re-ask for ordinary coder / reviewer delegation.
 
-If the current environment still prevents delegation, or if you will not actually dispatch the required coder / reviewer subagents in this activation, stop immediately and ask the user directly. Never treat that situation as permission for the `Supervisor` to continue by personally doing coder or reviewer work.
+If the current environment still prevents delegation, or if you will not actually dispatch the required coder / reviewer subagents in this activation, stop immediately and ask the user. Never treat that situation as permission for the `Supervisor` to continue by personally doing coder or reviewer work.
 
-<!-- forgeloop:anchor canonical-ref-semantics -->
-## Canonical Ref Semantics
+<!-- forgeloop:anchor runtime-read-law -->
+## Runtime Read Law
 
-For repo-local formal sources, durable truth and execution-time materialization are different things.
+Bind `references/runtime-cutover.md` first and obey it.
 
-The durable value of each repo-local source slot should be one canonical repo-root-relative ref. This applies to `design_ref`, `gap_analysis_ref`, `total_task_doc_ref`, and the runtime control-plane refs under `.forgeloop/`.
+- `full_doc_default` is the named full-document mode; do not slide into it implicitly.
+- `minimal_preferred`: minimal packets are the default; use full documents only for documented recovery cases.
+- `minimal_required`: minimal packets are mandatory unless the cutover contract names a disaster-recovery exception.
 
-Do not store current-workspace absolute paths, worktree-specific absolute paths, or shell-cwd-relative paths as durable planning truth.
+Minimal packets carry only:
 
-If a concrete runtime read, write, or subagent dispatch needs an absolute filesystem path, first bind the active Initiative workspace, then materialize that absolute path from the same canonical repo-root-relative ref. The materialized absolute path is an ephemeral execution value, not a durable ref to write back into planning truth.
+- canonical refs
+- required selectors
+- minimal slices rebuilt from those refs
+- any explicit fallback reason
 
-<!-- forgeloop:anchor runtime-control-plane-contracts -->
-## Runtime Control-Plane Contracts
+Derived views are helpers only. If a derived view is missing, stale, or conflicts with the rolling doc, invalidate it and read the rolling doc.
 
-The runtime control plane also has fixed repository-owned contract refs relative to this skill root:
-
-- shared `Global State Doc` contract -> `references/global-state.md`
-- `Task Review Rolling Doc` contract -> `references/task-review-rolling-doc.md`
-- `Milestone Review Rolling Doc` contract -> `references/milestone-review-rolling-doc.md`
-- `Initiative Review Rolling Doc` contract -> `references/initiative-review-rolling-doc.md`
-- runtime cutover contract -> `references/runtime-cutover.md`
-- shared anchor-addressing contract -> `../references/anchor-addressing.md`
-- shared derived-view contract -> `../references/derived-views.md`
-- shared validation matrix -> `../references/validation-matrix.md`
-
-These contract refs are not Initiative-specific planning truth. They are the canonical bootstrap and recovery contracts for runtime cold start, runtime rebuild, and rolling-doc initialization. Do not improvise runtime block shape or `next_action` spelling from memory, old examples, or chat summaries when these refs are available.
-
-Runtime default routing is controlled only by `references/runtime-cutover.md`. Do not restate or override the current default in any other runtime document. When that contract says `full_doc_default`, runtime may default to authoritative full-document reads; when it says `minimal_preferred` or `minimal_required`, runtime should assemble anchor-addressed packets from authoritative refs, doc-local selectors, and only the minimum slices rebuilt from those selectors.
-
-<!-- forgeloop:anchor runtime.cutover-mode -->
-## Runtime Cutover Mode
-
-Before any runtime routing, bind `references/runtime-cutover.md` and read `current_runtime_cutover_mode`.
-
-- `full_doc_default`
-  - authoritative full-document reads are the runtime default
-  - minimal-path probes, benchmark reporting, and validation still remain legal sidecars
-- `minimal_preferred`
-  - anchor-addressed minimal packets are the runtime default
-  - explicit full-document fallback remains legal for the contract-defined recovery cases
-- `minimal_required`
-  - anchor-addressed minimal packets are mandatory except for explicitly documented disaster-recovery exceptions
-
-The current repository target mode lives only in the cutover contract, not in this skill text. Planning does not inherit this runtime cutover.
+Warm-path delta is legal only while workspace, object, `coder_slot`, `round`, and authoritative refs remain unchanged.
 
 <!-- forgeloop:anchor goal -->
 ## Goal
@@ -73,7 +48,7 @@ The current repository target mode lives only in the cutover contract, not in th
 In this framework, you act as the `Supervisor` dispatcher. You are responsible only for:
 - binding the formal source refs for the current Initiative
 - running the execution-side planning admission check before any runtime dispatch
-- determining the current next step, or whether to stop, rebuild, or ask the user
+- determining the next step, or whether to stop, rebuild, or ask the user
 - updating the `Global State Doc` when needed
 - calling one of the following when needed: skill: `using-git-worktrees`, skill: `rebuild-runtime`, skill: `task-loop`, skill: `milestone-loop`, or skill: `initiative-loop`
 
@@ -85,32 +60,17 @@ You are not responsible for:
 <!-- forgeloop:anchor core-rule -->
 ## Core Rule
 
-You only determine the current next step. You do not personally perform coding or review.
+You only determine the next step. You do not personally perform coding or review.
 
 Before any runtime loop dispatch, first decide whether the sealed planning docs are legal execution input. This planning admission check lives inside `run-initiative`; it is not a separate skill, it does not author planning docs, and it does not replace runtime recovery. It only accepts or rejects the current planning truth as a legal runtime starting point.
 
 <!-- forgeloop:anchor dispatch-rules -->
 ## Dispatch Rules
 
-Once the current next step is confirmed, call the required skill in order, or stop and ask the user. Only one skill may be called at a time: no parallelism, no skipped steps.
+Once the next step is confirmed, call the required skill in order, or stop and ask the user. Only one skill may be called at a time: no parallelism, no skipped steps.
 
 The `Global State Doc` carries only the minimum control-plane state: `current_snapshot`, `next_action`, `last_transition`, plus explicit waiting / blocked / done signals.
 Each update exists only to support the current next-step dispatch. Do not write coder / reviewer body content, do not keep process logs, and do not create a second state model outside the formal runtime docs.
-
-<!-- forgeloop:anchor runtime.packet-shape -->
-## Runtime Packet Shape
-
-When `current_runtime_cutover_mode` is `minimal_preferred` or `minimal_required`, default runtime packets must carry only:
-
-- authoritative repo-root-relative refs
-- the current object identity plus continuity metadata such as active plane, `coder_slot`, and current `round` when already bound
-- the current handoff tuple when one already exists
-- the exact doc-local selectors required for the current admission, coding, or review step
-- only the minimum inline slices rebuilt from those same authoritative refs
-- explicit fallback mode and fallback reason when any read was promoted to a full document
-- optional derived-view refs only as clearly non-authoritative helpers
-
-When `current_runtime_cutover_mode=full_doc_default`, authoritative full-document packets remain legal as the default route, but any minimal packet still has to obey the same self-sufficient packet law above.
 
 <!-- forgeloop:anchor runtime.admission-law -->
 ## Runtime Admission Law
@@ -123,61 +83,7 @@ At minimum, admission must prove:
 - the sealed `Total Task Doc` exposes execution boundary, Initiative ref assignment, and the active object definition needed for this dispatch
 - the sealed `Gap Analysis Doc` is read only when the sealed `Design Doc` requires it or when planning refs conflict
 
-If selector legality fails or the required legality proof still cannot be made uniquely, promote that read to explicit full-document fallback. Never guess past incomplete admission.
-
-<!-- forgeloop:anchor runtime.read-order -->
-## Runtime Read Order
-
-If `current_runtime_cutover_mode=full_doc_default`, runtime may read authoritative full documents first and run minimal-path validation only as a sidecar.
-
-If `current_runtime_cutover_mode=minimal_preferred` or `minimal_required`, runtime routing should read in this order:
-
-1. the minimum `Global State Doc` control plane
-2. the active rolling doc's `current-effective`, `handoff-scoped`, or `attempt-aware` view when that view is still legal and rebuildable from the same authoritative rolling doc
-3. the authoritative rolling doc blocks needed to confirm the current handoff or latest matching result
-4. full documents only for cold start, rebuild, selector legality failure, anchor conflict, or unresolved formal conflict
-
-This order is the hot-path default only while the cutover contract keeps runtime on a minimal-first mode. It does not reduce the legality of explicit recovery reads that the cutover contract still allows.
-
-<!-- forgeloop:anchor runtime.fallback-law -->
-## Runtime Fallback Law
-
-In `minimal_preferred`, minimal-path failure has only two legal outcomes:
-
-- explicit full-document fallback with an explicit reason
-- explicit stop
-
-Do not silently widen the read set and do not silently retry with guessed context. `full_doc_default` is the explicit rollback mode; `minimal_required` should stop instead of using ordinary fallback unless the cutover contract names a disaster-recovery exception.
-
-<!-- forgeloop:anchor runtime.full-doc-escalation -->
-## Runtime Full-Document Escalation
-
-When `current_runtime_cutover_mode=minimal_preferred`, promote a read to explicit full-document fallback only when at least one of the following is true:
-
-- cold start requires first binding or initializing a formal runtime surface
-- runtime rebuild is in progress
-- selector legality cannot be proven
-- an anchor conflict or rolling-doc conflict appears
-- the active derived view is missing, stale, or exposes multiple actionable candidates instead of one unique frontier
-
-If none of these are true, stay on the minimal packet path. If `current_runtime_cutover_mode=minimal_required`, stop unless the cutover contract explicitly allows the recovery exception.
-
-<!-- forgeloop:anchor runtime.warm-path-delta -->
-## Runtime Warm-Path Delta
-
-Supervisor-side warm-path delta is legal only when all of the following remain true:
-
-- the same supervisor thread is still alive
-- the same active object remains bound
-- the same active workspace remains bound
-- the same logical `coder_slot` remains bound
-- the same object-local `round` remains bound
-- the same authoritative refs still define the formal basis
-- the change is limited to newly appended formal blocks, selector changes, derived-view invalidation, or refreshed minimal slices
-
-Return to a full packet immediately on cold start, `rebuild-runtime`, workspace rebind, active object change, plane change, round change, slot succession, handoff change, selector legality failure, anchor conflict, or first reviewer entry into a handoff.
-
-Warm-path delta is a supervisor assembly optimization only. It must never become durable truth and must never rely on subagent memory as the only recovery basis.
+If selector legality fails or the required legality proof still cannot be made uniquely, promote that read to full-document fallback. Never guess past incomplete admission.
 
 <!-- forgeloop:anchor when-to-stop -->
 ## When To Stop Or Ask The User
@@ -187,7 +93,7 @@ Warm-path delta is a supervisor assembly optimization only. It must never become
 - the sealed design doc requires gap analysis but the gap analysis doc is missing, unfinished, or inconsistent with the total task doc
 - the sealed planning docs are missing basic execution structure, such as Initiative boundary, Milestone structure, Task Ledger, integration path, reference assignment, acceptance matrix, or residual-risk registration
 - the confirmed next step requires coder or reviewer dispatch, but delegation is unavailable, blocked, or will not actually be performed in this activation
-- the current next step cannot be determined uniquely
+- the next step cannot be determined uniquely
 - a new Initiative is starting but there is no clear first executable Task
 - the system is already in a delivered stop state, or it is in waiting / blocked and this activation does not clearly resolve that stop reason
 
@@ -198,7 +104,7 @@ Warm-path delta is a supervisor assembly optimization only. It must never become
 
 First bind the formal source refs for the current Initiative.
 
-1. Use the user-provided `planning_doc_path`, `initiative_key`, or the only verifiable active Initiative in the current workspace to bind the current Initiative. If it cannot be verified uniquely, ask the user directly.
+1. Use the user-provided `planning_doc_path`, `initiative_key`, or the only verifiable active Initiative in the current workspace to bind the current Initiative. If it cannot be verified uniquely, ask the user.
 2. Prefer exploring under the parent path of the user-provided total task doc. Only if that is insufficient should you continue under the repo `docs/` tree.
 3. At most seven formal source slots must be confirmed as canonical refs: `design_ref`, `gap_analysis_ref`, `total_task_doc_ref`, `global_state_doc_ref`, `task_review_rolling_doc_root_ref`, `milestone_review_rolling_doc_root_ref`, and `initiative_review_rolling_doc_ref`.
 4. `gap_analysis_ref` may be `N/A` only when the sealed `Design Doc` explicitly marks `Gap Analysis Requirement: not_required`.
@@ -207,9 +113,9 @@ First bind the formal source refs for the current Initiative.
 7. Bind `runtime_cutover_ref=plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md` from the canonical runtime contract refs before any runtime routing or packet assembly.
 8. If `design_ref` or `total_task_doc_ref` is missing, if `gap_analysis_ref` is required but missing, or if `total_task_doc_ref` cannot identify the Initiative reference entry clearly, stop, do not write `Global State Doc`, and ask the user to provide or confirm the missing information.
 
-### Step 2: Run Planning Admission And Determine The Current Next Step
+### Step 2: Run Planning Admission And Determine The Next Step
 
-After reading the formal docs, first decide whether the planning truth may legally enter runtime, then determine the current next step directly.
+After reading the formal docs, first decide whether the planning truth may legally enter runtime, then determine the next step directly.
 
 1. Read `total_task_doc_ref` first.
 2. Read `design_ref` before any runtime routing. Read `gap_analysis_ref` when the sealed `Design Doc` marks `Gap Analysis Requirement: required`, or when the upstream planning refs disagree and the conflict must be resolved.
@@ -221,14 +127,22 @@ After reading the formal docs, first decide whether the planning truth may legal
 - if `Gap Analysis Requirement: required`, `gap_analysis_ref` exists, is sealed, and the `Total Task Doc` points to it explicitly; otherwise the `Total Task Doc` marks gap refs `N/A`
 - the Initiative boundary and success criteria are explicit enough to execute
 - the Milestone structure, Task Ledger, branch and PR integration path, legal reference assignments, acceptance matrix, and global residual risks are explicit enough to act on
-6. If planning admission fails, stop and challenge the user directly to repair planning truth. Do not call skill: `rebuild-runtime` just to paper over illegal planning input, and do not enter any execution loop.
+6. If planning admission fails, stop and ask the user to repair the planning truth. Do not call skill: `rebuild-runtime` just to paper over illegal planning input, and do not enter any execution loop.
 7. If runtime routing depends on workspace-local runtime docs and the active Initiative workspace is not already confirmed, do Step 3 first in `bind_only` mode. Only after Step 3 has bound the active workspace and materialized the runtime refs may you read `global_state_doc_ref` or any runtime rolling doc.
 8. After active workspace binding when needed, choose the runtime read order from `current_runtime_cutover_mode`:
 - `full_doc_default`: authoritative full documents may be the default runtime route
-- `minimal_preferred` or `minimal_required`: read `global_state_doc_ref` first, then legal derived views, then authoritative rolling-doc blocks, then explicit full-document fallback only when the cutover contract still allows it
+- `minimal_preferred` or `minimal_required`: read `global_state_doc_ref` first, then legal derived views, then authoritative rolling-doc blocks, then full-document fallback only when the cutover contract still allows it
 9. Only when document facts are still insufficient should you add the minimum necessary Git / test facts.
-10. Then decide directly:
-- if the `Global State Doc` already records a delivered stop state such as `initiative_delivered`: stop and explain the current stop point
+10. Then route by this priority:
+- delivered / waiting / blocked stop that is still consistent
+- cold start with no runtime docs
+- runtime rebuild when state is missing or conflicting
+- task loop when a Task is clearly active or next-ready
+- milestone loop when Milestone review/repair is clearly active
+- initiative loop when Initiative review/repair is clearly active
+- ask the user only when facts are legal but still ambiguous
+11. Apply the first matching case:
+- if the `Global State Doc` already records a delivered stop state such as `initiative_delivered`: stop and explain the stop point
 - if the `Global State Doc` already records waiting or blocked: first check whether this activation clearly resolves that stop reason
   - if not, stop at that state
   - if yes, record that resume in `last_transition`, then continue from newer formal runtime truth instead of treating the stop as terminal
@@ -237,8 +151,8 @@ After reading the formal docs, first decide whether the planning truth may legal
 - if current progress clearly belongs to the Task review/repair loop, including continuing the currently bound Task, continuing repair on the current Task, or uniquely identifying the next ready Task: formally rebind `current_snapshot` and `next_action` to that Task if needed, then call skill: `task-loop`
 - if current progress clearly belongs to a Milestone review/repair loop: formally rebind `current_snapshot` and `next_action` to that Milestone if needed, then call skill: `milestone-loop`
 - if current progress clearly belongs to the Initiative review/repair loop: formally rebind `current_snapshot` and `next_action` to that Initiative if needed, then call skill: `initiative-loop`
-- if the facts do not conflict but the current next step still cannot be determined uniquely: ask the user directly
-11. You may confirm only one next step or one clear stop point. If facts conflict, call skill: `rebuild-runtime`; if they are ambiguous, ask the user.
+- if the facts do not conflict but the next step still cannot be determined uniquely: ask the user
+12. You may confirm only one next step or one clear stop point. If facts conflict, call skill: `rebuild-runtime`; if they are ambiguous, ask the user.
 
 ### Step 3: Bind The Active Initiative Workspace
 
@@ -252,7 +166,7 @@ Do this whenever runtime routing or loop execution needs workspace-local runtime
 6. Never write the materialized absolute paths back into the `Total Task Doc` or any other durable planning truth.
 7. If `using-git-worktrees` in `bind_only` mode exposes a conflict, waiting state, or blocker, stop at that point.
 
-### Step 4: Prepare Execution And Execute The Current Next Step
+### Step 4: Prepare Execution And Execute The Next Step
 
 Consume only the conclusion already confirmed in the previous step. Do not reinterpret the facts, and do not rematerialize runtime refs against a different workspace mid-activation.
 
@@ -260,7 +174,7 @@ Consume only the conclusion already confirmed in the previous step. Do not reint
 2. `execution_ready` means the active Initiative workspace has completed repo-obvious setup and baseline verification strongly enough to enter coder or reviewer execution.
 3. If `using-git-worktrees` in `execution_ready` mode exposes a conflict, waiting state, or blocker, stop at that point.
 
-4. New Initiative start: after planning admission has already passed, initialize the minimum `Global State Doc`. If there is a clear first executable Task, bind `current_snapshot` to that Task, switch `next_action` to the current Task coder round, then call skill: `task-loop`. Otherwise stop and challenge the user directly.
+4. New Initiative start: after planning admission has already passed, initialize the minimum `Global State Doc`. If there is a clear first executable Task, bind `current_snapshot` to that Task, set `next_action.action = continue_task_coder_round`, then call skill: `task-loop`. Otherwise stop and ask the user.
 5. Existing Initiative resumes into the Task review/repair loop: if the Task that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then call skill: `task-loop`.
 6. Existing Initiative resumes into the Milestone review/repair loop: if the Milestone that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then call skill: `milestone-loop`.
 7. Existing Initiative resumes into the Initiative review/repair loop: if the Initiative that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then call skill: `initiative-loop`.
@@ -270,11 +184,11 @@ Consume only the conclusion already confirmed in the previous step. Do not reint
 
 If work will continue, first update the materialized `Global State Doc` in the active Initiative workspace until it is clear enough. If the active object or active plane is about to change, the new `current_snapshot` and `next_action` must be written first so that a later `Supervisor` can quickly trace and recover the current progress state.
 
-When the active object is already in flight or has been recovered from an existing rolling doc, `current_snapshot` should preserve the active `coder_slot` and current object-local `round`. Only on first entry into a fresh runtime object with no rolling doc yet may `current_snapshot` temporarily omit them; the target loop must then initialize `coder_slot=coder` and object-local `round=1` before dispatching the first coder round.
+When the active object is already in flight or has been recovered from an existing rolling doc, `current_snapshot` should preserve the active `coder_slot` and object `round`. Only on first entry into a fresh runtime object with no rolling doc yet may `current_snapshot` temporarily omit them; the target loop must then initialize `coder_slot=coder` and `round=1` before dispatching the first coder round.
 
 ### Step 5: Loop Back
 
-After any loop returns, reread the materialized `Global State Doc` and the active rolling doc in the same active Initiative workspace that was just modified. Do not infer from cached expectations about what should have happened in the previous round. Go straight back to Step 2 and re-determine the current next step.
+After any loop returns, reread the materialized `Global State Doc` and the active rolling doc in the same active Initiative workspace that was just modified. Do not infer from cached expectations about what should have happened in the previous round. Go straight back to Step 2 and re-determine the next step.
 
 Keep advancing until one of these stop points appears:
 - waiting for human judgment
@@ -302,7 +216,7 @@ Never:
 
 After a correct `run-initiative` activation, the system should satisfy all of the following:
 - the current Initiative is bound uniquely
-- the current next step or stop point is unambiguous
+- the next step or stop point is unambiguous
 - if execution continues, the sealed planning docs have already passed the in-skill planning admission check
 - if execution continues, there is only one clear active loop
 - if execution stops, the stop reason is clear

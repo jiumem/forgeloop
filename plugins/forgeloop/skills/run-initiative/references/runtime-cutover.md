@@ -29,7 +29,7 @@ supported_runtime_cutover_modes: full_doc_default,minimal_preferred,minimal_requ
   - this is the rollback mode
 - `minimal_preferred`
   - anchor-addressed minimal packets are the runtime default
-  - selector legality failure, derived-view invalidation, cold start, rebuild, and other explicit recovery triggers may promote one read or packet to explicit full-document fallback
+  - selector legality failure, derived-view invalidation, cold start, rebuild, and other recovery triggers may promote one read or packet to full-document fallback
   - this is the current target operating mode
 - `minimal_required`
   - anchor-addressed minimal packets are required by default

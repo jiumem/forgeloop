@@ -36,7 +36,7 @@ Hard boundaries:
 - `G1` may be run only by the coder in the current implementation round, and it must be written into the `Task Review Rolling Doc`
 - `anchor_ref` or `fixup_ref` may be written only after `G1 pass`
 - `R1` may be run only by a fresh reviewer against the formal anchor
-- `round` is Task-local and owned by the `Supervisor` through the `Global State Doc`; coder and reviewer echo it in the rolling doc but do not advance it themselves
+- `round` is Task round and owned by the `Supervisor` through the `Global State Doc`; coder and reviewer echo it in the rolling doc but do not advance it themselves
 - a round closes only when `r1_result` is written; `G1 fail` stays in the same round
 - a new round opens only on first entry into the Task or after `r1_result.next_action=continue_task_repair`
 - the `Global State Doc` may contain only `current_snapshot`, `next_action`, and `last_transition`
@@ -80,7 +80,7 @@ Neither packet should default to the whole `Total Task Doc`, the whole Task roll
 <!-- forgeloop:anchor task.warm-path-delta -->
 ## Task Warm-Path Delta
 
-Same-thread warm-path delta is legal only for the same Task, same workspace, same logical `coder_slot`, and same Task-local `round`.
+Same-thread warm-path delta is legal only for the same Task, same workspace, same logical `coder_slot`, and same Task `round`.
 
 It may carry only newly appended formal blocks, selector changes, refreshed slices, or derived-view invalidation reasons.
 
@@ -96,7 +96,7 @@ Bind `../run-initiative/references/runtime-cutover.md` before deciding the Task 
   - minimal packets may still be assembled for validation, benchmark, or explicit sidecar use
 - `minimal_preferred`
   - minimal Task packets are the default
-  - selector legality failure, stale derived views, rolling-doc initialization, or unresolved formal conflict may promote one read to explicit full-document fallback
+  - selector legality failure, stale derived views, rolling-doc initialization, or unresolved formal conflict may promote one read to full-document fallback
 - `minimal_required`
   - minimal Task packets are required
   - ordinary legality failure should stop unless the cutover contract names a disaster-recovery exception
@@ -108,19 +108,19 @@ Bind `../run-initiative/references/runtime-cutover.md` before deciding the Task 
 - First read the runtime cutover contract and bind `current_runtime_cutover_mode`.
 - If `current_runtime_cutover_mode=full_doc_default`, authoritative full-document reads may be the default bind path; still keep any optional minimal packet self-sufficient.
 - If `current_runtime_cutover_mode=minimal_preferred` or `minimal_required`, read in this exact order:
-  - the minimum `Global State Doc` control plane needed to confirm active Task identity, `coder_slot`, and Task-local `round`
+  - the minimum `Global State Doc` control plane needed to confirm active Task identity, `coder_slot`, and Task `round`
   - `current-effective`, `handoff-scoped`, or `attempt-aware` only when the derived view is still legal and rebuildable from the same authoritative `Task Review Rolling Doc`
   - the authoritative `Task Review Rolling Doc` blocks needed to confirm the current handoff, latest matching `r1_result`, or rolling-doc/header continuity
-  - explicit full-document fallback only when selector legality fails, the derived view is stale or missing, the rolling doc must be initialized, or a formal conflict still cannot be resolved uniquely
+  - full-document fallback only when selector legality fails, the derived view is stale or missing, the rolling doc must be initialized, or a formal conflict still cannot be resolved uniquely
 - Read the Task definition and the minimum engineering facts only after that runtime read order still leaves Task identity, acceptance, or execution legality incomplete
-- Confirm that the active task is unique, the workspace is executable, the rolling doc matches the active task, `coder_slot` is unique, and the current Task-local `round` is unique when it already exists
+- Confirm that the active task is unique, the workspace is executable, the rolling doc matches the active task, `coder_slot` is unique, and the Task `round` is unique when it already exists
 - If the `Global State Doc` conflicts with the rolling doc, hand control back to `rebuild-runtime`
 - If the current Task cannot be confirmed uniquely, the contract is missing, or the facts show the system should wait for the user, stop
 - If the rolling doc does not exist, initialize only the header, including object identity and `coder_slot`, plus `task_contract_snapshot`, according to the canonical `Task Review Rolling Doc` contract; write `coder_slot=coder` into the header and `current_snapshot`, and write `round=1` into the `Global State Doc` according to the canonical `Global State Doc` contract before dispatching the first coder round
 
 2. Update the minimum control plane
-- `current_snapshot` points to the current active task, `coder_slot`, and the current Task-local `round`
-- `next_action` points to continuing the current Task coder round
+- `current_snapshot` points to the active task, `coder_slot`, and the Task `round`
+- `next_action.action = continue_task_coder_round`
 - Record entering the current round, resuming the current round, or coder succession in `last_transition` when needed
 - Do not write implementation details, review body text, or full test output into the `Global State Doc`
 
@@ -131,15 +131,13 @@ Bind `../run-initiative/references/runtime-cutover.md` before deciding the Task 
 - The coder input only needs to locate the current formal input surface: current Task identity, authoritative refs, the current handoff identifiers, the doc-local selectors for the required design/gap/plan/runtime sections, and any already materialized minimal slices
 - The coder returns its result to the `Task Review Rolling Doc` according to the contract
 
-4. Handle the coder result
-- Decide only from the rolling doc and Git facts, not from chat summaries
-- Read the latest `g1_result.next_action` first
-- If the latest `g1_result.next_action=continue_task_coder_round`, or there is only `coder_update`, or the latest `g1_result=fail`: the same coder continues in the same round
-- If the latest `g1_result.next_action=request_reviewer_handoff` but there is no valid current handoff yet: return to the same coder to complete the formal anchor inside the same round
-- If the latest `g1_result.next_action=request_reviewer_handoff` and one valid current handoff exists: switch `next_action` to entering `R1`
-- If the latest `g1_result.next_action=wait_for_user`: write waiting into the `Global State Doc`, then stop
-- If the latest `g1_result.next_action=stop_on_blocker`: write blocked into the `Global State Doc`, then stop
-- Only if the latest `g1_result` lacks `next_action` should you fall back to `pass / fail` plus handoff facts
+4. Handle coder output
+- `continue_task_coder_round` or `g1_result.verdict=fail`: stay in the same round with the same `coder_slot`.
+- `request_reviewer_handoff` without a valid handoff: return to the same coder to finish the formal anchor.
+- `request_reviewer_handoff` with a valid current handoff: set `next_action.action = enter_r1`.
+- `wait_for_user`: write waiting and stop.
+- `stop_on_blocker`: write blocked and stop.
+- Anything else is illegal Task coder output.
 
 5. Dispatch a fresh `task_reviewer`
 - Every `R1` round uses a freshly spawned reviewer, with `fork_context=false` by default
@@ -151,7 +149,7 @@ Bind `../run-initiative/references/runtime-cutover.md` before deciding the Task 
 - If the current actionable `r1_result` has `verdict=clean` and `next_action=return_to_source_object`: update `last_transition`, switch `current_snapshot` back to the source Milestone / Initiative recorded in the `Global State Doc`, and hand control back upstream
 - If the current actionable `r1_result` has `verdict=clean` and `next_action=select_next_ready_object`: update `last_transition`, move `current_snapshot` forward to the next ready object when it is uniquely confirmed, otherwise switch `current_snapshot` to a frontier-selection snapshot no longer bound to the current Task, then hand control back upstream
 - If the current actionable `r1_result` has `verdict=clean` and `next_action=task_done`: update `last_transition`, switch `current_snapshot` to a frontier-selection snapshot no longer bound to the current Task, then hand control back upstream
-- If the current actionable `r1_result` has `verdict=changes_requested` and `next_action=continue_task_repair`: increment the Task-local `round` in the `Global State Doc`, switch `next_action` back to continuing current Task repair, and let the same `coder_slot` enter the next round
+- If the current actionable `r1_result` has `verdict=changes_requested` and `next_action=continue_task_repair`: increment the Task `round` in the `Global State Doc`, set `next_action.action = continue_task_repair`, and let the same `coder_slot` enter the next round
 - If the current actionable `r1_result` has `verdict=changes_requested` and `next_action=escalate_to_milestone`: update `last_transition`, switch `current_snapshot` to the parent Milestone when it is uniquely confirmed, then hand control back upstream
 - If the current actionable `r1_result` has `verdict=changes_requested` and `next_action=wait_for_user`: the reviewer writes only the recommendation, the `Supervisor` writes waiting into the `Global State Doc`, then hands control back upstream
 - If the current actionable `r1_result` has `verdict=changes_requested` and `next_action=stop_on_blocker`: the reviewer writes only the recommendation, the `Supervisor` writes blocked into the `Global State Doc`, then hands control back upstream
