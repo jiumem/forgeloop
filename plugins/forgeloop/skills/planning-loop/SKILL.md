@@ -126,7 +126,8 @@ Hard boundaries:
 - The planner reads artifact-shape rules from `stage_reference_ref`, communication-plane rules from `rolling_doc_contract_ref`, and selector legality from `../references/anchor-addressing.md`; do not inline or restate the full reference text in the dispatch packet unless a referenced file is missing, unreadable, or has promoted to full-document fallback
 
 4. Handle planner output
-- Route only from the latest `planner_update` in the current round.
+- The latest `planner_update` in the current round is the current planner intent.
+- Route only from that latest `planner_update` in the current round.
 - `continue_stage_repair`: keep the same `planner_slot` and the same round.
 - `request_reviewer_handoff`: require one valid current handoff in the same round, then dispatch the bound reviewer.
 - `wait_for_upstream_judgment`: write a waiting stop state and stop.

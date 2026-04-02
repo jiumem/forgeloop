@@ -4,7 +4,7 @@
 
 Forgeloop 是一个仅面向 Codex 的 workflow layer，由一组可组合 skills 构成。它把 Codex 约束成一套更严格的工程流程：先设计，再规划，再按小步验证实现，并在继续之前完成审查。
 
-`0.5.0` 现在以 repo-local Codex 插件包的方式发布，但仍然不是 Python 包。
+`0.6.0` 现在以 repo-local Codex 插件包的方式发布，但仍然不是 Python 包。
 
 ## 来源
 
@@ -79,6 +79,10 @@ custom agent 清单见 [docs/forgeloop/agents.md](docs/forgeloop/agents.md)。
 ## 验证
 
 Codex 相关验证步骤见 [docs/forgeloop/testing.md](docs/forgeloop/testing.md)。
+
+## 发布说明
+
+版本变更记录见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 方法论
 

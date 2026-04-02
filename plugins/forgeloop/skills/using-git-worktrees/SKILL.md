@@ -159,15 +159,7 @@ project=$(basename "$(git rev-parse --show-toplevel)")
 
 ### 1.5. Reuse Current Workspace When Allowed
 
-If the reuse rule above is satisfied, stay in the current workspace and skip worktree creation.
-
-- If the current branch already matches the intended `BRANCH_NAME`, continue.
-- If the current branch does not match but the workspace is clean enough to switch, switch or create the intended `BRANCH_NAME` in this same Initiative worktree.
-- If the workspace is not clean enough to switch safely, stop and surface the conflict.
-
-In `bind_only`, return once workspace and branch binding are confirmed.
-
-In `execution_ready`, continue with project setup and baseline verification in the current workspace.
+If the reuse rule above is satisfied, apply it here and skip worktree creation. In `bind_only`, return once workspace and branch binding are confirmed. In `execution_ready`, continue with project setup and baseline verification in the current workspace.
 
 ### 1.6. Decide Branch Name
 
@@ -377,8 +369,7 @@ Ready to implement milestone MS-001 for Initiative INIT-001
 - Decide the branch name before `git worktree add`
 - Use `bind_only` when the caller only needs workspace identity for runtime-state reads or recovery
 - Use `execution_ready` before entering coder or reviewer execution work
-- Reuse the current Initiative worktree when possible, even if the branch needs to be switched, but only when the workspace is clean enough
-- Reuse the current Initiative worktree when possible instead of creating a second worktree for the same Initiative
+- Reuse the current Initiative worktree when possible instead of creating a second worktree for the same Initiative, but switch branches only when the workspace is clean enough.
 - Follow directory priority: user override > AGENTS.md > existing dirs > default global root
 - Verify directory is ignored for project-local
 - Use only repo-documented or repo-obvious setup commands

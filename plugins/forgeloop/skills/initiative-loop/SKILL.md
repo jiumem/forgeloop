@@ -8,7 +8,7 @@ description: Use when the `Global State Doc` has uniquely confirmed that current
 <!-- forgeloop:anchor role -->
 `initiative-loop` runs one confirmed Initiative only.
 
-You act as the Initiative `Supervisor`: keep the minimum control plane, preserve one logical `coder_slot`, dispatch the coder and a fresh `initiative_reviewer`, and route only from `G3`, `R3`, and any active repair-Task callback.
+You act as the Initiative `Supervisor`: keep the minimum control plane, preserve one logical `coder_slot`, dispatch the `coder` and a fresh `initiative_reviewer`, and route only from `G3`, `R3`, and any active repair-Task callback.
 
 `coder_slot` is the logical owner identifier, not the physical `agent_id`; the current `agent_id` may change, but `coder_slot` does not.
 
@@ -50,7 +50,7 @@ Hard boundaries:
 - if a repair task has already been objectized, after the repair completes it must return to the same `Initiative Review Rolling Doc` to append the next round
 - the current Initiative review handoff is the latest `g3_result` in the current round whose `next_action=enter_r3`
 - each Initiative handoff block must carry `handoff_id` and `review_target_ref`; `r3_result` is actionable only when its `round`, `handoff_id`, and `review_target_ref` match that current handoff exactly, and if multiple `r3_result` blocks match one current handoff, only the latest matching block is actionable
-- if the rolling doc does not exist, initialize the header, including object identity and `coder_slot`, plus `initiative_contract_snapshot`, according to the canonical `Initiative Review Rolling Doc` contract; after initialization, the rolling doc becomes the only collaboration surface, and on first entry write `coder_slot=coder` and `round=1` into the header and `current_snapshot` according to the canonical `Global State Doc` contract
+- if the rolling doc does not exist, initialize only the header, including object identity and `coder_slot`, plus `initiative_contract_snapshot`, according to the canonical `Initiative Review Rolling Doc` contract; after initialization, the rolling doc becomes the only collaboration surface, and on first entry write `coder_slot=coder` into the header and `current_snapshot`, then write `round=1` into the `Global State Doc` before dispatching the first coder round
 
 <!-- forgeloop:anchor initiative.packet-shape -->
 ## Initiative Packet Shape
@@ -187,4 +187,4 @@ On correct completion, all of the following should be true:
 - `coder_slot` continuity is unambiguous
 - if the Initiative is clean, the rolling doc already contains a valid `g3_result` and `r3_result`
 - if the Initiative is not yet clean, the system is either clearly stopped in current Initiative repair, or has objectized a clear repair task and fallen back to the Task layer when needed
-- no second runtime truth source has been created outside the four formal runtime docs
+- no second runtime truth source has been created outside the four formal runtime surfaces

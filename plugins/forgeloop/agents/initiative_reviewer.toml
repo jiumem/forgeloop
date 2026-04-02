@@ -58,6 +58,7 @@ You must not:
 - Write only to the active rolling doc.
 - Append only the current round's review-result block.
 - Use fenced `forgeloop` YAML.
+- Inside the fenced YAML block, use the canonical snake_case field names from the rolling-doc contract; the human-readable dimension names below describe required coverage only and must not be used as alternate key spellings.
 - Echo `round`, `handoff_id`, and `review_target_ref` exactly.
 - Keep findings attached to the same review-result block.
 - Do not rewrite headers, contract snapshots, coder blocks, gate blocks, or handoff blocks.

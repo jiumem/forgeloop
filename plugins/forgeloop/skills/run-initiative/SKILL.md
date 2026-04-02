@@ -40,6 +40,7 @@ Minimal packets carry only:
 
 Derived views are helpers only. If a derived view is missing, stale, or conflicts with the rolling doc, invalidate it and read the rolling doc.
 
+<!-- forgeloop:anchor runtime.warm-path-delta -->
 Warm-path delta is legal only while workspace, object, `coder_slot`, `round`, and authoritative refs remain unchanged.
 
 <!-- forgeloop:anchor goal -->
@@ -55,7 +56,7 @@ In this framework, you act as the `Supervisor` dispatcher. You are responsible o
 You are not responsible for:
 - writing code
 - writing any review rolling doc body content
-- maintaining parallel state outside the four formal runtime docs
+- maintaining parallel state outside the four formal runtime surfaces
 
 <!-- forgeloop:anchor core-rule -->
 ## Core Rule
@@ -64,6 +65,7 @@ You only determine the next step. You do not personally perform coding or review
 
 Before any runtime loop dispatch, first decide whether the sealed planning docs are legal execution input. This planning admission check lives inside `run-initiative`; it is not a separate skill, it does not author planning docs, and it does not replace runtime recovery. It only accepts or rejects the current planning truth as a legal runtime starting point.
 
+<!-- forgeloop:anchor runtime-control-plane-contracts -->
 <!-- forgeloop:anchor dispatch-rules -->
 ## Dispatch Rules
 
@@ -106,11 +108,12 @@ First bind the formal source refs for the current Initiative.
 
 1. Use the user-provided `planning_doc_path`, `initiative_key`, or the only verifiable active Initiative in the current workspace to bind the current Initiative. If it cannot be verified uniquely, ask the user.
 2. Prefer exploring under the parent path of the user-provided total task doc. Only if that is insufficient should you continue under the repo `docs/` tree.
-3. At most seven formal source slots must be confirmed as canonical refs: `design_ref`, `gap_analysis_ref`, `total_task_doc_ref`, `global_state_doc_ref`, `task_review_rolling_doc_root_ref`, `milestone_review_rolling_doc_root_ref`, and `initiative_review_rolling_doc_ref`.
+<!-- forgeloop:anchor canonical-ref-semantics -->
+3. Confirm seven Initiative-bound source slots as canonical refs: `design_ref`, `gap_analysis_ref`, `total_task_doc_ref`, `global_state_doc_ref`, `task_review_rolling_doc_root_ref`, `milestone_review_rolling_doc_root_ref`, and `initiative_review_rolling_doc_ref`.
 4. `gap_analysis_ref` may be `N/A` only when the sealed `Design Doc` explicitly marks `Gap Analysis Requirement: not_required`.
 5. The four runtime slots may temporarily point to missing files or directories on cold start, but the canonical repo-root-relative refs must already be uniquely confirmed.
 6. For repo-local targets, the durable value of each source slot must be a repo-root-relative ref. Do not bind current-workspace absolute paths, worktree-specific absolute paths, or shell-cwd-relative paths here.
-7. Bind `runtime_cutover_ref=plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md` from the canonical runtime contract refs before any runtime routing or packet assembly.
+7. Bind `runtime_cutover_ref=plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md` separately as a framework contract ref before any runtime routing or packet assembly.
 8. If `design_ref` or `total_task_doc_ref` is missing, if `gap_analysis_ref` is required but missing, or if `total_task_doc_ref` cannot identify the Initiative reference entry clearly, stop, do not write `Global State Doc`, and ask the user to provide or confirm the missing information.
 
 ### Step 2: Run Planning Admission
@@ -225,4 +228,4 @@ After a correct `run-initiative` activation, the system should satisfy all of th
 - if execution continues, the sealed planning docs have already passed the in-skill planning admission check
 - if execution continues, there is only one clear active loop
 - if execution stops, the stop reason is clear
-- no new runtime truth source exists outside the four formal runtime docs
+- no new runtime truth source exists outside the four formal runtime surfaces

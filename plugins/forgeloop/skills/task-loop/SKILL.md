@@ -184,4 +184,4 @@ On correct completion, all of the following should be true:
 - the current Task state can be recovered uniquely from the `Global State Doc` and the `Task Review Rolling Doc`
 - `coder_slot` continuity is unambiguous
 - if the Task is clean, the rolling doc already contains a valid `g1_result`, `anchor/fixup`, and `r1_result`
-- no second runtime truth source has been created outside the four formal runtime docs
+- no second runtime truth source has been created outside the four formal runtime surfaces

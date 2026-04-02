@@ -26,7 +26,7 @@ The formal input surface contains only the Initiative static truth trio `design_
 
 Hard boundaries:
 - recover only the logical `coder_slot`, never the physical `agent_id`
-- recover the current object `round`, never invent a new round
+- recover the current object-local `round`, never invent a new round
 - write to the `Global State Doc` only when necessary
 - if the `Global State Doc` does not exist, you may initialize `global_state_header` only according to the canonical `Global State Doc` contract
 - if the existing `global_state_header` conflicts with static truth-source bindings, you may correct `global_state_header` first, but only according to the canonical `Global State Doc` contract
@@ -116,6 +116,7 @@ This skill does not handle the following:
   3. active Initiative
   4. frontier selection after the last clean object
 - Within one plane, actionable reviewer output wins over coder output.
+- For Initiative delivery, recover reviewer intent exactly: actionable `r3_result.next_action=mark_initiative_delivered` becomes dispatcher stop state `initiative_delivered`.
 - A repair Task callback overrides ordinary frontier selection while that callback is still active.
 - If no single plane, object, `coder_slot`, `round`, and `next_action` can be proven, stop and ask the user.
 
@@ -154,4 +155,4 @@ On correct completion, all of the following should be true:
 - the current active plane, active object, active `round`, and `coder_slot` can be recovered uniquely
 - the `Global State Doc` exists, and `current_snapshot`, `next_action`, and `last_transition` are self-consistent
 - the upstream dispatcher can re-enter `run-initiative` and continue without hidden context
-- no second runtime truth source has been created outside the four formal runtime docs
+- no second runtime truth source has been created outside the four formal runtime surfaces

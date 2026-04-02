@@ -1,6 +1,6 @@
 # Forgeloop for Codex
 
-Forgeloop `0.5.0` installs through a repo-local Codex plugin package at `plugins/forgeloop/`. It remains a Codex-native workflow layer rather than a Python package.
+Forgeloop `0.6.0` installs through a repo-local Codex plugin package at `plugins/forgeloop/`. It remains a Codex-native workflow layer rather than a Python package.
 
 ## Install
 

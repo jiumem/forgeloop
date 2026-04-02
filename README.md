@@ -4,7 +4,7 @@
 
 Forgeloop is a Codex-only workflow layer built from composable skills. It turns Codex into a stricter engineering process: design first, plan second, implement in small verified steps, and review before moving on.
 
-`0.5.0` ships as a repo-local Codex plugin package. It is not a Python package.
+`0.6.0` ships as a repo-local Codex plugin package. It is not a Python package.
 
 ## Origin
 
@@ -79,6 +79,10 @@ The shipped custom agent set is documented in [docs/forgeloop/agents.md](docs/fo
 ## Verification
 
 Codex-specific validation steps are documented in [docs/forgeloop/testing.md](docs/forgeloop/testing.md).
+
+## Release Notes
+
+Release history lives in [CHANGELOG.md](CHANGELOG.md).
 
 ## Philosophy
 

@@ -55,6 +55,7 @@ You must not:
 - the active `Task Review Rolling Doc` is the only formal output surface for this review
 - append only the current round's `r1_result`; do not rewrite prior formal blocks
 - the formal review block must use fenced `forgeloop` YAML
+- inside the fenced YAML block, use the canonical snake_case field names from the rolling-doc contract; the human-readable dimension names below describe required coverage only and must not be used as alternate key spellings
 - the appended `r1_result` block must at minimum include `kind`, `round`, `author_role`, `created_at`, `handoff_id`, `review_target_ref`, `verdict`, and `next_action`; `author_role` must stay `reviewer`
 - the current `round`, `handoff_id`, and `review_target_ref` come from the active handoff; echo them exactly and do not review a different target under the same handoff
 - keep review prose and findings attached to the same review result; do not create a parallel review artifact

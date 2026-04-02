@@ -58,6 +58,7 @@ You must not:
 - the active `Plan Rolling Doc` is the only formal output surface for this review
 - append only the current round's `plan_review_result`; do not rewrite prior formal blocks
 - the formal review block must use fenced `forgeloop` YAML
+- inside the fenced YAML block, use the canonical snake_case field names from the rolling-doc contract; the human-readable dimension names below describe required coverage only and must not be used as alternate key spellings
 - the appended `plan_review_result` block must at minimum include `kind`, `round`, `author_role`, `created_at`, `handoff_id`, `verdict`, `seal_status`, `next_action`, and `review_target_ref`; `author_role` must stay `reviewer`
 - `seal_status` must be explicit formal state, such as `sealed` or `not_sealed`; do not force the rolling doc reader to infer seal from control flow
 - the current `round`, `handoff_id`, and `review_target_ref` come from the active handoff; echo them exactly and do not open or advance rounds

@@ -88,6 +88,7 @@ You must not:
   - Gap: `planner_update`, `gap_analysis_ref`
   - Plan: `planner_update`, `total_task_doc_ref`
 - formal machine blocks must use fenced `forgeloop` YAML
+- when authoring or repairing a planning artifact, preserve existing text anchors and add any required missing anchors for the stable sections that downstream packets will address; do not rename anchors without a real contract reason
 - every appended formal block must include `kind`, `round`, `author_role`, and `created_at`; `author_role` must stay `planner`
 - the current `round` comes from the `Supervisor` through the `Planning State Doc`; echo it exactly and do not open or advance rounds on your own
 - append against the currently active round; do not open a new round on your own because a reviewer requested changes or you made an in-round repair

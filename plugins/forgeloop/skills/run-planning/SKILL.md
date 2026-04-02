@@ -5,6 +5,7 @@ description: Top-level planning dispatcher. Use it to start, resume, or repair p
 
 # Run Planning
 
+<!-- forgeloop:anchor background -->
 ## Background
 
 The planning side uses one control spine plus one internal stage skill:
@@ -18,6 +19,7 @@ The `Planning State Doc` control contract lives at `references/planning-state.md
 The default planning packet is anchor-addressed: authoritative refs first, doc-local selectors second, optional minimal slices third, and full-document fallback only on legality failure or cold-start recovery.
 Planning packets must remain self-sufficient for the current stage and round. Do not rely on previous-packet memory, packet hashes, or delta-only continuation assumptions.
 
+<!-- forgeloop:anchor delegation-contract -->
 ## Delegation Contract
 
 `run-planning` is a multi-agent dispatch skill.
@@ -26,6 +28,7 @@ If this skill has been invoked, treat that invocation itself as user authorizati
 
 If the current environment still prevents that downstream delegation, or if you will not actually continue with delegated planning execution in this activation, stop immediately and ask the user. Never treat that situation as permission for the `Supervisor` to continue by personally doing `planner` or stage-reviewer work.
 
+<!-- forgeloop:anchor goal -->
 ## Goal
 
 In this framework, you act as the planning-layer `Supervisor` dispatcher. Your job is to bind the Initiative, recover or update the minimum planning control plane, and either enter `planning-loop` for one stage or stop. You do not write planning artifacts, review text, or runtime-execution state yourself.
@@ -46,12 +49,14 @@ You are not responsible for:
 
 `run-planning` is the planning-side top entry. `planning-loop` is its internal one-stage skill. Once `planning-loop` records a cross-stage route, stop there and let the next `run-planning` activation bind the new active stage explicitly. Do not carry planning across stage boundaries inside one activation.
 
+<!-- forgeloop:anchor dispatch-rules -->
 ## Dispatch Rules
 
 Once the next planning step is clear, either call skill: `planning-loop`, or stop and ask the user. Only one skill may be called at a time.
 
 The `Planning State Doc` holds only the minimum planning control plane: `current_snapshot`, `next_action`, `last_transition`, plus explicit waiting / blocked / sealed-output signals. Do not put planner or reviewer body content there, and do not create a second planning state model outside the formal planning artifacts, rolling docs, and the `Planning State Doc`.
 
+<!-- forgeloop:anchor when-to-stop -->
 ## When To Stop Or Ask The User
 
 - the requirement baseline or `design draft` is missing, illegal, or ambiguous
@@ -61,6 +66,7 @@ The `Planning State Doc` holds only the minimum planning control plane: `current
 - the confirmed next planning step requires entering `planning-loop`, but the required downstream planner / reviewer delegation is unavailable, blocked, or will not actually be performed in this activation
 - planning is already in `sealed_planning_docs_ready`, or it is in a waiting / blocked stop state that this activation does not clearly resolve
 
+<!-- forgeloop:anchor main-flow -->
 ## Main Flow
 
 ### Step 1: Bind Input
@@ -105,7 +111,7 @@ Before dispatching, make the active planning stage explicit in the `Planning Sta
 3. Only a fresh stage with no rolling doc may omit them temporarily; `planning-loop` must then initialize `planner_slot=planner` and `round=1`.
 4. `next_action` records entry into `planning-loop` for the bound stage.
 5. `last_transition` records cold start, recovery, rebind, reopen, or resume.
-6. If the route is `reopen_to_design` or `reopen_to_gap_analysis`, keep that reopen semantics visible in `last_transition`.
+6. If the route is `reopen_to_design` or `reopen_to_gap_analysis`, stay visible as a reopen route in `last_transition`.
 7. If the `Planning State Doc` does not exist, initialize only `current_snapshot`, `next_action`, and `last_transition`.
 
 ### Step 4: Dispatch The Internal Stage Skill
@@ -124,6 +130,7 @@ After `planning-loop` returns, reread the `Planning State Doc`.
 2. If the returned state records a cross-stage route, stop and let the next `run-planning` activation bind the new stage explicitly.
 3. If the returned state no longer exposes one legal stop point or one recoverable active stage, stop and surface the illegal planning state explicitly.
 
+<!-- forgeloop:anchor red-lines -->
 ## Red Lines
 
 Never:
@@ -136,6 +143,7 @@ Never:
 - re-decide `Gap Analysis Requirement` from chat summaries or loose Initiative labels after the sealed `Design Doc` exists
 - create a second planning truth source outside the formal planning artifacts, planning rolling docs, and the `Planning State Doc`
 
+<!-- forgeloop:anchor completion-criteria -->
 ## Completion Criteria
 
 After a correct `run-planning` activation, all of the following should be true:

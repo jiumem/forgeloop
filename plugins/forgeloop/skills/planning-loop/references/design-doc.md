@@ -72,6 +72,10 @@
 ### 8.3 升级触发器（Escalation Triggers）
 ```
 
+## 稳定锚点要求（Text Anchor Requirement）
+
+下游最小读取依赖稳定锚点。所有一级标题，以及所有会被下游直接引用的二级标题，前面都必须插入唯一的 `<!-- forgeloop:anchor <selector> -->` 注释。不要让下游依赖标题文本、行号或目录结构。
+
 ## 分节合同
 
 > 本文凡标注为“唯一权威区块”的小节，其他小节只能引用，不得重裁决；若需概括，只能做索引，不得改写边界。
@@ -133,7 +137,7 @@
 
 ### 8. 残余风险与后续事项（Residual Risks And Follow-Ups）
 
-- `8.1 可接受残余风险（Accepted Residual Risks）`：只记录 sealed 后在法律上可以留下的风险
+- `8.1 可接受残余风险（Accepted Residual Risks）`：只记录 sealed 后在本层允许保留的风险
 - `8.2 后续事项（Follow-Ups）`：记录不会阻塞当前设计 seal 的后续工作
 - `8.3 升级触发器（Escalation Triggers）`：说明未来哪些发现必须触发回到设计层，而不是让下游悄悄打补丁
 - 不要在这里隐藏阻塞性的设计不确定性
