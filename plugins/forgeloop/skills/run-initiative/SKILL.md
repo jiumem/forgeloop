@@ -11,7 +11,11 @@ description: Use when the user asks to advance, continue, or resume an Initiativ
 The Initiative execution system uses one control spine plus one unified execution backbone:
 - `Supervisor` acts as the dispatcher and maintains the `Global State Doc`
 - coder and reviewer perform formal handoff inside object-level review rolling docs
-- the system enters `code-loop` in `task`, `milestone`, or `initiative` mode based on the current progress position
+- `run-initiative` binds one runtime `mode` and enters `code-loop`
+- legal runtime `mode` values are only `task`, `milestone`, and `initiative`
+
+`task-loop`, `milestone-loop`, and `initiative-loop` are not part of the canonical runtime execution architecture.
+Do not preserve or reintroduce wrapper-layer execution law outside `code-loop` and `references/runtime-object-modes.md`.
 
 The repo-local control-plane root contract lives at `../references/control-plane-roots.md`.
 

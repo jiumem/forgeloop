@@ -17,7 +17,7 @@ check_pattern() {
 
 check_pattern \
   "plugins/forgeloop/skills/references/anchor-addressing.md" \
-  '`run-initiative/SKILL.md`, `code-loop/SKILL.md`, or compatibility wrapper skills'
+  '`run-initiative/SKILL.md`, or `code-loop/SKILL.md`'
 check_pattern \
   "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md" \
   'Ordinary coder / reviewer packets remain anchor-addressed minimal in every supported runtime mode'

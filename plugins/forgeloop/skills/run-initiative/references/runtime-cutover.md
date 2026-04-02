@@ -4,7 +4,7 @@
 ## Document Role
 
 - Plane: runtime-only migration and rollback reference
-- Applies to: `run-initiative`, `code-loop`, `rebuild-runtime`, compatibility wrappers such as `task-loop` / `milestone-loop` / `initiative-loop`, runtime reviewer packets, and runtime validation
+- Applies to: `run-initiative`, `code-loop`, `rebuild-runtime`, runtime reviewer packets, and runtime validation
 - Primary readers: runtime `Supervisor`, runtime coders/reviewers, and repository self-checks
 - Primary purpose: define one repository-owned source of truth for the runtime `Supervisor` read default, the ordinary worker packet default, the legal fallback surface, and rollback behavior
 

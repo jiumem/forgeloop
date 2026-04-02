@@ -61,7 +61,7 @@ A packet must remain self-sufficient for the current operation. Do not rely on p
 
 A packet is illegal if it provides sliced text without the authoritative `doc_ref + anchor_selector` pair that produced it.
 
-Supervisor or dispatcher skill docs are not worker authoritative packet payload. Do not include `run-planning/SKILL.md`, `planning-loop/SKILL.md`, `run-initiative/SKILL.md`, `code-loop/SKILL.md`, or compatibility wrapper skills such as `task-loop`, `milestone-loop`, and `initiative-loop` in ordinary worker packets; if a validation or exceptional fallback intentionally includes one, mark it as explicit fallback material and state the reason.
+Supervisor or dispatcher skill docs are not worker authoritative packet payload. Do not include `run-planning/SKILL.md`, `planning-loop/SKILL.md`, `run-initiative/SKILL.md`, or `code-loop/SKILL.md` in ordinary worker packets; if a validation or exceptional fallback intentionally includes one, mark it as explicit fallback material and state the reason.
 
 <!-- forgeloop:anchor resolution-contract -->
 ## Resolution Contract

@@ -1,6 +1,6 @@
 ---
 name: code-loop
-description: Unified runtime object loop. Use when one confirmed runtime object must continue in task, milestone, or initiative mode; this skill preserves one durable `coder_slot`, one object-local round, and one mode-specific review contract.
+description: Unified runtime executor. Use when one confirmed runtime object must continue under a bound `mode` of `task`, `milestone`, or `initiative`; this skill owns the full object-local dispatch backbone.
 ---
 
 # Code Loop
@@ -8,9 +8,9 @@ description: Unified runtime object loop. Use when one confirmed runtime object 
 <!-- forgeloop:anchor role -->
 ## Role
 
-`code-loop` is the unified runtime-object executor under `run-initiative`.
+`code-loop` is the only runtime loop executor under `run-initiative`.
 
-You act as the runtime-object `Supervisor`: keep the minimum runtime control plane, preserve one durable `coder_slot`, dispatch the `coder`, dispatch the mode-bound reviewer, and route only within one currently bound runtime mode.
+The caller binds exactly one runtime `mode`, and `code-loop` then owns the full object-local supervision for that mode: recovery, collaboration-surface initialization, dispatch of the `coder`, gate handling, reviewer dispatch, review-result handling, and object-local round progression.
 
 Supported modes:
 
@@ -18,7 +18,7 @@ Supported modes:
 - `milestone`
 - `initiative`
 
-`code-loop` unifies the execution backbone. It does not erase mode-specific contracts.
+`code-loop` unifies execution law while consuming mode-specific contracts from bound references. It is not a wrapper, and it is not a second dispatcher.
 
 You are not responsible for writing code, writing reviewer body content, or creating a second runtime truth source.
 

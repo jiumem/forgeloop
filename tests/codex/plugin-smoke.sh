@@ -34,7 +34,7 @@ assert entry["policy"]["installation"] == "AVAILABLE", entry["policy"]["installa
 assert entry["policy"]["authentication"] == "ON_INSTALL", entry["policy"]["authentication"]
 PY
 
-for skill in run-planning planning-loop run-initiative code-loop rebuild-runtime task-loop milestone-loop initiative-loop using-git-worktrees; do
+for skill in run-planning planning-loop run-initiative code-loop rebuild-runtime using-git-worktrees; do
   if [ ! -f "${ROOT}/plugins/forgeloop/skills/${skill}/SKILL.md" ]; then
     echo "packaged skill missing: ${skill}"
     exit 1

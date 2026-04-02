@@ -46,9 +46,7 @@ for path in \
   plugins/forgeloop/skills/run-initiative/SKILL.md \
   plugins/forgeloop/skills/code-loop/SKILL.md \
   plugins/forgeloop/skills/rebuild-runtime/SKILL.md \
-  plugins/forgeloop/skills/task-loop/SKILL.md \
-  plugins/forgeloop/skills/milestone-loop/SKILL.md \
-  plugins/forgeloop/skills/initiative-loop/SKILL.md
+  plugins/forgeloop/skills/using-git-worktrees/SKILL.md
 do
   if ! rg -q 'runtime-cutover.md' "$path"; then
     echo "runtime skill does not bind the runtime cutover contract: $path"

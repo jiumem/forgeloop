@@ -49,28 +49,28 @@ Runtime workflow roles obey the single runtime cutover contract in `plugins/forg
 ### `coder`
 
 - Stage: runtime execution
-- Used by: `code-loop` (`task|milestone|initiative` mode), with compatibility entry via `task-loop`, `milestone-loop`, and `initiative-loop`
+- Used by: `code-loop` (`task|milestone|initiative` mode)
 - Purpose: act as the single continuous coding owner, execute `G1` / `G2` / `G3` as assigned, and append coder facts to the active rolling doc
 - Returns: formal coder and gate facts in the active rolling doc
 
 ### `task_reviewer`
 
 - Stage: Task formal review
-- Used by: `code-loop` in `task` mode, with compatibility entry via `task-loop`
+- Used by: `code-loop` in `task` mode
 - Purpose: execute `R1` against the current Task anchor after `G1 -> anchor / fixup`
 - Returns: Task-level formal review result in the active `Task Review Rolling Doc`
 
 ### `milestone_reviewer`
 
 - Stage: Milestone formal review
-- Used by: `code-loop` in `milestone` mode, with compatibility entry via `milestone-loop`
+- Used by: `code-loop` in `milestone` mode
 - Purpose: execute `R2` against the current Milestone stage candidate after `G2`
 - Returns: Milestone-level formal review result in the active `Milestone Review Rolling Doc`
 
 ### `initiative_reviewer`
 
 - Stage: Initiative formal review
-- Used by: `code-loop` in `initiative` mode, with compatibility entry via `initiative-loop`
+- Used by: `code-loop` in `initiative` mode
 - Purpose: execute `R3` against the current Initiative delivery candidate after `G3`
 - Returns: Initiative-level formal review result in the active `Initiative Review Rolling Doc`
 

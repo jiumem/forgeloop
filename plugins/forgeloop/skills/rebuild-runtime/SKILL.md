@@ -84,7 +84,7 @@ Do not try to repair recovery by interpreting stale derived output as if it were
 Trigger only in the following situations:
 - the `Global State Doc` is missing, but rolling docs already exist
 - the `Global State Doc` clearly conflicts with the total task doc or the rolling docs
-- `code-loop` or a compatibility wrapper finds that the control plane cannot be recovered uniquely when binding an object
+- `code-loop` finds that the control plane cannot be recovered uniquely when binding an object
 - the original thread cannot continue, but the formal docs and Git facts are still sufficient for recovery
 
 This skill does not handle the following:

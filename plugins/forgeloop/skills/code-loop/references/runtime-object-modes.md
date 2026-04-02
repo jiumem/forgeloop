@@ -1,5 +1,12 @@
 # Runtime Object Modes Reference
 
+This reference is the only mode-local binding surface for `code-loop`.
+
+It replaces compatibility wrappers such as `task-loop`, `milestone-loop`, and `initiative-loop`.
+When `run-initiative` binds one runtime `mode`, `code-loop` must consume this file directly rather than entering a second wrapper skill.
+
+This file binds mode-local differences only. It does not create a second dispatcher, a second recovery layer, or a second routing vocabulary.
+
 <!-- forgeloop:anchor shared-backbone -->
 ## Shared Backbone
 
