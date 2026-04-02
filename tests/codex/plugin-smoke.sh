@@ -24,7 +24,7 @@ plugin = json.loads(plugin_manifest.read_text())
 marketplace = json.loads(marketplace_manifest.read_text())
 
 assert plugin["name"] == "forgeloop", plugin["name"]
-assert plugin["version"] == "0.7.1", plugin["version"]
+assert plugin["version"] == "0.8.0", plugin["version"]
 assert plugin["skills"] == "./skills/", plugin["skills"]
 
 entry = next(item for item in marketplace["plugins"] if item["name"] == "forgeloop")

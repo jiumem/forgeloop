@@ -91,7 +91,7 @@ You must not:
 
 ### 4. Judge Seal Readiness From The Authoritative Gap Sections
 
-- Check at minimum: explicit current-state evidence, target-state slice, `5.4` blocking gaps, `6.2` cutover and coexistence rules, `7.2` data and compatibility red lines, and `7.4` reroute triggers.
+- Check at minimum: explicit current-state evidence, target-state slice, coverage or legal `N/A` for the default high-impact surface classes (`entry surfaces`, `resolver / router / orchestrator surfaces`, `exporter / output surfaces`, `review-facing docs / reports`, `persistent state / contracts`), `5.4` blocking gaps, `6.2` cutover and coexistence rules, `7.2` data and compatibility red lines, and `7.4` reroute triggers.
 - If downstream planning would need to reconstruct where the real bridge or red lines are, the gap analysis is not ready to seal.
 
 ## Evidence Discipline
@@ -112,6 +112,7 @@ For individual findings, you may use only three evidence levels:
 Do not write inference as fact.
 
 Do not treat a plausible migration cut as proof of correct convergence.
+Do not let omitted high-impact current-state surfaces masquerade as acceptable brevity; they must be covered or explicitly marked `N/A`.
 
 ## Handoff Discipline
 

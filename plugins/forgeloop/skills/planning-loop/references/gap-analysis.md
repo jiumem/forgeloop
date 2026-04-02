@@ -92,7 +92,7 @@
 - `2.1 目标态引用（Target-State Reference）`：指向要桥接到的 sealed `Design Doc` 或权威设计区块
 - 被引用的 sealed `Design Doc` 必须显式写明 `Gap Analysis Requirement: required`；如果它写的是 `not_required`，这个阶段就是非法的，不应继续
 - `2.2 纳入范围的目标态切片（Target-State Slice In Scope）`：概括与本次 gap analysis 相关的目标态切片，让下游读者无需先重建整份设计文档就能判断差距
-- `2.3 当前态覆盖范围（Current-State Coverage）`：说明当前系统中哪些部分真正处于分析范围内
+- `2.3 当前态覆盖范围（Current-State Coverage）`：说明当前系统中哪些部分真正处于分析范围内；至少要交代以下默认高影响 surface 类别，并为每类给出首个证据入口或明确标记 `N/A`：`entry surfaces`、`resolver / router / orchestrator surfaces`、`exporter / output surfaces`、`review-facing docs / reports`、`persistent state / contracts`
 - `2.4 差距闭合目标（Gap-Closure Goal）`：说明在安全撰写 `Total Task Doc` 之前，必须先让哪些条件成立
 - `2.5 硬约束（Hard Constraints）`：说明收敛过程中不得违反的约束
 
@@ -106,9 +106,9 @@
 ### 4. 当前态快照（Current-State Snapshot）
 
 - `4.1 现有拓扑（Existing Topology）`：定义相关的当前对象布局、职责切法与系统形态
-- `4.2 现有关键表面（Existing Critical Surfaces）`：定义造成真实迁移压力的行为、状态与契约表面
+- `4.2 现有关键表面（Existing Critical Surfaces）`：定义造成真实迁移压力的行为、状态与契约表面；优先列出高影响 current-state surfaces，并给出各自的首个证据入口与为什么它们会影响下游 planning
 - `4.3 现有约束与历史包袱（Existing Constraints And Legacy Burdens）`：定义下游 planning 必须尊重的真实约束或遗留力量
-- `4.4 证据边界与未知项（Evidence Boundary And Unknowns）`：明确区分已验证的当前态事实、合理推断，以及仍未知的区域，好让 `gap_reviewer` 判断这份 gap ledger 是 grounded 还是 speculative
+- `4.4 证据边界与未知项（Evidence Boundary And Unknowns）`：明确区分已验证的当前态事实、合理推断，以及仍未知的区域，好让 `gap_reviewer` 判断这份 gap ledger 是 grounded 还是 speculative；默认高影响 surface 类别若未覆盖，必须在这里显式写成 `N/A`、`inference` 或 `unknown`，不能静默漏掉
 - 本节保持事实性和边界性；不要重讲产品历史
 
 ### 5. 差距账本（Gap Ledger）
@@ -167,7 +167,7 @@
 - 所有要求的二级标题都存在，或者以有效理由明确标记为 `N/A`
 - 被引用的 sealed `Design Doc` 明确要求必须做 gap analysis
 - 纳入范围的目标态切片明确
-- 相关当前态范围明确
+- 相关当前态范围明确，且默认高影响 surface 类别要么已有首个证据入口，要么合法标记 `N/A`
 - 当前态判断的证据边界明确
 - 主要差距明确
 - 收敛策略明确

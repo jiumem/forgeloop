@@ -2,7 +2,7 @@
 
 Run all checks from the repository root.
 
-For `0.7.1`, the release gate is the Codex workflow checks below. There is no Python package build, lint, or typecheck gate for this version.
+For `0.8.0`, the release gate is the Codex workflow checks below. There is no Python package build, lint, or typecheck gate for this version.
 
 ## 1. P0 validation closure
 
@@ -44,3 +44,4 @@ It also runs the planning-side regressions:
 
 - `tests/codex/planning-runner-regression.sh` keeps `run-planning` on same-activation loop-back semantics instead of regressing to stage-by-stage stop behavior
 - `tests/codex/planning-packet-lint.sh` keeps planning worker packets stage-local and prevents ordinary planner/reviewer packets from depending on `run-planning/SKILL.md` or `planning-loop/SKILL.md`
+- `tests/codex/control-plane-root-lint.sh` keeps the Initiative-local sibling `.forgeloop/` path as the only legal repo-local control-plane root and prevents drift back to legacy path semantics

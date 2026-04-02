@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.0 - 2026-04-02
+
+- removed legacy repo-root control-plane path semantics and made the Initiative-local sibling `.forgeloop/` directory the only legal repo-local control-plane root for planning and runtime
+- closed planning durable-ref semantics by binding canonical `stage_reference_ref` and `rolling_doc_contract_ref` to real repo-root-relative plugin refs instead of shorthand `references/...`
+- clarified that planning rolling docs remain the formal status truth while artifact prose status is only a readability mirror that must be repaired if it drifts
+- added light reviewer-first evidence scaffolding for `Gap Analysis Doc` and `Total Task Doc` so high-impact current-state surfaces and minimum evidence entrypoints are harder to omit without turning the templates into rigid schemas
+- added `tests/codex/control-plane-root-lint.sh`, wired it into the Codex-only release gate, and refreshed packet benchmark baselines after the doc-contract changes
+
 ## 0.7.1 - 2026-04-02
 
 - formalized one shared Initiative-local control-plane root contract so new planning and runtime control docs default to a sibling `.forgeloop/` directory next to the Initiative documents

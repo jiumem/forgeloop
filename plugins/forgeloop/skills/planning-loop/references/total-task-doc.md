@@ -146,10 +146,10 @@
 
 > 第 6 节只做验收与证据索引，不重定义验收线；权威分别在 `2.4`、`3.3`、`4.2` 与 `6.4`。
 
-- `6.1 Task 验收索引（Task Acceptance Index）`：索引 Task 验收与首个证据入口
-- `6.2 Milestone 验收索引（Milestone Acceptance Index）`：索引 Milestone 验收与首个证据入口
-- `6.3 Initiative 验收索引（Initiative Acceptance Index）`：索引 Initiative 验收与首个证据入口
-- `6.4 证据入口（Evidence Entrypoints）`：这是下游验证与审查应当优先查看哪些证据入口的唯一权威区块
+- `6.1 Task 验收索引（Task Acceptance Index）`：索引 Task 验收权威区块与首个可审查实物；优先指向可直接审查的 evidence，而不是说明性散文
+- `6.2 Milestone 验收索引（Milestone Acceptance Index）`：索引 Milestone 验收权威区块与首个可审查实物；优先指向可直接审查的 evidence，而不是说明性散文
+- `6.3 Initiative 验收索引（Initiative Acceptance Index）`：索引 Initiative 验收权威区块与首个可审查实物；优先指向可直接审查的 evidence，而不是说明性散文
+- `6.4 证据入口（Evidence Entrypoints）`：这是下游验证与审查应当优先查看哪些证据入口的唯一权威区块；至少要覆盖 `primary run summary`、`auxiliary runtime summary`、`per-case evidence`、`export output`、`owning code surface`、`owning doc surface` 这六类，若某类不适用必须明确写 `N/A` 与理由
 - 这个矩阵是控制面索引，不是散文式复述
 
 ### 7. 全局残余风险与后续事项（Global Residual Risks & Follow-Ups）
@@ -202,6 +202,8 @@
 - Task 账本 fully expanded，`4.1` 中的每个 `Task Key` 在 `4.2` 中都恰好有一个匹配定义，且不存在孤儿 Task 定义
 - 默认集成模型及任何 `Multi-PR Exception` 的使用都明确
 - 验收矩阵与 `6.4` 中的权威证据入口明确
+- `6.1`、`6.2`、`6.3` 都能指向首个可审查实物，而不是只回指说明文档
+- `6.4` 至少覆盖 reviewer-first 的六类证据入口，或对不适用项给出合法 `N/A`
 - `6` 不得重新定义已经由 `2.4`、`3.3` 与 `4.2` 拥有的验收线
 - 没有把未解决的设计或 gap 问题藏到下游去
 - 只有当 rolling doc 同 round 的最新 `planner_update` 使用 `next_action=request_reviewer_handoff`，并且存在匹配的当前 `total_task_doc_ref` handoff block 时，reviewer dispatch 才正式成立；`review-ready` 本身只说明文档已达到 handoff 条件

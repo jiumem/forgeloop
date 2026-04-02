@@ -176,6 +176,11 @@ plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md:only t
 plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md:requirement_fit
 plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md:current_state_evidence
 plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md:execution_boundary
+plugins/forgeloop/skills/planning-loop/references/gap-analysis.md:entry surfaces
+plugins/forgeloop/skills/planning-loop/references/gap-analysis.md:review-facing docs / reports
+plugins/forgeloop/agents/gap_reviewer.toml:entry surfaces
+plugins/forgeloop/skills/planning-loop/references/total-task-doc.md:primary run summary
+plugins/forgeloop/agents/plan_reviewer.toml:primary run summary
 plugins/forgeloop/scripts/anchor_slices.py:requirement_fit
 plugins/forgeloop/scripts/anchor_slices.py:current_state_evidence
 plugins/forgeloop/scripts/anchor_slices.py:execution_boundary

@@ -4,7 +4,7 @@
 
 Forgeloop is a Codex-only workflow layer built from composable skills. It turns Codex into a stricter engineering process: design first, plan second, implement in small verified steps, and review before moving on.
 
-`0.7.1` ships as a repo-local Codex plugin package. It is not a Python package.
+`0.8.0` ships as a repo-local Codex plugin package. It is not a Python package.
 
 ## Origin
 

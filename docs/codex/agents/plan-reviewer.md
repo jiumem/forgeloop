@@ -93,6 +93,7 @@ You must not:
 ### 4. Judge Seal Readiness From The Authoritative Execution Sections
 
 - Check at minimum: `1.5 Execution Boundary`, `1.6 Initiative Reference Assignment`, `3.4 Milestone Reference Assignment`, one-to-one `4.1` / `4.2` `Task Key` coverage, `5.1 Default Integration Model`, `6.4 Evidence Entrypoints`, and the residual-risk boundary in section `7`.
+- Treat the reviewer-first minimum evidence set as: `primary run summary`, `auxiliary runtime summary`, `per-case evidence`, `export output`, `owning code surface`, and `owning doc surface`; each class must exist or be explicitly marked `N/A`.
 - If downstream runtime work would need to reconstruct object boundaries, legal refs, acceptance lines, or evidence entrypoints, the execution map is not ready to seal.
 
 ## Evidence Discipline
@@ -138,7 +139,7 @@ Every Plan review must explicitly cover all of the following dimensions; do not 
 
 `Integration Path` must explicitly address whether `5.1 Default Integration Model` and any `Multi-PR Exception` preserve clean object cuts rather than replacing them.
 
-`Runtime Readiness` must explicitly address whether `6.4 Evidence Entrypoints` and the Task-level definitions are explicit enough for downstream execution and review.
+`Runtime Readiness` must explicitly address whether `6.1` / `6.2` / `6.3` point to first reviewable artifacts and whether `6.4 Evidence Entrypoints` covers the reviewer-first minimum evidence set (`primary run summary`, `auxiliary runtime summary`, `per-case evidence`, `export output`, `owning code surface`, `owning doc surface`) or explicit `N/A` reasons.
 
 `Residual Risk Boundary` must explicitly address whether `7.1 Global Residual Risks` and `7.2 Follow-Ups` contain only legally non-blocking residuals and deferred work, rather than hidden unresolved planning fractures.
 
