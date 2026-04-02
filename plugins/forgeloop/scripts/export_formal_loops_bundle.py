@@ -27,6 +27,8 @@ PLANNING_FILES = [
 
 RUNTIME_FILES = [
     "plugins/forgeloop/skills/run-initiative/SKILL.md",
+    "plugins/forgeloop/skills/code-loop/SKILL.md",
+    "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md",
     "plugins/forgeloop/skills/rebuild-runtime/SKILL.md",
     "plugins/forgeloop/skills/task-loop/SKILL.md",
     "plugins/forgeloop/skills/milestone-loop/SKILL.md",

@@ -5,7 +5,7 @@
 
 `Global State Doc` is the only runtime-wide update-only control spine.
 
-It exists to let `run-initiative`, `task-loop`, `milestone-loop`, `initiative-loop`, and `rebuild-runtime` recover one current active object, one current runtime route, and one recent transition without inventing a second state model.
+It exists to let `run-initiative`, `code-loop`, compatibility wrappers such as `task-loop` / `milestone-loop` / `initiative-loop`, and `rebuild-runtime` recover one current active object, one current runtime route, and one recent transition without inventing a second state model.
 
 For repo-local Initiatives, required placement is sibling `.forgeloop/global-state.md` under the Initiative document directory.
 

@@ -18,6 +18,8 @@ python3 plugins/forgeloop/scripts/anchor_slices.py check \
   plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md \
   plugins/forgeloop/skills/run-initiative/references/global-state.md \
   plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md \
+  plugins/forgeloop/skills/code-loop/SKILL.md \
+  plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md \
   plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md \
   plugins/forgeloop/skills/run-initiative/references/milestone-review-rolling-doc.md \
   plugins/forgeloop/skills/run-initiative/references/initiative-review-rolling-doc.md \
@@ -42,6 +44,7 @@ fi
 
 for path in \
   plugins/forgeloop/skills/run-initiative/SKILL.md \
+  plugins/forgeloop/skills/code-loop/SKILL.md \
   plugins/forgeloop/skills/rebuild-runtime/SKILL.md \
   plugins/forgeloop/skills/task-loop/SKILL.md \
   plugins/forgeloop/skills/milestone-loop/SKILL.md \

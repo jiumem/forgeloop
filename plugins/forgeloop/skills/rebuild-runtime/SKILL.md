@@ -47,6 +47,7 @@ Hard boundaries:
   - Initiative: the latest `g3_result` in the current round whose `next_action=enter_r3`
 - a review result is actionable only when its `round`, `handoff_id`, and `review_target_ref` match that current handoff exactly; if multiple review results match one current handoff, only the latest appended matching block is actionable
 - a new round opens only on first entry into an object, after a reviewer requests same-object repair, or after callback semantics from a repair Task explicitly say the source object should enter the next round
+- if callback metadata must be recovered for an objectized repair Task, recover `callback_round_behavior` from the source formal block kind: actionable `g2_result` / `g3_result` objectization means `continue_current_round`; actionable `r2_result` / `r3_result` objectization means `enter_next_round`
 
 <!-- forgeloop:anchor recovery-order -->
 ## Recovery Order
@@ -83,7 +84,7 @@ Do not try to repair recovery by interpreting stale derived output as if it were
 Trigger only in the following situations:
 - the `Global State Doc` is missing, but rolling docs already exist
 - the `Global State Doc` clearly conflicts with the total task doc or the rolling docs
-- `task-loop`, `milestone-loop`, or `initiative-loop` finds that the control plane cannot be recovered uniquely when binding an object
+- `code-loop` or a compatibility wrapper finds that the control plane cannot be recovered uniquely when binding an object
 - the original thread cannot continue, but the formal docs and Git facts are still sufficient for recovery
 
 This skill does not handle the following:
@@ -126,7 +127,7 @@ This skill does not handle the following:
 - Write `current_snapshot` as the uniquely recovered active plane / active object / `coder_slot` / object `round`, using the canonical `Global State Doc` contract
 - Write `next_action` as the uniquely recovered next step, using the canonical runtime routing vocabulary from the `Global State Doc` contract
 - Write `last_transition` as a recovery transition explaining why the control plane was rebuilt, using the canonical `Global State Doc` contract
-- After writing, immediately hand control back to skill: `run-initiative` so the upstream dispatcher can reconfirm and continue
+- After writing, immediately hand control back to skill: `run-initiative` so the upstream dispatcher can reconfirm the recovered active plane and continue through `code-loop`
 
 <!-- forgeloop:anchor stop-conditions -->
 ## Stop Conditions

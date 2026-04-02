@@ -15,8 +15,9 @@ Forgeloop is built from a customized adaptation of [obra/superpowers](https://gi
 1. `run-planning` is the planning entry: it binds the active Initiative's planning inputs plus minimum planning control plane, then routes into the confirmed planning stage.
 2. `planning-loop` is the internal single-stage planning closure skill used by `run-planning`.
 3. `run-initiative` is the runtime entry: it binds the active Initiative, runs planning admission, calls `using-git-worktrees` when needed, and resumes the correct closure loop.
-4. `task-loop`, `milestone-loop`, and `initiative-loop` perform Task, Milestone, and Initiative closure.
-5. `rebuild-runtime` recovers the runtime control plane when state is missing, conflicting, or cannot be resumed directly.
+4. `code-loop` is the unified runtime object executor; it runs in `task`, `milestone`, or `initiative` mode.
+5. `task-loop`, `milestone-loop`, and `initiative-loop` remain as compatibility frontends that bind one mode and dispatch `code-loop`.
+6. `rebuild-runtime` recovers the runtime control plane when state is missing, conflicting, or cannot be resumed directly.
 
 These skills are meant to be mandatory workflow constraints, not optional suggestions.
 
@@ -72,6 +73,7 @@ The shipped custom agent set is documented in [docs/forgeloop/agents.md](docs/fo
 - `run-planning`
 - `planning-loop` (internal planning stage skill)
 - `run-initiative`
+- `code-loop`
 - `using-git-worktrees`
 - `rebuild-runtime`
 - `task-loop`

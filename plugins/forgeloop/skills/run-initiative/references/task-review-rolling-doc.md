@@ -156,5 +156,5 @@ When the rolling doc does not yet exist:
 
 - initialize only `task_review_header` and `task_contract_snapshot`
 - write `coder_slot=coder` into the header
-- let `task-loop` write `round=1` into the `Global State Doc`
+- let `code-loop` write `round=1` into the `Global State Doc`
 - do not append fake `coder_update`, `g1_result`, or `r1_result` blocks just to make the file look complete

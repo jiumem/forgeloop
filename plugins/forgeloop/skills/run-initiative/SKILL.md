@@ -8,10 +8,10 @@ description: Use when the user asks to advance, continue, or resume an Initiativ
 <!-- forgeloop:anchor background -->
 ## Background
 
-The Initiative execution loop uses one control spine plus three execution loops:
+The Initiative execution system uses one control spine plus one unified execution backbone:
 - `Supervisor` acts as the dispatcher and maintains the `Global State Doc`
 - coder and reviewer perform formal handoff inside object-level review rolling docs
-- the system enters the Task, Milestone, or Initiative review/repair loop based on the current progress position
+- the system enters `code-loop` in `task`, `milestone`, or `initiative` mode based on the current progress position
 
 The repo-local control-plane root contract lives at `../references/control-plane-roots.md`.
 
@@ -53,7 +53,7 @@ In this framework, you act as the `Supervisor` dispatcher. You are responsible o
 - running the execution-side planning admission check before any runtime dispatch
 - determining the next step, or whether to stop, rebuild, or ask the user
 - updating the `Global State Doc` when needed
-- calling one of the following when needed: skill: `using-git-worktrees`, skill: `rebuild-runtime`, skill: `task-loop`, skill: `milestone-loop`, or skill: `initiative-loop`
+- calling one of the following when needed: skill: `using-git-worktrees`, skill: `rebuild-runtime`, or skill: `code-loop`
 
 You are not responsible for:
 - writing code
@@ -160,9 +160,9 @@ Only after workspace binding when needed, choose the runtime read order from `cu
 - delivered / waiting / blocked stop that is still consistent
 - cold start with no runtime docs
 - runtime rebuild when state is missing or conflicting
-- task loop when a Task is clearly active or next-ready
-- milestone loop when Milestone review/repair is clearly active
-- initiative loop when Initiative review/repair is clearly active
+- task-mode code loop when a Task is clearly active or next-ready
+- milestone-mode code loop when Milestone review/repair is clearly active
+- initiative-mode code loop when Initiative review/repair is clearly active
 - ask the user only when facts are legal but still ambiguous
 4. Apply the first matching case:
 - if the `Global State Doc` already records a delivered stop state such as `initiative_delivered`: stop and explain the stop point
@@ -171,9 +171,9 @@ Only after workspace binding when needed, choose the runtime read order from `cu
   - if yes, record that resume in `last_transition`, then continue from newer formal runtime truth instead of treating the stop as terminal
 - if `Global State Doc` is missing and no rolling doc exists: treat it as a new Initiative start
 - if `Global State Doc` is missing but rolling docs already exist, or if `Global State Doc` clearly conflicts with the total task doc or rolling docs: call skill: `rebuild-runtime`
-- if current progress clearly belongs to the Task review/repair loop, including continuing the currently bound Task, continuing repair on the current Task, or uniquely identifying the next ready Task: formally rebind `current_snapshot` and `next_action` to that Task if needed, then call skill: `task-loop`
-- if current progress clearly belongs to a Milestone review/repair loop: formally rebind `current_snapshot` and `next_action` to that Milestone if needed, then call skill: `milestone-loop`
-- if current progress clearly belongs to the Initiative review/repair loop: formally rebind `current_snapshot` and `next_action` to that Initiative if needed, then call skill: `initiative-loop`
+- if current progress clearly belongs to the Task review/repair loop, including continuing the currently bound Task, continuing repair on the current Task, or uniquely identifying the next ready Task: formally rebind `current_snapshot` and `next_action` to that Task if needed, bind `mode=task`, then call skill: `code-loop`
+- if current progress clearly belongs to a Milestone review/repair loop: formally rebind `current_snapshot` and `next_action` to that Milestone if needed, bind `mode=milestone`, then call skill: `code-loop`
+- if current progress clearly belongs to the Initiative review/repair loop: formally rebind `current_snapshot` and `next_action` to that Initiative if needed, bind `mode=initiative`, then call skill: `code-loop`
 - if the facts do not conflict but the next step still cannot be determined uniquely: ask the user
 5. You may confirm only one next step or one clear stop point. If facts conflict, call skill: `rebuild-runtime`; if they are ambiguous, ask the user.
 
@@ -181,14 +181,14 @@ Only after workspace binding when needed, choose the runtime read order from `cu
 
 Consume only the conclusion already confirmed in the previous step. Do not reinterpret the facts, and do not rematerialize runtime refs against a different workspace mid-activation.
 
-1. If the confirmed next step is to call skill: `task-loop`, skill: `milestone-loop`, or skill: `initiative-loop`, ensure the already bound active Initiative workspace is `execution_ready` first. If this activation has only done `bind_only` so far, call skill: `using-git-worktrees` again in `execution_ready` mode against that same active workspace before dispatching the loop.
+1. If the confirmed next step is to call skill: `code-loop`, ensure the already bound active Initiative workspace is `execution_ready` first. If this activation has only done `bind_only` so far, call skill: `using-git-worktrees` again in `execution_ready` mode against that same active workspace before dispatching the loop.
 2. `execution_ready` means the active Initiative workspace has completed repo-obvious setup and baseline verification strongly enough to enter coder or reviewer execution.
 3. If `using-git-worktrees` in `execution_ready` mode exposes a conflict, waiting state, or blocker, stop at that point.
 
-4. New Initiative start: after planning admission has already passed, initialize the minimum `Global State Doc`. If there is a clear first executable Task, bind `current_snapshot` to that Task, set `next_action.action = continue_task_coder_round`, then call skill: `task-loop`. Otherwise stop and ask the user.
-5. Existing Initiative resumes into the Task review/repair loop: if the Task that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then call skill: `task-loop`.
-6. Existing Initiative resumes into the Milestone review/repair loop: if the Milestone that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then call skill: `milestone-loop`.
-7. Existing Initiative resumes into the Initiative review/repair loop: if the Initiative that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then call skill: `initiative-loop`.
+4. New Initiative start: after planning admission has already passed, initialize the minimum `Global State Doc`. If there is a clear first executable Task, bind `current_snapshot` to that Task, bind `mode=task`, set `next_action.action = continue_task_coder_round`, then call skill: `code-loop`. Otherwise stop and ask the user.
+5. Existing Initiative resumes into the Task review/repair loop: if the Task that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then bind `mode=task` and call skill: `code-loop`.
+6. Existing Initiative resumes into the Milestone review/repair loop: if the Milestone that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then bind `mode=milestone` and call skill: `code-loop`.
+7. Existing Initiative resumes into the Initiative review/repair loop: if the Initiative that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then bind `mode=initiative` and call skill: `code-loop`.
 8. `rebuild-runtime` is required: call skill: `rebuild-runtime`.
 9. User confirmation is required: stop and ask the minimum necessary question.
 10. The system is already in a stop state: stop and enter no loop.

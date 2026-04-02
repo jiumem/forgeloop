@@ -20,6 +20,7 @@ expected_skills=(
   run-planning
   planning-loop
   run-initiative
+  code-loop
   rebuild-runtime
   task-loop
   milestone-loop
@@ -151,12 +152,14 @@ plugins/forgeloop/skills/planning-loop/SKILL.md:planner
 plugins/forgeloop/skills/planning-loop/SKILL.md:design_reviewer
 plugins/forgeloop/skills/planning-loop/SKILL.md:gap_reviewer
 plugins/forgeloop/skills/planning-loop/SKILL.md:plan_reviewer
-plugins/forgeloop/skills/task-loop/SKILL.md:coder
-plugins/forgeloop/skills/task-loop/SKILL.md:task_reviewer
-plugins/forgeloop/skills/milestone-loop/SKILL.md:coder
-plugins/forgeloop/skills/milestone-loop/SKILL.md:milestone_reviewer
-plugins/forgeloop/skills/initiative-loop/SKILL.md:coder
-plugins/forgeloop/skills/initiative-loop/SKILL.md:initiative_reviewer
+plugins/forgeloop/skills/run-initiative/SKILL.md:code-loop
+plugins/forgeloop/skills/code-loop/SKILL.md:coder
+plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:task_reviewer
+plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:milestone_reviewer
+plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:initiative_reviewer
+plugins/forgeloop/skills/task-loop/SKILL.md:code-loop
+plugins/forgeloop/skills/milestone-loop/SKILL.md:code-loop
+plugins/forgeloop/skills/initiative-loop/SKILL.md:code-loop
 EOF
 
 while IFS=':' read -r file pattern; do
@@ -205,12 +208,18 @@ while IFS=':' read -r file pattern; do
     exit 1
   fi
 done <<'EOF'
-plugins/forgeloop/skills/task-loop/SKILL.md:handoff_id
-plugins/forgeloop/skills/task-loop/SKILL.md:continue_task_coder_round
-plugins/forgeloop/skills/milestone-loop/SKILL.md:enter_r2
-plugins/forgeloop/skills/milestone-loop/SKILL.md:handoff_id
-plugins/forgeloop/skills/initiative-loop/SKILL.md:mark_initiative_delivered
-plugins/forgeloop/skills/initiative-loop/SKILL.md:initiative_delivered
+plugins/forgeloop/skills/code-loop/SKILL.md:handoff_id
+plugins/forgeloop/skills/code-loop/SKILL.md:current_runtime_cutover_mode
+plugins/forgeloop/skills/code-loop/SKILL.md:fork_context=false
+plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:continue_task_coder_round
+plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:enter_r2
+plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:mark_initiative_delivered
+plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:initiative_delivered
+plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:continue_current_round
+plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:enter_next_round
+plugins/forgeloop/skills/task-loop/SKILL.md:mode=task
+plugins/forgeloop/skills/milestone-loop/SKILL.md:mode=milestone
+plugins/forgeloop/skills/initiative-loop/SKILL.md:mode=initiative
 plugins/forgeloop/skills/run-initiative/references/global-state.md:total_task_doc_ref
 plugins/forgeloop/skills/run-initiative/references/global-state.md:active_plane=frontier
 plugins/forgeloop/skills/run-initiative/references/global-state.md:callback_return_rolling_doc_ref

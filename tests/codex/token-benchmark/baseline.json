@@ -37,10 +37,10 @@
           "plugins/forgeloop/skills/run-initiative/references/global-state.md"
         ],
         "stats": {
-          "chars": 83986,
+          "chars": 84152,
           "lines": 1271,
-          "words": 9673,
-          "approx_tokens": 20997
+          "words": 9699,
+          "approx_tokens": 21038
         }
       },
       "minimal": {
@@ -59,10 +59,10 @@
           "plugins/forgeloop/skills/run-initiative/references/global-state.md#bootstrap-law"
         ],
         "stats": {
-          "chars": 40526,
+          "chars": 40637,
           "lines": 560,
-          "words": 4332,
-          "approx_tokens": 10132
+          "words": 4347,
+          "approx_tokens": 10160
         }
       },
       "reduction_pct": 51.7
@@ -84,17 +84,18 @@
           "docs/initiatives/active/anchor-sliced-dispatch-optimization/gap-analysis.md",
           "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md",
           "plugins/forgeloop/skills/run-initiative/SKILL.md",
-          "plugins/forgeloop/skills/task-loop/SKILL.md",
+          "plugins/forgeloop/skills/code-loop/SKILL.md",
+          "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md",
           "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md",
           "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md",
           "tests/codex/token-benchmark/fixtures/global-state-active-task.md",
           "tests/fixtures/anchor-slicing/task-review-sample.md"
         ],
         "stats": {
-          "chars": 100409,
-          "lines": 1630,
-          "words": 11830,
-          "approx_tokens": 25103
+          "chars": 98742,
+          "lines": 1707,
+          "words": 11519,
+          "approx_tokens": 24686
         }
       },
       "minimal": {
@@ -103,21 +104,22 @@
           "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md#acceptance-matrix",
           "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md#current-mode",
           "plugins/forgeloop/skills/run-initiative/SKILL.md#main-flow",
-          "plugins/forgeloop/skills/task-loop/SKILL.md#truth-sources-boundaries",
-          "plugins/forgeloop/skills/task-loop/SKILL.md#workflow",
+          "plugins/forgeloop/skills/code-loop/SKILL.md#truth-sources-boundaries",
+          "plugins/forgeloop/skills/code-loop/SKILL.md#workflow",
+          "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md#task-mode",
           "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md#handoff-law",
           "tests/codex/token-benchmark/fixtures/global-state-active-task.md#current-snapshot",
           "tests/codex/token-benchmark/fixtures/global-state-active-task.md#next-action",
           "tests/fixtures/anchor-slicing/task-review-sample.md::current-effective.md"
         ],
         "stats": {
-          "chars": 31437,
-          "lines": 462,
-          "words": 3217,
-          "approx_tokens": 7860
+          "chars": 29415,
+          "lines": 491,
+          "words": 2907,
+          "approx_tokens": 7354
         }
       },
-      "reduction_pct": 68.7
+      "reduction_pct": 70.2
     },
     {
       "name": "Same-Task Same-Round Coder Continue",
@@ -132,38 +134,39 @@
       ],
       "legacy": {
         "read_set": [
-          "plugins/forgeloop/skills/task-loop/SKILL.md",
+          "plugins/forgeloop/skills/code-loop/SKILL.md",
+          "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md",
           "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md",
           "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md",
           "tests/fixtures/anchor-slicing/task-review-sample.md",
           "tests/codex/token-benchmark/fixtures/global-state-active-task.md"
         ],
         "stats": {
-          "chars": 30396,
-          "lines": 673,
-          "words": 3767,
-          "approx_tokens": 7599
+          "chars": 28653,
+          "lines": 750,
+          "words": 3444,
+          "approx_tokens": 7164
         }
       },
       "minimal": {
         "read_set": [
           "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md#current-mode",
-          "plugins/forgeloop/skills/task-loop/SKILL.md#truth-sources-boundaries",
-          "plugins/forgeloop/skills/task-loop/SKILL.md#task.cutover-mode-law",
-          "plugins/forgeloop/skills/task-loop/SKILL.md#workflow",
+          "plugins/forgeloop/skills/code-loop/SKILL.md#truth-sources-boundaries",
+          "plugins/forgeloop/skills/code-loop/SKILL.md#workflow",
+          "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md#task-mode",
           "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md#canonical-task-vocabulary",
           "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md#handoff-law",
           "tests/codex/token-benchmark/fixtures/global-state-active-task.md#current-snapshot",
           "tests/fixtures/anchor-slicing/task-review-sample.md::attempt-aware/round-2.md"
         ],
         "stats": {
-          "chars": 15257,
-          "lines": 288,
-          "words": 1775,
-          "approx_tokens": 3815
+          "chars": 12155,
+          "lines": 292,
+          "words": 1351,
+          "approx_tokens": 3039
         }
       },
-      "reduction_pct": 49.8
+      "reduction_pct": 57.6
     },
     {
       "name": "Same-Task Handoff To Fresh Reviewer",
@@ -178,36 +181,38 @@
       ],
       "legacy": {
         "read_set": [
-          "plugins/forgeloop/skills/task-loop/SKILL.md",
+          "plugins/forgeloop/skills/code-loop/SKILL.md",
+          "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md",
           "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md",
           "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md",
           "tests/fixtures/anchor-slicing/task-review-sample.md",
           "plugins/forgeloop/agents/task_reviewer.toml"
         ],
         "stats": {
-          "chars": 36149,
-          "lines": 812,
-          "words": 4756,
-          "approx_tokens": 9038
+          "chars": 34406,
+          "lines": 889,
+          "words": 4433,
+          "approx_tokens": 8602
         }
       },
       "minimal": {
         "read_set": [
           "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md#current-mode",
           "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md#fallback-law",
-          "plugins/forgeloop/skills/task-loop/SKILL.md#workflow",
+          "plugins/forgeloop/skills/code-loop/SKILL.md#workflow",
+          "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md#task-mode",
           "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md#handoff-law",
           "tests/fixtures/anchor-slicing/task-review-sample.md::handoff-scoped/sample-r2-a1.md",
           "plugins/forgeloop/agents/task_reviewer.toml"
         ],
         "stats": {
-          "chars": 17563,
-          "lines": 379,
-          "words": 2309,
-          "approx_tokens": 4391
+          "chars": 16604,
+          "lines": 411,
+          "words": 2171,
+          "approx_tokens": 4151
         }
       },
-      "reduction_pct": 51.4
+      "reduction_pct": 51.7
     },
     {
       "name": "Milestone Review",
@@ -223,16 +228,17 @@
       "legacy": {
         "read_set": [
           "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md",
-          "plugins/forgeloop/skills/milestone-loop/SKILL.md",
+          "plugins/forgeloop/skills/code-loop/SKILL.md",
+          "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md",
           "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md",
           "plugins/forgeloop/skills/run-initiative/references/milestone-review-rolling-doc.md",
           "tests/codex/token-benchmark/fixtures/milestone-review-sample.md"
         ],
         "stats": {
-          "chars": 56509,
-          "lines": 875,
-          "words": 6431,
-          "approx_tokens": 14128
+          "chars": 52494,
+          "lines": 949,
+          "words": 5816,
+          "approx_tokens": 13124
         }
       },
       "minimal": {
@@ -240,20 +246,20 @@
           "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md#milestone-master-table",
           "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md#acceptance-matrix",
           "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md#current-mode",
-          "plugins/forgeloop/skills/milestone-loop/SKILL.md#truth-sources-boundaries",
-          "plugins/forgeloop/skills/milestone-loop/SKILL.md#milestone.cutover-mode-law",
-          "plugins/forgeloop/skills/milestone-loop/SKILL.md#workflow",
+          "plugins/forgeloop/skills/code-loop/SKILL.md#truth-sources-boundaries",
+          "plugins/forgeloop/skills/code-loop/SKILL.md#workflow",
+          "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md#milestone-mode",
           "plugins/forgeloop/skills/run-initiative/references/milestone-review-rolling-doc.md#handoff-law",
           "tests/codex/token-benchmark/fixtures/milestone-review-sample.md::current-effective.md"
         ],
         "stats": {
-          "chars": 23177,
+          "chars": 17967,
           "lines": 332,
-          "words": 2635,
-          "approx_tokens": 5795
+          "words": 1917,
+          "approx_tokens": 4492
         }
       },
-      "reduction_pct": 59.0
+      "reduction_pct": 65.8
     },
     {
       "name": "Initiative Review",
@@ -269,16 +275,17 @@
       "legacy": {
         "read_set": [
           "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md",
-          "plugins/forgeloop/skills/initiative-loop/SKILL.md",
+          "plugins/forgeloop/skills/code-loop/SKILL.md",
+          "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md",
           "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md",
           "plugins/forgeloop/skills/run-initiative/references/initiative-review-rolling-doc.md",
           "tests/codex/token-benchmark/fixtures/initiative-review-sample.md"
         ],
         "stats": {
-          "chars": 56375,
-          "lines": 872,
-          "words": 6389,
-          "approx_tokens": 14094
+          "chars": 52244,
+          "lines": 946,
+          "words": 5785,
+          "approx_tokens": 13061
         }
       },
       "minimal": {
@@ -286,20 +293,20 @@
           "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md#acceptance-matrix",
           "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md#global-residual-risks",
           "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md#current-mode",
-          "plugins/forgeloop/skills/initiative-loop/SKILL.md#truth-sources-boundaries",
-          "plugins/forgeloop/skills/initiative-loop/SKILL.md#initiative.cutover-mode-law",
-          "plugins/forgeloop/skills/initiative-loop/SKILL.md#workflow",
+          "plugins/forgeloop/skills/code-loop/SKILL.md#truth-sources-boundaries",
+          "plugins/forgeloop/skills/code-loop/SKILL.md#workflow",
+          "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md#initiative-mode",
           "plugins/forgeloop/skills/run-initiative/references/initiative-review-rolling-doc.md#handoff-law",
           "tests/codex/token-benchmark/fixtures/initiative-review-sample.md::current-effective.md"
         ],
         "stats": {
-          "chars": 21376,
-          "lines": 312,
-          "words": 2396,
-          "approx_tokens": 5344
+          "chars": 16321,
+          "lines": 314,
+          "words": 1707,
+          "approx_tokens": 4081
         }
       },
-      "reduction_pct": 62.1
+      "reduction_pct": 68.8
     },
     {
       "name": "Rebuild Runtime",
@@ -324,10 +331,10 @@
           "tests/codex/token-benchmark/fixtures/milestone-review-sample.md"
         ],
         "stats": {
-          "chars": 72219,
-          "lines": 1188,
-          "words": 7924,
-          "approx_tokens": 18055
+          "chars": 72599,
+          "lines": 1189,
+          "words": 7972,
+          "approx_tokens": 18150
         }
       },
       "minimal": {
@@ -344,13 +351,13 @@
           "tests/codex/token-benchmark/fixtures/initiative-review-sample.md::current-effective.md"
         ],
         "stats": {
-          "chars": 16073,
-          "lines": 321,
-          "words": 1728,
-          "approx_tokens": 4019
+          "chars": 16420,
+          "lines": 322,
+          "words": 1768,
+          "approx_tokens": 4105
         }
       },
-      "reduction_pct": 77.7
+      "reduction_pct": 77.4
     },
     {
       "name": "Waiting Or Blocked Resume",
@@ -372,10 +379,10 @@
           "tests/codex/token-benchmark/fixtures/global-state-waiting.md"
         ],
         "stats": {
-          "chars": 61970,
+          "chars": 62136,
           "lines": 932,
-          "words": 7217,
-          "approx_tokens": 15493
+          "words": 7243,
+          "approx_tokens": 15534
         }
       },
       "minimal": {
@@ -412,25 +419,26 @@
       "legacy": {
         "read_set": [
           "plugins/forgeloop/skills/run-initiative/SKILL.md",
-          "plugins/forgeloop/skills/task-loop/SKILL.md",
+          "plugins/forgeloop/skills/code-loop/SKILL.md",
+          "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md",
           "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md",
           "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md",
           "tests/codex/token-benchmark/fixtures/global-state-active-task.md",
           "tests/fixtures/anchor-slicing/task-review-sample.md"
         ],
         "stats": {
-          "chars": 50336,
-          "lines": 918,
-          "words": 6645,
-          "approx_tokens": 12584
+          "chars": 48667,
+          "lines": 995,
+          "words": 6334,
+          "approx_tokens": 12167
         }
       },
       "minimal": {
         "read_set": [
           "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md#current-mode",
           "plugins/forgeloop/skills/run-initiative/SKILL.md#runtime.warm-path-delta",
-          "plugins/forgeloop/skills/task-loop/SKILL.md#task.cutover-mode-law",
-          "plugins/forgeloop/skills/task-loop/SKILL.md#workflow",
+          "plugins/forgeloop/skills/code-loop/SKILL.md#workflow",
+          "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md#task-mode",
           "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md#canonical-task-vocabulary",
           "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md#derived-view-usage",
           "tests/codex/token-benchmark/fixtures/global-state-active-task.md#current-snapshot",
@@ -438,13 +446,13 @@
           "tests/fixtures/anchor-slicing/task-review-sample.md::attempt-aware/round-2.md"
         ],
         "stats": {
-          "chars": 13799,
-          "lines": 289,
-          "words": 1493,
-          "approx_tokens": 3450
+          "chars": 11762,
+          "lines": 296,
+          "words": 1241,
+          "approx_tokens": 2941
         }
       },
-      "reduction_pct": 72.6
+      "reduction_pct": 75.8
     },
     {
       "name": "same-task warm-path delta illegal -> full packet fallback",
@@ -460,33 +468,35 @@
       "legacy": {
         "read_set": [
           "plugins/forgeloop/skills/run-initiative/SKILL.md",
-          "plugins/forgeloop/skills/task-loop/SKILL.md",
+          "plugins/forgeloop/skills/code-loop/SKILL.md",
+          "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md",
           "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md",
           "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md",
           "tests/codex/token-benchmark/fixtures/global-state-active-task.md",
           "tests/fixtures/anchor-slicing/task-review-sample.md"
         ],
         "stats": {
-          "chars": 50457,
-          "lines": 918,
-          "words": 6662,
-          "approx_tokens": 12615
+          "chars": 48788,
+          "lines": 995,
+          "words": 6351,
+          "approx_tokens": 12197
         }
       },
       "minimal": {
         "read_set": [
           "plugins/forgeloop/skills/run-initiative/SKILL.md",
-          "plugins/forgeloop/skills/task-loop/SKILL.md",
+          "plugins/forgeloop/skills/code-loop/SKILL.md",
+          "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md",
           "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md",
           "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md",
           "tests/codex/token-benchmark/fixtures/global-state-active-task.md",
           "tests/fixtures/anchor-slicing/task-review-sample.md"
         ],
         "stats": {
-          "chars": 50559,
-          "lines": 920,
-          "words": 6678,
-          "approx_tokens": 12640
+          "chars": 48890,
+          "lines": 997,
+          "words": 6367,
+          "approx_tokens": 12223
         }
       },
       "reduction_pct": -0.2,
@@ -534,10 +544,10 @@
           "tests/fixtures/anchor-slicing/task-review-sample.md"
         ],
         "stats": {
-          "chars": 35659,
+          "chars": 35779,
           "lines": 720,
-          "words": 4597,
-          "approx_tokens": 8915
+          "words": 4616,
+          "approx_tokens": 8945
         }
       },
       "minimal": {
@@ -549,10 +559,10 @@
           "tests/fixtures/anchor-slicing/task-review-sample.md"
         ],
         "stats": {
-          "chars": 35715,
+          "chars": 35835,
           "lines": 723,
-          "words": 4603,
-          "approx_tokens": 8929
+          "words": 4622,
+          "approx_tokens": 8959
         }
       },
       "reduction_pct": -0.2,
@@ -746,21 +756,21 @@
     "runtime": {
       "scenario_count": 11,
       "hot_path": {
-        "legacy_approx_tokens": 104076,
-        "minimal_approx_tokens": 52224,
-        "reduction_pct": 49.82128444598178
+        "legacy_approx_tokens": 99946,
+        "minimal_approx_tokens": 47240,
+        "reduction_pct": 52.73447661737338
       },
       "cold_path": {
-        "legacy_approx_tokens": 54545,
-        "minimal_approx_tokens": 16199,
-        "reduction_pct": 70.30158584654872
+        "legacy_approx_tokens": 54722,
+        "minimal_approx_tokens": 16313,
+        "reduction_pct": 70.1893205657688
       },
       "total": {
-        "legacy_approx_tokens": 158621,
-        "minimal_approx_tokens": 68423,
-        "reduction_pct": 56.8638452663897
+        "legacy_approx_tokens": 154668,
+        "minimal_approx_tokens": 63553,
+        "reduction_pct": 58.91005249954742
       },
-      "task_hot_path_average_reduction_pct": 60.625
+      "task_hot_path_average_reduction_pct": 63.825
     },
     "planning": {
       "scenario_count": 4,

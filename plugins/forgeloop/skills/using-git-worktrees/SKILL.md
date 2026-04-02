@@ -378,7 +378,7 @@ Ready to implement milestone MS-001 for Initiative INIT-001
 ## Integration
 
 **Called by:**
-- **run-initiative** - use `bind_only` before reading workspace-local runtime docs, and upgrade to `execution_ready` only before entering `task-loop`, `milestone-loop`, or `initiative-loop`
+- **run-initiative** - use `bind_only` before reading workspace-local runtime docs, and upgrade to `execution_ready` only before entering `code-loop` for the currently bound runtime mode
 - Any execution-side skill needing isolated workspace
 
 **Pairs with:**
