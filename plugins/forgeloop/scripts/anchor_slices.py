@@ -179,7 +179,7 @@ BLOCK_SPECS = {
         ),
         author_role="reviewer",
     ),
-    "plan_review_result": BlockSpec(
+    "total_task_doc_review_result": BlockSpec(
         required_fields=frozenset(
             {
                 "round",
@@ -366,11 +366,11 @@ MODE_SPECS = {
                 "total_task_doc_ref",
                 "design_review_result",
                 "gap_review_result",
-                "plan_review_result",
+                "total_task_doc_review_result",
             }
         ),
         handoff_kinds=frozenset({"design_doc_ref", "gap_analysis_ref", "total_task_doc_ref"}),
-        result_kinds=frozenset({"design_review_result", "gap_review_result", "plan_review_result"}),
+        result_kinds=frozenset({"design_review_result", "gap_review_result", "total_task_doc_review_result"}),
     ),
     "task": RollingDocModeSpec(
         header_kind="task_review_header",

@@ -46,14 +46,14 @@ Framework contract refs and Initiative repo refs follow the same durable-path ru
 
 - `Design Doc` -> `design_reviewer`
 - `Gap Analysis Doc` -> `gap_reviewer`
-- `Total Task Doc` -> `plan_reviewer`
+- `Total Task Doc` -> `total_task_doc_reviewer`
 
 <!-- forgeloop:anchor stage-local-vocabulary -->
 ## Stage-Local Vocabulary
 
 - `Design Doc` uses handoff block `design_doc_ref`, review-result block `design_review_result`, and same-stage repair action `continue_design_repair`
 - `Gap Analysis Doc` uses handoff block `gap_analysis_ref`, review-result block `gap_review_result`, and same-stage repair action `continue_gap_repair`
-- `Total Task Doc` uses handoff block `total_task_doc_ref`, review-result block `plan_review_result`, and same-stage repair action `continue_plan_repair`
+- `Total Task Doc` uses handoff block `total_task_doc_ref`, review-result block `total_task_doc_review_result`, and same-stage repair action `continue_total_task_doc_repair`
 
 <!-- forgeloop:anchor truth-sources-boundaries -->
 ## Truth Sources And Hard Boundaries

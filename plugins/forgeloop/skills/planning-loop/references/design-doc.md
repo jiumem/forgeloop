@@ -4,7 +4,7 @@
 
 - 阶段：`Design Doc`
 - 平面：planning 正式成果文档
-- 主要读者：`planner`、`design_reviewer`、下游 `gap_reviewer` 或 `plan_reviewer`，以及后续通过 sealed 引用进入 runtime 的 `coder` / reviewers
+- 主要读者：`planner`、`design_reviewer`、下游 `gap_reviewer` 或 `total_task_doc_reviewer`，以及后续通过 sealed 引用进入 runtime 的 `coder` / reviewers
 - 主要目的：为当前 Initiative 定义目标态、范围边界与关键结构裁决
 
 这份文档不是迁移账本，不是任务计划，也不是实现教程。

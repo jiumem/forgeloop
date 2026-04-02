@@ -32,7 +32,7 @@
 - `planning_state_doc_ref` -> `<initiative_dir>/.forgeloop/planning-state.md`
 - `design_rolling_doc_ref` -> `<initiative_dir>/.forgeloop/design-rolling.md`
 - `gap_rolling_doc_ref` -> `<initiative_dir>/.forgeloop/gap-rolling.md`
-- `plan_rolling_doc_ref` -> `<initiative_dir>/.forgeloop/plan-rolling.md`
+- `total_task_doc_rolling_doc_ref` -> `<initiative_dir>/.forgeloop/total-task-doc-rolling.md`
 
 `run-planning` must derive these refs from the bound Initiative artifact directory for repo-local Initiatives.
 

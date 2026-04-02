@@ -18,7 +18,7 @@ PLANNING_FILES = [
     "plugins/forgeloop/agents/planner.toml",
     "plugins/forgeloop/agents/design_reviewer.toml",
     "plugins/forgeloop/agents/gap_reviewer.toml",
-    "plugins/forgeloop/agents/plan_reviewer.toml",
+    "plugins/forgeloop/agents/total_task_doc_reviewer.toml",
     "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md",
     "plugins/forgeloop/skills/planning-loop/references/design-doc.md",
     "plugins/forgeloop/skills/planning-loop/references/gap-analysis.md",

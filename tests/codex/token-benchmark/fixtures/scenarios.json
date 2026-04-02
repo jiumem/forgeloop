@@ -84,13 +84,12 @@
       {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/global-state-active-task.md"}
     ],
     "minimal_packet": [
-      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md", "anchor": "current-mode"},
-      {"type": "slice", "doc": "plugins/forgeloop/skills/code-loop/SKILL.md", "anchor": "truth-sources-boundaries"},
-      {"type": "slice", "doc": "plugins/forgeloop/skills/code-loop/SKILL.md", "anchor": "workflow"},
+      {"type": "full_doc", "path": "plugins/forgeloop/agents/coder.toml"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md", "anchor": "task-mode"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md", "anchor": "canonical-task-vocabulary"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md", "anchor": "handoff-law"},
       {"type": "slice", "doc": "tests/codex/token-benchmark/fixtures/global-state-active-task.md", "anchor": "current-snapshot"},
+      {"type": "slice", "doc": "tests/codex/token-benchmark/fixtures/global-state-active-task.md", "anchor": "next-action"},
       {"type": "derived_view", "doc": "tests/fixtures/anchor-slicing/task-review-sample.md", "view": "attempt-aware/round-2.md"}
     ],
     "fallback_points": [
@@ -114,13 +113,10 @@
       {"type": "full_doc", "path": "plugins/forgeloop/agents/task_reviewer.toml"}
     ],
     "minimal_packet": [
-      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md", "anchor": "current-mode"},
-      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md", "anchor": "fallback-law"},
-      {"type": "slice", "doc": "plugins/forgeloop/skills/code-loop/SKILL.md", "anchor": "workflow"},
+      {"type": "full_doc", "path": "plugins/forgeloop/agents/task_reviewer.toml"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md", "anchor": "task-mode"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md", "anchor": "handoff-law"},
-      {"type": "derived_view", "doc": "tests/fixtures/anchor-slicing/task-review-sample.md", "view": "handoff-scoped/sample-r2-a1.md"},
-      {"type": "full_doc", "path": "plugins/forgeloop/agents/task_reviewer.toml"}
+      {"type": "derived_view", "doc": "tests/fixtures/anchor-slicing/task-review-sample.md", "view": "handoff-scoped/sample-r2-a1.md"}
     ],
     "fallback_points": [
       "fresh reviewer first packet must still be self-sufficient",
@@ -144,9 +140,7 @@
     "minimal_packet": [
       {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "milestone-master-table"},
       {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "acceptance-matrix"},
-      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md", "anchor": "current-mode"},
-      {"type": "slice", "doc": "plugins/forgeloop/skills/code-loop/SKILL.md", "anchor": "truth-sources-boundaries"},
-      {"type": "slice", "doc": "plugins/forgeloop/skills/code-loop/SKILL.md", "anchor": "workflow"},
+      {"type": "full_doc", "path": "plugins/forgeloop/agents/milestone_reviewer.toml"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md", "anchor": "milestone-mode"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/milestone-review-rolling-doc.md", "anchor": "handoff-law"},
       {"type": "derived_view", "doc": "tests/codex/token-benchmark/fixtures/milestone-review-sample.md", "view": "current-effective.md"}
@@ -173,9 +167,7 @@
     "minimal_packet": [
       {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "acceptance-matrix"},
       {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "global-residual-risks"},
-      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md", "anchor": "current-mode"},
-      {"type": "slice", "doc": "plugins/forgeloop/skills/code-loop/SKILL.md", "anchor": "truth-sources-boundaries"},
-      {"type": "slice", "doc": "plugins/forgeloop/skills/code-loop/SKILL.md", "anchor": "workflow"},
+      {"type": "full_doc", "path": "plugins/forgeloop/agents/initiative_reviewer.toml"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md", "anchor": "initiative-mode"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/initiative-review-rolling-doc.md", "anchor": "handoff-law"},
       {"type": "derived_view", "doc": "tests/codex/token-benchmark/fixtures/initiative-review-sample.md", "view": "current-effective.md"}
@@ -263,9 +255,7 @@
       {"type": "full_doc", "path": "tests/fixtures/anchor-slicing/task-review-sample.md"}
     ],
     "minimal_packet": [
-      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md", "anchor": "current-mode"},
-      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/SKILL.md", "anchor": "runtime.warm-path-delta"},
-      {"type": "slice", "doc": "plugins/forgeloop/skills/code-loop/SKILL.md", "anchor": "workflow"},
+      {"type": "full_doc", "path": "plugins/forgeloop/agents/coder.toml"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md", "anchor": "task-mode"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md", "anchor": "canonical-task-vocabulary"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md", "anchor": "derived-view-usage"},
@@ -311,14 +301,15 @@
       {"type": "full_doc", "path": "tests/fixtures/anchor-slicing/task-review-sample.md"}
     ],
     "minimal_packet": [
-      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/SKILL.md"},
-      {"type": "full_doc", "path": "plugins/forgeloop/skills/code-loop/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/agents/coder.toml"},
       {"type": "full_doc", "path": "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md"},
       {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md"},
       {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md"},
       {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/global-state-active-task.md"},
       {"type": "full_doc", "path": "tests/fixtures/anchor-slicing/task-review-sample.md"}
     ],
+    "minimal_fallback_mode": "full_doc",
+    "minimal_fallback_reason": "warm_path_delta_legality_failed_disaster_recovery",
     "minimal_fallback_points": [
       "warm-path delta legality failed",
       "full packet fallback is required before continuing the same Task"
@@ -351,12 +342,15 @@
       {"type": "full_doc", "path": "tests/fixtures/anchor-slicing/task-review-sample.md"}
     ],
     "minimal_packet": [
-      {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/SKILL.md"},
+      {"type": "full_doc", "path": "plugins/forgeloop/agents/coder.toml"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md"},
       {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md"},
       {"type": "full_doc", "path": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md"},
       {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/global-state-active-task.md"},
       {"type": "full_doc", "path": "tests/fixtures/anchor-slicing/task-review-sample.md"}
     ],
+    "minimal_fallback_mode": "full_doc",
+    "minimal_fallback_reason": "selector_legality_failed_disaster_recovery",
     "minimal_fallback_points": [
       "missing_anchor",
       "duplicate_anchor",

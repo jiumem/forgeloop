@@ -4,7 +4,7 @@
 
 - 阶段：`Gap Analysis Doc`
 - 平面：planning 正式成果文档
-- 主要读者：`planner`、`gap_reviewer`、下游 `plan_reviewer`，以及后续通过 sealed 引用进入 runtime 的 `coder` / reviewers
+- 主要读者：`planner`、`gap_reviewer`、下游 `total_task_doc_reviewer`，以及后续通过 sealed 引用进入 runtime 的 `coder` / reviewers
 - 主要目的：定义当前态与目标态之间真实存在的差距，以及下游 planning 必须遵守的收敛切法
 
 这份文档不是第二篇设计长文，不是任务计划，也不是实现教程。

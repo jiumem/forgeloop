@@ -4,7 +4,7 @@
 
 - 阶段：`Total Task Doc`
 - 平面：planning 正式成果文档
-- 主要读者：`planner`、`plan_reviewer`、下游 runtime `coder` / reviewers，以及后续 admission 或 control 角色通过 sealed 引用读取
+- 主要读者：`planner`、`total_task_doc_reviewer`、下游 runtime `coder` / reviewers，以及后续 admission 或 control 角色通过 sealed 引用读取
 - 主要目的：把上游已经 sealed 的 planning 决策压缩成一张轻薄、强索引、可直接执行的执行地图，而不是重新打开设计裁决
 
 这份文档不是第二篇设计长文，不是迁移账本，不是 reviewer verdict，也不是实现教程。
@@ -162,7 +162,7 @@
 
 - 为下游 `coder` 与 `reviewer` 的可执行性而写，不为取悦人类读者而写
 - 使用固定字段、强索引、弱叙事
-- 在保持轻薄的同时，不能薄到让 `plan_reviewer` 无法在本层单独判断执行地图
+- 在保持轻薄的同时，不能薄到让 `total_task_doc_reviewer` 无法在本层单独判断执行地图
 - 先建立静态执行对象：`Initiative -> Milestone -> Task`；然后再定义依赖与 PR 集成结构
 - 如果多切一个 Milestone 能形成更干净的状态边界，应优先多 Milestone，而不是多 PR
 - 每条边界、验收规则与法定引用指派都只保留一个真理源；如果另一个区块才是权威来源，就明确引用，不要在别处重新裁决
@@ -213,7 +213,7 @@
 只有满足以下条件，这份文档才可以 sealed：
 
 - review-ready 条件已经满足
-- `plan_reviewer` 能在不重建隐藏意图的前提下完成判断
+- `total_task_doc_reviewer` 能在不重建隐藏意图的前提下完成判断
 - 下游 `coder` 能据此行动，而无需重新打开上游设计裁决
 - runtime reviewers 能直接从文档中定位法定引用、对象边界、验收线与证据入口
 - 这份文档仍然是一张轻薄的执行控制面地图，而不是一篇影子设计长文

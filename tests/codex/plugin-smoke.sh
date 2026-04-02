@@ -41,7 +41,7 @@ for skill in run-planning planning-loop run-initiative code-loop rebuild-runtime
   fi
 done
 
-for agent in planner design_reviewer gap_reviewer plan_reviewer coder task_reviewer milestone_reviewer initiative_reviewer; do
+for agent in planner design_reviewer gap_reviewer total_task_doc_reviewer coder task_reviewer milestone_reviewer initiative_reviewer; do
   if [ ! -f "${ROOT}/plugins/forgeloop/agents/${agent}.toml" ]; then
     echo "packaged agent missing: ${agent}"
     exit 1
@@ -50,7 +50,7 @@ done
 
 CODEX_HOME="${CODEX_HOME_DIR}" bash "${ROOT}/plugins/forgeloop/scripts/materialize-agents.sh"
 
-for agent in planner design_reviewer gap_reviewer plan_reviewer coder task_reviewer milestone_reviewer initiative_reviewer; do
+for agent in planner design_reviewer gap_reviewer total_task_doc_reviewer coder task_reviewer milestone_reviewer initiative_reviewer; do
   if [ ! -f "${CODEX_HOME_DIR}/agents/${agent}.toml" ]; then
     echo "global agent was not materialized: ${agent}"
     exit 1
@@ -59,7 +59,7 @@ done
 
 bash "${ROOT}/plugins/forgeloop/scripts/materialize-agents.sh" --project-dir "${PROJECT_DIR}"
 
-for agent in planner design_reviewer gap_reviewer plan_reviewer coder task_reviewer milestone_reviewer initiative_reviewer; do
+for agent in planner design_reviewer gap_reviewer total_task_doc_reviewer coder task_reviewer milestone_reviewer initiative_reviewer; do
   if [ ! -f "${PROJECT_DIR}/.codex/agents/${agent}.toml" ]; then
     echo "project agent was not materialized: ${agent}"
     exit 1

@@ -33,7 +33,7 @@ done <<'EOF'
 plugins/forgeloop/agents/planner.toml
 plugins/forgeloop/agents/design_reviewer.toml
 plugins/forgeloop/agents/gap_reviewer.toml
-plugins/forgeloop/agents/plan_reviewer.toml
+plugins/forgeloop/agents/total_task_doc_reviewer.toml
 EOF
 
 while IFS= read -r file; do
@@ -44,7 +44,7 @@ while IFS= read -r file; do
 done <<'EOF'
 plugins/forgeloop/agents/design_reviewer.toml
 plugins/forgeloop/agents/gap_reviewer.toml
-plugins/forgeloop/agents/plan_reviewer.toml
+plugins/forgeloop/agents/total_task_doc_reviewer.toml
 EOF
 
 python3 - <<'PY'

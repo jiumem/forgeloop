@@ -6,7 +6,7 @@
 - Plane: runtime-only migration and rollback reference
 - Applies to: `run-initiative`, `code-loop`, `rebuild-runtime`, compatibility wrappers such as `task-loop` / `milestone-loop` / `initiative-loop`, runtime reviewer packets, and runtime validation
 - Primary readers: runtime `Supervisor`, runtime coders/reviewers, and repository self-checks
-- Primary purpose: define one repository-owned source of truth for the default runtime read path, legal fallback surface, and rollback behavior
+- Primary purpose: define one repository-owned source of truth for the runtime `Supervisor` read default, the ordinary worker packet default, the legal fallback surface, and rollback behavior
 
 <!-- forgeloop:anchor scope -->
 ## Scope
@@ -24,16 +24,18 @@ planning_cutover_scope: out_of_scope
 supported_runtime_cutover_modes: full_doc_default,minimal_preferred,minimal_required
 
 - `full_doc_default`
-  - old full-document path is the runtime default
+  - old full-document path is the runtime `Supervisor` read default
   - anchor selectors, derived views, benchmark, and validation stay available for verification and reporting
+  - ordinary coder / reviewer packets still default to minimal unless one explicit disaster-recovery fallback promotes the packet
   - this is the rollback mode
 - `minimal_preferred`
-  - anchor-addressed minimal packets are the runtime default
-  - selector legality failure, derived-view invalidation, cold start, rebuild, and other recovery triggers may promote one read or packet to full-document fallback
+  - anchor-addressed minimal packets are the runtime default for both supervisor hot-path reads and ordinary worker packets
+  - selector legality failure, derived-view invalidation, cold start, rebuild, and other recovery triggers may promote one supervisor read to full-document fallback
+  - worker packet promotion remains exceptional and must use explicit disaster-recovery fallback
   - this is the current target operating mode
 - `minimal_required`
   - anchor-addressed minimal packets are required by default
-  - full-document fallback is no longer an ordinary recovery path and is reserved only for explicitly documented disaster-recovery exceptions
+  - full-document fallback is no longer an ordinary recovery path and is reserved only for explicitly documented disaster-recovery exceptions, including worker packets
   - this mode is defined now for forward compatibility, but is not the current operating target
 
 <!-- forgeloop:anchor current-mode -->
@@ -53,14 +55,25 @@ current_runtime_cutover_mode: minimal_preferred
 - In `minimal_preferred`, runtime must start from the minimum control plane plus legal derived views and authoritative rolling-doc slices before escalating.
 - In `minimal_required`, runtime must stay on the minimal path unless one explicit disaster-recovery exception in this contract says otherwise.
 
+<!-- forgeloop:anchor worker-packet-law -->
+## Worker Packet Law
+
+- Ordinary coder / reviewer packets remain anchor-addressed minimal in every supported runtime mode.
+- `full_doc_default` changes the runtime `Supervisor` read default; it does not by itself legalize thick worker packets.
+- Promote a coder or reviewer packet to a full-document packet only for explicit disaster recovery.
+- Every promoted worker packet must state both `fallback_mode` and `fallback_reason`.
+- Even under full-document worker fallback, prefer current object-local contracts and current rolling surfaces rather than dispatcher skill docs or unrelated planning history.
+
 <!-- forgeloop:anchor fallback-law -->
 ## Fallback Law
 
 - `full_doc_default`
-  - full-document reads are already the default, so fallback is not a special event
+  - full-document supervisor reads are already the default, so supervisor fallback is not a special event
+  - ordinary worker packets still require explicit disaster-recovery fallback if they are promoted to full-document packets
   - minimal-path probes may still stop or report legality failure when validation is being exercised explicitly
 - `minimal_preferred`
-  - full-document fallback is legal only when cold start, runtime rebuild, selector legality failure, anchor conflict, derived-view invalidation, or unresolved formal conflict makes the thinner path insufficient
+  - full-document supervisor fallback is legal only when cold start, runtime rebuild, selector legality failure, anchor conflict, derived-view invalidation, or unresolved formal conflict makes the thinner path insufficient
+  - full-document worker fallback is legal only for explicit disaster recovery after the thinner worker packet cannot remain self-sufficient
   - every fallback must be explicit about `mode` and `reason`
 - `minimal_required`
   - ordinary legality failure is not enough to silently fall back to full documents

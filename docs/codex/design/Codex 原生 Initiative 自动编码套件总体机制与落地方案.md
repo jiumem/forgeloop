@@ -306,7 +306,7 @@ Task 的法位保持不变：
 | 机制层 | 正式载体 | 作用 |
 | --- | --- | --- |
 | **成果面** | `Design Doc / Gap Analysis Doc / Total Task Doc` | 承载阶段性 planning 真值；三份正式文档的地位，相当于执行循环里的代码产物 |
-| **通信面** | `Design Rolling Doc / Gap Rolling Doc / Plan Rolling Doc` | 承载 planner 与 reviewer 的交错通信、handoff、回修要求、sealed 过程 |
+| **通信面** | `Design Rolling Doc / Gap Rolling Doc / Total Task Doc Rolling Doc` | 承载 planner 与 reviewer 的交错通信、handoff、回修要求、sealed 过程 |
 | **控制面** | `Planning State Doc` | 承载当前 stage、active object、current owner、next action 与升级/等待状态 |
 
 这里必须特别写死两条：
@@ -322,7 +322,7 @@ Task 的法位保持不变：
 - `planner`：整个规划循环中的单一连续 owner；负责撰写当前正式 planning artifact，并向当前 stage 的 rolling doc 追加 planner 事实
 - `design_reviewer`：只审 `Design Doc`，只写 `Design Rolling Doc`
 - `gap_reviewer`：只审 `Gap Analysis Doc`，只写 `Gap Rolling Doc`
-- `plan_reviewer`：只审 `Total Task Doc`，只写 `Plan Rolling Doc`
+- `total_task_doc_reviewer`：只审 `Total Task Doc`，只写 `Total Task Doc Rolling Doc`
 
 因此，规划循环中的正式写面也必须写死：
 
@@ -363,7 +363,7 @@ flowchart TD
     P["Planner\n(single continuous owner)"]
     R1["Design Reviewer\n(fresh per round)"]
     R2["Gap Reviewer\n(fresh per round)"]
-    R3["Plan Reviewer\n(fresh per round)"]
+    R3["Total Task Doc Reviewer\n(fresh per round)"]
 
     RefD["Reference: design-doc rules"]
     RefG["Reference: gap-analysis rules"]
@@ -375,7 +375,7 @@ flowchart TD
 
     RD["Design Rolling Doc\n(planner / reviewer communication)"]
     RA["Gap Rolling Doc\n(planner / reviewer communication)"]
-    RT["Plan Rolling Doc\n(planner / reviewer communication)"]
+    RT["Total Task Doc Rolling Doc\n(planner / reviewer communication)"]
 
     O["Sealed Planning Docs"]
 

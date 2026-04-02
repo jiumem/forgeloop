@@ -1,4 +1,4 @@
-# Plan Rolling Doc: SAMPLE-PLAN-RESULT
+# Total Task Doc Rolling Doc: SAMPLE-TOTAL-TASK-DOC-RESULT
 
 ```forgeloop
 kind: planning_rolling_header
@@ -39,7 +39,7 @@ review_target_ref: docs/initiatives/active/anchor-sliced-dispatch-optimization/t
 ```
 
 ```forgeloop
-kind: plan_review_result
+kind: total_task_doc_review_result
 round: 4
 author_role: reviewer
 created_at: 2026-03-31T12:12:00Z

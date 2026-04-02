@@ -110,7 +110,7 @@ for kind in \
   total_task_doc_ref \
   design_review_result \
   gap_review_result \
-  plan_review_result
+  total_task_doc_review_result
 do
   if ! rg -q "$kind" plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md; then
     echo "planning rolling doc contract is missing explicit machine kind: $kind"
@@ -367,7 +367,7 @@ python3 plugins/forgeloop/scripts/anchor_slices.py derive \
   --out "${PLAN_RESULT_OUT}"
 
 if ! rg -q "ready_for_supervisor_routing" "${PLAN_RESULT_OUT}/current-effective.md"; then
-  echo "planning plan current-effective view did not include the actionable plan review result"
+  echo "planning Total Task Doc current-effective view did not include the actionable Total Task Doc review result"
   exit 1
 fi
 

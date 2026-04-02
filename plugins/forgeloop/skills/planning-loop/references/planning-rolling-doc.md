@@ -4,10 +4,10 @@
 ## Document Role
 
 - Plane: planning communication artifact
-- Applies to: `Design Rolling Doc`, `Gap Rolling Doc`, and `Plan Rolling Doc`
+- Applies to: `Design Rolling Doc`, `Gap Rolling Doc`, and `Total Task Doc Rolling Doc`
 - Primary readers: planning-layer `Supervisor`, `planner`, and the current stage reviewer
 - Primary purpose: define the shared communication-surface contract for planning rounds, reviewer handoff, seal history, and reopen history
-- For repo-local Initiatives, required placement is the Initiative-local `.forgeloop/` root, using `design-rolling.md`, `gap-rolling.md`, or `plan-rolling.md`
+- For repo-local Initiatives, required placement is the Initiative-local `.forgeloop/` root, using `design-rolling.md`, `gap-rolling.md`, or `total-task-doc-rolling.md`
 
 This reference governs the planning communication plane, not artifact shape. Stage-specific references still control the structure and judgment standard of `Design Doc`, `Gap Analysis Doc`, and `Total Task Doc`.
 
@@ -47,7 +47,7 @@ This reference governs the planning communication plane, not artifact shape. Sta
 - `total_task_doc_ref`
 - `design_review_result`
 - `gap_review_result`
-- `plan_review_result`
+- `total_task_doc_review_result`
 
 Header and contract snapshot are initialized once. All later formal facts append only.
 
@@ -71,11 +71,11 @@ Header and contract snapshot are initialized once. All later formal facts append
   - `planner_update`
   - `design_doc_ref` in `Design Rolling Doc`
   - `gap_analysis_ref` in `Gap Rolling Doc`
-  - `total_task_doc_ref` in `Plan Rolling Doc`
+  - `total_task_doc_ref` in `Total Task Doc Rolling Doc`
 - the current stage reviewer may append only:
   - `design_review_result`
   - `gap_review_result`
-  - `plan_review_result`
+  - `total_task_doc_review_result`
 - no role may rewrite or delete prior formal blocks
 
 <!-- forgeloop:anchor planner-update-law -->
@@ -145,7 +145,7 @@ Header and contract snapshot are initialized once. All later formal facts append
   - `correctness_surface`
   - `open_issues`
   - `findings`
-  - `plan_review_result`:
+  - `total_task_doc_review_result`:
   - `execution_boundary`
   - `object_map_integrity`
   - `acceptance_truth_integrity`
@@ -160,7 +160,7 @@ Header and contract snapshot are initialized once. All later formal facts append
 - review-side `next_action` vocabulary is closed:
   - `design_review_result`: `continue_design_repair`, `ready_for_supervisor_routing`, `wait_for_upstream_judgment`, `stop_on_blocker`
   - `gap_review_result`: `continue_gap_repair`, `ready_for_supervisor_routing`, `wait_for_upstream_judgment`, `stop_on_blocker`
-  - `plan_review_result`: `continue_plan_repair`, `ready_for_supervisor_routing`, `wait_for_upstream_judgment`, `stop_on_blocker`
+  - `total_task_doc_review_result`: `continue_total_task_doc_repair`, `ready_for_supervisor_routing`, `wait_for_upstream_judgment`, `stop_on_blocker`
 - if the real fix belongs upstream, keep `next_action=wait_for_upstream_judgment` and add advisory `upstream_reopen_recommendation` with `target_stage` and `reason`
 - never use `upstream_reopen_recommendation` for same-stage repair
 - `design_review_result` must not emit `upstream_reopen_recommendation`, because no earlier planning stage exists

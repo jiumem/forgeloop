@@ -57,13 +57,13 @@ bash plugins/forgeloop/scripts/materialize-agents.sh --project-dir /path/to/proj
 2. Remove the global agent manifests if you no longer want the role layer:
 
 ```bash
-rm -f "${CODEX_HOME:-$HOME/.codex}/agents/"{planner,design_reviewer,gap_reviewer,plan_reviewer,coder,task_reviewer,milestone_reviewer,initiative_reviewer}.toml
+rm -f "${CODEX_HOME:-$HOME/.codex}/agents/"{planner,design_reviewer,gap_reviewer,total_task_doc_reviewer,coder,task_reviewer,milestone_reviewer,initiative_reviewer}.toml
 ```
 
 3. If you also created project-local overrides, remove those copies too:
 
 ```bash
-rm -f /path/to/project/.codex/agents/{planner,design_reviewer,gap_reviewer,plan_reviewer,coder,task_reviewer,milestone_reviewer,initiative_reviewer}.toml
+rm -f /path/to/project/.codex/agents/{planner,design_reviewer,gap_reviewer,total_task_doc_reviewer,coder,task_reviewer,milestone_reviewer,initiative_reviewer}.toml
 ```
 
 ## Troubleshooting

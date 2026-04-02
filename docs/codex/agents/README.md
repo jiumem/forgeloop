@@ -200,7 +200,7 @@ Every concrete role prompt must inherit the following hard constraints:
 
 All role prompts should default to working from a formal truth surface, but the exact surface depends on whether the role lives in the planning plane or the runtime plane.
 
-Planning roles such as `planner`, `design_reviewer`, `gap_reviewer`, and `plan_reviewer` should default to:
+Planning roles such as `planner`, `design_reviewer`, `gap_reviewer`, and `total_task_doc_reviewer` should default to:
 
 - the current requirement baseline or `design draft`
 - the `Planning State Doc`
@@ -260,7 +260,7 @@ After this charter, concrete role docs should land directly in:
 - `plugins/forgeloop/agents/planner.toml`
 - `plugins/forgeloop/agents/design_reviewer.toml`
 - `plugins/forgeloop/agents/gap_reviewer.toml`
-- `plugins/forgeloop/agents/plan_reviewer.toml`
+- `plugins/forgeloop/agents/total_task_doc_reviewer.toml`
 - `plugins/forgeloop/agents/coder.toml`
 - `plugins/forgeloop/agents/task_reviewer.toml`
 - `plugins/forgeloop/agents/milestone_reviewer.toml`
@@ -271,7 +271,7 @@ If design traceability is still desired, keep lightweight reference mirrors:
 - `docs/codex/agents/planner.md`
 - `docs/codex/agents/design-reviewer.md`
 - `docs/codex/agents/gap-reviewer.md`
-- `docs/codex/agents/plan-reviewer.md`
+- `docs/codex/agents/total-task-doc-reviewer.md`
 - `docs/codex/agents/coder.md`
 - `docs/codex/agents/task-reviewer.md`
 - `docs/codex/agents/milestone-reviewer.md`

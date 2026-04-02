@@ -29,6 +29,10 @@ run_step \
   bash tests/codex/anchor-slice-smoke.sh
 
 run_step \
+  "runtime-packet-lint" \
+  bash tests/codex/runtime-packet-lint.sh
+
+run_step \
   "token-benchmark" \
   bash tests/codex/token-benchmark/run.sh \
     --json-out "${TMP_ROOT}/benchmark.json" \

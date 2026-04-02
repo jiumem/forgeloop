@@ -9,7 +9,7 @@ expected_agents=(
   planner
   design_reviewer
   gap_reviewer
-  plan_reviewer
+  total_task_doc_reviewer
   coder
   task_reviewer
   milestone_reviewer
@@ -151,7 +151,7 @@ plugins/forgeloop/skills/run-planning/SKILL.md:planning-loop
 plugins/forgeloop/skills/planning-loop/SKILL.md:planner
 plugins/forgeloop/skills/planning-loop/SKILL.md:design_reviewer
 plugins/forgeloop/skills/planning-loop/SKILL.md:gap_reviewer
-plugins/forgeloop/skills/planning-loop/SKILL.md:plan_reviewer
+plugins/forgeloop/skills/planning-loop/SKILL.md:total_task_doc_reviewer
 plugins/forgeloop/skills/run-initiative/SKILL.md:code-loop
 plugins/forgeloop/skills/code-loop/SKILL.md:coder
 plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:task_reviewer
@@ -183,7 +183,7 @@ plugins/forgeloop/skills/planning-loop/references/gap-analysis.md:entry surfaces
 plugins/forgeloop/skills/planning-loop/references/gap-analysis.md:review-facing docs / reports
 plugins/forgeloop/agents/gap_reviewer.toml:entry surfaces
 plugins/forgeloop/skills/planning-loop/references/total-task-doc.md:primary run summary
-plugins/forgeloop/agents/plan_reviewer.toml:primary run summary
+plugins/forgeloop/agents/total_task_doc_reviewer.toml:primary run summary
 plugins/forgeloop/scripts/anchor_slices.py:requirement_fit
 plugins/forgeloop/scripts/anchor_slices.py:current_state_evidence
 plugins/forgeloop/scripts/anchor_slices.py:execution_boundary

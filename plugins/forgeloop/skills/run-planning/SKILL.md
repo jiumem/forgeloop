@@ -75,7 +75,7 @@ The `Planning State Doc` holds only the minimum planning control plane: `current
 First bind the formal planning sources for the current Initiative.
 
 1. Use the user-provided requirement baseline, `design draft`, planning `artifact_ref`, `planning_state_doc_ref`, `initiative_key`, or the only verifiable active planning object in the current workspace to bind the current Initiative. If it cannot be verified uniquely, ask the user.
-2. When the bound Initiative is represented by a repo-local planning artifact, derive the one legal planning control-plane root from `../references/control-plane-roots.md`: sibling `.forgeloop/` under the Initiative document directory. Bind `planning-state.md`, `design-rolling.md`, `gap-rolling.md`, and `plan-rolling.md` there directly. Do not search for alternate repo-local planning control-plane roots elsewhere in the repository.
+2. When the bound Initiative is represented by a repo-local planning artifact, derive the one legal planning control-plane root from `../references/control-plane-roots.md`: sibling `.forgeloop/` under the Initiative document directory. Bind `planning-state.md`, `design-rolling.md`, `gap-rolling.md`, and `total-task-doc-rolling.md` there directly. Do not search for alternate repo-local planning control-plane roots elsewhere in the repository.
 3. Read the `Planning State Doc` first when it exists.
 4. Read only the minimum planning artifacts and planning rolling docs needed to confirm the active stage.
 5. If the active stage is already bound or the `Planning State Doc` looks distorted, read the active planning rolling doc deeply enough to recover `planner_slot` and the stage `round` when they already exist.
@@ -146,7 +146,7 @@ Keep returning to Step 2 after each completed `planning-loop` dispatch until one
 
 Never:
 
-- dispatch `planner`, `design_reviewer`, `gap_reviewer`, or `plan_reviewer` directly from this skill
+- dispatch `planner`, `design_reviewer`, `gap_reviewer`, or `total_task_doc_reviewer` directly from this skill
 - treat inability or unwillingness to continue with the required delegated planning execution as permission for a single-agent fallback
 - continue from one planning stage into the next without rereading the `Planning State Doc` and explicitly rebinding from current formal truth
 - overwrite a still-valid `planner_slot` or stage `round` with thinner stage-only state

@@ -39,12 +39,12 @@ Runtime workflow roles obey the single runtime cutover contract in `plugins/forg
 - Purpose: execute the formal Gap Analysis Doc review, write only to the active `Gap Rolling Doc`, and judge whether gap closure is factually grounded and ready to advance
 - Returns: Gap-stage formal review result in the active `Gap Rolling Doc`
 
-### `plan_reviewer`
+### `total_task_doc_reviewer`
 
 - Stage: Total-task-stage formal review inside planning
 - Used by: `run-planning` via `planning-loop`
-- Purpose: execute the formal `Total Task Doc` review, write only to the active `Plan Rolling Doc`, and judge whether the execution map is structurally complete and ready to seal
-- Returns: Plan-stage formal review result in the active `Plan Rolling Doc`
+- Purpose: execute the formal `Total Task Doc` review, write only to the active `Total Task Doc Rolling Doc`, and judge whether the execution map is structurally complete and ready to seal
+- Returns: Total-Task-Doc-stage formal review result in the active `Total Task Doc Rolling Doc`
 
 ### `coder`
 

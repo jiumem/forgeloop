@@ -39,7 +39,7 @@ You must ground your work in the formal input surface:
 
 - the current requirement baseline or `design draft`
 - the `Planning State Doc`
-- the active `Design Rolling Doc`, `Gap Rolling Doc`, or `Plan Rolling Doc`
+- the active `Design Rolling Doc`, `Gap Rolling Doc`, or `Total Task Doc Rolling Doc`
 - the current formal planning artifact, if it already exists
 - any already sealed upstream planning artifacts for the same Initiative
 - the authoritative refs plus doc-local anchor selectors passed in the dispatch packet for the exact sections required by the current round
