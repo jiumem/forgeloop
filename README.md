@@ -4,7 +4,7 @@
 
 Forgeloop is a Codex-only workflow layer built from composable skills. It turns Codex into a stricter engineering process: design first, plan second, implement in small verified steps, and review before moving on.
 
-`0.7.0` ships as a repo-local Codex plugin package. It is not a Python package.
+`0.7.1` ships as a repo-local Codex plugin package. It is not a Python package.
 
 ## Origin
 
@@ -19,6 +19,8 @@ Forgeloop is built from a customized adaptation of [obra/superpowers](https://gi
 5. `rebuild-runtime` recovers the runtime control plane when state is missing, conflicting, or cannot be resumed directly.
 
 These skills are meant to be mandatory workflow constraints, not optional suggestions.
+
+For repo-local Initiatives, both planning and runtime control-plane docs now default to an Initiative-local sibling `.forgeloop/` directory next to the Initiative documents.
 
 The suite's custom agent manifests live in [`plugins/forgeloop/agents/`](plugins/forgeloop/agents). They cover the planning roles `planner`, `design_reviewer`, `gap_reviewer`, and `plan_reviewer`, plus the runtime workflow roles `coder`, `task_reviewer`, `milestone_reviewer`, and `initiative_reviewer`. Those manifests are materialized into Codex global agent storage by default, or into a target project's `.codex/agents/` when you pass `--project-dir`.
 

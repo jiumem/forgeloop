@@ -15,6 +15,7 @@ The planning side uses one control spine plus one internal stage skill:
 - `planning-loop` is the internal second-layer stage skill that handles exactly one confirmed planning stage per dispatch
 
 The `Planning State Doc` control contract lives at `references/planning-state.md`.
+The default repo-local control-plane root contract lives at `../references/control-plane-roots.md`.
 
 The default planning packet is anchor-addressed: authoritative refs first, doc-local selectors second, optional minimal slices third, and full-document fallback only on legality failure or cold-start recovery.
 This minimal packet default is the planning-side law. Planning does not wait for a separate runtime-style cutover contract to become minimal-first.
@@ -75,11 +76,12 @@ The `Planning State Doc` holds only the minimum planning control plane: `current
 First bind the formal planning sources for the current Initiative.
 
 1. Use the user-provided requirement baseline, `design draft`, planning `artifact_ref`, `planning_state_doc_ref`, `initiative_key`, or the only verifiable active planning object in the current workspace to bind the current Initiative. If it cannot be verified uniquely, ask the user.
-2. Read the `Planning State Doc` first when it exists.
-3. Read only the minimum planning artifacts and planning rolling docs needed to confirm the active stage.
-4. If the active stage is already bound or the `Planning State Doc` looks distorted, read the active planning rolling doc deeply enough to recover `planner_slot` and the stage `round` when they already exist.
-5. If downstream routing depends on `Gap Analysis Requirement`, read the sealed `Design Doc` directly rather than inferring from loose Initiative labels.
-6. If there is no `Planning State Doc`, you may still continue only when the current planning stage can be recovered uniquely from the requirement baseline, current planning artifacts, and planning rolling docs.
+2. When the bound Initiative is represented by a repo-local planning artifact and no stronger explicit `planning_state_doc_ref` is already known, derive the default planning control-plane root from `../references/control-plane-roots.md`: sibling `.forgeloop/` under the Initiative document directory. Prefer `planning-state.md`, `design-rolling.md`, `gap-rolling.md`, and `plan-rolling.md` there before any wider repo recovery.
+3. Read the `Planning State Doc` first when it exists.
+4. Read only the minimum planning artifacts and planning rolling docs needed to confirm the active stage.
+5. If the active stage is already bound or the `Planning State Doc` looks distorted, read the active planning rolling doc deeply enough to recover `planner_slot` and the stage `round` when they already exist.
+6. If downstream routing depends on `Gap Analysis Requirement`, read the sealed `Design Doc` directly rather than inferring from loose Initiative labels.
+7. If there is no `Planning State Doc`, you may still continue only when the current planning stage can be recovered uniquely from the requirement baseline, current planning artifacts, and planning rolling docs.
 
 ### Step 2: Determine The Current Planning Next Step
 

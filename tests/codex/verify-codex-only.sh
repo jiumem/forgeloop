@@ -179,6 +179,11 @@ plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md:execut
 plugins/forgeloop/scripts/anchor_slices.py:requirement_fit
 plugins/forgeloop/scripts/anchor_slices.py:current_state_evidence
 plugins/forgeloop/scripts/anchor_slices.py:execution_boundary
+plugins/forgeloop/skills/references/control-plane-roots.md:planning_state_doc_ref
+plugins/forgeloop/skills/references/control-plane-roots.md:global_state_doc_ref
+plugins/forgeloop/skills/run-planning/SKILL.md:Prefer `planning-state.md`, `design-rolling.md`, `gap-rolling.md`, and `plan-rolling.md` there before any wider repo recovery
+plugins/forgeloop/skills/run-initiative/SKILL.md:Prefer those candidate refs before any wider repo search
+plugins/forgeloop/skills/planning-loop/references/total-task-doc.md:默认控制面根目录应为与本 `Total Task Doc` 同目录的 sibling `.forgeloop/`
 plugins/forgeloop/skills/run-planning/SKILL.md:stay visible as a reopen route
 plugins/forgeloop/skills/planning-loop/SKILL.md:planner_slot=planner
 plugins/forgeloop/skills/planning-loop/SKILL.md:round=1

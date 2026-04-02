@@ -7,6 +7,7 @@
 - Applies to: `Design Rolling Doc`, `Gap Rolling Doc`, and `Plan Rolling Doc`
 - Primary readers: planning-layer `Supervisor`, `planner`, and the current stage reviewer
 - Primary purpose: define the shared communication-surface contract for planning rounds, reviewer handoff, seal history, and reopen history
+- Recommended repo-local placement: the Initiative-local `.forgeloop/` root, using `design-rolling.md`, `gap-rolling.md`, or `plan-rolling.md` unless explicit sealed refs override that default
 
 This reference governs the planning communication plane, not artifact shape. Stage-specific references still control the structure and judgment standard of `Design Doc`, `Gap Analysis Doc`, and `Total Task Doc`.
 

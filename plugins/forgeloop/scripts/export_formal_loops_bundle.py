@@ -44,6 +44,7 @@ RUNTIME_FILES = [
 ]
 
 SHARED_CONTRACT_FILES = [
+    "plugins/forgeloop/skills/references/control-plane-roots.md",
     "plugins/forgeloop/skills/references/anchor-addressing.md",
     "plugins/forgeloop/skills/references/derived-views.md",
     "plugins/forgeloop/skills/references/validation-matrix.md",

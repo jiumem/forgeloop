@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.1 - 2026-04-02
+
+- formalized one shared Initiative-local control-plane root contract so new planning and runtime control docs default to a sibling `.forgeloop/` directory next to the Initiative documents
+- taught `run-planning` to prefer the Initiative-local `.forgeloop/` root before wider repo recovery when `planning_state_doc_ref` is not already bound
+- taught `run-initiative` and the `Total Task Doc` reference-assignment contract to use the same Initiative-local `.forgeloop/` default for runtime control refs
+- documented the recommended placement directly in `Planning State Doc`, `Planning Rolling Doc`, and `Global State Doc` contracts while keeping explicit sealed repo-root-relative refs authoritative
+- kept legacy repo-root `.forgeloop/<initiative_key>/...` layouts legal only when already explicitly bound, instead of silently making them the default for new Initiatives
+- updated the formal loops bundle export to include the shared control-plane root contract
+
 ## 0.7.0 - 2026-04-02
 
 - changed `run-planning` from a stage-by-stage launcher into a same-activation planning runner that rereads formal state and loops across Design, Gap, and Total Task when routing stays legal

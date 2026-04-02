@@ -37,10 +37,10 @@
           "plugins/forgeloop/skills/run-initiative/references/global-state.md"
         ],
         "stats": {
-          "chars": 82541,
-          "lines": 1266,
-          "words": 9607,
-          "approx_tokens": 20636
+          "chars": 83160,
+          "lines": 1271,
+          "words": 9678,
+          "approx_tokens": 20790
         }
       },
       "minimal": {
@@ -59,13 +59,13 @@
           "plugins/forgeloop/skills/run-initiative/references/global-state.md#bootstrap-law"
         ],
         "stats": {
-          "chars": 40071,
-          "lines": 559,
-          "words": 4287,
-          "approx_tokens": 10018
+          "chars": 40423,
+          "lines": 560,
+          "words": 4331,
+          "approx_tokens": 10106
         }
       },
-      "reduction_pct": 51.5
+      "reduction_pct": 51.4
     },
     {
       "name": "Runtime Resume Into Active Task",
@@ -91,10 +91,10 @@
           "tests/fixtures/anchor-slicing/task-review-sample.md"
         ],
         "stats": {
-          "chars": 99117,
-          "lines": 1627,
-          "words": 11777,
-          "approx_tokens": 24780
+          "chars": 99570,
+          "lines": 1630,
+          "words": 11830,
+          "approx_tokens": 24893
         }
       },
       "minimal": {
@@ -111,13 +111,13 @@
           "tests/fixtures/anchor-slicing/task-review-sample.md::current-effective.md"
         ],
         "stats": {
-          "chars": 30550,
-          "lines": 461,
-          "words": 3172,
-          "approx_tokens": 7638
+          "chars": 30902,
+          "lines": 462,
+          "words": 3216,
+          "approx_tokens": 7726
         }
       },
-      "reduction_pct": 69.2
+      "reduction_pct": 69.0
     },
     {
       "name": "Same-Task Same-Round Coder Continue",
@@ -372,10 +372,10 @@
           "tests/codex/token-benchmark/fixtures/global-state-waiting.md"
         ],
         "stats": {
-          "chars": 60549,
-          "lines": 927,
-          "words": 7151,
-          "approx_tokens": 15138
+          "chars": 61168,
+          "lines": 932,
+          "words": 7222,
+          "approx_tokens": 15292
         }
       },
       "minimal": {
@@ -390,13 +390,13 @@
           "tests/codex/token-benchmark/fixtures/global-state-waiting.md#last-transition"
         ],
         "stats": {
-          "chars": 7833,
-          "lines": 208,
-          "words": 762,
-          "approx_tokens": 1959
+          "chars": 8185,
+          "lines": 209,
+          "words": 806,
+          "approx_tokens": 2047
         }
       },
-      "reduction_pct": 87.1
+      "reduction_pct": 86.6
     },
     {
       "name": "same-task warm-path delta legal",
@@ -419,10 +419,10 @@
           "tests/fixtures/anchor-slicing/task-review-sample.md"
         ],
         "stats": {
-          "chars": 49884,
-          "lines": 915,
-          "words": 6592,
-          "approx_tokens": 12471
+          "chars": 50337,
+          "lines": 918,
+          "words": 6645,
+          "approx_tokens": 12585
         }
       },
       "minimal": {
@@ -444,7 +444,7 @@
           "approx_tokens": 3450
         }
       },
-      "reduction_pct": 72.3
+      "reduction_pct": 72.6
     },
     {
       "name": "same-task warm-path delta illegal -> full packet fallback",
@@ -467,10 +467,10 @@
           "tests/fixtures/anchor-slicing/task-review-sample.md"
         ],
         "stats": {
-          "chars": 50005,
-          "lines": 915,
-          "words": 6609,
-          "approx_tokens": 12502
+          "chars": 50458,
+          "lines": 918,
+          "words": 6662,
+          "approx_tokens": 12615
         }
       },
       "minimal": {
@@ -483,10 +483,10 @@
           "tests/fixtures/anchor-slicing/task-review-sample.md"
         ],
         "stats": {
-          "chars": 50107,
-          "lines": 917,
-          "words": 6625,
-          "approx_tokens": 12527
+          "chars": 50560,
+          "lines": 920,
+          "words": 6678,
+          "approx_tokens": 12640
         }
       },
       "reduction_pct": -0.2,
@@ -534,10 +534,10 @@
           "tests/fixtures/anchor-slicing/task-review-sample.md"
         ],
         "stats": {
-          "chars": 35207,
-          "lines": 717,
-          "words": 4544,
-          "approx_tokens": 8802
+          "chars": 35660,
+          "lines": 720,
+          "words": 4597,
+          "approx_tokens": 8915
         }
       },
       "minimal": {
@@ -549,10 +549,10 @@
           "tests/fixtures/anchor-slicing/task-review-sample.md"
         ],
         "stats": {
-          "chars": 35263,
-          "lines": 720,
-          "words": 4550,
-          "approx_tokens": 8816
+          "chars": 35716,
+          "lines": 723,
+          "words": 4603,
+          "approx_tokens": 8929
         }
       },
       "reduction_pct": -0.2,
@@ -589,10 +589,10 @@
           "plugins/forgeloop/skills/references/anchor-addressing.md"
         ],
         "stats": {
-          "chars": 82820,
-          "lines": 1263,
-          "words": 9658,
-          "approx_tokens": 20705
+          "chars": 83013,
+          "lines": 1264,
+          "words": 9678,
+          "approx_tokens": 20754
         }
       },
       "minimal": {
@@ -614,7 +614,7 @@
           "approx_tokens": 4718
         }
       },
-      "reduction_pct": 77.2
+      "reduction_pct": 77.3
     },
     {
       "name": "same-stage planner continue",
@@ -634,10 +634,10 @@
           "tests/codex/token-benchmark/fixtures/planning-design-repair-sample.md"
         ],
         "stats": {
-          "chars": 29545,
-          "lines": 509,
-          "words": 3794,
-          "approx_tokens": 7387
+          "chars": 29738,
+          "lines": 510,
+          "words": 3814,
+          "approx_tokens": 7435
         }
       },
       "minimal": {
@@ -654,7 +654,7 @@
           "approx_tokens": 2619
         }
       },
-      "reduction_pct": 64.5
+      "reduction_pct": 64.8
     },
     {
       "name": "fresh planning reviewer handoff",
@@ -675,10 +675,10 @@
           "tests/codex/token-benchmark/fixtures/planning-design-handoff-sample.md"
         ],
         "stats": {
-          "chars": 36325,
-          "lines": 647,
-          "words": 4811,
-          "approx_tokens": 9082
+          "chars": 36518,
+          "lines": 648,
+          "words": 4831,
+          "approx_tokens": 9130
         }
       },
       "minimal": {
@@ -696,7 +696,7 @@
           "approx_tokens": 4506
         }
       },
-      "reduction_pct": 50.4
+      "reduction_pct": 50.6
     },
     {
       "name": "review changes requested -> reopen next round",
@@ -717,10 +717,10 @@
           "tests/codex/token-benchmark/fixtures/planning-gap-reopen-sample.md"
         ],
         "stats": {
-          "chars": 39310,
-          "lines": 683,
-          "words": 4868,
-          "approx_tokens": 9828
+          "chars": 39503,
+          "lines": 684,
+          "words": 4888,
+          "approx_tokens": 9876
         }
       },
       "minimal": {
@@ -739,45 +739,45 @@
           "approx_tokens": 3873
         }
       },
-      "reduction_pct": 60.6
+      "reduction_pct": 60.8
     }
   ],
   "aggregates": {
     "runtime": {
       "scenario_count": 11,
       "hot_path": {
-        "legacy_approx_tokens": 103006,
-        "minimal_approx_tokens": 51494,
-        "reduction_pct": 50.008737355105524
+        "legacy_approx_tokens": 103459,
+        "minimal_approx_tokens": 51808,
+        "reduction_pct": 49.92412453242347
       },
       "cold_path": {
-        "legacy_approx_tokens": 53619,
-        "minimal_approx_tokens": 15972,
-        "reduction_pct": 70.2120516980921
+        "legacy_approx_tokens": 53927,
+        "minimal_approx_tokens": 16148,
+        "reduction_pct": 70.05581619596862
       },
       "total": {
-        "legacy_approx_tokens": 156625,
-        "minimal_approx_tokens": 67466,
-        "reduction_pct": 56.92513966480447
+        "legacy_approx_tokens": 157386,
+        "minimal_approx_tokens": 67956,
+        "reduction_pct": 56.822080744157674
       },
-      "task_hot_path_average_reduction_pct": 60.675
+      "task_hot_path_average_reduction_pct": 60.699999999999996
     },
     "planning": {
       "scenario_count": 4,
       "hot_path": {
-        "legacy_approx_tokens": 26297,
+        "legacy_approx_tokens": 26441,
         "minimal_approx_tokens": 10998,
-        "reduction_pct": 58.17773890557858
+        "reduction_pct": 58.40550659959911
       },
       "cold_path": {
-        "legacy_approx_tokens": 20705,
+        "legacy_approx_tokens": 20754,
         "minimal_approx_tokens": 4718,
-        "reduction_pct": 77.2132335184738
+        "reduction_pct": 77.26703286113519
       },
       "total": {
-        "legacy_approx_tokens": 47002,
+        "legacy_approx_tokens": 47195,
         "minimal_approx_tokens": 15716,
-        "reduction_pct": 66.56312497340538
+        "reduction_pct": 66.69986227354593
       }
     }
   },

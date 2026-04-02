@@ -7,6 +7,7 @@
 - Applies to: the active planning state for one Initiative
 - Primary readers: `run-planning` and `planning-loop`
 - Primary purpose: keep only the minimum planning control state needed for recovery, dispatch, and legal stop routing
+- Recommended repo-local placement: sibling `.forgeloop/planning-state.md` under the Initiative document directory, unless explicit sealed refs override that default
 
 <!-- forgeloop:anchor legal-blocks -->
 ## Legal Blocks

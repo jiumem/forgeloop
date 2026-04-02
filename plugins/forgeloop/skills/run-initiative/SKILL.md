@@ -13,6 +13,8 @@ The Initiative execution loop uses one control spine plus three execution loops:
 - coder and reviewer perform formal handoff inside object-level review rolling docs
 - the system enters the Task, Milestone, or Initiative review/repair loop based on the current progress position
 
+The default repo-local control-plane root contract lives at `../references/control-plane-roots.md`.
+
 <!-- forgeloop:anchor delegation-contract -->
 ## Delegation Contract
 
@@ -108,13 +110,14 @@ First bind the formal source refs for the current Initiative.
 
 1. Use the user-provided `planning_doc_path`, `initiative_key`, or the only verifiable active Initiative in the current workspace to bind the current Initiative. If it cannot be verified uniquely, ask the user.
 2. Prefer exploring under the parent path of the user-provided total task doc. Only if that is insufficient should you continue under the repo `docs/` tree.
+3. When the sealed planning artifact directory is known, derive the default repo-local runtime control-plane root from `../references/control-plane-roots.md`: sibling `.forgeloop/` under that Initiative document directory. Prefer those candidate refs before any wider repo search, but let already sealed explicit Initiative refs override the defaults.
 <!-- forgeloop:anchor canonical-ref-semantics -->
-3. Confirm seven Initiative-bound source slots as canonical refs: `design_ref`, `gap_analysis_ref`, `total_task_doc_ref`, `global_state_doc_ref`, `task_review_rolling_doc_root_ref`, `milestone_review_rolling_doc_root_ref`, and `initiative_review_rolling_doc_ref`.
-4. `gap_analysis_ref` may be `N/A` only when the sealed `Design Doc` explicitly marks `Gap Analysis Requirement: not_required`.
-5. The four runtime slots may temporarily point to missing files or directories on cold start, but the canonical repo-root-relative refs must already be uniquely confirmed.
-6. For repo-local targets, the durable value of each source slot must be a repo-root-relative ref. Do not bind current-workspace absolute paths, worktree-specific absolute paths, or shell-cwd-relative paths here.
-7. Bind `runtime_cutover_ref=plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md` separately as a framework contract ref before any runtime routing or packet assembly.
-8. If `design_ref` or `total_task_doc_ref` is missing, if `gap_analysis_ref` is required but missing, or if `total_task_doc_ref` cannot identify the Initiative reference entry clearly, stop, do not write `Global State Doc`, and ask the user to provide or confirm the missing information.
+4. Confirm seven Initiative-bound source slots as canonical refs: `design_ref`, `gap_analysis_ref`, `total_task_doc_ref`, `global_state_doc_ref`, `task_review_rolling_doc_root_ref`, `milestone_review_rolling_doc_root_ref`, and `initiative_review_rolling_doc_ref`.
+5. `gap_analysis_ref` may be `N/A` only when the sealed `Design Doc` explicitly marks `Gap Analysis Requirement: not_required`.
+6. The four runtime slots may temporarily point to missing files or directories on cold start, but the canonical repo-root-relative refs must already be uniquely confirmed.
+7. For repo-local targets, the durable value of each source slot must be a repo-root-relative ref. Do not bind current-workspace absolute paths, worktree-specific absolute paths, or shell-cwd-relative paths here.
+8. Bind `runtime_cutover_ref=plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md` separately as a framework contract ref before any runtime routing or packet assembly.
+9. If `design_ref` or `total_task_doc_ref` is missing, if `gap_analysis_ref` is required but missing, or if `total_task_doc_ref` cannot identify the Initiative reference entry clearly, stop, do not write `Global State Doc`, and ask the user to provide or confirm the missing information.
 
 ### Step 2: Run Planning Admission
 
