@@ -17,7 +17,10 @@ check_pattern() {
 
 check_pattern \
   "plugins/forgeloop/skills/planning-loop/SKILL.md" \
-  '`run-planning/SKILL.md` and `planning-loop/SKILL.md` are supervisor-layer docs, not ordinary planner/reviewer authoritative packet payload'
+  'Obey the shared packet law in `../references/anchor-addressing.md`'
+check_pattern \
+  "plugins/forgeloop/skills/planning-loop/SKILL.md" \
+  'every planner and stage-reviewer packet must explicitly carry the bound `stage_reference_ref` and `rolling_doc_contract_ref`'
 check_pattern \
   "plugins/forgeloop/skills/references/anchor-addressing.md" \
   'Supervisor or dispatcher skill docs are not worker authoritative packet payload'
@@ -25,7 +28,7 @@ check_pattern \
 while IFS= read -r file; do
   check_pattern \
     "$file" \
-    'Do not require `run-planning/SKILL.md` or `planning-loop/SKILL.md`'
+    'Obey the shared packet law in `plugins/forgeloop/skills/references/anchor-addressing.md`'
 done <<'EOF'
 plugins/forgeloop/agents/planner.toml
 plugins/forgeloop/agents/design_reviewer.toml

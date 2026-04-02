@@ -17,9 +17,8 @@ The planning side uses one control spine plus one internal stage skill:
 The `Planning State Doc` control contract lives at `references/planning-state.md`.
 The repo-local control-plane root contract lives at `../references/control-plane-roots.md`.
 
-The default planning packet is anchor-addressed: authoritative refs first, doc-local selectors second, optional minimal slices third, and full-document fallback only on legality failure or cold-start recovery.
-This minimal packet default is the planning-side law. Planning does not wait for a separate runtime-style cutover contract to become minimal-first.
-Planning packets must remain self-sufficient for the current stage and round. Do not rely on previous-packet memory, packet hashes, or delta-only continuation assumptions.
+Obey the shared packet law in `../references/anchor-addressing.md`.
+Do not restate packet completeness, selector legality, or supervisor-doc exclusion here unless this file adds a true local exception.
 
 <!-- forgeloop:anchor delegation-contract -->
 ## Delegation Contract
@@ -56,7 +55,7 @@ You are not responsible for:
 
 Once the next planning step is clear, dispatch exactly one downstream skill for that decision point, or stop and ask the user. Sequential redispatch after `planning-loop` returns is allowed only after rereading the `Planning State Doc` and current planning truth; parallel dispatch and speculative skipped stages are forbidden.
 
-The `Planning State Doc` holds only the minimum planning control plane: `current_snapshot`, `next_action`, `last_transition`, plus explicit waiting / blocked / sealed-output signals. Do not put planner or reviewer body content there, and do not create a second planning state model outside the formal planning artifacts, rolling docs, and the `Planning State Doc`.
+The `Planning State Doc` holds only the minimum planning control plane: `current_snapshot`, `next_action`, and `last_transition`, using only the canonical supervisor actions `enter_planning_loop`, `waiting`, `blocked`, and `sealed_planning_docs_ready`. Do not put planner or reviewer body content there, and do not create a second planning state model outside the formal planning artifacts, rolling docs, and the `Planning State Doc`.
 
 <!-- forgeloop:anchor when-to-stop -->
 ## When To Stop Or Ask The User
@@ -66,7 +65,7 @@ The `Planning State Doc` holds only the minimum planning control plane: `current
 - the `Planning State Doc` and planning artifacts conflict and the active stage, `planner_slot`, or stage `round` cannot be recovered uniquely
 - the repository is missing the canonical stage reference or rolling-doc contract needed for the active stage
 - the confirmed next planning step requires entering `planning-loop`, but the required downstream planner / reviewer delegation is unavailable, blocked, or will not actually be performed in this activation
-- planning is already in `sealed_planning_docs_ready`, or it is in a waiting / blocked stop state that this activation does not clearly resolve
+- planning is already in `sealed_planning_docs_ready`, or it is in `waiting` / `blocked` and this activation does not clearly resolve that stop reason
 
 <!-- forgeloop:anchor main-flow -->
 ## Main Flow
@@ -99,7 +98,7 @@ After reading the formal planning sources, decide whether planning should enter 
 - If this is a fresh cross-stage entry and no rolling doc exists yet, bind only the target stage and paths here; let `planning-loop` initialize `planner_slot=planner` and `round=1`.
 - If any of `stage`, `planner_slot`, or `round` still has multiple legal answers, stop and ask the user.
 6. Once state is consistent, decide the route.
-- Resolved `waiting` / `blocked`: clear the stop state, rewrite the minimum `Planning State Doc`, and continue.
+- Resolved `waiting` / `blocked`: record `resume_waiting` or `resume_blocked` in `last_transition`, rewrite the minimum `Planning State Doc`, and continue.
 - Recorded `advance_*` or `reopen_*`: bind the target stage, keep the route in `last_transition`, and enter `planning-loop` in the same activation after state refresh.
 - Existing in-stage repair / reviewer handoff / review-result state: keep the same stage and enter `planning-loop`.
 - Recovered active stage from artifact + rolling doc: rewrite the minimum `Planning State Doc` around that stage and continue.
@@ -109,13 +108,13 @@ After reading the formal planning sources, decide whether planning should enter 
 
 Before dispatching, make the active planning stage explicit in the `Planning State Doc`.
 
-1. `Planning State Doc` is the only planning control spine. `current_snapshot` carries the bound Initiative, active stage, active `artifact_ref`, active `rolling_doc_ref`, and when known `planner_slot` plus `round`; `next_action` carries only the current planning route or stop signal; `last_transition` carries only the most recent bind, recovery, resume, reopen, or cross-stage routing fact.
+1. `Planning State Doc` is the only planning control spine. `current_snapshot` carries the bound Initiative, active stage, active `artifact_ref`, active `rolling_doc_ref`, and when known `planner_slot` plus `round`; `next_action` may only be `enter_planning_loop`, `waiting`, `blocked`, or `sealed_planning_docs_ready`; `last_transition` carries recovery, resume, reopen, and cross-stage routing facts.
 2. When resuming an existing stage, preserve `planner_slot` and stage `round`, and write them back immediately when recovery has already proved them.
 3. Only a fresh stage with no rolling doc may omit them temporarily; once a stage is in flight and either value is known, `planning-loop` or recovery must write `planner_slot=planner` and the current `round` back into `current_snapshot`.
 4. `next_action` records entry into `planning-loop` for the bound stage.
 5. `last_transition` records cold start, recovery, rebind, reopen, or resume.
 6. If the route is `reopen_to_design` or `reopen_to_gap_analysis`, stay visible as a reopen route in `last_transition`.
-7. If the `Planning State Doc` does not exist, initialize only `current_snapshot`, `next_action`, and `last_transition`.
+7. If the `Planning State Doc` does not exist, initialize only `planning_state_header`, `current_snapshot`, `next_action`, and `last_transition`.
 
 ### Step 4: Dispatch The Internal Stage Skill
 

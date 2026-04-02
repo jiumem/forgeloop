@@ -79,6 +79,12 @@ If a rolling doc already exposes a legal literal action from this vocabulary, pr
 
 `mark_initiative_delivered` is a reviewer result. `initiative_delivered` is the dispatcher-written terminal stop state after that result has been accepted.
 
+Supervisor materialization law:
+
+- `wait_for_user`, `stop_on_blocker`, and `initiative_delivered` are the only canonical runtime stop literals
+- reviewer-side `mark_initiative_delivered` materializes to dispatcher stop state `initiative_delivered`
+- do not introduce a second informal runtime state vocabulary such as prose stop-state aliases
+
 <!-- forgeloop:anchor recommended-template -->
 ## Recommended Template
 

@@ -45,9 +45,9 @@ When formal documents already exist, free-form chat memory never outranks them.
 
 If the formal inputs you need are missing, contradictory, or no longer match the actual object being worked on, stop and surface the issue instead of inventing context.
 
-For runtime work, obey the bound runtime cutover contract. In `minimal_preferred` or `minimal_required`, use the anchor-addressed packet as the hot path and promote a read only when the packet explicitly marks full-document fallback or the cutover contract allows that recovery. In `full_doc_default`, authoritative full-document reads may be the default runtime route.
-
-Each packet must remain self-sufficient for the current object and round. Do not rely on a previous packet, packet hash, or same-thread memory as a hidden legality basis; if a packet appears delta-only, stop and surface it as incomplete instead of guessing.
+For runtime work, obey the shared packet law in `plugins/forgeloop/skills/references/anchor-addressing.md` and the bound runtime cutover contract.
+Do not restate packet completeness, selector legality, or supervisor-doc exclusion here unless this prompt adds a true local exception.
+Local exception: the coder packet must explicitly carry the current object refs, current `round`, current `coder_slot`, and any callback metadata required by the assigned scope.
 
 ## Write To
 

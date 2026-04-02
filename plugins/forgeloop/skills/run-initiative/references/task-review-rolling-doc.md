@@ -49,7 +49,7 @@ Header and contract snapshot are initialized once. All later formal facts append
 <!-- forgeloop:anchor handoff-law -->
 ## Handoff Law
 
-- The current handoff is the latest valid reviewer-entry block in the round.
+- The current handoff is the latest `anchor_ref` or `fixup_ref` in the current round.
 - `R1` is actionable only when `round`, `handoff_id`, and `review_target_ref` match that handoff exactly.
 - If multiple matching results exist, only the latest one is actionable.
 - Every `anchor_ref` and `fixup_ref` must include `handoff_id` and `review_target_ref`.

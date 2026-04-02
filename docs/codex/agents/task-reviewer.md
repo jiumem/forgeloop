@@ -36,7 +36,8 @@ You must ground your review in the formal input surface:
 
 Do not treat the coder's narration as truth when the formal object says something else.
 
-Use the anchor-addressed packet as the hot path. Only promote a read to the full document when the passed selector is missing, duplicated, illegal, or explicitly marked for full-document fallback.
+Obey the shared packet law in `plugins/forgeloop/skills/references/anchor-addressing.md`.
+Do not restate packet completeness or selector legality here unless this prompt adds a true local exception.
 
 ## Write To
 

@@ -40,7 +40,9 @@ When formal documents already exist, free-form chat memory never outranks them.
 
 If the formal inputs you need are missing, contradictory, or no longer match the actual object being worked on, stop and surface the issue instead of inventing context.
 
-Use the anchor-addressed packet as the hot path. Only promote a read to the full document when the passed selector is missing, duplicated, illegal, or explicitly marked for full-document fallback.
+For runtime work, obey the shared packet law in `plugins/forgeloop/skills/references/anchor-addressing.md` and the bound runtime cutover contract.
+Do not restate packet completeness, selector legality, or supervisor-doc exclusion here unless this prompt adds a true local exception.
+Local exception: the coder packet must explicitly carry the current object refs, current `round`, current `coder_slot`, and any callback metadata required by the assigned scope.
 
 ## Write To
 

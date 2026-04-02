@@ -101,7 +101,7 @@ This skill does not handle the following:
 - If there is no rolling doc at all and no `Global State Doc`, treat it as a cold start, hand control back upstream, and do not write runtime state
 
 2. Determine the current formal frontier
-- First respect waiting / blocked / done signals that are consistent with the newer formal facts
+- First respect canonical stop literals `wait_for_user`, `stop_on_blocker`, and `initiative_delivered` when they are consistent with the newer formal facts
 - Prefer current-effective derived views only when they can still be rebuilt from the same authoritative rolling docs without legality drift; otherwise invalidate them and reread the formal rolling docs
 - If a derived view is invalid, record whether the reason was newer formal blocks, multiple actionable results, handoff mismatch, or selector legality failure before promoting recovery
 - Otherwise, use the newest formal frontier that has not yet closed as the active candidate

@@ -1,6 +1,6 @@
 ---
 name: code-loop
-description: Unified runtime object loop. Use when one confirmed runtime object must continue in task, milestone, or initiative mode; this skill preserves one logical coder owner, one object-local round, and one mode-specific review contract.
+description: Unified runtime object loop. Use when one confirmed runtime object must continue in task, milestone, or initiative mode; this skill preserves one durable `coder_slot`, one object-local round, and one mode-specific review contract.
 ---
 
 # Code Loop
@@ -10,7 +10,7 @@ description: Unified runtime object loop. Use when one confirmed runtime object 
 
 `code-loop` is the unified runtime-object executor under `run-initiative`.
 
-You act as the runtime-object `Supervisor`: keep the minimum runtime control plane, preserve one logical `coder_slot`, dispatch the `coder`, dispatch the mode-bound reviewer, and route only within one currently bound runtime mode.
+You act as the runtime-object `Supervisor`: keep the minimum runtime control plane, preserve one durable `coder_slot`, dispatch the `coder`, dispatch the mode-bound reviewer, and route only within one currently bound runtime mode.
 
 Supported modes:
 
@@ -71,8 +71,22 @@ Hard boundaries:
 - `request_reviewer_handoff` remains rolling-doc-local coder intent rather than a legal `Global State Doc.next_action.action`
 - `round` is object-local and supervisor-owned through the `Global State Doc`; coder and reviewer only echo it in the rolling doc
 - when the active object is already in flight, preserve `coder_slot` and `round`; only a fresh object with no rolling doc yet may initialize `coder_slot=coder` and `round=1`
-- every `R1` / `R2` / `R3` entry must use a fresh reviewer for the current handoff; default to `fork_context=false`
+- `coder_slot` is the only durable owner identity
+- physical thread reuse is optional and carries no formal meaning
+- all recovery must come from the current packet plus the bound formal docs, never from prior-thread memory as the only legality basis
+- every `R1` / `R2` / `R3` entry must use a fresh reviewer for the current handoff
 - if the `Global State Doc` conflicts with the bound rolling doc, hand control back to `rebuild-runtime`
+
+<!-- forgeloop:anchor runtime.packet-law -->
+## Runtime Worker Packet Law
+
+Obey the shared packet law in `../references/anchor-addressing.md` and the runtime cutover law in `../run-initiative/references/runtime-cutover.md`.
+Do not restate packet completeness, selector legality, or supervisor-doc exclusion here unless this file adds a true local exception.
+
+Local exceptions for runtime worker packets:
+
+- coder packets must additionally carry current `mode`, current `round`, current `coder_slot`, and callback metadata when this is an objectized repair Task
+- reviewer packets must additionally carry the current handoff tuple: `round`, `handoff_id`, and `review_target_ref`
 
 <!-- forgeloop:anchor workflow -->
 ## Workflow
@@ -91,8 +105,8 @@ Hard boundaries:
 - Do not append fake gate blocks, fake handoff blocks, or fake review blocks during cold start.
 
 3. Dispatch the coder
-- Keep one logical `coder_slot`.
-- Reuse the same logical coder owner across rounds when possible.
+- Keep one durable `coder_slot`.
+- Preserve the same `coder_slot` across rounds unless the runtime control plane has formally rebound ownership.
 - The coder packet must carry:
   - Initiative static truth refs
   - `Global State Doc`
@@ -102,7 +116,6 @@ Hard boundaries:
   - current `coder_slot`
   - the exact selectors required for this object and round
   - callback metadata when this is an objectized repair Task
-- Use anchor-addressed minimal packets as the hot path under the bound runtime cutover law.
 
 4. Handle the gate result
 - Read only the latest gate result for the current round that is legal for the bound mode.
@@ -113,12 +126,11 @@ Hard boundaries:
 
 5. Dispatch the mode-specific reviewer
 - Bind the reviewer from `references/runtime-object-modes.md`.
-- Every review entry uses a freshly spawned reviewer for the current handoff; default to `fork_context=false`.
+- Every review entry uses a freshly spawned reviewer for the current handoff.
 - Every review entry uses the current handoff tuple:
   - `round`
   - `handoff_id`
   - `review_target_ref`
-- Reviewer packets must stay self-sufficient for that handoff.
 - Derived views are optional hot-path helpers only.
 
 6. Handle the review result
@@ -147,7 +159,7 @@ Stop immediately and hand control back upstream or to the user when:
 - the current handoff cannot be recovered uniquely
 - the latest actionable review result cannot be recovered uniquely
 - the coder or reviewer exposes a real blocker
-- the current packet is incomplete or selector-illegal and fallback is not legal under the bound runtime cutover mode
+- the shared packet law or bound runtime cutover mode makes the current read surface illegal and does not allow fallback
 
 <!-- forgeloop:anchor red-lines -->
 ## Red Lines

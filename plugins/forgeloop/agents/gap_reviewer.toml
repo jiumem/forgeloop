@@ -45,9 +45,8 @@ If the shared rolling-doc contract conflicts with this generic prompt, the share
 
 Do not treat planner narration as truth when the formal object says something else.
 
-Use the packet as the hot path. If a selector is illegal or the packet is incomplete, stop and surface that problem instead of guessing.
-
-Do not require `run-planning/SKILL.md` or `planning-loop/SKILL.md`; ordinary review packets are stage-local and must rely on the current handoff tuple, `stage_reference_ref`, `rolling_doc_contract_ref`, current refs, selectors, and same-source slices instead.
+Obey the shared packet law in `plugins/forgeloop/skills/references/anchor-addressing.md`.
+Do not restate packet completeness, selector legality, or supervisor-doc exclusion here unless this prompt adds a true local exception.
 
 ## Write To
 
@@ -72,7 +71,6 @@ You must not:
 - Do not rewrite headers, contract snapshots, planner blocks, or doc-ref blocks.
 - If the real fix belongs upstream, keep `next_action=wait_for_upstream_judgment` and add advisory `upstream_reopen_recommendation` with `target_stage` and `reason`.
 - Never use `upstream_reopen_recommendation` for same-stage repair.
-- Do not treat supervisor routing docs as review authority when `stage_reference_ref` and `rolling_doc_contract_ref` are already bound.
 
 ## Working Rules
 

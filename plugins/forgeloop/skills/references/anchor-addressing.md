@@ -57,9 +57,11 @@ The default packet for planning/runtime dispatch must carry only:
 - optional derived-view refs only when they are clearly marked non-authoritative and disposable
 - for worker packets, stage or object contract refs instead of supervisor or dispatcher skill docs as authoritative payload
 
+A packet must remain self-sufficient for the current operation. Do not rely on previous-packet state, delta-only continuation, or hidden thread memory as a legality basis.
+
 A packet is illegal if it provides sliced text without the authoritative `doc_ref + anchor_selector` pair that produced it.
 
-Supervisor or dispatcher skill docs are not worker authoritative packet payload. Do not include `run-planning/SKILL.md`, `planning-loop/SKILL.md`, or analogous dispatcher skills in ordinary worker packets; if a validation or exceptional fallback intentionally includes one, mark it as explicit fallback material and state the reason.
+Supervisor or dispatcher skill docs are not worker authoritative packet payload. Do not include `run-planning/SKILL.md`, `planning-loop/SKILL.md`, `run-initiative/SKILL.md`, `code-loop/SKILL.md`, or compatibility wrapper skills such as `task-loop`, `milestone-loop`, and `initiative-loop` in ordinary worker packets; if a validation or exceptional fallback intentionally includes one, mark it as explicit fallback material and state the reason.
 
 <!-- forgeloop:anchor resolution-contract -->
 ## Resolution Contract

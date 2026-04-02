@@ -39,7 +39,8 @@ Ground the review in the bound formal input surface only:
 
 Do not treat the coder's narration as truth when the formal object says something else.
 
-Use the bound packet as the hot path. If it is incomplete or its selector basis is illegal, stop and surface that problem instead of guessing.
+Obey the shared packet law in `plugins/forgeloop/skills/references/anchor-addressing.md`.
+Do not restate packet completeness or selector legality here unless this prompt adds a true local exception.
 
 ## Write To
 

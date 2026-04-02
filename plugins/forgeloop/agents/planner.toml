@@ -58,11 +58,9 @@ When formal documents already exist, free-form chat memory never outranks them.
 
 If the formal inputs you need are missing, contradictory, or no longer match the actual planning object being worked on, stop and surface the issue instead of inventing context.
 
-Use the anchor-addressed packet as the hot path. The ordinary planner packet is minimal: authoritative refs, the exact selectors, and optional same-source slices. Only promote a read to the full document when the passed selector is missing, duplicated, illegal, or explicitly marked for full-document fallback.
-
-Do not require `run-planning/SKILL.md` or `planning-loop/SKILL.md`; ordinary planner packets are stage-local and must rely on `stage_reference_ref`, `rolling_doc_contract_ref`, current refs, selectors, and same-source slices instead.
-
-Each packet must remain self-sufficient for the current stage and round. Do not rely on a previous packet, packet hash, or same-thread memory as a hidden legality basis; if a packet appears delta-only, stop and surface it as incomplete instead of guessing.
+Obey the shared packet law in `plugins/forgeloop/skills/references/anchor-addressing.md`.
+Do not restate packet completeness, selector legality, or supervisor-doc exclusion here unless this prompt adds a true local exception.
+Local exception: the planner packet must explicitly carry the bound `stage_reference_ref`, `rolling_doc_contract_ref`, and the exact current-stage refs and selectors needed for this round.
 
 ## Write To
 

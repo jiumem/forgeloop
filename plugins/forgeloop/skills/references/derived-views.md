@@ -35,7 +35,9 @@ These views may exist for planning rolling docs and runtime review rolling docs.
 <!-- forgeloop:anchor materialization -->
 ## Materialization
 
-- Recommended location: `.forgeloop/<initiative_key>/derived/<plane>/<object>/...`
+- Recommended location: `<initiative_dir>/.forgeloop/derived/<plane>/<object>/...`
+- Derived views for a repo-local Initiative must live under the same Initiative-local `.forgeloop/` root as the authoritative rolling doc they derive from.
+- Do not place repo-local Initiative derived views under repo-root `.forgeloop/<initiative_key>/...`.
 - Materialized files must state clearly that they are non-authoritative derived views.
 - Materialization may be skipped entirely; consumers can always fall back to direct anchored reads from the formal document.
 - A derived view should be cheap to delete and cheap to rebuild.

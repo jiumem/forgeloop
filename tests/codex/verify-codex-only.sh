@@ -210,7 +210,8 @@ while IFS=':' read -r file pattern; do
 done <<'EOF'
 plugins/forgeloop/skills/code-loop/SKILL.md:handoff_id
 plugins/forgeloop/skills/code-loop/SKILL.md:current_runtime_cutover_mode
-plugins/forgeloop/skills/code-loop/SKILL.md:fork_context=false
+plugins/forgeloop/skills/code-loop/SKILL.md:fresh reviewer for the current handoff
+plugins/forgeloop/skills/code-loop/SKILL.md:prior-thread memory as the only legality basis
 plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:continue_task_coder_round
 plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:enter_r2
 plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:mark_initiative_delivered
@@ -269,6 +270,7 @@ done
 
 bash tests/codex/planning-runner-regression.sh
 bash tests/codex/planning-packet-lint.sh
+bash tests/codex/runtime-packet-lint.sh
 bash tests/codex/control-plane-root-lint.sh
 
 if rg -n \
