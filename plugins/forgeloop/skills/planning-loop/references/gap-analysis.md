@@ -83,7 +83,7 @@
 
 ### 1. 文档卡片（Document Card）
 
-- `1.1 状态与阶段（Status And Stage）`：标明当前文档状态，例如 `draft`、`review-ready` 或 `sealed`，并确认这是 `Gap Analysis Doc` 阶段；这里写的是文档自身状态，不替代 rolling doc 里的 round、handoff 或 stop signal
+- `1.1 状态与阶段（Status And Stage）`：标明当前文档状态，例如 `draft`、`review-ready` 或 `sealed`，并确认这是 `Gap Analysis Doc` 阶段；这里写的是文档自身状态，不替代 rolling doc 里的 round、handoff 或 stop signal；当 rolling doc 已经给出正式状态时，这里的 prose status 应同步镜像该状态，若两者冲突，以 rolling doc 为准并把 prose 视为待修复漂移
 - `1.2 为什么需要 Gap Analysis（Why Gap Analysis Exists）`：说明触发 gap analysis 的原因，例如 migration、replacement、refactor 或 governance convergence
 - `1.3 主要读者（Primary Readers）`：当这有助于避免误用时，写明当前主要读者
 

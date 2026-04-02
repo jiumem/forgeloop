@@ -7,7 +7,7 @@
 - Applies to: `Design Rolling Doc`, `Gap Rolling Doc`, and `Plan Rolling Doc`
 - Primary readers: planning-layer `Supervisor`, `planner`, and the current stage reviewer
 - Primary purpose: define the shared communication-surface contract for planning rounds, reviewer handoff, seal history, and reopen history
-- Recommended repo-local placement: the Initiative-local `.forgeloop/` root, using `design-rolling.md`, `gap-rolling.md`, or `plan-rolling.md` unless explicit sealed refs override that default
+- For repo-local Initiatives, required placement is the Initiative-local `.forgeloop/` root, using `design-rolling.md`, `gap-rolling.md`, or `plan-rolling.md`
 
 This reference governs the planning communication plane, not artifact shape. Stage-specific references still control the structure and judgment standard of `Design Doc`, `Gap Analysis Doc`, and `Total Task Doc`.
 
@@ -183,6 +183,7 @@ Header and contract snapshot are initialized once. All later formal facts append
 - a stage is formally clean-sealed only when `verdict=clean`, `seal_status=sealed`, and `next_action=ready_for_supervisor_routing`
 - any other combination is non-sealing and must be treated as repair, wait, blocker, or reopen advice
 - a clean reviewer result with explicit `seal_status=sealed` seals only the current planning stage; only the `Supervisor` may route to another stage afterward
+- rolling-doc state is the formal planning status truth; artifact prose status may mirror it for readability, but if the two drift, the rolling doc wins and the artifact prose must be repaired
 - a reviewer result that requests same-stage repair closes the current handoff and requires the `Supervisor` to open the next round before redispatching `planner`
 - an upstream stage may reopen only through an explicit supervisor route recorded in the `Planning State Doc`
 - downstream stages must not silently rewrite earlier sealed truth; they may only recommend reopen through the rolling doc and stop

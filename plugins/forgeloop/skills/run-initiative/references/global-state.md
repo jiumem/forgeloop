@@ -7,7 +7,7 @@
 
 It exists to let `run-initiative`, `task-loop`, `milestone-loop`, `initiative-loop`, and `rebuild-runtime` recover one current active object, one current runtime route, and one recent transition without inventing a second state model.
 
-Recommended repo-local placement is sibling `.forgeloop/global-state.md` under the Initiative document directory, unless explicit sealed refs override that default.
+For repo-local Initiatives, required placement is sibling `.forgeloop/global-state.md` under the Initiative document directory.
 
 <!-- forgeloop:anchor durable-rules -->
 ## Durable Rules
@@ -156,7 +156,7 @@ to_action: continue_task_repair
 reason: milestone_requested_bounded_repair_task
 callback_source_plane: milestone
 callback_source_milestone_key: D7FS-M1
-callback_return_rolling_doc_ref: .forgeloop/day7-first-situation-closure/milestone-review/D7FS-M1.md
+callback_return_rolling_doc_ref: docs/initiatives/active/day7-first-situation-closure/.forgeloop/milestone-review/D7FS-M1.md
 callback_round_behavior: enter_next_round
 ```
 ````

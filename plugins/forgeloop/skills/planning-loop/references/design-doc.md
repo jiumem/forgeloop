@@ -82,7 +82,7 @@
 
 ### 1. 文档卡片（Document Card）
 
-- `1.1 状态与阶段（Status And Stage）`：标明当前文档状态，例如 `draft`、`review-ready` 或 `sealed`，并确认这是 `Design Doc` 阶段；这里写的是文档自身状态，不替代 rolling doc 里的 round、handoff 或 stop signal
+- `1.1 状态与阶段（Status And Stage）`：标明当前文档状态，例如 `draft`、`review-ready` 或 `sealed`，并确认这是 `Design Doc` 阶段；这里写的是文档自身状态，不替代 rolling doc 里的 round、handoff 或 stop signal；当 rolling doc 已经给出正式状态时，这里的 prose status 应同步镜像该状态，若两者冲突，以 rolling doc 为准并把 prose 视为待修复漂移
 - `1.2 Initiative 类型（Initiative Type）`：只写 Initiative 类型；当 Initiative 类型会实质影响下游 planning 时，明确写出其类型，例如 greenfield feature、refactor、migration、replacement、governance convergence
 - `1.3 主要读者（Primary Readers）`：当这有助于避免误用时，写明当前主要读者
 - `1.4 Gap Analysis Requirement`：必须明确写 `required | not_required`；这是 planning 是否必须进入 `Gap Analysis Doc` 的唯一正式路由信号

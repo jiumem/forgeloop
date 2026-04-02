@@ -92,7 +92,7 @@
 - 已验证事实：
   - sealed `design.md` 明确要求 `Gap Analysis Requirement: required`，并把 target state 固定为 stable text anchors + minimal dispatch + rebuildable derived views。
   - planning/runtime skills 与 contract refs 已明确当前对象级 handoff、freshness、薄控制面、以及 repo-root-relative ref 语义。
-  - `.forgeloop/anchor-sliced-dispatch-optimization/` 目前只有 planning-stage docs，没有 runtime control-plane docs。
+  - `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/` 目前只有 planning-stage docs，没有 runtime control-plane docs。
 - 合理推断：
   - 在没有 text-anchor contract 与 derived-view contract 的情况下，当前 hot path 仍以整文或整份 rolling doc 读取为主，因为 repo 中没有等价的新读取合同可绑定。
 - 仍未知：

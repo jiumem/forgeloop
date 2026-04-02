@@ -2,7 +2,7 @@
 
 Forgeloop `0.7.1` installs through a repo-local Codex plugin package at `plugins/forgeloop/`. It remains a Codex-native workflow layer rather than a Python package.
 
-For new repo-local Initiatives, the default planning and runtime control-plane root is a sibling `.forgeloop/` directory next to the Initiative documents unless explicit sealed refs override that placement.
+For repo-local Initiatives, the only legal planning and runtime control-plane root is a sibling `.forgeloop/` directory next to the Initiative documents.
 
 ## Install
 

@@ -86,7 +86,7 @@
 - `1.5 执行边界（Execution Boundary）`：这是说明当前 `Total Task Doc` 承载什么、不承载什么的唯一权威区块
 - `1.6 Initiative 法定引用指派（Initiative Reference Assignment）`：这是下游使用的 Initiative 层法定参考入口的唯一权威区块
 - `1.6 Initiative 法定引用指派（Initiative Reference Assignment）` 中的 repo-local durable refs 必须使用 repo-root-relative path；这同样适用于 `.forgeloop/` 下的 runtime control-plane refs
-- 对于 repo-local Initiative，`1.6` 默认控制面根目录应为与本 `Total Task Doc` 同目录的 sibling `.forgeloop/`；除非存在明确记录的产品级或仓库级 override，否则默认填写：
+- 对于 repo-local Initiative，`1.6` 的唯一法定控制面根目录应为与本 `Total Task Doc` 同目录的 sibling `.forgeloop/`；应直接填写：
   - `global_state_doc_ref = <initiative_dir>/.forgeloop/global-state.md`
   - `task_review_rolling_doc_root_ref = <initiative_dir>/.forgeloop/task-review/`
   - `milestone_review_rolling_doc_root_ref = <initiative_dir>/.forgeloop/milestone-review/`
@@ -109,7 +109,7 @@
 - `3.3 Milestone 验收（Milestone Acceptance）`：定义每个 Milestone 的验收线
 - `3.4 Milestone 法定引用指派（Milestone Reference Assignment）`：这是每个 Milestone 法定参考入口的唯一权威区块
 - `3.4 Milestone 法定引用指派（Milestone Reference Assignment）` 中的 repo-local refs 也必须保持 repo-root-relative durable form；不要把某个主工作区或旧 worktree 的绝对路径写成法定真值
-- 若无明确 override，`3.4` 中的 Milestone-level review refs 也应落在同一个 Initiative-local `.forgeloop/` 根下，而不是为同一 Initiative 再开第二个 control-plane 根目录
+- `3.4` 中的 Milestone-level review refs 也必须落在同一个 Initiative-local `.forgeloop/` 根下，而不是为同一 Initiative 再开第二个 control-plane 根目录
 - `Milestone List` 中的 `Planned PR Model` 默认应为 `Single PR`；只有当某个 Milestone 必须保持为单一状态边界、且无法合理切成新 Milestone 时，才使用 `多 PR 例外（Multi-PR Exception）`
 
 ### 4. Task 账本（Task Ledger）

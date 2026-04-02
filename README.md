@@ -20,7 +20,7 @@ Forgeloop is built from a customized adaptation of [obra/superpowers](https://gi
 
 These skills are meant to be mandatory workflow constraints, not optional suggestions.
 
-For repo-local Initiatives, both planning and runtime control-plane docs now default to an Initiative-local sibling `.forgeloop/` directory next to the Initiative documents.
+For repo-local Initiatives, the only legal planning and runtime control-plane root is an Initiative-local sibling `.forgeloop/` directory next to the Initiative documents.
 
 The suite's custom agent manifests live in [`plugins/forgeloop/agents/`](plugins/forgeloop/agents). They cover the planning roles `planner`, `design_reviewer`, `gap_reviewer`, and `plan_reviewer`, plus the runtime workflow roles `coder`, `task_reviewer`, `milestone_reviewer`, and `initiative_reviewer`. Those manifests are materialized into Codex global agent storage by default, or into a target project's `.codex/agents/` when you pass `--project-dir`.
 

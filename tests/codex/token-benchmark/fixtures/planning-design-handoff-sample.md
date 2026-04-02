@@ -14,8 +14,8 @@ kind: planning_contract_snapshot
 created_at: 2026-03-31T09:00:00Z
 stage: design_doc
 artifact_ref: docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md
-stage_reference_ref: references/design-doc.md
-rolling_doc_contract_ref: references/planning-rolling-doc.md
+stage_reference_ref: plugins/forgeloop/skills/planning-loop/references/design-doc.md
+rolling_doc_contract_ref: plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md
 requirement_ref: docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md#requirement-baseline
 ```
 

@@ -17,9 +17,9 @@ If review sends the Initiative to another planning stage, record that cross-stag
 
 Each planning stage must bind exactly one canonical `stage_reference_ref`.
 
-- `Design Doc` -> `references/design-doc.md`
-- `Gap Analysis Doc` -> `references/gap-analysis.md`
-- `Total Task Doc` -> `references/total-task-doc.md`
+- `Design Doc` -> `plugins/forgeloop/skills/planning-loop/references/design-doc.md`
+- `Gap Analysis Doc` -> `plugins/forgeloop/skills/planning-loop/references/gap-analysis.md`
+- `Total Task Doc` -> `plugins/forgeloop/skills/planning-loop/references/total-task-doc.md`
 
 Bind `stage_reference_ref` as a repo-root-relative path. Materialize an absolute path only at dispatch time when needed. Keep the repo-root-relative form as the durable truth in the rolling-doc contract snapshot.
 
@@ -32,7 +32,7 @@ The active rolling doc contract snapshot is the formal bridge between the workfl
 
 Every planning stage also binds the same canonical `rolling_doc_contract_ref`.
 
-- shared planning rolling-doc contract -> `references/planning-rolling-doc.md`
+- shared planning rolling-doc contract -> `plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md`
 
 Bind `rolling_doc_contract_ref` the same way: repo-root-relative as durable truth, absolute only as an ephemeral dispatch value.
 

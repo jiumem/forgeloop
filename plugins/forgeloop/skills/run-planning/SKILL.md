@@ -15,7 +15,7 @@ The planning side uses one control spine plus one internal stage skill:
 - `planning-loop` is the internal second-layer stage skill that handles exactly one confirmed planning stage per dispatch
 
 The `Planning State Doc` control contract lives at `references/planning-state.md`.
-The default repo-local control-plane root contract lives at `../references/control-plane-roots.md`.
+The repo-local control-plane root contract lives at `../references/control-plane-roots.md`.
 
 The default planning packet is anchor-addressed: authoritative refs first, doc-local selectors second, optional minimal slices third, and full-document fallback only on legality failure or cold-start recovery.
 This minimal packet default is the planning-side law. Planning does not wait for a separate runtime-style cutover contract to become minimal-first.
@@ -76,12 +76,12 @@ The `Planning State Doc` holds only the minimum planning control plane: `current
 First bind the formal planning sources for the current Initiative.
 
 1. Use the user-provided requirement baseline, `design draft`, planning `artifact_ref`, `planning_state_doc_ref`, `initiative_key`, or the only verifiable active planning object in the current workspace to bind the current Initiative. If it cannot be verified uniquely, ask the user.
-2. When the bound Initiative is represented by a repo-local planning artifact and no stronger explicit `planning_state_doc_ref` is already known, derive the default planning control-plane root from `../references/control-plane-roots.md`: sibling `.forgeloop/` under the Initiative document directory. Prefer `planning-state.md`, `design-rolling.md`, `gap-rolling.md`, and `plan-rolling.md` there before any wider repo recovery.
+2. When the bound Initiative is represented by a repo-local planning artifact, derive the one legal planning control-plane root from `../references/control-plane-roots.md`: sibling `.forgeloop/` under the Initiative document directory. Bind `planning-state.md`, `design-rolling.md`, `gap-rolling.md`, and `plan-rolling.md` there directly. Do not search for alternate repo-local planning control-plane roots elsewhere in the repository.
 3. Read the `Planning State Doc` first when it exists.
 4. Read only the minimum planning artifacts and planning rolling docs needed to confirm the active stage.
 5. If the active stage is already bound or the `Planning State Doc` looks distorted, read the active planning rolling doc deeply enough to recover `planner_slot` and the stage `round` when they already exist.
 6. If downstream routing depends on `Gap Analysis Requirement`, read the sealed `Design Doc` directly rather than inferring from loose Initiative labels.
-7. If there is no `Planning State Doc`, you may still continue only when the current planning stage can be recovered uniquely from the requirement baseline, current planning artifacts, and planning rolling docs.
+7. If there is no `Planning State Doc`, you may still continue only when the current planning stage can be recovered uniquely from the requirement baseline, current planning artifacts, and the canonical planning rolling docs under that same Initiative-local `.forgeloop/` root.
 
 ### Step 2: Determine The Current Planning Next Step
 
@@ -92,7 +92,7 @@ After reading the formal planning sources, decide whether planning should enter 
 3. If the `Planning State Doc` already records `waiting` or `blocked`, first check whether this activation clearly resolves that stop reason:
 - if not, stop at that state
 - if yes, record that resume in `last_transition`, then continue from formal planning truth instead of treating the stop as terminal
-4. If the `Planning State Doc` is missing, or if it conflicts with newer planning artifacts or rolling docs, first try to recover the minimum planning control plane directly from formal planning truth instead of stopping immediately.
+4. Treat the `Planning State Doc` plus the active planning rolling doc as formal stage truth. Artifact prose status may help human reading, but it must not override rolling state. If the `Planning State Doc` is missing, or if it conflicts with newer planning artifacts or rolling docs, first try to recover the minimum planning control plane directly from formal planning truth instead of stopping immediately.
 5. Recover state only when one active stage, one `planner_slot`, and one stage `round` can be proven.
 - If the existing `Planning State Doc` is still consistent, preserve `planner_slot` and `round`.
 - If it is missing or stale, recover them from the active rolling doc.

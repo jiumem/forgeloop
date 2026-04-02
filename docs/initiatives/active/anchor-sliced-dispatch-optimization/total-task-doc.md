@@ -31,10 +31,10 @@
 | `design_ref` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md` | sealed 设计真理源 |
 | `gap_analysis_ref` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/gap-analysis.md` | sealed gap 真理源 |
 | `total_task_doc_ref` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md` | sealed 执行地图真理源 |
-| `global_state_doc_ref` | `.forgeloop/anchor-sliced-dispatch-optimization/global-state.md` | runtime control spine |
-| `task_review_rolling_doc_root_ref` | `.forgeloop/anchor-sliced-dispatch-optimization/task-review/` | Task `G1 / anchor / fixup / R1` 根目录 |
-| `milestone_review_rolling_doc_root_ref` | `.forgeloop/anchor-sliced-dispatch-optimization/milestone-review/` | Milestone `G2 / R2` 根目录 |
-| `initiative_review_rolling_doc_ref` | `.forgeloop/anchor-sliced-dispatch-optimization/initiative-review.md` | Initiative `G3 / R3` 唯一 rolling doc |
+| `global_state_doc_ref` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/global-state.md` | runtime control spine |
+| `task_review_rolling_doc_root_ref` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/` | Task `G1 / anchor / fixup / R1` 根目录 |
+| `milestone_review_rolling_doc_root_ref` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/` | Milestone `G2 / R2` 根目录 |
+| `initiative_review_rolling_doc_ref` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/initiative-review.md` | Initiative `G3 / R3` 唯一 rolling doc |
 
 <!-- forgeloop:anchor initiative-overview -->
 ## 2. Initiative 总览（Initiative）
@@ -61,7 +61,7 @@
 | `IC-2` | `run-initiative` 可仅依赖 `1.6` 中的 canonical refs 完成 planning admission；若 runtime docs 尚未 materialize，也能唯一确认 cold-start durable refs。 |
 | `IC-3` | planning/runtime 热路径默认读取 authoritative refs + anchor selectors + 最小必要切片；anchor 缺失、冲突、或 legality 无法证明时，整文 fallback 仍显式合法。 |
 | `IC-4` | derived current-effective / handoff-scoped / attempt-aware 视图可从正式 rolling docs 重建，且不会改变 `round`、`handoff_id`、`review_target_ref`、freshness、或 repo-root-relative durable refs 的现有法律语义。 |
-| `IC-5` | `.forgeloop/anchor-sliced-dispatch-optimization/initiative-review.md` 能基于三个 Milestone review docs 与其 evidence 完成 clean `R3` 判断并支持 `mark_initiative_delivered`，且 residual risks 只剩法律允许保留的非阻塞项。 |
+| `IC-5` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/initiative-review.md` 能基于三个 Milestone review docs 与其 evidence 完成 clean `R3` 判断并支持 `mark_initiative_delivered`，且 residual risks 只剩法律允许保留的非阻塞项。 |
 
 <!-- forgeloop:anchor milestone-master-table -->
 ## 3. Milestone 总表（Milestone Master Table）
@@ -91,9 +91,9 @@
 ### 3.4 Milestone 法定引用指派（Milestone Reference Assignment）
 | Milestone Key | Milestone Review Rolling Doc Ref | Review Target Ref Pattern | Task Scope |
 | --- | --- | --- | --- |
-| `ASDO-M1` | `.forgeloop/anchor-sliced-dispatch-optimization/milestone-review/ASDO-M1.md` | `milestone-rounds/asdo-m1/r<round>` | `ASDO-T1`, `ASDO-T2`, `ASDO-T3` |
-| `ASDO-M2` | `.forgeloop/anchor-sliced-dispatch-optimization/milestone-review/ASDO-M2.md` | `milestone-rounds/asdo-m2/r<round>` | `ASDO-T4`, `ASDO-T5`, `ASDO-T6` |
-| `ASDO-M3` | `.forgeloop/anchor-sliced-dispatch-optimization/milestone-review/ASDO-M3.md` | `milestone-rounds/asdo-m3/r<round>` | `ASDO-T7`, `ASDO-T8`, `ASDO-T9` |
+| `ASDO-M1` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M1.md` | `milestone-rounds/asdo-m1/r<round>` | `ASDO-T1`, `ASDO-T2`, `ASDO-T3` |
+| `ASDO-M2` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M2.md` | `milestone-rounds/asdo-m2/r<round>` | `ASDO-T4`, `ASDO-T5`, `ASDO-T6` |
+| `ASDO-M3` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M3.md` | `milestone-rounds/asdo-m3/r<round>` | `ASDO-T7`, `ASDO-T8`, `ASDO-T9` |
 
 <!-- forgeloop:anchor task-ledger -->
 ## 4. Task 账本（Task Ledger）
@@ -247,46 +247,46 @@
 ### 5.3 PR 计划（PR Plan）
 | PR | Scope | Acceptance Source | Review Handoff |
 | --- | --- | --- | --- |
-| `PR-1 / ASDO-M1` | anchor coverage、namespace、resolution、formal-surface anchorization | `3.3 / ASDO-M1` | `.forgeloop/anchor-sliced-dispatch-optimization/milestone-review/ASDO-M1.md` |
-| `PR-2 / ASDO-M2` | planning/runtime dispatch shrink 与 consumer contract alignment | `3.3 / ASDO-M2` | `.forgeloop/anchor-sliced-dispatch-optimization/milestone-review/ASDO-M2.md` |
-| `PR-3 / ASDO-M3` | rolling-doc derived views、validation、migration/cutover、delivery candidate | `3.3 / ASDO-M3` | `.forgeloop/anchor-sliced-dispatch-optimization/milestone-review/ASDO-M3.md` |
+| `PR-1 / ASDO-M1` | anchor coverage、namespace、resolution、formal-surface anchorization | `3.3 / ASDO-M1` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M1.md` |
+| `PR-2 / ASDO-M2` | planning/runtime dispatch shrink 与 consumer contract alignment | `3.3 / ASDO-M2` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M2.md` |
+| `PR-3 / ASDO-M3` | rolling-doc derived views、validation、migration/cutover、delivery candidate | `3.3 / ASDO-M3` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M3.md` |
 
 ### 5.4 PR 依赖顺序（PR Dependency Order）
 1. `PR-1 / ASDO-M1`
 2. `PR-2 / ASDO-M2`
 3. `PR-3 / ASDO-M3`
-4. `PR-3` merge 后，以三个 Milestone review docs 作为 Initiative candidate 输入，进入 `.forgeloop/anchor-sliced-dispatch-optimization/initiative-review.md` 的 `G3 / R3`。
+4. `PR-3` merge 后，以三个 Milestone review docs 作为 Initiative candidate 输入，进入 `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/initiative-review.md` 的 `G3 / R3`。
 
 <!-- forgeloop:anchor acceptance-matrix -->
 ## 6. 验收矩阵（Acceptance Matrix）
 ### 6.1 Task 验收索引（Task Acceptance Index）
 | Task Key | Acceptance Authority Ref | First Evidence Ref |
 | --- | --- | --- |
-| `ASDO-T1` | `4.2 / ASDO-T1` | `.forgeloop/anchor-sliced-dispatch-optimization/task-review/ASDO-T1.md` |
-| `ASDO-T2` | `4.2 / ASDO-T2` | `.forgeloop/anchor-sliced-dispatch-optimization/task-review/ASDO-T2.md` |
-| `ASDO-T3` | `4.2 / ASDO-T3` | `.forgeloop/anchor-sliced-dispatch-optimization/task-review/ASDO-T3.md` |
-| `ASDO-T4` | `4.2 / ASDO-T4` | `.forgeloop/anchor-sliced-dispatch-optimization/task-review/ASDO-T4.md` |
-| `ASDO-T5` | `4.2 / ASDO-T5` | `.forgeloop/anchor-sliced-dispatch-optimization/task-review/ASDO-T5.md` |
-| `ASDO-T6` | `4.2 / ASDO-T6` | `.forgeloop/anchor-sliced-dispatch-optimization/task-review/ASDO-T6.md` |
-| `ASDO-T7` | `4.2 / ASDO-T7` | `.forgeloop/anchor-sliced-dispatch-optimization/task-review/ASDO-T7.md` |
-| `ASDO-T8` | `4.2 / ASDO-T8` | `.forgeloop/anchor-sliced-dispatch-optimization/task-review/ASDO-T8.md` |
-| `ASDO-T9` | `4.2 / ASDO-T9` | `.forgeloop/anchor-sliced-dispatch-optimization/task-review/ASDO-T9.md` |
+| `ASDO-T1` | `4.2 / ASDO-T1` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/ASDO-T1.md` |
+| `ASDO-T2` | `4.2 / ASDO-T2` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/ASDO-T2.md` |
+| `ASDO-T3` | `4.2 / ASDO-T3` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/ASDO-T3.md` |
+| `ASDO-T4` | `4.2 / ASDO-T4` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/ASDO-T4.md` |
+| `ASDO-T5` | `4.2 / ASDO-T5` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/ASDO-T5.md` |
+| `ASDO-T6` | `4.2 / ASDO-T6` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/ASDO-T6.md` |
+| `ASDO-T7` | `4.2 / ASDO-T7` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/ASDO-T7.md` |
+| `ASDO-T8` | `4.2 / ASDO-T8` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/ASDO-T8.md` |
+| `ASDO-T9` | `4.2 / ASDO-T9` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/ASDO-T9.md` |
 
 ### 6.2 Milestone 验收索引（Milestone Acceptance Index）
 | Milestone Key | Acceptance Authority Ref | First Evidence Ref |
 | --- | --- | --- |
-| `ASDO-M1` | `3.3 / ASDO-M1` | `.forgeloop/anchor-sliced-dispatch-optimization/milestone-review/ASDO-M1.md` |
-| `ASDO-M2` | `3.3 / ASDO-M2` | `.forgeloop/anchor-sliced-dispatch-optimization/milestone-review/ASDO-M2.md` |
-| `ASDO-M3` | `3.3 / ASDO-M3` | `.forgeloop/anchor-sliced-dispatch-optimization/milestone-review/ASDO-M3.md` |
+| `ASDO-M1` | `3.3 / ASDO-M1` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M1.md` |
+| `ASDO-M2` | `3.3 / ASDO-M2` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M2.md` |
+| `ASDO-M3` | `3.3 / ASDO-M3` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M3.md` |
 
 ### 6.3 Initiative 验收索引（Initiative Acceptance Index）
 | Initiative Criterion | Acceptance Authority Ref | First Evidence Ref |
 | --- | --- | --- |
-| `IC-1` | `2.4 / IC-1` | `.forgeloop/anchor-sliced-dispatch-optimization/initiative-review.md` |
+| `IC-1` | `2.4 / IC-1` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/initiative-review.md` |
 | `IC-2` | `2.4 / IC-2` | `plugins/forgeloop/skills/run-initiative/SKILL.md` |
-| `IC-3` | `2.4 / IC-3` | `.forgeloop/anchor-sliced-dispatch-optimization/milestone-review/ASDO-M2.md` |
-| `IC-4` | `2.4 / IC-4` | `.forgeloop/anchor-sliced-dispatch-optimization/milestone-review/ASDO-M3.md` |
-| `IC-5` | `2.4 / IC-5` | `.forgeloop/anchor-sliced-dispatch-optimization/initiative-review.md` |
+| `IC-3` | `2.4 / IC-3` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M2.md` |
+| `IC-4` | `2.4 / IC-4` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M3.md` |
+| `IC-5` | `2.4 / IC-5` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/initiative-review.md` |
 
 ### 6.4 证据入口（Evidence Entrypoints）
 | Evidence Ref | Why Reviewers Start Here |
@@ -294,12 +294,12 @@
 | `docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md` | 设计不变量、fallback 法位、与 `Gap Analysis Requirement` 唯一真理源 |
 | `docs/initiatives/active/anchor-sliced-dispatch-optimization/gap-analysis.md` | `M1` / `M2` / `M3` blocker ledger、coexistence、rollback、reroute rules |
 | `docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md` | 当前执行地图、法定 refs、acceptance ownership、与 PR path |
-| `.forgeloop/anchor-sliced-dispatch-optimization/global-state.md` | runtime 当前 active object、next action、与 recovery spine |
-| `.forgeloop/anchor-sliced-dispatch-optimization/task-review/` | Task-level `G1 / anchor / fixup / R1` 根目录；单个 Task 的首个证据 ref 见 `6.1` |
-| `.forgeloop/anchor-sliced-dispatch-optimization/milestone-review/ASDO-M1.md` | `ASDO-M1` 的 `G2 / R2` 证据与 anchor/slicing 基线 closure |
-| `.forgeloop/anchor-sliced-dispatch-optimization/milestone-review/ASDO-M2.md` | `ASDO-M2` 的 `G2 / R2` 证据与 dispatch shrink closure |
-| `.forgeloop/anchor-sliced-dispatch-optimization/milestone-review/ASDO-M3.md` | `ASDO-M3` 的 `G2 / R2` 证据与 derived views / validation / migration closure |
-| `.forgeloop/anchor-sliced-dispatch-optimization/initiative-review.md` | Initiative-level `G3 / R3` 交付候选与 residual-risk 最终判断入口 |
+| `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/global-state.md` | runtime 当前 active object、next action、与 recovery spine |
+| `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/` | Task-level `G1 / anchor / fixup / R1` 根目录；单个 Task 的首个证据 ref 见 `6.1` |
+| `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M1.md` | `ASDO-M1` 的 `G2 / R2` 证据与 anchor/slicing 基线 closure |
+| `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M2.md` | `ASDO-M2` 的 `G2 / R2` 证据与 dispatch shrink closure |
+| `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M3.md` | `ASDO-M3` 的 `G2 / R2` 证据与 derived views / validation / migration closure |
+| `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/initiative-review.md` | Initiative-level `G3 / R3` 交付候选与 residual-risk 最终判断入口 |
 | `plugins/forgeloop/skills/run-initiative/SKILL.md` | planning admission、runtime dispatch、与 cold-start / rebuild binding 规则入口 |
 
 <!-- forgeloop:anchor global-residual-risks -->
