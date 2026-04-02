@@ -400,8 +400,7 @@
       {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/planning-design-repair-sample.md"}
     ],
     "minimal_packet": [
-      {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/SKILL.md", "anchor": "truth-sources-boundaries"},
-      {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/SKILL.md", "anchor": "workflow"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/planning-loop/references/design-doc.md"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md", "anchor": "planner-update-law"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md", "anchor": "seal-repair-reopen"},
       {"type": "derived_view", "doc": "tests/codex/token-benchmark/fixtures/planning-design-repair-sample.md", "view": "attempt-aware/round-2.md"}
@@ -424,8 +423,7 @@
       {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/planning-design-handoff-sample.md"}
     ],
     "minimal_packet": [
-      {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/SKILL.md", "anchor": "stage-reviewer-binding"},
-      {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/SKILL.md", "anchor": "workflow"},
+      {"type": "full_doc", "path": "plugins/forgeloop/skills/planning-loop/references/design-doc.md"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md", "anchor": "handoff-law"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md", "anchor": "freshness-selection"},
       {"type": "derived_view", "doc": "tests/codex/token-benchmark/fixtures/planning-design-handoff-sample.md", "view": "handoff-scoped/design-r2-a1.md"},

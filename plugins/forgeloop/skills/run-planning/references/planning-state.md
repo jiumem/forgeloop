@@ -22,6 +22,7 @@
 - `current_snapshot` carries only the bound Initiative, active stage, active `artifact_ref`, active `rolling_doc_ref`, and when known `planner_slot` plus `round`.
 - `artifact_ref` and `rolling_doc_ref` must use durable repo-root-relative refs. Materialize absolute paths only at dispatch time when needed.
 - only a fresh stage with no rolling doc may temporarily omit `planner_slot` and `round`
+- once `planner_slot` or `round` is known from the active rolling doc or recovery, write it back into `current_snapshot` immediately; do not leave recoverable values implicit after the stage is in flight
 - `next_action` carries only the current planning route or stop signal
 - `next_action` carries only the immediate in-stage dispatch or stop signal for the currently bound stage; cross-stage routes such as `advance_*` and `reopen_*` belong in `last_transition`, not as a parallel planning state
 - `last_transition` carries only the most recent bind, recovery, resume, reopen, or cross-stage routing fact

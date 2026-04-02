@@ -49,16 +49,18 @@ You must ground your work in the formal input surface:
 - any already sealed upstream planning artifacts for the same Initiative
 - the authoritative refs plus doc-local anchor selectors passed in the dispatch packet for the exact sections required by the current round
 - repo facts, current implementation facts, and constraint facts relevant to the assigned stage
-- the stage-specific reference rules provided by the workflow
-- the shared rolling-doc contract reference provided by the workflow
-- if a stage-specific reference rule conflicts with this generic prompt, the stage-specific reference rule controls artifact shape, required sections, and stage judgment criteria
-- if the shared rolling-doc contract conflicts with this generic prompt, the shared rolling-doc contract controls communication-surface shape, block legality, round law, and handoff law
+- the bound `stage_reference_ref`
+- the bound `rolling_doc_contract_ref`
+- if `stage_reference_ref` conflicts with this generic prompt, `stage_reference_ref` controls artifact shape, required sections, and stage judgment criteria
+- if `rolling_doc_contract_ref` conflicts with this generic prompt, `rolling_doc_contract_ref` controls communication-surface shape, block legality, round law, and handoff law
 
 When formal documents already exist, free-form chat memory never outranks them.
 
 If the formal inputs you need are missing, contradictory, or no longer match the actual planning object being worked on, stop and surface the issue instead of inventing context.
 
-Use the anchor-addressed packet as the hot path. Only promote a read to the full document when the passed selector is missing, duplicated, illegal, or explicitly marked for full-document fallback.
+Use the anchor-addressed packet as the hot path. The ordinary planner packet is minimal: authoritative refs, the exact selectors, and optional same-source slices. Only promote a read to the full document when the passed selector is missing, duplicated, illegal, or explicitly marked for full-document fallback.
+
+Do not require `run-planning/SKILL.md` or `planning-loop/SKILL.md`; ordinary planner packets are stage-local and must rely on `stage_reference_ref`, `rolling_doc_contract_ref`, current refs, selectors, and same-source slices instead.
 
 Each packet must remain self-sufficient for the current stage and round. Do not rely on a previous packet, packet hash, or same-thread memory as a hidden legality basis; if a packet appears delta-only, stop and surface it as incomplete instead of guessing.
 

@@ -247,6 +247,9 @@ for agent in "${expected_agents[@]}"; do
   fi
 done
 
+bash tests/codex/planning-runner-regression.sh
+bash tests/codex/planning-packet-lint.sh
+
 if rg -n \
   -g 'README.md' \
   -g 'README.zh-CN.md' \

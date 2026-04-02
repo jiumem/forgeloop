@@ -10,7 +10,7 @@ description: Internal planning stage skill used by `run-planning` when one confi
 
 You act as the stage `Supervisor`: keep the minimum control plane, preserve one logical `planner_slot`, dispatch the planner and the bound reviewer, and route only within the current stage.
 
-If review sends the Initiative to another planning stage, record that cross-stage route in the `Planning State Doc` and stop. The next `run-planning` activation must bind the new stage explicitly.
+If review sends the Initiative to another planning stage, record that cross-stage route in the `Planning State Doc` and stop. `run-planning` must then reread state, explicitly bind the new stage, and decide whether to continue in the same activation.
 
 <!-- forgeloop:anchor stage-reference-binding -->
 ## Stage Reference Binding
@@ -95,6 +95,15 @@ Hard boundaries:
 - `Gap Analysis Requirement` becomes single-source planning truth only after `Design Doc` seals; once sealed, downstream planning must route from that line instead of re-inferring requirement from chat memory or loose Initiative labels
 - if the planning inputs conflict or the current stage cannot be confirmed uniquely, stop and ask for clarification instead of improvising a new planning object
 
+<!-- forgeloop:anchor planning.packet-law -->
+## Planning Worker Packet Law
+
+- planning-side worker dispatch defaults to minimal packets: authoritative refs first, doc-local selectors second, optional same-source slices third, and full-document fallback only on cold start, selector legality failure, or formal conflict
+- planner packets should carry only: active stage identity, requirement or `design draft`, `planning_state_doc_ref`, `artifact_ref`, `rolling_doc_ref`, current `round`, `stage_reference_ref`, `rolling_doc_contract_ref`, the necessary sealed upstream refs, and the exact selectors or same-source slices needed for the current round
+- reviewer packets should carry only: current `round`, `handoff_id`, `review_target_ref`, active `artifact_ref`, active `rolling_doc_ref`, `stage_reference_ref`, `rolling_doc_contract_ref`, the necessary sealed upstream refs, and the exact selectors or same-source slices needed for the current handoff
+- `run-planning/SKILL.md` and `planning-loop/SKILL.md` are supervisor-layer docs, not ordinary planner/reviewer authoritative packet payload
+- do not include those supervisor skill docs in ordinary planner or reviewer packets; if an exceptional fallback intentionally includes one, state that fallback reason explicitly instead of treating the doc as stage-local authority
+
 <!-- forgeloop:anchor workflow -->
 ## Workflow
 
@@ -124,12 +133,13 @@ Hard boundaries:
 - Default to `fork_context=false`
 - The planner input must explicitly carry: active stage identity, requirement or `design draft`, the `Planning State Doc` ref or materialized path, the active `rolling_doc_ref`, the active `artifact_ref`, any materialized paths needed for dispatch, the current `round`, the bound `stage_reference_ref`, the bound `rolling_doc_contract_ref`, the anchor selectors for the exact planning-artifact and rolling-doc surfaces needed in the round, and any sealed upstream planning artifacts
 - The planner reads artifact-shape rules from `stage_reference_ref`, communication-plane rules from `rolling_doc_contract_ref`, and selector legality from `../references/anchor-addressing.md`; do not inline or restate the full reference text in the dispatch packet unless a referenced file is missing, unreadable, or has promoted to full-document fallback
+- Do not include `run-planning/SKILL.md` or `planning-loop/SKILL.md` in ordinary planner packets
 
 4. Handle planner output
 - The latest `planner_update` in the current round is the current planner intent.
 - Route only from that latest `planner_update` in the current round.
 - `continue_stage_repair`: keep the same `planner_slot` and the same round.
-- `request_reviewer_handoff`: require one valid current handoff in the same round, then dispatch the bound reviewer.
+- `request_reviewer_handoff`: require one valid current handoff in the same round, then dispatch the bound reviewer with only the current handoff tuple, bound refs, selectors, and same-source slices needed for that review.
 - `wait_for_upstream_judgment`: write a waiting stop state and stop.
 - `stop_on_blocker`: write a blocked stop state and stop.
 - Anything else is illegal planner output.
@@ -171,6 +181,7 @@ Never:
 - let `planner` or a reviewer discover the stage reference implicitly from folder layout instead of receiving `stage_reference_ref` explicitly
 - let `planner` or a reviewer discover the shared rolling-doc contract implicitly from folder layout or memory instead of receiving or binding `rolling_doc_contract_ref`
 - let this skill write planner body content into the rolling doc
+- stuff `run-planning/SKILL.md` or `planning-loop/SKILL.md` into ordinary planner or reviewer packets
 - re-decide `Gap Analysis Requirement` from chat summaries or loose Initiative labels after `Design Doc` has sealed it
 - treat a stale or mismatched review result as the current stage truth
 - invent a reviewer contract that does not exist in the repository

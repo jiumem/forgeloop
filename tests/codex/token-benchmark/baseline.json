@@ -589,10 +589,10 @@
           "plugins/forgeloop/skills/references/anchor-addressing.md"
         ],
         "stats": {
-          "chars": 80674,
-          "lines": 1249,
-          "words": 9392,
-          "approx_tokens": 20169
+          "chars": 82820,
+          "lines": 1263,
+          "words": 9658,
+          "approx_tokens": 20705
         }
       },
       "minimal": {
@@ -608,13 +608,13 @@
           "plugins/forgeloop/skills/references/anchor-addressing.md#resolution-contract"
         ],
         "stats": {
-          "chars": 18669,
-          "lines": 319,
-          "words": 2281,
-          "approx_tokens": 4668
+          "chars": 18872,
+          "lines": 320,
+          "words": 2308,
+          "approx_tokens": 4718
         }
       },
-      "reduction_pct": 76.9
+      "reduction_pct": 77.2
     },
     {
       "name": "same-stage planner continue",
@@ -634,28 +634,27 @@
           "tests/codex/token-benchmark/fixtures/planning-design-repair-sample.md"
         ],
         "stats": {
-          "chars": 27858,
-          "lines": 498,
-          "words": 3590,
-          "approx_tokens": 6965
+          "chars": 29545,
+          "lines": 509,
+          "words": 3794,
+          "approx_tokens": 7387
         }
       },
       "minimal": {
         "read_set": [
-          "plugins/forgeloop/skills/planning-loop/SKILL.md#truth-sources-boundaries",
-          "plugins/forgeloop/skills/planning-loop/SKILL.md#workflow",
+          "plugins/forgeloop/skills/planning-loop/references/design-doc.md",
           "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md#planner-update-law",
           "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md#seal-repair-reopen",
           "tests/codex/token-benchmark/fixtures/planning-design-repair-sample.md::attempt-aware/round-2.md"
         ],
         "stats": {
-          "chars": 13562,
-          "lines": 205,
-          "words": 1732,
-          "approx_tokens": 3391
+          "chars": 10475,
+          "lines": 298,
+          "words": 1111,
+          "approx_tokens": 2619
         }
       },
-      "reduction_pct": 51.3
+      "reduction_pct": 64.5
     },
     {
       "name": "fresh planning reviewer handoff",
@@ -676,29 +675,28 @@
           "tests/codex/token-benchmark/fixtures/planning-design-handoff-sample.md"
         ],
         "stats": {
-          "chars": 34146,
-          "lines": 632,
-          "words": 4555,
-          "approx_tokens": 8537
+          "chars": 36325,
+          "lines": 647,
+          "words": 4811,
+          "approx_tokens": 9082
         }
       },
       "minimal": {
         "read_set": [
-          "plugins/forgeloop/skills/planning-loop/SKILL.md#stage-reviewer-binding",
-          "plugins/forgeloop/skills/planning-loop/SKILL.md#workflow",
+          "plugins/forgeloop/skills/planning-loop/references/design-doc.md",
           "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md#handoff-law",
           "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md#freshness-selection",
           "tests/codex/token-benchmark/fixtures/planning-design-handoff-sample.md::handoff-scoped/design-r2-a1.md",
           "plugins/forgeloop/agents/design_reviewer.toml"
         ],
         "stats": {
-          "chars": 17442,
-          "lines": 339,
-          "words": 2315,
-          "approx_tokens": 4361
+          "chars": 18022,
+          "lines": 469,
+          "words": 2197,
+          "approx_tokens": 4506
         }
       },
-      "reduction_pct": 48.9
+      "reduction_pct": 50.4
     },
     {
       "name": "review changes requested -> reopen next round",
@@ -719,10 +717,10 @@
           "tests/codex/token-benchmark/fixtures/planning-gap-reopen-sample.md"
         ],
         "stats": {
-          "chars": 37623,
-          "lines": 672,
-          "words": 4664,
-          "approx_tokens": 9406
+          "chars": 39310,
+          "lines": 683,
+          "words": 4868,
+          "approx_tokens": 9828
         }
       },
       "minimal": {
@@ -735,13 +733,13 @@
           "tests/codex/token-benchmark/fixtures/planning-gap-reopen-sample.md::current-effective.md"
         ],
         "stats": {
-          "chars": 15289,
-          "lines": 273,
-          "words": 1770,
-          "approx_tokens": 3823
+          "chars": 15492,
+          "lines": 274,
+          "words": 1797,
+          "approx_tokens": 3873
         }
       },
-      "reduction_pct": 59.4
+      "reduction_pct": 60.6
     }
   ],
   "aggregates": {
@@ -767,19 +765,19 @@
     "planning": {
       "scenario_count": 4,
       "hot_path": {
-        "legacy_approx_tokens": 24908,
-        "minimal_approx_tokens": 11575,
-        "reduction_pct": 53.528986670949095
+        "legacy_approx_tokens": 26297,
+        "minimal_approx_tokens": 10998,
+        "reduction_pct": 58.17773890557858
       },
       "cold_path": {
-        "legacy_approx_tokens": 20169,
-        "minimal_approx_tokens": 4668,
-        "reduction_pct": 76.85557042986761
+        "legacy_approx_tokens": 20705,
+        "minimal_approx_tokens": 4718,
+        "reduction_pct": 77.2132335184738
       },
       "total": {
-        "legacy_approx_tokens": 45077,
-        "minimal_approx_tokens": 16243,
-        "reduction_pct": 63.966102446924154
+        "legacy_approx_tokens": 47002,
+        "minimal_approx_tokens": 15716,
+        "reduction_pct": 66.56312497340538
       }
     }
   },

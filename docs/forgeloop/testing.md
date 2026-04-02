@@ -2,7 +2,7 @@
 
 Run all checks from the repository root.
 
-For `0.6.0`, the release gate is the Codex workflow checks below. There is no Python package build, lint, or typecheck gate for this version.
+For `0.7.0`, the release gate is the Codex workflow checks below. There is no Python package build, lint, or typecheck gate for this version.
 
 ## 1. P0 validation closure
 
@@ -40,3 +40,7 @@ This fails if removed platform files come back, if the packaged skill or agent m
 
 It also checks that the packaged custom agent manifests under `plugins/forgeloop/agents/` are present and declare the required fields.
 It also checks that every shipped workflow dispatch file points at a declared packaged custom agent, so new agent roles cannot be added half-way.
+It also runs the planning-side regressions:
+
+- `tests/codex/planning-runner-regression.sh` keeps `run-planning` on same-activation loop-back semantics instead of regressing to stage-by-stage stop behavior
+- `tests/codex/planning-packet-lint.sh` keeps planning worker packets stage-local and prevents ordinary planner/reviewer packets from depending on `run-planning/SKILL.md` or `planning-loop/SKILL.md`

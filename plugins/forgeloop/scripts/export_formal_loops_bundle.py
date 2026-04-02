@@ -9,6 +9,7 @@ import sys
 
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[3]
+DEFAULT_OUTPUT_PATH = REPO_ROOT / ".forgeloop/exports/planning-runtime-formal-bundle.txt"
 
 PLANNING_FILES = [
     "plugins/forgeloop/skills/run-planning/SKILL.md",
@@ -157,7 +158,10 @@ def main() -> int:
     parser.add_argument(
         "--out",
         type=pathlib.Path,
-        help="Write the bundle to this path. If omitted, print to stdout.",
+        help=(
+            "Write the bundle to this path. "
+            f"If omitted, default to {DEFAULT_OUTPUT_PATH}."
+        ),
     )
     parser.add_argument(
         "--rev",
@@ -166,18 +170,12 @@ def main() -> int:
     args = parser.parse_args()
 
     bundle = build_bundle(rev=args.rev)
-    if args.out:
-        output_path = args.out
-        if not output_path.is_absolute():
-            output_path = REPO_ROOT / output_path
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(bundle)
-        print(output_path)
-        return 0
-
-    sys.stdout.write(bundle)
-    if not bundle.endswith("\n"):
-        sys.stdout.write("\n")
+    output_path = args.out or DEFAULT_OUTPUT_PATH
+    if not output_path.is_absolute():
+        output_path = REPO_ROOT / output_path
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(bundle)
+    print(output_path)
     return 0
 
 

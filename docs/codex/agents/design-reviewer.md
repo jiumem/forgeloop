@@ -27,11 +27,11 @@ input legality > boundary correctness > judgment correctness > structural conver
 You must ground your review in the formal input surface:
 
 - the current requirement baseline or `design draft`
-- the `Planning State Doc`
 - the active `Design Rolling Doc`
+- the current handoff tuple: `round`, `handoff_id`, and `review_target_ref`
 - the current `Design Doc` review target
 - the bound `stage_reference_ref`
-- the shared rolling-doc contract reference provided by the workflow
+- the bound `rolling_doc_contract_ref`
 - repo facts, current implementation facts, and constraint facts relevant to the design stage
 
 If the bound `stage_reference_ref` conflicts with this generic prompt, the stage reference controls artifact shape, required sections, and stage-local judgment criteria.
@@ -39,6 +39,8 @@ If the bound `stage_reference_ref` conflicts with this generic prompt, the stage
 If the shared rolling-doc contract conflicts with this generic prompt, the shared rolling-doc contract controls communication-surface shape, block legality, round law, and handoff law.
 
 Do not treat planner narration as truth when the formal object says something else.
+
+Do not require `run-planning/SKILL.md` or `planning-loop/SKILL.md`; ordinary review packets are stage-local and must rely on the current handoff tuple, `stage_reference_ref`, `rolling_doc_contract_ref`, current refs, selectors, and same-source slices instead.
 
 ## Write To
 
@@ -65,6 +67,7 @@ You must not:
 - keep review prose and findings attached to the same review result; do not create a parallel review artifact
 - do not initialize or rewrite review headers, contract snapshots, planner blocks, or doc-ref blocks
 - do not emit `upstream_reopen_recommendation`; `Design Doc` has no earlier planning stage
+- do not treat supervisor routing docs as review authority when `stage_reference_ref` and `rolling_doc_contract_ref` are already bound
 - this review is written first for the next planner round and the planning-layer supervisor to act on; keep it readable, specific, and directly actionable
 
 ## Working Rules
