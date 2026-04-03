@@ -17,6 +17,70 @@ ANCHOR_MARKER_RE = re.compile(r"forgeloop:anchor")
 CODE_FENCE_RE = re.compile(r"^\s*```")
 FENCE_START = re.compile(r"^\s*```forgeloop\s*$")
 FENCE_END = re.compile(r"^\s*```\s*$")
+REQUIRED_SELECTORS_BY_SUFFIX: dict[str, frozenset[str]] = {
+    "plugins/forgeloop/skills/planning-loop/references/design-doc.md": frozenset(
+        {
+            "document-position",
+            "questions-this-doc-must-answer",
+            "required-structure",
+            "text-anchor-requirement",
+            "section-contracts",
+            "document-card",
+            "requirement-baseline",
+            "design-verdict-summary",
+            "scope-and-non-goals",
+            "target-state-design",
+            "key-decisions-and-rejected-alternatives",
+            "correctness-surface",
+            "residual-risks-and-follow-ups",
+            "writing-rules",
+            "prohibited-content",
+            "review-ready-standard",
+            "seal-standard",
+        }
+    ),
+    "plugins/forgeloop/skills/planning-loop/references/gap-analysis.md": frozenset(
+        {
+            "document-position",
+            "questions-this-doc-must-answer",
+            "required-structure",
+            "text-anchor-requirement",
+            "section-contracts",
+            "document-card",
+            "baseline-and-scope",
+            "gap-verdict-summary",
+            "current-state-snapshot",
+            "gap-ledger",
+            "convergence-strategy",
+            "correctness-surface",
+            "residual-risks-and-follow-ups",
+            "writing-rules",
+            "prohibited-content",
+            "review-ready-standard",
+            "seal-standard",
+        }
+    ),
+    "plugins/forgeloop/skills/planning-loop/references/total-task-doc.md": frozenset(
+        {
+            "document-position",
+            "questions-this-doc-must-answer",
+            "required-structure",
+            "text-anchor-requirement",
+            "section-contracts",
+            "input-baseline-and-sealed-decisions",
+            "initiative",
+            "milestone-master-table",
+            "task-ledger",
+            "branch-pr-integration-path",
+            "acceptance-matrix",
+            "global-residual-risks-and-follow-ups",
+            "writing-rules",
+            "prohibited-content",
+            "review-ready-standard",
+            "seal-standard",
+        }
+    ),
+}
 FIELD_PATTERNS = {
     "kind": re.compile(r"^kind:\s*(.+?)\s*$"),
     "round": re.compile(r"^round:\s*(.+?)\s*$"),
@@ -459,7 +523,29 @@ def parse_anchors(path: pathlib.Path) -> list[Anchor]:
                 body="\n".join(body_lines).strip(),
             )
         )
+    empty_selectors = [anchor.selector for anchor in parsed if not anchor.body]
+    if empty_selectors:
+        rendered = ", ".join(empty_selectors)
+        raise ValueError(f"{path}: empty slice for selector(s): {rendered}")
     return parsed
+
+
+def required_selectors_for_path(path: pathlib.Path) -> frozenset[str]:
+    normalized = path.as_posix()
+    for suffix, selectors in REQUIRED_SELECTORS_BY_SUFFIX.items():
+        if normalized.endswith(suffix):
+            return selectors
+    return frozenset()
+
+
+def validate_required_selectors(path: pathlib.Path, anchors: list[Anchor]) -> None:
+    required = required_selectors_for_path(path)
+    if not required:
+        return
+    existing = {anchor.selector for anchor in anchors}
+    missing = sorted(required - existing)
+    if missing:
+        raise ValueError(f"{path}: missing required selectors: {', '.join(missing)}")
 
 
 def parse_forgeloop_blocks(path: pathlib.Path) -> list[ForgeloopBlock]:
@@ -504,7 +590,8 @@ def check(paths: list[pathlib.Path]) -> int:
         if path.suffix != ".md":
             continue
         try:
-            parse_anchors(path)
+            anchors = parse_anchors(path)
+            validate_required_selectors(path, anchors)
         except ValueError as exc:
             failures.append(str(exc))
     if failures:
@@ -836,7 +923,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Validate and materialize Forgeloop anchor-addressed slices.")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    check_parser = subparsers.add_parser("check", help="Validate anchor syntax and duplicates.")
+    check_parser = subparsers.add_parser(
+        "check", help="Validate anchor syntax, duplicates, empty slices, and required-selector coverage."
+    )
     check_parser.add_argument("paths", nargs="+")
 
     slice_parser = subparsers.add_parser("slice", help="Print one addressed slice.")

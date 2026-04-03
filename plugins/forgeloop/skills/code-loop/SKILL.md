@@ -49,13 +49,13 @@ Do not infer mode semantics from memory or from examples when the bound mode ref
 
 Always bind:
 
-- `../run-initiative/references/global-state.md`
-- `../run-initiative/references/runtime-cutover.md`
-- `../references/anchor-addressing.md`
-- `../references/derived-views.md`
-- `references/runtime-object-modes.md`
+- `plugins/forgeloop/skills/run-initiative/references/global-state.md`
+- `plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md`
+- `plugins/forgeloop/skills/references/anchor-addressing.md`
+- `plugins/forgeloop/skills/references/derived-views.md`
+- `plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md`
 
-Then bind the mode-specific rolling-doc contract ref named by `references/runtime-object-modes.md`.
+Then bind the mode-specific rolling-doc contract ref named by `plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md`.
 
 <!-- forgeloop:anchor truth-sources-boundaries -->
 ## Truth Sources And Hard Boundaries
@@ -71,16 +71,15 @@ Hard boundaries:
 - `request_reviewer_handoff` remains rolling-doc-local coder intent rather than a legal `Global State Doc.next_action.action`
 - `round` is object-local and supervisor-owned through the `Global State Doc`; coder and reviewer only echo it in the rolling doc
 - when the active object is already in flight, preserve `coder_slot` and `round`; only a fresh object with no rolling doc yet may initialize `coder_slot=coder` and `round=1`
-- `coder_slot` is the only durable owner identity
-- physical thread reuse is optional and carries no formal meaning
-- all recovery must come from the current packet plus the bound formal docs, never from prior-thread memory as the only legality basis
+- Durable refs are repo-root-relative. Absolute paths are dispatch-time materializations only and must never be written back as durable truth.
+- `coder_slot` is the only durable owner identity. Physical thread reuse carries no formal meaning, and prior-thread memory is never a legality basis by itself.
 - every `R1` / `R2` / `R3` entry must use a fresh reviewer for the current handoff
 - if the `Global State Doc` conflicts with the bound rolling doc, hand control back to `rebuild-runtime`
 
 <!-- forgeloop:anchor runtime.packet-law -->
 ## Runtime Worker Packet Law
 
-Obey the shared packet law in `../references/anchor-addressing.md` and the runtime cutover law in `../run-initiative/references/runtime-cutover.md`.
+Obey the shared packet law in `plugins/forgeloop/skills/references/anchor-addressing.md` and the runtime cutover law in `plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md`.
 Do not restate packet completeness, selector legality, or supervisor-doc exclusion here unless this file adds a true local exception.
 
 Local exceptions for runtime worker packets:
@@ -93,7 +92,7 @@ Local exceptions for runtime worker packets:
 
 1. Bind the current object and mode
 - First bind `current_runtime_cutover_mode`.
-- Follow the mode-selected read order defined by `../run-initiative/references/runtime-cutover.md`; use `../references/derived-views.md` only for legal hot-path helpers.
+- Follow the mode-selected read order defined by `plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md`; use `plugins/forgeloop/skills/references/derived-views.md` only for legal hot-path helpers.
 - Confirm one active Initiative and one active runtime object uniquely.
 - Confirm that the bound `mode` matches `current_snapshot.active_plane`, unless this is a fresh object entry being initialized now.
 - Bind the mode-specific rolling-doc contract ref, reviewer, gate block kind, and current handoff law from `references/runtime-object-modes.md`.

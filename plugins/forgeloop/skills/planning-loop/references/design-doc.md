@@ -1,5 +1,6 @@
 # Design Doc 参考模板
 
+<!-- forgeloop:anchor document-position -->
 ## 文档定位
 
 - 阶段：`Design Doc`
@@ -9,6 +10,7 @@
 
 这份文档不是迁移账本，不是任务计划，也不是实现教程。
 
+<!-- forgeloop:anchor questions-this-doc-must-answer -->
 ## 这份文档必须回答什么
 
 - 为什么要做这个 Initiative
@@ -18,6 +20,7 @@
 - 哪些设计裁决已经 sealed
 - 下游角色必须守住哪些正确性边界
 
+<!-- forgeloop:anchor required-structure -->
 ## 必需结构
 
 只能使用下列一级和二级标题。二级标题才是下游 `coder` 与 `reviewer` 阅读时真正稳定的合同。除非 workflow 明确要求临时例外，否则不要另外发明一套平行结构。
@@ -27,59 +30,113 @@
 ```markdown
 # <Initiative / Topic Name> 设计文档（Design Doc）
 
+<!-- forgeloop:anchor document-card -->
 ## 1. 文档卡片（Document Card）
+<!-- forgeloop:anchor document-card/status-and-stage -->
 ### 1.1 状态与阶段（Status And Stage）
+<!-- forgeloop:anchor document-card/initiative-type -->
 ### 1.2 Initiative 类型（Initiative Type）
+<!-- forgeloop:anchor document-card/primary-readers -->
 ### 1.3 主要读者（Primary Readers）
+<!-- forgeloop:anchor document-card/gap-analysis-requirement -->
 ### 1.4 Gap Analysis Requirement
 
+<!-- forgeloop:anchor requirement-baseline -->
 ## 2. 需求基线（Requirement Baseline）
+<!-- forgeloop:anchor requirement-baseline/problem-statement -->
 ### 2.1 问题陈述（Problem Statement）
+<!-- forgeloop:anchor requirement-baseline/intended-outcome -->
 ### 2.2 目标结果（Intended Outcome）
+<!-- forgeloop:anchor requirement-baseline/success-criteria -->
 ### 2.3 成功标准（Success Criteria）
+<!-- forgeloop:anchor requirement-baseline/hard-constraints -->
 ### 2.4 硬约束（Hard Constraints）
 
+<!-- forgeloop:anchor design-verdict-summary -->
 ## 3. 设计裁决摘要（Design Verdict Summary）
+<!-- forgeloop:anchor design-verdict-summary/primary-contradiction -->
 ### 3.1 主要矛盾（Primary Contradiction）
+<!-- forgeloop:anchor design-verdict-summary/winning-cut -->
 ### 3.2 胜出切法（Winning Cut）
+<!-- forgeloop:anchor design-verdict-summary/downstream-binding-effects -->
 ### 3.3 下游绑定影响（Downstream Binding Effects）
 
+<!-- forgeloop:anchor scope-and-non-goals -->
 ## 4. 范围与非目标（Scope And Non-Goals）
+<!-- forgeloop:anchor scope-and-non-goals/in-scope -->
 ### 4.1 范围内（In Scope）
+<!-- forgeloop:anchor scope-and-non-goals/out-of-scope -->
 ### 4.2 范围外（Out Of Scope）
+<!-- forgeloop:anchor scope-and-non-goals/explicit-non-goals -->
 ### 4.3 明确非目标（Explicit Non-Goals）
 
+<!-- forgeloop:anchor target-state-design -->
 ## 5. 目标态设计（Target-State Design）
+<!-- forgeloop:anchor target-state-design/core-topology -->
 ### 5.1 核心拓扑（Core Topology）
+<!-- forgeloop:anchor target-state-design/key-surfaces -->
 ### 5.2 关键表面（Key Surfaces）
+<!-- forgeloop:anchor target-state-design/critical-paths-and-transitions -->
 ### 5.3 关键路径与转换（Critical Paths And Transitions）
+<!-- forgeloop:anchor target-state-design/boundary-allocation-and-implementation-freedom -->
 ### 5.4 边界划分与实现自由度（Boundary Allocation And Implementation Freedom）
 
+<!-- forgeloop:anchor key-decisions-and-rejected-alternatives -->
 ## 6. 关键决策与被否定方案（Key Decisions And Rejected Alternatives）
+<!-- forgeloop:anchor key-decisions-and-rejected-alternatives/sealed-decisions -->
 ### 6.1 已封板决策（Sealed Decisions）
+<!-- forgeloop:anchor key-decisions-and-rejected-alternatives/rejected-alternatives -->
 ### 6.2 被否定方案（Rejected Alternatives）
+<!-- forgeloop:anchor key-decisions-and-rejected-alternatives/why-the-winning-cut-wins -->
 ### 6.3 为什么胜出切法会赢（Why The Winning Cut Wins）
 
+<!-- forgeloop:anchor correctness-surface -->
 ## 7. 正确性表面（Correctness Surface）
+<!-- forgeloop:anchor correctness-surface/invariants -->
 ### 7.1 不变量（Invariants）
+<!-- forgeloop:anchor correctness-surface/contract-boundaries -->
 ### 7.2 契约边界（Contract Boundaries）
+<!-- forgeloop:anchor correctness-surface/failure-and-safety-lines -->
 ### 7.3 失败与安全红线（Failure And Safety Lines）
+<!-- forgeloop:anchor correctness-surface/allowed-implementation-variation -->
 ### 7.4 允许的实现变体（Allowed Implementation Variation）
 
+<!-- forgeloop:anchor residual-risks-and-follow-ups -->
 ## 8. 残余风险与后续事项（Residual Risks And Follow-Ups）
+<!-- forgeloop:anchor residual-risks-and-follow-ups/accepted-residual-risks -->
 ### 8.1 可接受残余风险（Accepted Residual Risks）
+<!-- forgeloop:anchor residual-risks-and-follow-ups/follow-ups -->
 ### 8.2 后续事项（Follow-Ups）
+<!-- forgeloop:anchor residual-risks-and-follow-ups/escalation-triggers -->
 ### 8.3 升级触发器（Escalation Triggers）
 ```
 
+<!-- forgeloop:anchor text-anchor-requirement -->
 ## 稳定锚点要求（Text Anchor Requirement）
 
-下游最小读取依赖稳定锚点。所有一级标题，以及所有会被下游直接引用的二级标题，前面都必须插入唯一的 `<!-- forgeloop:anchor <selector> -->` 注释。不要让下游依赖标题文本、行号或目录结构。
+下游读取不得依赖标题文本、行号或目录结构。本文所有一级标题，以及所有会被下游直接引用的二级标题，都必须使用固定语义 selector 的文本锚点。
 
+合法写法如下：
+
+```text
+<!-- forgeloop:anchor document-card -->
+```
+
+命名法如下：
+
+- 一级标题：使用英文语义名，例如 `document-card`、`requirement-baseline`、`target-state-design`
+- 二级标题：使用 `父级/子级` 形式，例如 `document-card/status-and-stage`、`document-card/gap-analysis-requirement`
+- selector 只允许 `[a-z0-9._/-]`
+- 同一模板的 selector 必须跨 Initiative 保持同名；`planner` 不得按个人习惯改名
+
+锚点本身属于正式合同，不是排版装饰。
+
+<!-- forgeloop:anchor section-contracts -->
 ## 分节合同
 
 > 本文凡标注为“唯一权威区块”的小节，其他小节只能引用，不得重裁决；若需概括，只能做索引，不得改写边界。
 
+<!-- forgeloop:anchor document-card -->
 ### 1. 文档卡片（Document Card）
 
 - `1.1 状态与阶段（Status And Stage）`：标明当前文档状态，例如 `draft`、`review-ready` 或 `sealed`，并确认这是 `Design Doc` 阶段；这里写的是文档自身状态，不替代 rolling doc 里的 round、handoff 或 stop signal；当 rolling doc 已经给出正式状态时，这里的 prose status 应同步镜像该状态，若两者冲突，以 rolling doc 为准并把 prose 视为待修复漂移
@@ -87,6 +144,7 @@
 - `1.3 主要读者（Primary Readers）`：当这有助于避免误用时，写明当前主要读者
 - `1.4 Gap Analysis Requirement`：必须明确写 `required | not_required`；这是 planning 是否必须进入 `Gap Analysis Doc` 的唯一正式路由信号
 
+<!-- forgeloop:anchor requirement-baseline -->
 ### 2. 需求基线（Requirement Baseline）
 
 - `2.1 问题陈述（Problem Statement）`：用最小必要信息说明当前问题或压力
@@ -95,6 +153,7 @@
 - `2.4 硬约束（Hard Constraints）`：说明设计不得违反的约束
 - 本节保持简短；它不是背景长文
 
+<!-- forgeloop:anchor design-verdict-summary -->
 ### 3. 设计裁决摘要（Design Verdict Summary）
 
 - `3.1 主要矛盾（Primary Contradiction）`：指出这份设计要解决的主要矛盾
@@ -103,6 +162,7 @@
 - 要让下游 `coder` 或 `design_reviewer` 在不读完整篇文档的情况下，也能理解目标态
 - 优先使用少量明确的裁决要点或短段落，而不是长篇铺陈
 
+<!-- forgeloop:anchor scope-and-non-goals -->
 ### 4. 范围与非目标（Scope And Non-Goals）
 
 - `4.1 范围内（In Scope）`：说明这个 Initiative 会改什么
@@ -110,6 +170,7 @@
 - `4.3 明确非目标（Explicit Non-Goals）`：说明哪些内容以后不得被悄悄吸进这个 Initiative
 - 边界必须写得足够清楚，避免下游 planning 悄悄扩边
 
+<!-- forgeloop:anchor target-state-design -->
 ### 5. 目标态设计（Target-State Design）
 
 - `5.1 核心拓扑（Core Topology）`：定义目标态的主要对象、职责切法与结构布局
@@ -120,6 +181,7 @@
 - 内容应围绕 Initiative 的主要矛盾与胜出切法来组织
 - 只写足以消除执行或审查歧义的最小必要文字
 
+<!-- forgeloop:anchor key-decisions-and-rejected-alternatives -->
 ### 6. 关键决策与被否定方案（Key Decisions And Rejected Alternatives）
 
 - `6.1 已封板决策（Sealed Decisions）`：记录已封板决策；涉及实现自由度时直接引用 `5.4`，不再复述
@@ -127,6 +189,7 @@
 - `6.3 为什么胜出切法会赢（Why The Winning Cut Wins）`：解释为什么当前切法是在当前主要矛盾下最好的结构选择
 - 不要保留前期讨论历史或纯风格偏好争论
 
+<!-- forgeloop:anchor correctness-surface -->
 ### 7. 正确性表面（Correctness Surface）
 
 - `7.1 不变量（Invariants）`：说明实现后必须持续成立的内容
@@ -135,6 +198,7 @@
 - `7.4 允许的实现变体（Allowed Implementation Variation）`：概括哪些地方下游实现可以变化而不违反设计，但固定与可变的最终裁决仍以 `5.4` 为准
 - 必须让人一眼看出什么叫“实现正确”，以及什么叫“实现不同但仍合法”
 
+<!-- forgeloop:anchor residual-risks-and-follow-ups -->
 ### 8. 残余风险与后续事项（Residual Risks And Follow-Ups）
 
 - `8.1 可接受残余风险（Accepted Residual Risks）`：只记录 sealed 后在本层允许保留的风险
@@ -143,6 +207,7 @@
 - 不要在这里隐藏阻塞性的设计不确定性
 - 不要把未决问题偷运进本节
 
+<!-- forgeloop:anchor writing-rules -->
 ## 写作规则
 
 - 为下游 `coder` 与 `reviewer` 的理解而写，不为取悦人类读者而写
@@ -153,6 +218,7 @@
 - 把 `5.4 边界划分与实现自由度（Boundary Allocation And Implementation Freedom）` 视为下游实现哪些能决定、哪些不能决定的唯一权威区块
 - `3. 设计裁决摘要（Design Verdict Summary）`、`5. 目标态设计（Target-State Design）` 和 `7. 正确性表面（Correctness Surface）` 是本文件的结构核心，不能退化成占位废话
 
+<!-- forgeloop:anchor prohibited-content -->
 ## 禁止内容
 
 不要把以下内容写进 `Design Doc`：
@@ -167,6 +233,7 @@
 
 这些内容应分别放在 `Gap Analysis Doc`、`Total Task Doc`、planning rolling doc，或更上层裁决里。
 
+<!-- forgeloop:anchor review-ready-standard -->
 ## Review-Ready 标准
 
 只有满足以下条件，这份文档才算 review-ready：
@@ -182,6 +249,7 @@
 - 没有把阻塞性设计不确定性藏到下游去
 - 只有当 rolling doc 同 round 的最新 `planner_update` 使用 `next_action=request_reviewer_handoff`，并且存在匹配的当前 `design_doc_ref` handoff block 时，reviewer dispatch 才正式成立；`review-ready` 本身只说明文档已达到 handoff 条件
 
+<!-- forgeloop:anchor seal-standard -->
 ## Seal 标准
 
 只有满足以下条件，这份文档才可以 sealed：

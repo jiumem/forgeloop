@@ -16,8 +16,10 @@
 | unique text anchor resolves | `slice` returns exactly one bounded slice | `anchor_slices.py slice` |
 | duplicate text anchor exists | `check` fails and names the duplicate selector | `anchor_slices.py check` |
 | illegal text anchor syntax exists | `check` fails and names the offending line | `anchor_slices.py check` |
+| adjacent anchors create an empty slice | `check` fails and names the empty selector | `anchor_slices.py check` |
 | illegal selector input is requested | resolver stops with `illegal_selector` | `anchor_slices.py slice` |
 | missing text anchor requested | resolver stops with `missing_anchor` | `anchor_slices.py slice` |
+| required contract doc lacks mandated selectors | release gate fails on coverage violation | `anchor-slice-smoke` + required-surface list |
 | minimal packet consumer gets legal selectors | consumer may stay on minimal-path read | workflow skills + tracked reference mirrors |
 | selector legality fails | consumer promotes to full-document fallback or blocks | workflow skills |
 | rolling doc has superseded same-handoff results | `current-effective` picks only the latest matching result | `anchor_slices.py derive` |

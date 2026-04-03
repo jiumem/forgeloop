@@ -34,7 +34,7 @@ This reference binds mode consumers. It does not redefine the legal runtime voca
 ### Task
 
 - `active_plane`: `task`
-- rolling doc contract: `../../run-initiative/references/task-review-rolling-doc.md`
+- rolling doc contract: `plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md`
 - reviewer: `task_reviewer`
 - gate-result block kind: `g1_result`
 - current handoff opener: latest `anchor_ref` or `fixup_ref` in the current round
@@ -45,7 +45,7 @@ This reference binds mode consumers. It does not redefine the legal runtime voca
 ### Milestone
 
 - `active_plane`: `milestone`
-- rolling doc contract: `../../run-initiative/references/milestone-review-rolling-doc.md`
+- rolling doc contract: `plugins/forgeloop/skills/run-initiative/references/milestone-review-rolling-doc.md`
 - reviewer: `milestone_reviewer`
 - gate-result block kind: `g2_result`
 - current handoff opener: latest `g2_result` in the current round whose `next_action=enter_r2`
@@ -55,7 +55,7 @@ This reference binds mode consumers. It does not redefine the legal runtime voca
 ### Initiative
 
 - `active_plane`: `initiative`
-- rolling doc contract: `../../run-initiative/references/initiative-review-rolling-doc.md`
+- rolling doc contract: `plugins/forgeloop/skills/run-initiative/references/initiative-review-rolling-doc.md`
 - reviewer: `initiative_reviewer`
 - gate-result block kind: `g3_result`
 - current handoff opener: latest `g3_result` in the current round whose `next_action=enter_r3`
@@ -68,7 +68,7 @@ This reference binds mode consumers. It does not redefine the legal runtime voca
 When `code-loop` binds one mode, it must then consume:
 
 - the exact `next_action` and callback semantics from the bound rolling-doc contract
-- the runtime routing vocabulary from `../../run-initiative/references/global-state.md`
+- the runtime routing vocabulary from `plugins/forgeloop/skills/run-initiative/references/global-state.md`
 - the exact judgment surface from the bound reviewer prompt
 
 Do not create a second mode contract here by paraphrasing all legal `verdict + next_action` combinations.

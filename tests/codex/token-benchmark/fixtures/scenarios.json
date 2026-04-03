@@ -22,7 +22,7 @@
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md", "anchor": "current-mode"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md", "anchor": "default-read-law"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/SKILL.md", "anchor": "canonical-ref-semantics"},
-      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/SKILL.md", "anchor": "runtime-control-plane-contracts"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/SKILL.md", "anchor": "dispatch-rules"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/SKILL.md", "anchor": "main-flow"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/global-state.md", "anchor": "durable-rules"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/global-state.md", "anchor": "bootstrap-law"}

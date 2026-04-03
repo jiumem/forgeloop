@@ -11,13 +11,13 @@ description: Use when the runtime control plane is missing, conflicting, or cann
 <!-- forgeloop:anchor canonical-runtime-contract-refs -->
 ## Canonical Runtime Contract Refs
 
-- shared `Global State Doc` contract -> `../run-initiative/references/global-state.md`
-- `Task Review Rolling Doc` contract -> `../run-initiative/references/task-review-rolling-doc.md`
-- `Milestone Review Rolling Doc` contract -> `../run-initiative/references/milestone-review-rolling-doc.md`
-- `Initiative Review Rolling Doc` contract -> `../run-initiative/references/initiative-review-rolling-doc.md`
-- runtime cutover contract -> `../run-initiative/references/runtime-cutover.md`
-- shared anchor-addressing contract -> `../references/anchor-addressing.md`
-- shared derived-view contract -> `../references/derived-views.md`
+- shared `Global State Doc` contract -> `plugins/forgeloop/skills/run-initiative/references/global-state.md`
+- `Task Review Rolling Doc` contract -> `plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md`
+- `Milestone Review Rolling Doc` contract -> `plugins/forgeloop/skills/run-initiative/references/milestone-review-rolling-doc.md`
+- `Initiative Review Rolling Doc` contract -> `plugins/forgeloop/skills/run-initiative/references/initiative-review-rolling-doc.md`
+- runtime cutover contract -> `plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md`
+- shared anchor-addressing contract -> `plugins/forgeloop/skills/references/anchor-addressing.md`
+- shared derived-view contract -> `plugins/forgeloop/skills/references/derived-views.md`
 
 <!-- forgeloop:anchor truth-sources-boundaries -->
 ## Truth Sources And Hard Boundaries
@@ -25,6 +25,8 @@ description: Use when the runtime control plane is missing, conflicting, or cann
 The formal input surface contains only the Initiative static truth trio `design_ref`, `gap_analysis_ref`, and `total_task_doc_ref` (`gap_analysis_ref` may be `N/A` for some Initiative types), the `Global State Doc`, the three layers of review rolling docs, and the necessary Git / PR / commit / test facts.
 
 Hard boundaries:
+- Durable refs are repo-root-relative. Absolute paths are dispatch-time materializations only and must never be written back as durable truth.
+- `coder_slot` is the only durable owner identity. Physical thread reuse carries no formal meaning, and prior-thread memory is never a legality basis by itself.
 - recover only the logical `coder_slot`, never the physical `agent_id`
 - recover the current object-local `round`, never invent a new round
 - write to the `Global State Doc` only when necessary

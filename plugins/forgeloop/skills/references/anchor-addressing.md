@@ -105,8 +105,9 @@ Every failure must become either full-document fallback or explicit stop. Silent
 <!-- forgeloop:anchor validation-hooks -->
 ## Validation Hooks
 
-- `python3 plugins/forgeloop/scripts/anchor_slices.py check ...` validates anchor syntax and duplicate detection
+- `python3 plugins/forgeloop/scripts/anchor_slices.py check ...` validates anchor syntax, duplicate detection, and empty-slice detection
 - `python3 plugins/forgeloop/scripts/anchor_slices.py slice --doc <path> --anchor <selector>` materializes one addressed slice
 - `python3 plugins/forgeloop/scripts/anchor_slices.py derive --doc <rolling-doc> --out <dir>` rebuilds disposable rolling-doc views from formal rolling docs
+- release validation must also verify that required formal surfaces expose the mandated selector set
 
 These commands are tooling conveniences, not new truth sources.

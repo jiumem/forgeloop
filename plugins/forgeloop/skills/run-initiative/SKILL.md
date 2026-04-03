@@ -62,7 +62,6 @@ You only determine the next step. You do not personally perform coding or review
 
 Before any runtime loop dispatch, first decide whether the sealed planning docs are legal execution input. This planning admission check lives inside `run-initiative`; it is not a separate skill, it does not author planning docs, and it does not replace runtime recovery. It only accepts or rejects the current planning truth as a legal runtime starting point.
 
-<!-- forgeloop:anchor runtime-control-plane-contracts -->
 <!-- forgeloop:anchor dispatch-rules -->
 ## Dispatch Rules
 

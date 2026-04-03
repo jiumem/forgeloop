@@ -12,10 +12,14 @@ python3 plugins/forgeloop/scripts/anchor_slices.py check \
   docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md \
   docs/initiatives/active/anchor-sliced-dispatch-optimization/gap-analysis.md \
   docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md \
+  plugins/forgeloop/skills/planning-loop/references/design-doc.md \
+  plugins/forgeloop/skills/planning-loop/references/gap-analysis.md \
+  plugins/forgeloop/skills/planning-loop/references/total-task-doc.md \
   plugins/forgeloop/skills/references/anchor-addressing.md \
   plugins/forgeloop/skills/references/derived-views.md \
   plugins/forgeloop/skills/references/validation-matrix.md \
   plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md \
+  plugins/forgeloop/skills/run-initiative/SKILL.md \
   plugins/forgeloop/skills/run-initiative/references/global-state.md \
   plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md \
   plugins/forgeloop/skills/code-loop/SKILL.md \
@@ -45,8 +49,7 @@ fi
 for path in \
   plugins/forgeloop/skills/run-initiative/SKILL.md \
   plugins/forgeloop/skills/code-loop/SKILL.md \
-  plugins/forgeloop/skills/rebuild-runtime/SKILL.md \
-  plugins/forgeloop/skills/using-git-worktrees/SKILL.md
+  plugins/forgeloop/skills/rebuild-runtime/SKILL.md
 do
   if ! rg -q 'runtime-cutover.md' "$path"; then
     echo "runtime skill does not bind the runtime cutover contract: $path"
@@ -69,6 +72,43 @@ if python3 plugins/forgeloop/scripts/anchor_slices.py check \
   tests/fixtures/anchor-slicing/anchors-illegal.md
 then
   echo "illegal-anchor fixture unexpectedly passed"
+  exit 1
+fi
+
+cat >"${TMP_ROOT}/anchors-empty-slice.md" <<'EOF'
+<!-- forgeloop:anchor first -->
+<!-- forgeloop:anchor second -->
+## Body
+EOF
+
+if python3 plugins/forgeloop/scripts/anchor_slices.py check \
+  "${TMP_ROOT}/anchors-empty-slice.md" >"${TMP_ROOT}/empty-slice.txt" 2>"${TMP_ROOT}/empty-slice.err"
+then
+  echo "empty-slice fixture unexpectedly passed"
+  exit 1
+fi
+
+if ! rg -q "empty slice for selector" "${TMP_ROOT}/empty-slice.err"; then
+  echo "empty-slice probe did not surface the contract-level empty slice failure"
+  exit 1
+fi
+
+mkdir -p "${TMP_ROOT}/plugins/forgeloop/skills/planning-loop/references"
+cat >"${TMP_ROOT}/plugins/forgeloop/skills/planning-loop/references/design-doc.md" <<'EOF'
+<!-- forgeloop:anchor document-position -->
+## 文档定位
+EOF
+
+if python3 plugins/forgeloop/scripts/anchor_slices.py check \
+  "${TMP_ROOT}/plugins/forgeloop/skills/planning-loop/references/design-doc.md" \
+  >"${TMP_ROOT}/required-surface.txt" 2>"${TMP_ROOT}/required-surface.err"
+then
+  echo "required-surface coverage fixture unexpectedly passed"
+  exit 1
+fi
+
+if ! rg -q "missing required selectors" "${TMP_ROOT}/required-surface.err"; then
+  echo "required-surface coverage probe did not surface mandated selector failure"
   exit 1
 fi
 

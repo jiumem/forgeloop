@@ -1,5 +1,6 @@
 # Total Task Doc 参考模板
 
+<!-- forgeloop:anchor document-position -->
 ## 文档定位
 
 - 阶段：`Total Task Doc`
@@ -9,6 +10,7 @@
 
 这份文档不是第二篇设计长文，不是迁移账本，不是 reviewer verdict，也不是实现教程。
 
+<!-- forgeloop:anchor questions-this-doc-must-answer -->
 ## 这份文档必须回答什么
 
 - 这张执行地图继承了哪些已经 sealed 的上游 planning artifact 与决策
@@ -19,6 +21,7 @@
 - 下游角色应从哪里寻找验收与证据入口
 - sealed 之后哪些 residual risk 可以保留，哪些 follow-up 被有意延后
 
+<!-- forgeloop:anchor required-structure -->
 ## 必需结构
 
 只能使用下列一级和二级标题。二级标题才是下游 `coder` 与 `reviewer` 阅读时真正稳定的合同。除非 workflow 明确要求临时例外，否则不要另外发明一套平行结构。
@@ -28,55 +31,106 @@
 ```markdown
 # <Initiative Name> 总任务文档（Total Task Doc）
 
+<!-- forgeloop:anchor input-baseline-and-sealed-decisions -->
 ## 1. 前置输入与决策基线（Input Baseline And Sealed Decisions）
+<!-- forgeloop:anchor input-baseline-and-sealed-decisions/requirement-summary -->
 ### 1.1 需求摘要（Requirement Summary）
+<!-- forgeloop:anchor input-baseline-and-sealed-decisions/design-refs -->
 ### 1.2 设计引用（Design Refs）
+<!-- forgeloop:anchor input-baseline-and-sealed-decisions/gap-analysis-refs -->
 ### 1.3 差距分析引用（Gap Analysis Refs, if applicable）
+<!-- forgeloop:anchor input-baseline-and-sealed-decisions/sealed-decisions -->
 ### 1.4 已封板决策（Sealed Decisions）
+<!-- forgeloop:anchor input-baseline-and-sealed-decisions/execution-boundary -->
 ### 1.5 执行边界（Execution Boundary）
+<!-- forgeloop:anchor input-baseline-and-sealed-decisions/initiative-reference-assignment -->
 ### 1.6 Initiative 法定引用指派（Initiative Reference Assignment）
 
+<!-- forgeloop:anchor initiative -->
 ## 2. Initiative 总览（Initiative）
+<!-- forgeloop:anchor initiative/background -->
 ### 2.1 背景（Background）
+<!-- forgeloop:anchor initiative/scope -->
 ### 2.2 范围（Scope）
+<!-- forgeloop:anchor initiative/non-goals -->
 ### 2.3 非目标（Non-Goals）
+<!-- forgeloop:anchor initiative/success-criteria -->
 ### 2.4 成功标准（Success Criteria）
 
+<!-- forgeloop:anchor milestone-master-table -->
 ## 3. Milestone 总表（Milestone Master Table）
+<!-- forgeloop:anchor milestone-master-table/milestone-list -->
 ### 3.1 Milestone 列表（Milestone List）
+<!-- forgeloop:anchor milestone-master-table/milestone-dependencies -->
 ### 3.2 Milestone 依赖（Milestone Dependencies）
+<!-- forgeloop:anchor milestone-master-table/milestone-acceptance -->
 ### 3.3 Milestone 验收（Milestone Acceptance）
+<!-- forgeloop:anchor milestone-master-table/milestone-reference-assignment -->
 ### 3.4 Milestone 法定引用指派（Milestone Reference Assignment）
 
+<!-- forgeloop:anchor task-ledger -->
 ## 4. Task 账本（Task Ledger）
+<!-- forgeloop:anchor task-ledger/task-list -->
 ### 4.1 Task 列表（Task List）
+<!-- forgeloop:anchor task-ledger/task-definitions -->
 ### 4.2 Task 定义（Task Definitions）
 
+<!-- forgeloop:anchor branch-pr-integration-path -->
 ## 5. 分支与 PR 集成路径（Branch & PR Integration Path）
+<!-- forgeloop:anchor branch-pr-integration-path/default-integration-model -->
 ### 5.1 默认集成模型（Default Integration Model）
+<!-- forgeloop:anchor branch-pr-integration-path/branch-plan -->
 ### 5.2 分支计划（Branch Plan）
+<!-- forgeloop:anchor branch-pr-integration-path/pr-plan -->
 ### 5.3 PR 计划（PR Plan）
+<!-- forgeloop:anchor branch-pr-integration-path/pr-dependency-order -->
 ### 5.4 PR 依赖顺序（PR Dependency Order）
 
+<!-- forgeloop:anchor acceptance-matrix -->
 ## 6. 验收矩阵（Acceptance Matrix）
+<!-- forgeloop:anchor acceptance-matrix/task-acceptance-index -->
 ### 6.1 Task 验收索引（Task Acceptance Index）
+<!-- forgeloop:anchor acceptance-matrix/milestone-acceptance-index -->
 ### 6.2 Milestone 验收索引（Milestone Acceptance Index）
+<!-- forgeloop:anchor acceptance-matrix/initiative-acceptance-index -->
 ### 6.3 Initiative 验收索引（Initiative Acceptance Index）
+<!-- forgeloop:anchor acceptance-matrix/evidence-entrypoints -->
 ### 6.4 证据入口（Evidence Entrypoints）
 
+<!-- forgeloop:anchor global-residual-risks-and-follow-ups -->
 ## 7. 全局残余风险与后续事项（Global Residual Risks & Follow-Ups）
+<!-- forgeloop:anchor global-residual-risks-and-follow-ups/global-residual-risks -->
 ### 7.1 全局残余风险（Global Residual Risks）
+<!-- forgeloop:anchor global-residual-risks-and-follow-ups/follow-ups -->
 ### 7.2 后续事项（Follow-Ups）
 ```
 
+<!-- forgeloop:anchor text-anchor-requirement -->
 ## 稳定锚点要求（Text Anchor Requirement）
 
-下游最小读取依赖稳定锚点。所有一级标题，以及所有会被下游直接引用的二级标题，前面都必须插入唯一的 `<!-- forgeloop:anchor <selector> -->` 注释。不要让下游依赖标题文本、行号或目录结构。
+下游读取不得依赖标题文本、行号或目录结构。本文所有一级标题，以及所有会被下游直接引用的二级标题，都必须使用固定语义 selector 的文本锚点。
 
+合法写法如下：
+
+```text
+<!-- forgeloop:anchor input-baseline-and-sealed-decisions -->
+```
+
+命名法如下：
+
+- 一级标题：使用英文语义名，例如 `input-baseline-and-sealed-decisions`、`task-ledger`、`acceptance-matrix`
+- 二级标题：使用 `父级/子级` 形式，例如 `input-baseline-and-sealed-decisions/execution-boundary`、`acceptance-matrix/evidence-entrypoints`
+- selector 只允许 `[a-z0-9._/-]`
+- 同一模板的 selector 必须跨 Initiative 保持同名；`planner` 不得按个人习惯改名
+
+锚点本身属于正式合同，不是排版装饰。
+
+<!-- forgeloop:anchor section-contracts -->
 ## 分节合同
 
 > 本文凡标注为“唯一权威区块”的小节，其他小节只能引用，不得重裁决；若需概括，只能做索引，不得改写边界。
 
+<!-- forgeloop:anchor input-baseline-and-sealed-decisions -->
 ### 1. 前置输入与决策基线（Input Baseline And Sealed Decisions）
 
 - `1.1 需求摘要（Requirement Summary）`：说明这张执行地图所满足的最小需求摘要
@@ -94,6 +148,7 @@
 - 不要在 `1.6` 中写当前 workspace 绝对路径、worktree 绝对路径或 shell-cwd-relative path；如果下游执行时需要绝对路径，应在 active workspace 已绑定后从同一个 repo-root-relative ref materialize
 - 这一节要证明执行地图继承的是 sealed 上游真值，而不是本地临时即兴推导
 
+<!-- forgeloop:anchor initiative -->
 ### 2. Initiative 总览（Initiative）
 
 - `2.1 背景（Background）`：只写执行所需的最小项目背景
@@ -102,6 +157,7 @@
 - `2.4 成功标准（Success Criteria）`：定义 Initiative 层面的成功与交付标准
 - 本节保持轻薄；不要在这里重述设计长文
 
+<!-- forgeloop:anchor milestone-master-table -->
 ### 3. Milestone 总表（Milestone Master Table）
 
 - `3.1 Milestone 列表（Milestone List）`：列出整个 Initiative 的全部 Milestone，而不是只写当前 frontier
@@ -112,6 +168,7 @@
 - `3.4` 中的 Milestone-level review refs 也必须落在同一个 Initiative-local `.forgeloop/` 根下，而不是为同一 Initiative 再开第二个 control-plane 根目录
 - `Milestone List` 中的 `Planned PR Model` 默认应为 `Single PR`；只有当某个 Milestone 必须保持为单一状态边界、且无法合理切成新 Milestone 时，才使用 `多 PR 例外（Multi-PR Exception）`
 
+<!-- forgeloop:anchor task-ledger -->
 ### 4. Task 账本（Task Ledger）
 
 - `4.1 Task 列表（Task List）`：列出所有 Task，并写出稳定的 `Task Key`、所属 Milestone、摘要与依赖
@@ -134,6 +191,7 @@
 - `Action` 应说明“改什么”，而不是把实现步骤按行教程式展开
 - 下游 `coder` 不应该为了重建基本 Task 边界而被迫重新通读整份文档
 
+<!-- forgeloop:anchor branch-pr-integration-path -->
 ### 5. 分支与 PR 集成路径（Branch & PR Integration Path）
 
 - `5.1 默认集成模型（Default Integration Model）`：这是默认 `one Milestone -> one PR` 规则及其 `Multi-PR Exception` 的唯一权威区块
@@ -142,6 +200,7 @@
 - `5.4 PR 依赖顺序（PR Dependency Order）`：定义 PR 之间的串行、并行与收敛顺序
 - 分支与 PR 规划必须服务于 Milestone 与 Task 的切法，而不能反过来取代它们
 
+<!-- forgeloop:anchor acceptance-matrix -->
 ### 6. 验收矩阵（Acceptance Matrix）
 
 > 第 6 节只做验收与证据索引，不重定义验收线；权威分别在 `2.4`、`3.3`、`4.2` 与 `6.4`。
@@ -152,12 +211,14 @@
 - `6.4 证据入口（Evidence Entrypoints）`：这是下游验证与审查应当优先查看哪些证据入口的唯一权威区块；至少要覆盖 `primary run summary`、`auxiliary runtime summary`、`per-case evidence`、`export output`、`owning code surface`、`owning doc surface` 这六类，若某类不适用必须明确写 `N/A` 与理由
 - 这个矩阵是控制面索引，不是散文式复述
 
+<!-- forgeloop:anchor global-residual-risks-and-follow-ups -->
 ### 7. 全局残余风险与后续事项（Global Residual Risks & Follow-Ups）
 
 - `7.1 全局残余风险（Global Residual Risks）`：只记录那些已知、可解释、可追踪、并且在 sealed 后本层允许保留的残余风险
 - `7.2 后续事项（Follow-Ups）`：记录在不阻塞当前执行地图的前提下，被有意延后的后续工作
 - 不要在这里隐藏未解决的设计或 gap 决策
 
+<!-- forgeloop:anchor writing-rules -->
 ## 写作规则
 
 - 为下游 `coder` 与 `reviewer` 的可执行性而写，不为取悦人类读者而写
@@ -172,6 +233,7 @@
 - 所谓 full refinement，意味着所有对象、依赖、验收线与集成路径都已经明确，而不是堆一堆教程式实现细节
 - 任何未决裁决都不得进入 `Total Task Doc`
 
+<!-- forgeloop:anchor prohibited-content -->
 ## 禁止内容
 
 不要把以下内容写进 `Total Task Doc`：
@@ -187,6 +249,7 @@
 
 这些内容应分别放在 `Design Doc`、`Gap Analysis Doc`、planning rolling doc、runtime control docs，或更上层裁决里。
 
+<!-- forgeloop:anchor review-ready-standard -->
 ## Review-Ready 标准
 
 只有满足以下条件，这份文档才算 review-ready：
@@ -208,6 +271,7 @@
 - 没有把未解决的设计或 gap 问题藏到下游去
 - 只有当 rolling doc 同 round 的最新 `planner_update` 使用 `next_action=request_reviewer_handoff`，并且存在匹配的当前 `total_task_doc_ref` handoff block 时，reviewer dispatch 才正式成立；`review-ready` 本身只说明文档已达到 handoff 条件
 
+<!-- forgeloop:anchor seal-standard -->
 ## Seal 标准
 
 只有满足以下条件，这份文档才可以 sealed：

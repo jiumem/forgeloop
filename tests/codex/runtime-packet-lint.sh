@@ -23,7 +23,7 @@ check_pattern \
   'Ordinary coder / reviewer packets remain anchor-addressed minimal in every supported runtime mode'
 check_pattern \
   "plugins/forgeloop/skills/code-loop/SKILL.md" \
-  'Obey the shared packet law in `../references/anchor-addressing.md` and the runtime cutover law'
+  'Obey the shared packet law in `plugins/forgeloop/skills/references/anchor-addressing.md` and the runtime cutover law'
 
 python3 - <<'PY'
 import json
