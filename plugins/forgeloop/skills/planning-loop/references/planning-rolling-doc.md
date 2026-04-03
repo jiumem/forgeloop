@@ -158,10 +158,11 @@ Header and contract snapshot are initialized once. All later formal facts append
 <!-- forgeloop:anchor seal-repair-reopen -->
 ## Seal, Repair, And Reopen Law
 
-- a stage is formally clean-sealed only when `verdict=clean`, `seal_status=sealed`, and `next_action=ready_for_supervisor_routing`
+- a stage reaches clean-seal in the planning communication plane only when `verdict=clean`, `seal_status=sealed`, and `next_action=ready_for_supervisor_routing`
 - any other combination is non-sealing and must be treated as repair, wait, blocker, or reopen advice
-- a clean reviewer result with explicit `seal_status=sealed` seals only the current planning stage; only the `Supervisor` may route to another stage afterward
-- rolling-doc state is the formal planning status truth; artifact prose status may mirror it for readability, but if the two drift, the rolling doc wins and the artifact prose must be repaired
+- a clean reviewer result with explicit `seal_status=sealed` authorizes only the current planning stage to be finalized; only the `Supervisor` may set the current artifact `状态` to `sealed` and route to another stage afterward
+- the rolling doc is planning communication history, not execution admission input; downstream execution reads the planning documents themselves
+- the artifact `状态` line is the execution-facing document-status marker for the current stage; if it drifts from the stage lifecycle that the supervisor is materializing, repair it before continuing
 - a reviewer result that requests same-stage repair closes the current handoff and requires the `Supervisor` to open the next round before redispatching `planner`
 - an upstream stage may reopen only through an explicit supervisor route recorded in the `Planning State Doc`
-- downstream stages must not silently rewrite earlier sealed truth; they may only recommend reopen through the rolling doc and stop
+- upstream reopen must invalidate every downstream planning artifact that is no longer legally sealed; those artifacts must lose `状态：sealed` before they may be reused

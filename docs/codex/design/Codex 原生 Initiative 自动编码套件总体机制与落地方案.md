@@ -311,7 +311,7 @@ Task 的法位保持不变：
 
 这里必须特别写死两条：
 
-- review 结论、回修要求、是否 review-ready、是否 sealed，都沉淀在对应 rolling doc 中，不另长平行结果文件
+- review 结论、回修要求与 reopen 建议沉淀在对应 rolling doc 中；三份 planning 正式文档自身还必须显式写出 `状态：draft|review-ready|sealed`，供下游 admission 直接读取
 - `Planning State Doc` 只承载控制面事实，不承载 artifact 正文，也不承载 review 正文
 
 #### 4.2.2 规划循环的角色法位
@@ -413,9 +413,9 @@ flowchart TD
 
 这张图要表达的不是工具调用顺序，而是四条硬机制：
 
-- 三份正式文档是成果真值面，三份 rolling doc 是交接、审查、回修与 sealed 过程的真值面
+- 三份正式文档是成果真值面，也是 execution admission 直接读取的 planning 输入；三份 rolling doc 只承载交接、审查、回修与 reopen 过程
 - `planner` 在整个规划循环里保持单一连续 ownership，三个 reviewer 则按 stage fresh 派生
-- `Supervisor` 维护 `Planning State Doc`，但不亲自写 artifact 正文或 review 正文
+- `Supervisor` 维护 `Planning State Doc`，并只允许做 planning 文档顶部状态行的机械同步；它不亲自写实质性 artifact 正文，也不亲自写 review 正文
 - `run-planning` 作为规划侧顶层入口，只负责绑定当前 planning next step；`planning-loop` 只负责当前 confirmed stage
 - 规划循环的直接输出是 `Sealed Planning Docs`；它在这里停止，不直接推进编码执行
 - 编码执行循环在启动或恢复 Initiative 时，先由执行侧 `Supervisor` 在 `run-initiative` 内部完成 planning admission check，再决定是否继续 runtime control plane
@@ -528,7 +528,7 @@ flowchart TD
 Supervisor 主 Agent 在编码执行循环中的正式责任包括：
 
 - 绑定当前 Initiative 与当前活跃对象
-- 在 `run-initiative` 内部对 sealed planning docs 做 planning admission check，然后重建状态、选择 frontier 和 ready task
+- 在 `run-initiative` 内部只对三份 planning 正式文档本体做 planning admission check，然后重建状态、选择 frontier 和 ready task
 - 决定当前进入哪个子循环
 - 维持单一连续 coder ownership，并按轮 fresh 派生 reviewer
 - 维护 `Global State Doc`

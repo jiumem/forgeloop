@@ -31,6 +31,10 @@
 ```markdown
 # <Initiative Name> 总任务文档（Total Task Doc）
 
+<!-- forgeloop:anchor document-card -->
+- 状态：`draft | review-ready | sealed`
+- 阶段：`Total Task Doc`
+
 <!-- forgeloop:anchor input-baseline-and-sealed-decisions -->
 ## 1. 前置输入与决策基线（Input Baseline And Sealed Decisions）
 <!-- forgeloop:anchor input-baseline-and-sealed-decisions/requirement-summary -->
@@ -129,6 +133,10 @@
 ## 分节合同
 
 > 本文凡标注为“唯一权威区块”的小节，其他小节只能引用，不得重裁决；若需概括，只能做索引，不得改写边界。
+
+<!-- forgeloop:anchor document-card -->
+- 顶部 `状态` 是 `Total Task Doc` 的正式文档状态标记，供下游 planning 与 `run-initiative` admission 直接读取；planning loop 内部的 round、handoff、review history 仍由 `Planning State Doc` 与 rolling doc 承载
+- 顶部 `阶段` 固定写 `Total Task Doc`
 
 <!-- forgeloop:anchor input-baseline-and-sealed-decisions -->
 ### 1. 前置输入与决策基线（Input Baseline And Sealed Decisions）
@@ -269,6 +277,7 @@
 - `6.4` 已覆盖该节定义的 reviewer-first 六类证据入口，或对不适用项给出合法 `N/A`
 - `6` 不得重新定义已经由 `2.4`、`3.3` 与 `4.2` 拥有的验收线
 - 没有把未解决的设计或 gap 问题藏到下游去
+- 文档顶部 `状态` 已明确写为 `review-ready`
 - 只有当 rolling doc 同 round 的最新 `planner_update` 使用 `next_action=request_reviewer_handoff`，并且存在匹配的当前 `total_task_doc_ref` handoff block 时，reviewer dispatch 才正式成立；`review-ready` 本身只说明文档已达到 handoff 条件
 
 <!-- forgeloop:anchor seal-standard -->
@@ -277,6 +286,7 @@
 只有满足以下条件，这份文档才可以 sealed：
 
 - review-ready 条件已经满足
+- 文档顶部 `状态` 已明确写为 `sealed`
 - `total_task_doc_reviewer` 能在不重建隐藏意图的前提下完成判断
 - 下游 `coder` 能据此行动，而无需重新打开上游设计裁决
 - runtime reviewers 能直接从文档中定位法定引用、对象边界、验收线与证据入口

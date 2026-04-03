@@ -1,6 +1,6 @@
 ---
 name: run-initiative
-description: Use when the user asks to advance, continue, or resume an Initiative; the entry accepts initiative_key or planning_doc_path and uses the sealed planning docs, Global State Doc, and necessary runtime docs to determine the next step
+description: Use when the user asks to advance, continue, or resume an Initiative; the entry accepts initiative_key or planning_doc_path and uses the current planning documents, Global State Doc, and necessary runtime docs to determine the next step
 ---
 
 # Run Initiative
@@ -60,7 +60,7 @@ You are not responsible for:
 
 You only determine the next step. You do not personally perform coding or review.
 
-Before any runtime loop dispatch, first decide whether the sealed planning docs are legal execution input. This planning admission check lives inside `run-initiative`; it is not a separate skill, it does not author planning docs, and it does not replace runtime recovery. It only accepts or rejects the current planning truth as a legal runtime starting point.
+Before any runtime loop dispatch, first decide whether the planning document set is legal execution input. This planning admission check lives inside `run-initiative`; it is not a separate skill, it does not author planning docs, and it does not replace runtime recovery. It only accepts or rejects the current `Design Doc`, optional `Gap Analysis Doc`, and `Total Task Doc` as the legal runtime starting point.
 
 <!-- forgeloop:anchor dispatch-rules -->
 ## Dispatch Rules
@@ -73,23 +73,26 @@ Each update exists only to support the current next-step dispatch. Do not write 
 <!-- forgeloop:anchor runtime.admission-law -->
 ## Runtime Admission Law
 
-Planning admission must start from the sealed planning truth and read only the minimum selectors required to prove runtime legality.
+Planning admission must start from the planning document set itself and read only the minimum selectors required to prove runtime legality.
+
+For execution admission, the only planning-status signals are the explicit `状态` lines in the current `Design Doc`, optional `Gap Analysis Doc`, and `Total Task Doc`.
+Do not read planning rolling docs or planning reviewer history to decide whether runtime may start. Those belong to the planning loop, not to execution admission.
 
 At minimum, admission must prove:
 
-- the sealed `Design Doc` exposes an explicit `Gap Analysis Requirement`
-- the sealed `Total Task Doc` exposes execution boundary, Initiative ref assignment, and the active object definition needed for this dispatch
-- the sealed `Gap Analysis Doc` is read only when the sealed `Design Doc` requires it or when planning refs conflict
+- the current `Design Doc` explicitly says `状态：sealed` and exposes an explicit `Gap Analysis Requirement`
+- the current `Total Task Doc` explicitly says `状态：sealed` and exposes execution boundary, Initiative ref assignment, and the active object definition needed for this dispatch
+- the current `Gap Analysis Doc` is read only when the current `Design Doc` requires it or when planning refs conflict, and in that case it must explicitly say `状态：sealed`
 
 If the shared packet law or runtime cutover contract forces fallback or stop during admission, obey that result. Never guess past incomplete admission.
 
 <!-- forgeloop:anchor when-to-stop -->
 ## When To Stop Or Ask The User
 
-- the total task doc is not sealed or is obviously unfinished
-- the sealed design doc is missing, unfinished, or lacks an explicit `Gap Analysis Requirement`
-- the sealed design doc requires gap analysis but the gap analysis doc is missing, unfinished, or inconsistent with the total task doc
-- the sealed planning docs are missing basic execution structure, such as Initiative boundary, Milestone structure, Task Ledger, integration path, reference assignment, acceptance matrix, or residual-risk registration
+- the total task doc does not explicitly self-state `状态：sealed`, or it is obviously unfinished
+- the design doc is missing, unfinished, does not explicitly self-state `状态：sealed`, or lacks an explicit `Gap Analysis Requirement`
+- the design doc requires gap analysis but the gap analysis doc is missing, unfinished, does not explicitly self-state `状态：sealed`, or is inconsistent with the total task doc
+- the planning documents marked `sealed` are missing basic execution structure, such as Initiative boundary, Milestone structure, Task Ledger, integration path, reference assignment, acceptance matrix, or residual-risk registration
 - the confirmed next step requires coder or reviewer dispatch, but delegation is unavailable, blocked, or will not actually be performed in this activation
 - the next step cannot be determined uniquely
 - a new Initiative is starting but there is no clear first executable Task
@@ -115,27 +118,28 @@ First bind the formal source refs for the current Initiative.
 
 ### Step 2: Run Planning Admission When The Basis Is New Or Invalidated
 
-After binding the sealed planning refs, prove only runtime-admission legality for the current activation's planning basis. Do not treat this admission check as the default hot-path loop on every runtime return.
+After binding the planning refs, prove only runtime-admission legality for the current activation's planning basis. Do not treat this admission check as the default hot-path loop on every runtime return.
 
 1. Read `total_task_doc_ref` first.
-2. Read `design_ref` before any runtime routing. Read `gap_analysis_ref` when the sealed `Design Doc` marks `Gap Analysis Requirement: required`, or when the upstream planning refs disagree and the conflict must be resolved.
+2. Read `design_ref` before any runtime routing. Read `gap_analysis_ref` when the current `Design Doc` marks `Gap Analysis Requirement: required`, or when the upstream planning refs disagree and the conflict must be resolved.
 3. Read `runtime_cutover_ref` and bind `current_runtime_cutover_mode` before deciding whether runtime defaults to full-document reads or the minimal read order.
 4. When the current call site is not in cold start or rebuild recovery, follow the shared packet law and the bound runtime cutover contract for selector-first reads versus fallback.
 5. Inside this skill, perform a thin planning admission check. At minimum confirm all of the following:
-- `total_task_doc_ref` is sealed and not obviously unfinished
-- `design_ref` is sealed and explicitly states `Gap Analysis Requirement: required | not_required`
-- if `Gap Analysis Requirement: required`, `gap_analysis_ref` exists, is sealed, and the `Total Task Doc` points to it explicitly; otherwise the `Total Task Doc` marks gap refs `N/A`
+- `total_task_doc_ref` explicitly says `状态：sealed` and is not obviously unfinished
+- `design_ref` explicitly says `状态：sealed` and explicitly states `Gap Analysis Requirement: required | not_required`
+- if `Gap Analysis Requirement: required`, `gap_analysis_ref` exists, explicitly says `状态：sealed`, and the `Total Task Doc` points to it explicitly; otherwise the `Total Task Doc` marks gap refs `N/A`
 - the Initiative boundary and success criteria are explicit enough to execute
 - the Milestone structure, Task Ledger, branch and PR integration path, legal reference assignments, acceptance matrix, and global residual risks are explicit enough to act on
-6. If planning admission fails, stop and ask the user to repair the planning truth. Do not call skill: `rebuild-runtime` just to paper over illegal planning input, and do not enter any execution loop.
-7. If admission passes and runtime routing still needs workspace-local runtime docs, continue to Step 3.
-8. Inside one activation, keep the current planning admission result as the hot-path basis while all of the following stay unchanged:
+6. Treat any mismatch between those document-level status lines and the execution structure they claim to seal as illegal planning input. Do not reopen planning history from rolling docs here to guess intent.
+7. If planning admission fails, stop and ask the user to repair the planning truth. Do not call skill: `rebuild-runtime` just to paper over illegal planning input, and do not enter any execution loop.
+8. If admission passes and runtime routing still needs workspace-local runtime docs, continue to Step 3.
+9. Inside one activation, keep the current planning admission result as the hot-path basis while all of the following stay unchanged:
 - `design_ref`, `gap_analysis_ref`, and `total_task_doc_ref`
-- the sealed status and explicit `Gap Analysis Requirement`
-- the Initiative ref assignment and the active-object routing basis just proven from the sealed planning truth
-9. Invalidate that admission basis and rerun this step before more runtime dispatch only when one of the following happens:
-- one of the sealed planning refs changes
-- sealed status or explicit `Gap Analysis Requirement` changes
+- the explicit `状态` lines and explicit `Gap Analysis Requirement`
+- the Initiative ref assignment and the active-object routing basis just proven from the planning document set
+10. Invalidate that admission basis and rerun this step before more runtime dispatch only when one of the following happens:
+- one of the planning refs changes
+- an explicit `状态` line or explicit `Gap Analysis Requirement` changes
 - `rebuild-runtime` or fresher formal facts expose a conflict against the planning truth that Step 2 relied on
 - the active workspace binding reveals that the admission basis was not actually the same Initiative truth that runtime is about to execute
 
@@ -182,7 +186,7 @@ Add Git or test facts only when document facts still cannot prove the next step.
 - if current progress clearly belongs to the Task review/repair loop, including continuing the currently bound Task, continuing repair on the current Task, or uniquely identifying the next ready Task: formally rebind `current_snapshot` and `next_action` to that Task if needed, bind `mode=task`, then call skill: `code-loop`
 - if current progress clearly belongs to a Milestone review/repair loop: formally rebind `current_snapshot` and `next_action` to that Milestone if needed, bind `mode=milestone`, then call skill: `code-loop`
 - if current progress clearly belongs to the Initiative review/repair loop: formally rebind `current_snapshot` and `next_action` to that Initiative if needed, bind `mode=initiative`, then call skill: `code-loop`
-- if `current_snapshot.active_plane=frontier` or `next_action.action=select_next_ready_object`: resolve the next ready object from the sealed planning truth plus authoritative runtime rolling docs; if exactly one ready object exists, rebind and continue through the matching `mode`; otherwise ask the user
+- if `current_snapshot.active_plane=frontier` or `next_action.action=select_next_ready_object`: resolve the next ready object from the admitted planning document set plus authoritative runtime rolling docs; if exactly one ready object exists, rebind and continue through the matching `mode`; otherwise ask the user
 - if the facts do not conflict but the next step still cannot be determined uniquely: ask the user
 5. You may confirm only one next step or one clear stop point. If facts conflict, call skill: `rebuild-runtime`; if they are ambiguous, ask the user.
 
@@ -224,7 +228,8 @@ Keep advancing until one of these stop points appears:
 
 Never:
 - write formal coder or reviewer content into any review rolling doc
-- infer `Gap Analysis Requirement` from loose Initiative labels instead of reading the sealed `Design Doc`
+- infer `Gap Analysis Requirement` from loose Initiative labels instead of reading the current `Design Doc`
+- treat planning rolling docs as execution-admission truth
 - enter the Milestone or Initiative review/repair loop directly while an active repair Task still has priority
 - treat temporary commentary, session memory, or cache as facts equivalent to the formal runtime docs
 - use skill: `rebuild-runtime` to compensate for illegal or unfinished planning truth
@@ -240,7 +245,7 @@ Never:
 After a correct `run-initiative` activation, the system should satisfy all of the following:
 - the current Initiative is bound uniquely
 - the next step or stop point is unambiguous
-- if execution continues, the sealed planning docs have already passed the in-skill planning admission check
+- if execution continues, the current planning document set has already passed the in-skill planning admission check
 - if execution continues, there is only one clear active loop
 - if execution stops, the stop reason is clear
 - no new runtime truth source exists outside the four formal runtime surfaces

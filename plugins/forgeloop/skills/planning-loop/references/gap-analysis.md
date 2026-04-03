@@ -141,7 +141,7 @@
 <!-- forgeloop:anchor document-card -->
 ### 1. 文档卡片（Document Card）
 
-- `1.1 状态与阶段（Status And Stage）`：标明当前文档状态，例如 `draft`、`review-ready` 或 `sealed`，并确认这是 `Gap Analysis Doc` 阶段；这里写的是文档自身状态，不替代 rolling doc 里的 round、handoff 或 stop signal；当 rolling doc 已经给出正式状态时，这里的 prose status 应同步镜像该状态，若两者冲突，以 rolling doc 为准并把 prose 视为待修复漂移
+- `1.1 状态与阶段（Status And Stage）`：标明当前文档状态，例如 `draft`、`review-ready` 或 `sealed`，并确认这是 `Gap Analysis Doc` 阶段；这是文档自身的正式状态标记，供下游 planning 与 `run-initiative` admission 直接读取。planning loop 内部的 round、handoff、review history 仍由 `Planning State Doc` 与 rolling doc 承载；但一旦这个状态与当前 lifecycle 不一致，`Supervisor` 必须修复文档状态而不是让下游猜
 - `1.2 为什么需要 Gap Analysis（Why Gap Analysis Exists）`：说明触发 gap analysis 的原因，例如 migration、replacement、refactor 或 governance convergence
 - `1.3 主要读者（Primary Readers）`：当这有助于避免误用时，写明当前主要读者
 
@@ -244,6 +244,7 @@
 - `7.2` 中数据与兼容红线的权威界线明确
 - `7.4` 中回流规则的权威界线明确
 - 没有把 blocker 级差距藏到下游去
+- 文档顶部 `状态` 已明确写为 `review-ready`
 - 只有当 rolling doc 同 round 的最新 `planner_update` 使用 `next_action=request_reviewer_handoff`，并且存在匹配的当前 `gap_analysis_ref` handoff block 时，reviewer dispatch 才正式成立；`review-ready` 本身只说明文档已达到 handoff 条件
 
 <!-- forgeloop:anchor seal-standard -->
@@ -252,6 +253,7 @@
 只有满足以下条件，这份文档才可以 sealed：
 
 - review-ready 条件已经满足
+- 文档顶部 `状态` 已明确写为 `sealed`
 - `gap_reviewer` 能在不重建隐藏意图的前提下完成判断
 - 下游 planning 能把它当作权威来源引用
 - `coder` 与下游 reviewers 能仅凭这份文档判断，哪些差距必须被处理或被显式带入下游 planning、哪些约束有绑定力、哪些实现自由度仍然存在

@@ -1,5 +1,9 @@
 # Anchor-Sliced Dispatch Optimization 总任务文档（Total Task Doc）
 
+<!-- forgeloop:anchor document-card -->
+- 状态：`sealed`
+- 阶段：`Total Task Doc`
+
 <!-- forgeloop:anchor input-baseline -->
 ## 1. 前置输入与决策基线（Input Baseline And Sealed Decisions）
 ### 1.1 需求摘要（Requirement Summary）

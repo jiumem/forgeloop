@@ -80,8 +80,8 @@ Formal inputs:
 
 Hard boundaries:
 
-- only `planner` may write the current planning artifact and append planner-owned blocks to the active planning rolling doc
-- `planning-loop` may update only the `Planning State Doc`, plus rolling-doc header / contract-snapshot initialization when the current stage rolling doc does not yet exist
+- only `planner` may write substantive current-stage planning content and append planner-owned blocks to the active planning rolling doc
+- `planning-loop` may update only the `Planning State Doc`, rolling-doc header / contract-snapshot initialization when the current stage rolling doc does not yet exist, and the top-of-document `状态` line for planning artifacts whose lifecycle state the supervisor is materializing
 - do not write review body text, code, or runtime control-plane state from this skill
 - if the active stage, active artifact, or active owner changes, record that transition in the `Planning State Doc`
 - if the active planning rolling doc does not exist, initialize only the header, including object identity and `planner_slot`, plus `planning_contract_snapshot`
@@ -140,7 +140,7 @@ Local exceptions for planning worker packets:
 - The latest `planner_update` in the current round is the current planner intent.
 - Route only from that latest `planner_update` in the current round.
 - `continue_stage_repair`: keep the same `planner_slot` and the same round.
-- `request_reviewer_handoff`: require one valid current handoff in the same round, then dispatch the bound reviewer with only the current handoff tuple, bound refs, selectors, and same-source slices needed for that review.
+- `request_reviewer_handoff`: require one valid current handoff in the same round, normalize the current artifact `状态` to `review-ready`, then dispatch the bound reviewer with only the current handoff tuple, bound refs, selectors, and same-source slices needed for that review.
 - `wait_for_upstream_judgment`: write `next_action.action=waiting` and stop.
 - `stop_on_blocker`: write `next_action.action=blocked` and stop.
 - Anything else is illegal planner output.
@@ -148,11 +148,12 @@ Local exceptions for planning worker packets:
 5. Handle reviewer output
 - Use only the latest review result whose `round`, `handoff_id`, and `review_target_ref` match the current handoff.
 - `clean seal`:
+  - first normalize the current planning artifact `状态` to `sealed`
   - `Design Doc` -> route by sealed `Gap Analysis Requirement`
   - `Gap Analysis Doc` -> `advance_to_total_task_doc`
   - `Total Task Doc` -> `sealed_planning_docs_ready`
-- `changes_requested + same-stage repair action` -> increment the stage `round`, keep the same `planner_slot`, and continue repair.
-- `changes_requested + valid upstream reopen recommendation` -> record `reopen_to_*` in the `Planning State Doc` and stop.
+- `changes_requested + same-stage repair action` -> normalize the current planning artifact `状态` to `draft`, increment the stage `round`, keep the same `planner_slot`, and continue repair.
+- `changes_requested + valid upstream reopen recommendation` -> record `reopen_to_*` in the `Planning State Doc`, demote every downstream planning artifact that is no longer legally sealed back to `draft`, and stop.
 - `changes_requested + wait_for_upstream_judgment` -> `next_action.action=waiting`.
 - `changes_requested + stop_on_blocker` -> `next_action.action=blocked`.
 - Any other combination is illegal review output.
@@ -199,4 +200,5 @@ On correct completion, all of the following should be true:
 - the current rolling doc contract snapshot binds one unambiguous `stage_reference_ref` and one unambiguous `rolling_doc_contract_ref`
 - the current actionable `handoff_id` can be recovered uniquely whenever the stage is in reviewer handoff or review-result state
 - the current artifact is either still in repair, formally ready for review handoff, explicitly stopped on upstream judgment, stopped on an explicit cross-stage route to the next planning stage, or formally sealed as planning output
+- every planning artifact that remains eligible for downstream use exposes the correct top-of-document `状态` value for that point in the lifecycle
 - no second planning truth source has been created outside the formal planning docs

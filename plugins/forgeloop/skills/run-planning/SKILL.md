@@ -44,7 +44,7 @@ You are responsible only for:
 
 You are not responsible for:
 
-- writing any planning artifact body content
+- writing any substantive planning artifact body content beyond mechanical document-status normalization
 - writing any planning review body content
 - deciding runtime admission or entering execution
 
@@ -91,7 +91,7 @@ After reading the formal planning sources, decide whether planning should enter 
 3. If the `Planning State Doc` already records `waiting` or `blocked`, first check whether this activation clearly resolves that stop reason:
 - if not, stop at that state
 - if yes, record that resume in `last_transition`, then continue from formal planning truth instead of treating the stop as terminal
-4. Treat the `Planning State Doc` plus the active planning rolling doc as formal stage truth. Artifact prose status may help human reading, but it must not override rolling state. If the `Planning State Doc` is missing, or if it conflicts with newer planning artifacts or rolling docs, first try to recover the minimum planning control plane directly from formal planning truth instead of stopping immediately.
+4. Treat the `Planning State Doc` plus the active planning rolling doc as the in-flight planning-loop truth. The artifact `状态` line is the execution-facing status marker for each planning document and must be kept in sync before stage close-out or downstream admission. If the `Planning State Doc` is missing, or if it conflicts with newer planning artifacts or rolling docs, first try to recover the minimum planning control plane directly from formal planning truth instead of stopping immediately.
 5. Recover state only when one active stage, one `planner_slot`, and one stage `round` can be proven.
 - If the existing `Planning State Doc` is still consistent, preserve `planner_slot` and `round`.
 - If it is missing or stale, recover them from the active rolling doc.
@@ -149,6 +149,7 @@ Never:
 - dispatch `planner`, `design_reviewer`, `gap_reviewer`, or `total_task_doc_reviewer` directly from this skill
 - treat inability or unwillingness to continue with the required delegated planning execution as permission for a single-agent fallback
 - continue from one planning stage into the next without rereading the `Planning State Doc` and explicitly rebinding from current formal truth
+- leave a planning artifact marked `sealed` after an upstream reopen has already invalidated it
 - overwrite a still-valid `planner_slot` or stage `round` with thinner stage-only state
 - guess the active planning stage, `planner_slot`, or current round when formal planning truth does not expose one unique answer
 - re-decide `Gap Analysis Requirement` from chat summaries or loose Initiative labels after the sealed `Design Doc` exists

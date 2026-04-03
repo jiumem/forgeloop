@@ -139,7 +139,7 @@
 <!-- forgeloop:anchor document-card -->
 ### 1. 文档卡片（Document Card）
 
-- `1.1 状态与阶段（Status And Stage）`：标明当前文档状态，例如 `draft`、`review-ready` 或 `sealed`，并确认这是 `Design Doc` 阶段；这里写的是文档自身状态，不替代 rolling doc 里的 round、handoff 或 stop signal；当 rolling doc 已经给出正式状态时，这里的 prose status 应同步镜像该状态，若两者冲突，以 rolling doc 为准并把 prose 视为待修复漂移
+- `1.1 状态与阶段（Status And Stage）`：标明当前文档状态，例如 `draft`、`review-ready` 或 `sealed`，并确认这是 `Design Doc` 阶段；这是文档自身的正式状态标记，供下游 planning 与 `run-initiative` admission 直接读取。planning loop 内部的 round、handoff、review history 仍由 `Planning State Doc` 与 rolling doc 承载；但一旦这个状态与当前 lifecycle 不一致，`Supervisor` 必须修复文档状态而不是让下游猜
 - `1.2 Initiative 类型（Initiative Type）`：只写 Initiative 类型；当 Initiative 类型会实质影响下游 planning 时，明确写出其类型，例如 greenfield feature、refactor、migration、replacement、governance convergence
 - `1.3 主要读者（Primary Readers）`：当这有助于避免误用时，写明当前主要读者
 - `1.4 Gap Analysis Requirement`：必须明确写 `required | not_required`；这是 planning 是否必须进入 `Gap Analysis Doc` 的唯一正式路由信号
@@ -247,6 +247,7 @@
 - `5.4` 中关于“固定与可变”的权威界线明确
 - 正确性表面明确
 - 没有把阻塞性设计不确定性藏到下游去
+- 文档顶部 `状态` 已明确写为 `review-ready`
 - 只有当 rolling doc 同 round 的最新 `planner_update` 使用 `next_action=request_reviewer_handoff`，并且存在匹配的当前 `design_doc_ref` handoff block 时，reviewer dispatch 才正式成立；`review-ready` 本身只说明文档已达到 handoff 条件
 
 <!-- forgeloop:anchor seal-standard -->
@@ -255,6 +256,7 @@
 只有满足以下条件，这份文档才可以 sealed：
 
 - review-ready 条件已经满足
+- 文档顶部 `状态` 已明确写为 `sealed`
 - `design_reviewer` 能在不重建隐藏意图的前提下完成判断
 - 下游 planning 能把它当作权威来源引用
 - 下游 planning 能仅凭这份文档判断，在 `Total Task Doc` 之前是否必须先有 `Gap Analysis Doc`
