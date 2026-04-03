@@ -63,7 +63,8 @@ When `planning-loop` materializes worker output into the `Planning State Doc`:
 
 - `wait_for_upstream_judgment` -> `next_action.action=waiting`
 - `stop_on_blocker` -> `next_action.action=blocked`
-- clean seal of `Design Doc` writes only `last_transition.transition=advance_to_gap_analysis`
+- clean seal of `Design Doc` writes only `last_transition.transition=advance_to_gap_analysis` when the sealed `Design Doc` explicitly marks `Gap Analysis Requirement: required`
+- clean seal of `Design Doc` writes only `last_transition.transition=advance_to_total_task_doc` when the sealed `Design Doc` explicitly marks `Gap Analysis Requirement: not_required`
 - clean seal of `Gap Analysis Doc` writes only `last_transition.transition=advance_to_total_task_doc`
 - clean seal of `Total Task Doc` -> `next_action.action=sealed_planning_docs_ready`
 

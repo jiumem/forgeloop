@@ -129,31 +129,9 @@ Header and contract snapshot are initialized once. All later formal facts append
   - `next_action`
 - Stage reviewer prompts may extend these blocks, but they must not remove or rename the fields listed here.
 - Stage-specific fields required for supervisor routing are:
-  - `design_review_result`:
-  - `requirement_fit`
-  - `boundary_correctness`
-  - `structural_soundness`
-  - `downstream_planning_readiness`
-  - `correctness_surface`
-  - `open_issues`
-  - `findings`
-  - `gap_review_result`:
-  - `current_state_evidence`
-  - `gap_ledger_integrity`
-  - `convergence_strategy`
-  - `downstream_planning_readiness`
-  - `correctness_surface`
-  - `open_issues`
-  - `findings`
-  - `total_task_doc_review_result`:
-  - `execution_boundary`
-  - `object_map_integrity`
-  - `acceptance_truth_integrity`
-  - `integration_path`
-  - `runtime_readiness`
-  - `residual_risk_boundary`
-  - `open_issues`
-  - `findings`
+  - `design_review_result` requires: `requirement_fit`, `boundary_correctness`, `structural_soundness`, `downstream_planning_readiness`, `correctness_surface`, `open_issues`, and `findings`
+  - `gap_review_result` requires: `current_state_evidence`, `gap_ledger_integrity`, `convergence_strategy`, `downstream_planning_readiness`, `correctness_surface`, `open_issues`, and `findings`
+  - `total_task_doc_review_result` requires: `execution_boundary`, `object_map_integrity`, `acceptance_truth_integrity`, `integration_path`, `runtime_readiness`, `residual_risk_boundary`, `open_issues`, and `findings`
 - `open_issues` and `findings` may use either inline YAML lists or multi-line YAML list form, but they must remain attached to the same review-result block
 - `author_role` on a review-result block must stay `reviewer`
 - `handoff_id` and `review_target_ref` must echo the exact current handoff being judged

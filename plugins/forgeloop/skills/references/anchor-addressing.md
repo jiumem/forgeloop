@@ -97,8 +97,10 @@ Every failure must become either full-document fallback or explicit stop. Silent
 <!-- forgeloop:anchor legality-law -->
 ## Legality Law
 
-- cold start, runtime rebuild, anchor conflict, and anchor legality failure always permit full-document recovery
 - hot-path consumers must default to anchor-addressed minimal reads
+- runtime consumers that bind a cutover contract may use full-document recovery for cold start, runtime rebuild, anchor conflict, and anchor legality failure only when that bound cutover contract allows the fallback for the current call site
+- planning consumers, which do not bind a runtime cutover contract, may use full-document recovery for stage recovery, anchor conflict, and anchor legality failure unless a stricter plane-local contract requires explicit stop instead
+- when a bound plane-local contract requires explicit disaster-recovery fallback or explicit stop, that stricter contract wins
 - full-document fallback is a recovery path, not a convenience default
 - derived views may assist resolution, but if they disagree with the formal document, the formal document wins immediately
 

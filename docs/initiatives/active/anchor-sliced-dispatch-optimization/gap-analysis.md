@@ -13,7 +13,7 @@
 
 ### 1.3 主要读者（Primary Readers）
 - `gap_reviewer`
-- 下游 `plan_reviewer`
+- 下游 `total_task_doc_reviewer`
 - 后续消费 sealed planning truth 的 `run-planning`、`run-initiative`、`rebuild-runtime`、`planner`、`coder`、runtime reviewers
 
 <!-- forgeloop:anchor baseline-and-scope -->
@@ -33,8 +33,8 @@
 
 ### 2.3 当前态覆盖范围（Current-State Coverage）
 - planning 侧：`run-planning`、`planning-loop`、planning stage references、planning rolling-doc contract、当前 Initiative 的 `Planning State Doc` 与 rolling docs。
-- runtime 侧：`run-initiative`、`rebuild-runtime`、`task-loop`、`milestone-loop`、`initiative-loop`、`Global State Doc` contract、三层 review rolling-doc contracts、以及当前 repo 内 review baseline docs。
-- review / agent 侧：`planner`、`gap-reviewer`、`coder`、runtime reviewers 的 executable manifests 与 repo 内 reference mirrors；manifests 用于确认真实运行合同，mirrors 只用于确认对外说明面是否漂移。
+- runtime 侧：`run-initiative`、`rebuild-runtime`、`code-loop`、`Global State Doc` contract、三层 review rolling-doc contracts、以及当前 repo 内 review baseline docs。
+- review / agent 侧：`planner`、`gap_reviewer`、`coder`、runtime reviewers 的 executable manifests 与 repo 内 reference mirrors；manifests 用于确认真实运行合同，mirrors 只用于确认对外说明面是否漂移。
 - 不纳入范围：具体 parser 实现、packet builder 代码、真实 runtime trace、或尚未存在的本 Initiative runtime docs。
 
 ### 2.4 差距闭合目标（Gap-Closure Goal）
@@ -71,8 +71,8 @@
 ## 4. 当前态快照（Current-State Snapshot）
 ### 4.1 现有拓扑（Existing Topology）
 - planning 侧是两层 supervisor 结构：`run-planning` 负责绑定 Initiative 与 active stage，`planning-loop` 负责单 stage authoring / handoff / review routing。
-- planning 正式物包括 stage artifact、`Planning State Doc`、和对应 planning rolling doc；当前 Initiative 已存在 sealed `design.md`、`planning-state.md`、`design-rolling.md`、`gap-rolling.md`、`plan-rolling.md`。
-- runtime 侧是 `run-initiative` + `rebuild-runtime` + `task-loop` / `milestone-loop` / `initiative-loop` 的控制面，配套一个 update-only `Global State Doc` 与三层 append-only review rolling docs。
+- planning 正式物包括 stage artifact、`Planning State Doc`、和对应 planning rolling doc；当前 Initiative 已存在 sealed `design.md`、`planning-state.md`、`design-rolling.md`、`gap-rolling.md`、`total-task-doc-rolling.md`。
+- runtime 侧是 `run-initiative` + `rebuild-runtime` + `code-loop` 的控制面；`code-loop` 以内建 `task | milestone | initiative` mode 进入三层 review/repair loop，配套一个 update-only `Global State Doc` 与三层 append-only review rolling docs。
 - 运行时对象层已经区分 Task / Milestone / Initiative 三个 review/repair loop，并用对象级 `handoff_id + review_target_ref + round` 维持 freshness。
 
 ### 4.2 现有关键表面（Existing Critical Surfaces）

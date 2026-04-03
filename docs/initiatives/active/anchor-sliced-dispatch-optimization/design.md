@@ -12,7 +12,7 @@
 
 ### 1.3 主要读者（Primary Readers）
 - `design_reviewer`
-- 下游 `gap_reviewer` 与 `plan_reviewer`
+- 下游 `gap_reviewer` 与 `total_task_doc_reviewer`
 - 后续消费 sealed planning truth 的 `run-planning`、`run-initiative`、`planner`、`coder`、runtime reviewers
 
 <!-- forgeloop:anchor requirement-baseline -->

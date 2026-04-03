@@ -69,7 +69,6 @@ For repo-local Initiatives, required placement is sibling `.forgeloop/global-sta
   - `continue_initiative_repair`
   - `objectize_task_repair`
   - `enter_r3`
-  - `mark_initiative_delivered`
   - `initiative_delivered`
 - Shared stop routing:
   - `wait_for_user`
@@ -77,12 +76,13 @@ For repo-local Initiatives, required placement is sibling `.forgeloop/global-sta
 
 If a rolling doc already exposes a legal literal action from this vocabulary, preserve it.
 
-`mark_initiative_delivered` is a reviewer result. `initiative_delivered` is the dispatcher-written terminal stop state after that result has been accepted.
+`mark_initiative_delivered` is reviewer output only. It must appear in `r3_result.next_action`, not in `Global State Doc.next_action.action`.
+`initiative_delivered` is the dispatcher-written terminal stop state after that reviewer result has been accepted.
 
 Supervisor materialization law:
 
 - `wait_for_user`, `stop_on_blocker`, and `initiative_delivered` are the only canonical runtime stop literals
-- reviewer-side `mark_initiative_delivered` materializes to dispatcher stop state `initiative_delivered`
+- actionable reviewer-side `mark_initiative_delivered` materializes immediately to dispatcher stop state `initiative_delivered`
 - do not introduce a second informal runtime state vocabulary such as prose stop-state aliases
 
 <!-- forgeloop:anchor recommended-template -->

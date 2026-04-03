@@ -119,6 +119,7 @@ Local exceptions for runtime worker packets:
 4. Handle the gate result
 - Read only the latest gate result for the current round that is legal for the bound mode.
 - If the gate result requests in-mode repair, stay in the same mode and same round when the bound contracts allow it.
+- If the gate result requests `objectize_task_repair`, write callback metadata into `last_transition` using the bound callback-round law from `references/runtime-object-modes.md`, rebind `current_snapshot` and `next_action` to the bounded repair Task, switch control to Task plane, then hand control back upstream.
 - If the gate result opens reviewer entry, require one valid current handoff first, then materialize reviewer entry in the `Global State Doc`.
 - If the gate result requests waiting or blocker, write the stop state and return upstream.
 - Any illegal gate-result / handoff combination is a formal stop.

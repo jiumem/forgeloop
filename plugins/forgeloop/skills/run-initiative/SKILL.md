@@ -103,7 +103,7 @@ If the shared packet law or runtime cutover contract forces fallback or stop dur
 First bind the formal source refs for the current Initiative.
 
 1. Use the user-provided `planning_doc_path`, `initiative_key`, or the only verifiable active Initiative in the current workspace to bind the current Initiative. If it cannot be verified uniquely, ask the user.
-2. Prefer exploring under the parent path of the user-provided total task doc. Only if that is insufficient should you continue under the repo `docs/` tree.
+2. Prefer exploring under the parent path of the user-provided planning doc. If that doc is already the sealed `Total Task Doc`, use its parent path directly. Only if that is insufficient should you continue under the repo `docs/` tree.
 3. When the sealed planning artifact directory is known, derive the one legal repo-local runtime control-plane root from `../references/control-plane-roots.md`: sibling `.forgeloop/` under that Initiative document directory. Bind the runtime refs there directly. Do not search for alternate repo-local runtime control-plane roots elsewhere in the repository.
 <!-- forgeloop:anchor canonical-ref-semantics -->
 4. Confirm seven Initiative-bound source slots as canonical refs: `design_ref`, `gap_analysis_ref`, `total_task_doc_ref`, `global_state_doc_ref`, `task_review_rolling_doc_root_ref`, `milestone_review_rolling_doc_root_ref`, and `initiative_review_rolling_doc_ref`.
@@ -153,7 +153,9 @@ Do this whenever runtime routing or loop execution needs workspace-local runtime
 
 ### Step 4: Determine The Runtime Next Step
 
-Only after workspace binding when needed, and while the current planning admission basis still holds, choose the runtime read order from `current_runtime_cutover_mode`, read `global_state_doc_ref` or legal derived views or authoritative rolling-doc blocks in the allowed order, add minimum Git or test facts only when document facts remain insufficient, then route by priority.
+Only after workspace binding when needed, and only while the current planning admission basis still holds, choose the runtime read order from `current_runtime_cutover_mode`.
+Read only the runtime surfaces that the bound cutover mode makes legal as the default path for this call site.
+Add Git or test facts only when document facts still cannot prove the next step.
 
 1. After active workspace binding when needed, choose the runtime read order from `current_runtime_cutover_mode`:
 - `full_doc_default`: authoritative full documents may be the default runtime route
@@ -161,22 +163,26 @@ Only after workspace binding when needed, and while the current planning admissi
 2. Only when document facts are still insufficient should you add the minimum necessary Git / test facts.
 3. Then route by this priority:
 - stop state recorded by `initiative_delivered`, `wait_for_user`, or `stop_on_blocker` that is still consistent
+- callback return from an objectized repair Task whose latest actionable Task result requests `return_to_source_object`
 - cold start with no runtime docs
 - runtime rebuild when state is missing or conflicting
 - task-mode code loop when a Task is clearly active or next-ready
 - milestone-mode code loop when Milestone review/repair is clearly active
 - initiative-mode code loop when Initiative review/repair is clearly active
+- frontier selection when `current_snapshot.active_plane=frontier` or `next_action.action=select_next_ready_object`
 - ask the user only when facts are legal but still ambiguous
 4. Apply the first matching case:
 - if the `Global State Doc` already records `initiative_delivered`: stop and explain the stop point
 - if the `Global State Doc` already records `wait_for_user` or `stop_on_blocker`: first check whether this activation clearly resolves that stop reason
   - if not, stop at that state
   - if yes, record that resume in `last_transition`, then continue from newer formal runtime truth instead of treating the stop as terminal
+- if `last_transition` still carries active callback metadata for an objectized repair Task and the latest actionable Task result for that bounded repair Task requests `return_to_source_object`: treat callback return as higher priority than ordinary frontier selection; rebind the source object named by `callback_source_plane` and `callback_return_rolling_doc_ref`, apply `callback_round_behavior`, then call skill: `code-loop`
 - if `Global State Doc` is missing and no rolling doc exists: treat it as a new Initiative start
 - if `Global State Doc` is missing but rolling docs already exist, or if `Global State Doc` clearly conflicts with the total task doc or rolling docs: call skill: `rebuild-runtime`
 - if current progress clearly belongs to the Task review/repair loop, including continuing the currently bound Task, continuing repair on the current Task, or uniquely identifying the next ready Task: formally rebind `current_snapshot` and `next_action` to that Task if needed, bind `mode=task`, then call skill: `code-loop`
 - if current progress clearly belongs to a Milestone review/repair loop: formally rebind `current_snapshot` and `next_action` to that Milestone if needed, bind `mode=milestone`, then call skill: `code-loop`
 - if current progress clearly belongs to the Initiative review/repair loop: formally rebind `current_snapshot` and `next_action` to that Initiative if needed, bind `mode=initiative`, then call skill: `code-loop`
+- if `current_snapshot.active_plane=frontier` or `next_action.action=select_next_ready_object`: resolve the next ready object from the sealed planning truth plus authoritative runtime rolling docs; if exactly one ready object exists, rebind and continue through the matching `mode`; otherwise ask the user
 - if the facts do not conflict but the next step still cannot be determined uniquely: ask the user
 5. You may confirm only one next step or one clear stop point. If facts conflict, call skill: `rebuild-runtime`; if they are ambiguous, ask the user.
 
@@ -196,7 +202,8 @@ Consume only the conclusion already confirmed in the previous step. Do not reint
 9. User confirmation is required: stop and ask the minimum necessary question.
 10. The system is already in a stop state: stop and enter no loop.
 
-If work will continue, first update the materialized `Global State Doc` in the active Initiative workspace until it is clear enough. If the active object or active plane is about to change, the new `current_snapshot` and `next_action` must be written first so that a later `Supervisor` can quickly trace and recover the current progress state.
+If work will continue, first rewrite the materialized `Global State Doc` in the active Initiative workspace so that `current_snapshot`, `next_action`, and—when needed—`last_transition` are already sufficient for later recovery.
+If the active object or active plane is about to change, write the new `current_snapshot` and `next_action` first so that a later `Supervisor` can recover the current progress state without hidden context.
 
 When the active object is already in flight or has been recovered from an existing rolling doc, `current_snapshot` should preserve the active `coder_slot` and object `round`. Only on first entry into a fresh runtime object with no rolling doc yet may `current_snapshot` temporarily omit them; the target loop must then initialize `coder_slot=coder` and `round=1` before dispatching the first coder round.
 

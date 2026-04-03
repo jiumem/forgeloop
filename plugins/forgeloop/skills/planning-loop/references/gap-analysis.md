@@ -169,7 +169,7 @@
 - `4.1 现有拓扑（Existing Topology）`：定义相关的当前对象布局、职责切法与系统形态
 - `4.2 现有关键表面（Existing Critical Surfaces）`：定义造成真实迁移压力的行为、状态与契约表面；优先列出高影响 current-state surfaces，并给出各自的首个证据入口与为什么它们会影响下游 planning
 - `4.3 现有约束与历史包袱（Existing Constraints And Legacy Burdens）`：定义下游 planning 必须尊重的真实约束或遗留力量
-- `4.4 证据边界与未知项（Evidence Boundary And Unknowns）`：明确区分已验证的当前态事实、合理推断，以及仍未知的区域，好让 `gap_reviewer` 判断这份 gap ledger 是 grounded 还是 speculative；默认高影响 surface 类别若未覆盖，必须在这里显式写成 `N/A`、`inference` 或 `unknown`，不能静默漏掉
+- `4.4 证据边界与未知项（Evidence Boundary And Unknowns）`：明确区分已验证的当前态事实、合理推断，以及仍未知的区域，好让 `gap_reviewer` 判断这份 gap ledger 是 grounded 还是 speculative；若 `2.3` 中的任一默认高影响 surface 类别未覆盖，必须在这里显式标记为 `N/A`、`inference` 或 `unknown`，不能静默漏掉
 - 本节保持事实性和边界性；不要重讲产品历史
 
 <!-- forgeloop:anchor gap-ledger -->
@@ -235,7 +235,7 @@
 - 所有要求的二级标题都存在，或者以有效理由明确标记为 `N/A`
 - 被引用的 sealed `Design Doc` 明确要求必须做 gap analysis
 - 纳入范围的目标态切片明确
-- 相关当前态范围明确，且默认高影响 surface 类别要么已有首个证据入口，要么合法标记 `N/A`
+- 相关当前态范围明确，且 `2.3` 中的默认高影响 surface 类别要么已有首个证据入口，要么合法标记 `N/A`
 - 当前态判断的证据边界明确
 - 主要差距明确
 - 收敛策略明确

@@ -37,10 +37,10 @@
           "plugins/forgeloop/skills/run-initiative/references/global-state.md"
         ],
         "stats": {
-          "chars": 86876,
-          "lines": 1295,
-          "words": 10057,
-          "approx_tokens": 21719
+          "chars": 88121,
+          "lines": 1302,
+          "words": 10210,
+          "approx_tokens": 22031
         }
       },
       "minimal": {
@@ -59,13 +59,13 @@
           "plugins/forgeloop/skills/run-initiative/references/global-state.md#bootstrap-law"
         ],
         "stats": {
-          "chars": 42532,
-          "lines": 576,
-          "words": 4630,
-          "approx_tokens": 10633
+          "chars": 43617,
+          "lines": 583,
+          "words": 4766,
+          "approx_tokens": 10905
         }
       },
-      "reduction_pct": 51.0
+      "reduction_pct": 50.5
     },
     {
       "name": "Runtime Resume Into Active Task",
@@ -92,10 +92,10 @@
           "tests/fixtures/anchor-slicing/task-review-sample.md"
         ],
         "stats": {
-          "chars": 102881,
-          "lines": 1743,
-          "words": 12026,
-          "approx_tokens": 25721
+          "chars": 104349,
+          "lines": 1751,
+          "words": 12206,
+          "approx_tokens": 26088
         }
       },
       "minimal": {
@@ -113,10 +113,10 @@
           "tests/fixtures/anchor-slicing/task-review-sample.md::current-effective.md"
         ],
         "stats": {
-          "chars": 29616,
-          "lines": 491,
-          "words": 2928,
-          "approx_tokens": 7404
+          "chars": 30002,
+          "lines": 492,
+          "words": 2981,
+          "approx_tokens": 7501
         }
       },
       "reduction_pct": 71.2
@@ -142,10 +142,10 @@
           "tests/codex/token-benchmark/fixtures/global-state-active-task.md"
         ],
         "stats": {
-          "chars": 31578,
-          "lines": 781,
-          "words": 3790,
-          "approx_tokens": 7895
+          "chars": 31893,
+          "lines": 782,
+          "words": 3828,
+          "approx_tokens": 7974
         }
       },
       "minimal": {
@@ -165,7 +165,7 @@
           "approx_tokens": 4199
         }
       },
-      "reduction_pct": 46.8
+      "reduction_pct": 47.3
     },
     {
       "name": "Same-Task Handoff To Fresh Reviewer",
@@ -188,10 +188,10 @@
           "plugins/forgeloop/agents/task_reviewer.toml"
         ],
         "stats": {
-          "chars": 37387,
-          "lines": 921,
-          "words": 4777,
-          "approx_tokens": 9347
+          "chars": 37702,
+          "lines": 922,
+          "words": 4815,
+          "approx_tokens": 9426
         }
       },
       "minimal": {
@@ -208,7 +208,7 @@
           "approx_tokens": 2674
         }
       },
-      "reduction_pct": 71.4
+      "reduction_pct": 71.6
     },
     {
       "name": "Milestone Review",
@@ -231,10 +231,10 @@
           "tests/codex/token-benchmark/fixtures/milestone-review-sample.md"
         ],
         "stats": {
-          "chars": 55432,
-          "lines": 980,
-          "words": 6162,
-          "approx_tokens": 13858
+          "chars": 55738,
+          "lines": 981,
+          "words": 6201,
+          "approx_tokens": 13935
         }
       },
       "minimal": {
@@ -253,7 +253,7 @@
           "approx_tokens": 4750
         }
       },
-      "reduction_pct": 65.7
+      "reduction_pct": 65.9
     },
     {
       "name": "Initiative Review",
@@ -276,10 +276,10 @@
           "tests/codex/token-benchmark/fixtures/initiative-review-sample.md"
         ],
         "stats": {
-          "chars": 55182,
-          "lines": 977,
-          "words": 6131,
-          "approx_tokens": 13796
+          "chars": 55488,
+          "lines": 978,
+          "words": 6170,
+          "approx_tokens": 13872
         }
       },
       "minimal": {
@@ -298,7 +298,7 @@
           "approx_tokens": 4366
         }
       },
-      "reduction_pct": 68.4
+      "reduction_pct": 68.5
     },
     {
       "name": "Rebuild Runtime",
@@ -323,10 +323,10 @@
           "tests/codex/token-benchmark/fixtures/milestone-review-sample.md"
         ],
         "stats": {
-          "chars": 74338,
+          "chars": 74362,
           "lines": 1204,
-          "words": 8182,
-          "approx_tokens": 18585
+          "words": 8189,
+          "approx_tokens": 18591
         }
       },
       "minimal": {
@@ -371,10 +371,10 @@
           "tests/codex/token-benchmark/fixtures/global-state-waiting.md"
         ],
         "stats": {
-          "chars": 64860,
-          "lines": 956,
-          "words": 7601,
-          "approx_tokens": 16215
+          "chars": 66072,
+          "lines": 963,
+          "words": 7748,
+          "approx_tokens": 16518
         }
       },
       "minimal": {
@@ -389,10 +389,10 @@
           "tests/codex/token-benchmark/fixtures/global-state-waiting.md#last-transition"
         ],
         "stats": {
-          "chars": 8554,
+          "chars": 8726,
           "lines": 215,
-          "words": 843,
-          "approx_tokens": 2139
+          "words": 868,
+          "approx_tokens": 2182
         }
       },
       "reduction_pct": 86.8
@@ -419,10 +419,10 @@
           "tests/fixtures/anchor-slicing/task-review-sample.md"
         ],
         "stats": {
-          "chars": 52806,
-          "lines": 1031,
-          "words": 6841,
-          "approx_tokens": 13202
+          "chars": 54250,
+          "lines": 1039,
+          "words": 7014,
+          "approx_tokens": 13563
         }
       },
       "minimal": {
@@ -442,7 +442,7 @@
           "approx_tokens": 4305
         }
       },
-      "reduction_pct": 67.4
+      "reduction_pct": 68.3
     },
     {
       "name": "same-task warm-path delta illegal -> full packet fallback",
@@ -466,10 +466,10 @@
           "tests/fixtures/anchor-slicing/task-review-sample.md"
         ],
         "stats": {
-          "chars": 52927,
-          "lines": 1031,
-          "words": 6858,
-          "approx_tokens": 13232
+          "chars": 54371,
+          "lines": 1039,
+          "words": 7031,
+          "approx_tokens": 13593
         }
       },
       "minimal": {
@@ -488,7 +488,7 @@
           "approx_tokens": 8035
         }
       },
-      "reduction_pct": 39.3,
+      "reduction_pct": 40.9,
       "preconditions": [
         {
           "label": "active snapshot still points at round 2",
@@ -533,10 +533,10 @@
           "tests/fixtures/anchor-slicing/task-review-sample.md"
         ],
         "stats": {
-          "chars": 38251,
-          "lines": 738,
-          "words": 4945,
-          "approx_tokens": 9563
+          "chars": 39380,
+          "lines": 745,
+          "words": 5080,
+          "approx_tokens": 9845
         }
       },
       "minimal": {
@@ -555,7 +555,7 @@
           "approx_tokens": 8010
         }
       },
-      "reduction_pct": 16.2,
+      "reduction_pct": 18.6,
       "preconditions": [
         {
           "label": "illegal selector fixture is rejected by anchor validation",
@@ -589,10 +589,10 @@
           "plugins/forgeloop/skills/references/anchor-addressing.md"
         ],
         "stats": {
-          "chars": 83230,
-          "lines": 1268,
-          "words": 9562,
-          "approx_tokens": 20808
+          "chars": 83714,
+          "lines": 1248,
+          "words": 9625,
+          "approx_tokens": 20929
         }
       },
       "minimal": {
@@ -614,7 +614,7 @@
           "approx_tokens": 4579
         }
       },
-      "reduction_pct": 78.0
+      "reduction_pct": 78.1
     },
     {
       "name": "same-stage planner continue",
@@ -634,10 +634,10 @@
           "tests/codex/token-benchmark/fixtures/planning-design-repair-sample.md"
         ],
         "stats": {
-          "chars": 28875,
-          "lines": 511,
-          "words": 3657,
-          "approx_tokens": 7219
+          "chars": 28845,
+          "lines": 489,
+          "words": 3641,
+          "approx_tokens": 7212
         }
       },
       "minimal": {
@@ -654,7 +654,7 @@
           "approx_tokens": 3554
         }
       },
-      "reduction_pct": 50.8
+      "reduction_pct": 50.7
     },
     {
       "name": "fresh planning reviewer handoff",
@@ -675,10 +675,10 @@
           "tests/codex/token-benchmark/fixtures/planning-design-handoff-sample.md"
         ],
         "stats": {
-          "chars": 35347,
-          "lines": 647,
-          "words": 4630,
-          "approx_tokens": 8837
+          "chars": 35317,
+          "lines": 625,
+          "words": 4614,
+          "approx_tokens": 8830
         }
       },
       "minimal": {
@@ -696,7 +696,7 @@
           "approx_tokens": 5315
         }
       },
-      "reduction_pct": 39.9
+      "reduction_pct": 39.8
     },
     {
       "name": "review changes requested -> reopen next round",
@@ -717,10 +717,10 @@
           "tests/codex/token-benchmark/fixtures/planning-gap-reopen-sample.md"
         ],
         "stats": {
-          "chars": 38640,
-          "lines": 685,
-          "words": 4731,
-          "approx_tokens": 9660
+          "chars": 38620,
+          "lines": 663,
+          "words": 4715,
+          "approx_tokens": 9655
         }
       },
       "minimal": {
@@ -733,51 +733,51 @@
           "tests/codex/token-benchmark/fixtures/planning-gap-reopen-sample.md::current-effective.md"
         ],
         "stats": {
-          "chars": 15525,
-          "lines": 276,
-          "words": 1791,
-          "approx_tokens": 3882
+          "chars": 15495,
+          "lines": 254,
+          "words": 1775,
+          "approx_tokens": 3874
         }
       },
-      "reduction_pct": 59.8
+      "reduction_pct": 59.9
     }
   ],
   "aggregates": {
     "runtime": {
       "scenario_count": 11,
       "hot_path": {
-        "legacy_approx_tokens": 106614,
-        "minimal_approx_tokens": 43743,
-        "reduction_pct": 58.97067927289099
+        "legacy_approx_tokens": 108296,
+        "minimal_approx_tokens": 43840,
+        "reduction_pct": 59.518357095368245
       },
       "cold_path": {
-        "legacy_approx_tokens": 56519,
-        "minimal_approx_tokens": 17043,
-        "reduction_pct": 69.84553866841239
+        "legacy_approx_tokens": 57140,
+        "minimal_approx_tokens": 17358,
+        "reduction_pct": 69.62198109905495
       },
       "total": {
-        "legacy_approx_tokens": 163133,
-        "minimal_approx_tokens": 60786,
-        "reduction_pct": 62.73837911397449
+        "legacy_approx_tokens": 165436,
+        "minimal_approx_tokens": 61198,
+        "reduction_pct": 63.00805145192099
       },
-      "task_hot_path_average_reduction_pct": 64.2
+      "task_hot_path_average_reduction_pct": 64.6
     },
     "planning": {
       "scenario_count": 4,
       "hot_path": {
-        "legacy_approx_tokens": 25716,
-        "minimal_approx_tokens": 12751,
-        "reduction_pct": 50.41608337221963
+        "legacy_approx_tokens": 25697,
+        "minimal_approx_tokens": 12743,
+        "reduction_pct": 50.41055376113943
       },
       "cold_path": {
-        "legacy_approx_tokens": 20808,
+        "legacy_approx_tokens": 20929,
         "minimal_approx_tokens": 4579,
-        "reduction_pct": 77.99404075355632
+        "reduction_pct": 78.1212671412872
       },
       "total": {
-        "legacy_approx_tokens": 46524,
-        "minimal_approx_tokens": 17330,
-        "reduction_pct": 62.7504083913679
+        "legacy_approx_tokens": 46626,
+        "minimal_approx_tokens": 17322,
+        "reduction_pct": 62.849054175781745
       }
     }
   },

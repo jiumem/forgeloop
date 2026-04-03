@@ -230,7 +230,7 @@
 - 验收真理必须保持单一来源：`2.4 成功标准（Success Criteria）` 管 Initiative 成功，`3.3 Milestone 验收（Milestone Acceptance）` 管 Milestone 验收，`4.2 Task 定义（Task Definitions）` 管 Task 验收；`6` 只能索引这些区块并指向证据
 - 把 `1.5 执行边界（Execution Boundary）`、`1.6 Initiative 法定引用指派（Initiative Reference Assignment）`、`3.4 Milestone 法定引用指派（Milestone Reference Assignment）`、`4.2 Task 定义（Task Definitions）`、`5.1 默认集成模型（Default Integration Model）` 与 `6.4 证据入口（Evidence Entrypoints）` 视为本文档的结构核心，不能退化成模糊散文
 - repo-local formal refs 只保留一种 durable path semantics：repo-root-relative；如果为了人类阅读额外提供 markdown link 或解释，那也不能让 workspace-specific absolute path 成为唯一法定值
-- 所谓 full refinement，意味着所有对象、依赖、验收线与集成路径都已经明确，而不是堆一堆教程式实现细节
+- 所谓完全展开，指所有对象、依赖、验收线与集成路径都已明确，而不是堆砌教程式实现细节
 - 任何未决裁决都不得进入 `Total Task Doc`
 
 <!-- forgeloop:anchor prohibited-content -->
@@ -262,11 +262,11 @@
 - Initiative 成功标准明确
 - 完整的 Milestone 结构与依赖明确
 - Initiative 与 Milestone 的法定引用指派明确
-- Task 账本 fully expanded，`4.1` 中的每个 `Task Key` 在 `4.2` 中都恰好有一个匹配定义，且不存在孤儿 Task 定义
+- Task 账本已完全展开，`4.1` 中的每个 `Task Key` 在 `4.2` 中都恰好有一个匹配定义，且不存在孤儿 Task 定义
 - 默认集成模型及任何 `Multi-PR Exception` 的使用都明确
 - 验收矩阵与 `6.4` 中的权威证据入口明确
 - `6.1`、`6.2`、`6.3` 都能指向首个可审查实物，而不是只回指说明文档
-- `6.4` 至少覆盖 reviewer-first 的六类证据入口，或对不适用项给出合法 `N/A`
+- `6.4` 已覆盖该节定义的 reviewer-first 六类证据入口，或对不适用项给出合法 `N/A`
 - `6` 不得重新定义已经由 `2.4`、`3.3` 与 `4.2` 拥有的验收线
 - 没有把未解决的设计或 gap 问题藏到下游去
 - 只有当 rolling doc 同 round 的最新 `planner_update` 使用 `next_action=request_reviewer_handoff`，并且存在匹配的当前 `total_task_doc_ref` handoff block 时，reviewer dispatch 才正式成立；`review-ready` 本身只说明文档已达到 handoff 条件

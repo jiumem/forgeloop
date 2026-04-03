@@ -156,7 +156,7 @@
 - `任务键（Task Key）`: `ASDO-T4`
 - `设计引用（Design Refs）`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md`
 - `差距引用（Gap Refs）`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/gap-analysis.md`
-- `规范引用（Spec Refs）`: `plugins/forgeloop/skills/planning-loop/SKILL.md`, `plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md`, `plugins/forgeloop/agents/planner.toml`, `plugins/forgeloop/agents/design_reviewer.toml`, `plugins/forgeloop/agents/gap_reviewer.toml`, `plugins/forgeloop/agents/plan_reviewer.toml`
+- `规范引用（Spec Refs）`: `plugins/forgeloop/skills/planning-loop/SKILL.md`, `plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md`, `plugins/forgeloop/agents/planner.toml`, `plugins/forgeloop/agents/design_reviewer.toml`, `plugins/forgeloop/agents/gap_reviewer.toml`, `plugins/forgeloop/agents/total_task_doc_reviewer.toml`
 - `输入（Input）`: `ASDO-T3` 产出的 planning-side anchor surfaces。
 - `动作（Action）`: 将 planning-stage planner / reviewer dispatch packet 改为默认消费 authoritative refs + anchor selectors + 必要切片。
 - `输出（Output）`: 更新后的 planning-loop dispatch 输入面与 reviewer handoff 读取面。
@@ -169,9 +169,9 @@
 - `任务键（Task Key）`: `ASDO-T5`
 - `设计引用（Design Refs）`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md`
 - `差距引用（Gap Refs）`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/gap-analysis.md`
-- `规范引用（Spec Refs）`: `plugins/forgeloop/skills/run-initiative/SKILL.md`, `plugins/forgeloop/skills/rebuild-runtime/SKILL.md`, `plugins/forgeloop/skills/task-loop/SKILL.md`, `plugins/forgeloop/skills/milestone-loop/SKILL.md`, `plugins/forgeloop/skills/initiative-loop/SKILL.md`, `plugins/forgeloop/skills/run-initiative/references/global-state.md`
+- `规范引用（Spec Refs）`: `plugins/forgeloop/skills/run-initiative/SKILL.md`, `plugins/forgeloop/skills/rebuild-runtime/SKILL.md`, `plugins/forgeloop/skills/code-loop/SKILL.md`, `plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md`, `plugins/forgeloop/skills/run-initiative/references/global-state.md`
 - `输入（Input）`: `ASDO-T4` 已收缩的 planning-side packet 边界，以及 runtime formal surfaces 的 anchor 暴露面。
-- `动作（Action）`: 把 `run-initiative`、`rebuild-runtime`、以及三层 runtime loop 的默认读取面改为最小 authoritative packet，并保留整文 fallback。
+- `动作（Action）`: 把 `run-initiative`、`rebuild-runtime`、以及 `code-loop` 的三种 runtime mode 默认读取面改为最小 authoritative packet，并保留整文 fallback。
 - `输出（Output）`: runtime admission、dispatch、rebuild 的一致最小输入面。
 - `非目标（Non-Goals）`: 不交付 agent mirror 清理，不引入 slim/derived rolling views。
 - `依赖（Dependencies）`: `ASDO-T4`

@@ -1,5 +1,7 @@
 # Codex 原生 Initiative 自动编码套件专项实施作战计划书
 
+> 状态说明：本文为历史设计稿，用于追溯演进，不代表 0.9.0 当前发布面。当前发布面以 `README*`、`docs/forgeloop/*`、`plugins/forgeloop/skills/*` 与 `plugins/forgeloop/agents/*` 为准。文中出现的 `task-loop`、`g1-task-gate`、`r2-milestone-review`、`replay-runtime` 等旧名称，均应视为历史方案。
+
 ## 封面信息卡
 
 | 项目 | 内容 |
