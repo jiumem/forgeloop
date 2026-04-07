@@ -44,10 +44,11 @@ Hard boundaries:
 - `round` is object round and supervisor-owned through the `Global State Doc`; coder and reviewers only echo it in rolling docs
 - if the existing `Global State Doc` still agrees with newer formal facts, preserve its `round`; otherwise recover `round` from the active rolling doc when that rolling doc exposes one unique current round
 - the current review handoff is object-scoped:
-  - Task: the latest `anchor_ref` or `fixup_ref` in the current round
-  - Milestone: the latest `g2_result` in the current round whose `next_action=enter_r2`
-  - Initiative: the latest `g3_result` in the current round whose `next_action=enter_r3`
+  - Task: the latest `anchor_ref` or `fixup_ref` in the current round; the recovered current handoff must carry `handoff_id`, `review_target_ref`, and `compare_base_ref`
+  - Milestone: the latest `g2_result` in the current round whose `next_action=enter_r2`; the recovered current handoff must carry `handoff_id`, `review_target_ref`, and `compare_base_ref`
+  - Initiative: the latest `g3_result` in the current round whose `next_action=enter_r3`; the recovered current handoff must carry `handoff_id`, `review_target_ref`, and `compare_base_ref`
 - a review result is actionable only when its `round`, `handoff_id`, and `review_target_ref` match that current handoff exactly; if multiple review results match one current handoff, only the latest appended matching block is actionable
+- when recovery rebuilds reviewer entry, preserve the current handoff's `compare_base_ref` as part of the reviewer-bound truth surface; do not fall back to workspace diff just because the reviewer result tuple does not echo the compare base
 - a new round opens only on first entry into an object, after a reviewer requests same-object repair, or after callback semantics from a repair Task explicitly say the source object should enter the next round
 - if callback metadata must be recovered for an objectized repair Task, recover `callback_round_behavior` from the source formal block kind: actionable `g2_result` / `g3_result` objectization means `continue_current_round`; actionable `r2_result` / `r3_result` objectization means `enter_next_round`
 

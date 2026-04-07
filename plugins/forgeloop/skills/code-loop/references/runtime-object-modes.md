@@ -16,7 +16,7 @@ All runtime object modes share the same supervisor backbone:
 - one logical `coder_slot`
 - one supervisor-owned object-local `round`
 - one authoritative rolling doc
-- one current handoff tuple
+- one current handoff tuple plus its compare base
 - one latest matching review result
 - one `Global State Doc` materialization of reviewer entry
 - one upstream dispatcher: `run-initiative`
@@ -37,7 +37,7 @@ This reference binds mode consumers. It does not redefine the legal runtime voca
 - rolling doc contract: `plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md`
 - reviewer: `task_reviewer`
 - gate-result block kind: `g1_result`
-- current handoff opener: latest `anchor_ref` or `fixup_ref` in the current round
+- current handoff opener: latest `anchor_ref` or `fixup_ref` in the current round; every actionable Task handoff carries `handoff_id`, `review_target_ref`, and `compare_base_ref`
 - current review result: latest matching `r1_result` for that handoff
 - common Task entry and reviewer actions remain `continue_task_coder_round` and `enter_r1`
 
@@ -48,7 +48,7 @@ This reference binds mode consumers. It does not redefine the legal runtime voca
 - rolling doc contract: `plugins/forgeloop/skills/run-initiative/references/milestone-review-rolling-doc.md`
 - reviewer: `milestone_reviewer`
 - gate-result block kind: `g2_result`
-- current handoff opener: latest `g2_result` in the current round whose `next_action=enter_r2`
+- current handoff opener: latest `g2_result` in the current round whose `next_action=enter_r2`; every actionable Milestone handoff carries `handoff_id`, `review_target_ref`, and `compare_base_ref`
 - current review result: latest matching `r2_result` for that handoff
 
 <!-- forgeloop:anchor initiative-mode -->
@@ -58,7 +58,7 @@ This reference binds mode consumers. It does not redefine the legal runtime voca
 - rolling doc contract: `plugins/forgeloop/skills/run-initiative/references/initiative-review-rolling-doc.md`
 - reviewer: `initiative_reviewer`
 - gate-result block kind: `g3_result`
-- current handoff opener: latest `g3_result` in the current round whose `next_action=enter_r3`
+- current handoff opener: latest `g3_result` in the current round whose `next_action=enter_r3`; every actionable Initiative handoff carries `handoff_id`, `review_target_ref`, and `compare_base_ref`
 - current review result: latest matching `r3_result` for that handoff
 - terminal review consequence: `mark_initiative_delivered`; dispatcher terminal stop state: `initiative_delivered`
 

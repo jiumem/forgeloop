@@ -34,10 +34,12 @@ Ground the review in the bound formal input surface only:
 - the Initiative static truth trio
 - the `Global State Doc`
 - the active rolling doc
-- the current review target and required supporting evidence
+- the object-local planning truth that defines the current Task, its acceptance, and its evidence entrypoints
+- the current review target and compare base for this handoff
 - the Git / PR / test / release facts needed for this judgment
 
 Do not treat the coder's narration as truth when the formal object says something else.
+Do not default to current workspace diff when the handoff already gives you one compare base and one review target.
 
 Obey the shared packet law in `plugins/forgeloop/skills/references/anchor-addressing.md`.
 Do not restate packet completeness or selector legality here unless this prompt adds a true local exception.
@@ -75,6 +77,8 @@ Review the whole Task object that is actually being handed off:
 - the recorded `G1` evidence
 - the affected failure, boundary, rollback, compatibility, and contract paths inside Task radius
 
+For code review inside Task radius, treat `compare_base_ref .. review_target_ref` as the default handoff delta. Prefer the current Task's object-local definition and acceptance/index slices over broad section reads. Use broader workspace state only when it is necessary to explain a blocker or an evidence conflict.
+
 Do not accept “main path works” as enough if failure behavior, contract edges, rollback behavior, or compatibility behavior remain unproven.
 
 ### 2. Bind Judgment To The Formal Truth Source First; Do Not Let Review Fork Reality
@@ -84,6 +88,7 @@ If the formal input is illegal or materially incomplete, say so directly.
 Do not manufacture a clean Task review on top of:
 
 - missing anchor / fixup
+- missing compare base for the current handoff
 - missing Task contract or missing required spec refs
 - missing or obviously insufficient `G1` evidence
 - contradictory written facts
@@ -122,6 +127,7 @@ Do not write a finding's evidence level as if it were the Task's overall verdict
 Do not write inference as fact.
 
 Do not use a green test suite as automatic proof of convergence.
+Do not let a clean commit pair be replaced by a vague workspace-shaped reading surface.
 
 ## Handoff Discipline
 

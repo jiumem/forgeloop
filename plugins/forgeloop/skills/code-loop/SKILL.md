@@ -86,6 +86,9 @@ Local exceptions for runtime worker packets:
 
 - coder packets must additionally carry current `mode`, current `round`, current `coder_slot`, and callback metadata when this is an objectized repair Task
 - reviewer packets must additionally carry the current handoff tuple: `round`, `handoff_id`, and `review_target_ref`
+- Task reviewer packets must additionally carry the handoff's `compare_base_ref` plus the object-local selectors or same-source slices that bind the current Task definition, current Task acceptance index entry, and evidence entrypoints from the static truth trio
+- Milestone reviewer packets must additionally carry the handoff's `compare_base_ref` plus the object-local selectors or same-source slices that bind the current Milestone acceptance block, the current Milestone reference-assignment block, the current Milestone acceptance-index entry, and the evidence entrypoints from the static truth trio
+- Initiative reviewer packets must additionally carry the handoff's `compare_base_ref` plus the object-local selectors or same-source slices that bind the current Initiative success-criterion block, the current Initiative acceptance-index entry, and the evidence entrypoints from the static truth trio
 
 <!-- forgeloop:anchor workflow -->
 ## Workflow
@@ -131,6 +134,12 @@ Local exceptions for runtime worker packets:
   - `round`
   - `handoff_id`
   - `review_target_ref`
+- For Task review, also bind the current handoff's `compare_base_ref` and prefer object-local planning selectors over broad section slices: the current Task definition block, the current Task acceptance index entry, and the evidence entrypoint surface that the same planning truth points to.
+- Task reviewers should judge the handoff delta from `compare_base_ref` to `review_target_ref`; do not default them to workspace diff or unrelated residual workspace changes.
+- For Milestone review, also bind the current handoff's `compare_base_ref` and prefer object-local planning selectors over broad section slices: the current Milestone acceptance block, the current Milestone reference-assignment block, the current Milestone acceptance index entry, and the evidence entrypoint surface that the same planning truth points to.
+- Milestone reviewers should judge the handoff delta from `compare_base_ref` to `review_target_ref`; do not default them to workspace diff or unrelated residual workspace changes.
+- For Initiative review, also bind the current handoff's `compare_base_ref` and prefer object-local planning selectors over broad section slices: the current Initiative success-criterion block, the current Initiative acceptance index entry, and the evidence entrypoint surface that the same planning truth points to.
+- Initiative reviewers should judge the handoff delta from `compare_base_ref` to `review_target_ref`; do not default them to workspace diff or unrelated residual workspace changes.
 - Derived views are optional hot-path helpers only.
 
 6. Handle the review result

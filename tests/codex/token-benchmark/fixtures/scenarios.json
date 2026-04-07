@@ -17,7 +17,7 @@
       {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md", "anchor": "requirement-baseline"},
       {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md", "anchor": "target-state-design"},
       {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/gap-analysis.md", "anchor": "baseline-and-scope"},
-      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "input-baseline"},
+      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "input-baseline-and-sealed-decisions"},
       {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "task-ledger"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md", "anchor": "current-mode"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md", "anchor": "default-read-law"},
@@ -114,6 +114,9 @@
     ],
     "minimal_packet": [
       {"type": "full_doc", "path": "plugins/forgeloop/agents/task_reviewer.toml"},
+      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "task-ledger/task-definitions/asdo-t5"},
+      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "acceptance-matrix/task-acceptance-index/asdo-t5"},
+      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "acceptance-matrix/evidence-entrypoints"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md", "anchor": "task-mode"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md", "anchor": "handoff-law"},
       {"type": "derived_view", "doc": "tests/fixtures/anchor-slicing/task-review-sample.md", "view": "handoff-scoped/sample-r2-a1.md"}
@@ -138,12 +141,14 @@
       {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/milestone-review-sample.md"}
     ],
     "minimal_packet": [
-      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "milestone-master-table"},
-      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "acceptance-matrix"},
       {"type": "full_doc", "path": "plugins/forgeloop/agents/milestone_reviewer.toml"},
+      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "milestone-master-table/milestone-acceptance/asdo-m2"},
+      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "milestone-master-table/milestone-reference-assignment/asdo-m2"},
+      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "acceptance-matrix/milestone-acceptance-index/asdo-m2"},
+      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "acceptance-matrix/evidence-entrypoints"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md", "anchor": "milestone-mode"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/milestone-review-rolling-doc.md", "anchor": "handoff-law"},
-      {"type": "derived_view", "doc": "tests/codex/token-benchmark/fixtures/milestone-review-sample.md", "view": "current-effective.md"}
+      {"type": "derived_view", "doc": "tests/codex/token-benchmark/fixtures/milestone-review-sample.md", "view": "handoff-scoped/ms-asdo-m2-r1-h1.md"}
     ],
     "fallback_points": [
       "multiple actionable results",
@@ -165,12 +170,13 @@
       {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/initiative-review-sample.md"}
     ],
     "minimal_packet": [
-      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "acceptance-matrix"},
-      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "global-residual-risks"},
       {"type": "full_doc", "path": "plugins/forgeloop/agents/initiative_reviewer.toml"},
+      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "initiative/success-criteria/ic-5"},
+      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "acceptance-matrix/initiative-acceptance-index/ic-5"},
+      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "acceptance-matrix/evidence-entrypoints"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md", "anchor": "initiative-mode"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/initiative-review-rolling-doc.md", "anchor": "handoff-law"},
-      {"type": "derived_view", "doc": "tests/codex/token-benchmark/fixtures/initiative-review-sample.md", "view": "current-effective.md"}
+      {"type": "derived_view", "doc": "tests/codex/token-benchmark/fixtures/initiative-review-sample.md", "view": "handoff-scoped/init-asdo-r1-h1.md"}
     ],
     "fallback_points": [
       "initiative handoff drift",
@@ -194,7 +200,7 @@
       {"type": "full_doc", "path": "tests/codex/token-benchmark/fixtures/milestone-review-sample.md"}
     ],
     "minimal_packet": [
-      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "input-baseline"},
+      {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "input-baseline-and-sealed-decisions"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md", "anchor": "current-mode"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md", "anchor": "fallback-law"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/rebuild-runtime/SKILL.md", "anchor": "truth-sources-boundaries"},

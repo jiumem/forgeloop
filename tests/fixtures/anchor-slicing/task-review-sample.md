@@ -1,10 +1,10 @@
-# Task Review Rolling Doc: ASDO-TX
+# Task Review Rolling Doc: ASDO-T5
 
 ```forgeloop
 kind: task_review_header
 initiative_key: anchor-sliced-dispatch-optimization
-milestone_key: ASDO-MX
-task_key: ASDO-TX
+milestone_key: ASDO-M2
+task_key: ASDO-T5
 coder_slot: coder
 created_at: 2026-03-31T09:00:00Z
 ```
@@ -42,6 +42,7 @@ author_role: coder
 created_at: 2026-03-31T09:12:00Z
 handoff_id: sample-r1-a1
 review_target_ref: commits/sample-a1
+compare_base_ref: commits/sample-base
 commit: anchor(sample): first state
 sha: abc1234
 ```
@@ -91,6 +92,7 @@ author_role: coder
 created_at: 2026-03-31T09:31:00Z
 handoff_id: sample-r2-a1
 review_target_ref: commits/sample-a2
+compare_base_ref: commits/sample-a1
 commit: anchor(sample): repaired state
 sha: def5678
 ```

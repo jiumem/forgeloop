@@ -27,6 +27,7 @@
 | derived view is missing or stale | consumer may invalidate and reread formal doc | workflow skills + derived-view contract |
 | newer formal block invalidates a derived view | consumer rejects the stale view and rebuilds from the authoritative rolling doc | `anchor_slices.py derive` + workflow skills |
 | reviewer enters a handoff for the first time | packet stays self-sufficient and does not assume a previous packet | runtime reviewer manifests + loop skills |
+| runtime reviewer packet is assembled for an active handoff | packet preserves current handoff identity, `compare_base_ref` when present, and object-local planning truth | shared packet law + runtime loop skills |
 | delta conditions cannot be proven | supervisor falls back to a full packet instead of sending a delta-only packet | runtime loop skills + cutover notes |
 | runtime cutover mode = `full_doc_default` | old full-document path remains the legal runtime default while minimal-path validation still runs | runtime cutover contract + workflow skills |
 
@@ -67,5 +68,6 @@ This is the single recommended entry point for the P0 validation closure.
 It runs:
 
 - `anchor-slice-smoke` for selector legality, machine-kind closure, derived-view rebuild, and contract-break detection
+- `runtime-packet-lint` for reviewer compare-pair fixtures and object-local planning-truth packet shape
 - `token-benchmark` for representative packet-shape and read-surface shrink
 - `baseline compare` for scenario-level drift versus the saved machine-readable baseline

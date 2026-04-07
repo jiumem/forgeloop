@@ -4,31 +4,37 @@
 - 状态：`sealed`
 - 阶段：`Total Task Doc`
 
-<!-- forgeloop:anchor input-baseline -->
+<!-- forgeloop:anchor input-baseline-and-sealed-decisions -->
 ## 1. 前置输入与决策基线（Input Baseline And Sealed Decisions）
+<!-- forgeloop:anchor input-baseline-and-sealed-decisions/requirement-summary -->
 ### 1.1 需求摘要（Requirement Summary）
 - 本 Initiative 的执行目标是在不新增第二真理源的前提下，把 Forgeloop 的 planning / runtime 热路径从默认整文读取收缩为 `authoritative repo-root-relative refs + anchor selectors + 最小必要切片`。
 - 执行必须保留 cold start、runtime rebuild、anchor legality failure、anchor conflict 时的整文恢复能力，且不得改写现有 `round`、`handoff_id`、`review_target_ref`、freshness law、或 repo-root-relative durable ref 语义。
 - 执行切片固定为三个 Milestone：`ASDO-M1` anchor / slicing infrastructure、`ASDO-M2` runtime dispatch contract shrink、`ASDO-M3` rolling-doc slimming / derived views / validation / migration。
 
+<!-- forgeloop:anchor input-baseline-and-sealed-decisions/design-refs -->
 ### 1.2 设计引用（Design Refs）
 - sealed `Design Doc`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md`
 
+<!-- forgeloop:anchor input-baseline-and-sealed-decisions/gap-analysis-refs -->
 ### 1.3 差距分析引用（Gap Analysis Refs, if applicable）
 - sealed `Gap Analysis Doc`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/gap-analysis.md`
 - sealed `Design Doc` 已显式声明 `Gap Analysis Requirement: required`，本节与该路由保持一致。
 
+<!-- forgeloop:anchor input-baseline-and-sealed-decisions/sealed-decisions -->
 ### 1.4 已封板决策（Sealed Decisions）
 - 正式 planning artifacts、`Planning State Doc`、`Global State Doc`、以及 planning/runtime rolling docs 继续是唯一权威源；anchor、slice、derived view 只能建立在这些表面之上。
 - 默认 dispatch packet 必须收缩为 anchor-addressed minimal packet；整文读取只保留给 cold start、runtime rebuild、anchor legality failure、anchor conflict。
 - rolling docs 必须支持 handoff-scoped / attempt-aware / current-effective derived views，但 freshness / supersede law 仍以既有 append-only contracts 为准。
 - 执行不得在 `Total Task Doc` 里重新裁决 anchor 语法、parser 落点、projection materialization 形式；这些保持在 sealed upstream planning 允许的实现自由度内。
 
+<!-- forgeloop:anchor input-baseline-and-sealed-decisions/execution-boundary -->
 ### 1.5 执行边界（Execution Boundary）
 - 本文档承载的唯一权威内容是：Initiative / Milestone / Task 对象切分、依赖顺序、法定 durable refs、Milestone/Task/Initiative 验收线、分支与 PR 集成路径、以及 evidence entrypoints。
 - 本文档不承载：设计 reopen、Gap blocker 再裁决、迁移分析长文、实现教程、review verdict、或 runtime 进度日志。
 - 下游 coder / reviewer 可在不重建隐藏意图的前提下，直接从本文档恢复第一可执行 Task、Milestone handoff 边界、以及 Initiative delivery 入口。
 
+<!-- forgeloop:anchor input-baseline-and-sealed-decisions/initiative-reference-assignment -->
 ### 1.6 Initiative 法定引用指派（Initiative Reference Assignment）
 | Ref Slot | Durable Ref | 用途 |
 | --- | --- | --- |
@@ -40,35 +46,52 @@
 | `milestone_review_rolling_doc_root_ref` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/` | Milestone `G2 / R2` 根目录 |
 | `initiative_review_rolling_doc_ref` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/initiative-review.md` | Initiative `G3 / R3` 唯一 rolling doc |
 
-<!-- forgeloop:anchor initiative-overview -->
+<!-- forgeloop:anchor initiative -->
 ## 2. Initiative 总览（Initiative）
+<!-- forgeloop:anchor initiative/background -->
 ### 2.1 背景（Background）
 - 当前 repo 已有 planning/runtime 正式合同与 object-level review loops，但热路径仍主要靠整文或整份 rolling doc 读取。
 - sealed upstream planning 已把本 Initiative 固定为一次收敛工程：先建立稳定地址层，再收缩 dispatch packet，最后补齐 derived views、validation、migration。
 
+<!-- forgeloop:anchor initiative/scope -->
 ### 2.2 范围（Scope）
 - 为 planning docs、runtime control docs、review baselines 建立稳定 text-anchor 覆盖、解析、合法性检查与 namespace 边界。
 - 把 planning/runtime dispatch 与 reviewer admission 改为默认消费最小 authoritative packet，并保留显式整文 fallback。
 - 交付 rolling-doc derived views、validation、migration/cutover、以及与现有 runtime admission 兼容的执行入口。
 
+<!-- forgeloop:anchor initiative/non-goals -->
 ### 2.3 非目标（Non-Goals）
 - 不把 packet、projection cache、或 slim views 升格为新的 durable source。
 - 不在本 Initiative 内重写 `G1 / G2 / G3`、`R1 / R2 / R3` 或 `Global State Doc` / planning-state 语义。
 - 不把 parser 具体实现、anchor 具体 markdown 语法、或 projection materialization 形式写死成新的设计裁决。
 
+<!-- forgeloop:anchor initiative/success-criteria -->
 ### 2.4 成功标准（Success Criteria）
 本节是 Initiative 成功标准的唯一权威来源。
 
-| Criterion | Success Standard |
-| --- | --- |
-| `IC-1` | `ASDO-M1` 到 `ASDO-M3` 全部 clean 通过各自 Milestone acceptance，且 `ASDO-T1` 到 `ASDO-T9` 全部完成，无孤儿 Task 或额外执行对象。 |
-| `IC-2` | `run-initiative` 可仅依赖 `1.6` 中的 canonical refs 完成 planning admission；若 runtime docs 尚未 materialize，也能唯一确认 cold-start durable refs。 |
-| `IC-3` | planning/runtime 热路径默认读取 authoritative refs + anchor selectors + 最小必要切片；anchor 缺失、冲突、或 legality 无法证明时，整文 fallback 仍显式合法。 |
-| `IC-4` | derived current-effective / handoff-scoped / attempt-aware 视图可从正式 rolling docs 重建，且不会改变 `round`、`handoff_id`、`review_target_ref`、freshness、或 repo-root-relative durable refs 的现有法律语义。 |
-| `IC-5` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/initiative-review.md` 能基于三个 Milestone review docs 与其 evidence 完成 clean `R3` 判断并支持 `mark_initiative_delivered`，且 residual risks 只剩法律允许保留的非阻塞项。 |
+<!-- forgeloop:anchor initiative/success-criteria/ic-1 -->
+- `Criterion Key`: `IC-1`
+- `Success Standard`: `ASDO-M1` 到 `ASDO-M3` 全部 clean 通过各自 Milestone acceptance，且 `ASDO-T1` 到 `ASDO-T9` 全部完成，无孤儿 Task 或额外执行对象。
+
+<!-- forgeloop:anchor initiative/success-criteria/ic-2 -->
+- `Criterion Key`: `IC-2`
+- `Success Standard`: `run-initiative` 可仅依赖 `1.6` 中的 canonical refs 完成 planning admission；若 runtime docs 尚未 materialize，也能唯一确认 cold-start durable refs。
+
+<!-- forgeloop:anchor initiative/success-criteria/ic-3 -->
+- `Criterion Key`: `IC-3`
+- `Success Standard`: planning/runtime 热路径默认读取 authoritative refs + anchor selectors + 最小必要切片；anchor 缺失、冲突、或 legality 无法证明时，整文 fallback 仍显式合法。
+
+<!-- forgeloop:anchor initiative/success-criteria/ic-4 -->
+- `Criterion Key`: `IC-4`
+- `Success Standard`: derived current-effective / handoff-scoped / attempt-aware 视图可从正式 rolling docs 重建，且不会改变 `round`、`handoff_id`、`review_target_ref`、freshness、或 repo-root-relative durable refs 的现有法律语义。
+
+<!-- forgeloop:anchor initiative/success-criteria/ic-5 -->
+- `Criterion Key`: `IC-5`
+- `Success Standard`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/initiative-review.md` 能基于三个 Milestone review docs 与其 evidence 完成 clean `R3` 判断并支持 `mark_initiative_delivered`，且 residual risks 只剩法律允许保留的非阻塞项。
 
 <!-- forgeloop:anchor milestone-master-table -->
 ## 3. Milestone 总表（Milestone Master Table）
+<!-- forgeloop:anchor milestone-master-table/milestone-list -->
 ### 3.1 Milestone 列表（Milestone List）
 | Milestone Key | Slice | Task Keys | Planned PR Model |
 | --- | --- | --- | --- |
@@ -76,6 +99,7 @@
 | `ASDO-M2` | runtime dispatch contract shrink | `ASDO-T4`, `ASDO-T5`, `ASDO-T6` | `Single PR` |
 | `ASDO-M3` | rolling-doc slimming / derived views / validation / migration | `ASDO-T7`, `ASDO-T8`, `ASDO-T9` | `Single PR` |
 
+<!-- forgeloop:anchor milestone-master-table/milestone-dependencies -->
 ### 3.2 Milestone 依赖（Milestone Dependencies）
 - 依赖顺序固定为 `ASDO-M1 -> ASDO-M2 -> ASDO-M3`；不计划并行 Milestone 执行。
 - `ASDO-M1` 先锁定 anchor coverage、namespace、resolution、legality 与 formal-surface 暴露面。
@@ -83,24 +107,45 @@
 - `ASDO-M2` 只能在 `ASDO-M1` clean 后进入，因为 dispatch shrink 依赖已存在的 anchor address 与 legality contract。
 - `ASDO-M3` 只能在 `ASDO-M2` clean 后进入，因为 derived views、validation、migration/cutover 依赖新的 dispatch contract 已固定。
 
+<!-- forgeloop:anchor milestone-master-table/milestone-acceptance -->
 ### 3.3 Milestone 验收（Milestone Acceptance）
 本节是 Milestone acceptance 的唯一权威来源。
 
-| Milestone Key | Acceptance |
-| --- | --- |
-| `ASDO-M1` | `ASDO-T1` 到 `ASDO-T3` 全部完成，且 required formal surfaces 已有稳定 text-anchor coverage 与 namespace 边界；text anchors 与现有 Task `anchor_ref` / `fixup_ref` 语义分离明确；下游仍只写 repo-root-relative durable refs。 |
-| `ASDO-M2` | `ASDO-T4` 到 `ASDO-T6` 全部完成，且 planning/runtime dispatch 默认面已收缩为 authoritative refs + anchor selectors + 必要切片；fallback 升级条件明确；现有 routing vocabulary 与 freshness law 未被改写。 |
-| `ASDO-M3` | `ASDO-T7` 到 `ASDO-T9` 全部完成，且 rolling-doc derived views、validation、migration/cutover 已可支撑 `run-initiative` planning admission 与 runtime review；整文 fallback 仍合法，residual risks 仅剩可接受余量。 |
+<!-- forgeloop:anchor milestone-master-table/milestone-acceptance/asdo-m1 -->
+- `Milestone Key`: `ASDO-M1`
+- `Acceptance`: `ASDO-T1` 到 `ASDO-T3` 全部完成，且 required formal surfaces 已有稳定 text-anchor coverage 与 namespace 边界；text anchors 与现有 Task `anchor_ref` / `fixup_ref` 语义分离明确；下游仍只写 repo-root-relative durable refs。
 
+<!-- forgeloop:anchor milestone-master-table/milestone-acceptance/asdo-m2 -->
+- `Milestone Key`: `ASDO-M2`
+- `Acceptance`: `ASDO-T4` 到 `ASDO-T6` 全部完成，且 planning/runtime dispatch 默认面已收缩为 authoritative refs + anchor selectors + 必要切片；fallback 升级条件明确；现有 routing vocabulary 与 freshness law 未被改写。
+
+<!-- forgeloop:anchor milestone-master-table/milestone-acceptance/asdo-m3 -->
+- `Milestone Key`: `ASDO-M3`
+- `Acceptance`: `ASDO-T7` 到 `ASDO-T9` 全部完成，且 rolling-doc derived views、validation、migration/cutover 已可支撑 `run-initiative` planning admission 与 runtime review；整文 fallback 仍合法，residual risks 仅剩可接受余量。
+
+<!-- forgeloop:anchor milestone-master-table/milestone-reference-assignment -->
 ### 3.4 Milestone 法定引用指派（Milestone Reference Assignment）
-| Milestone Key | Milestone Review Rolling Doc Ref | Review Target Ref Pattern | Task Scope |
-| --- | --- | --- | --- |
-| `ASDO-M1` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M1.md` | `milestone-rounds/asdo-m1/r<round>` | `ASDO-T1`, `ASDO-T2`, `ASDO-T3` |
-| `ASDO-M2` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M2.md` | `milestone-rounds/asdo-m2/r<round>` | `ASDO-T4`, `ASDO-T5`, `ASDO-T6` |
-| `ASDO-M3` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M3.md` | `milestone-rounds/asdo-m3/r<round>` | `ASDO-T7`, `ASDO-T8`, `ASDO-T9` |
+<!-- forgeloop:anchor milestone-master-table/milestone-reference-assignment/asdo-m1 -->
+- `Milestone Key`: `ASDO-M1`
+- `Milestone Review Rolling Doc Ref`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M1.md`
+- `Review Target Ref Pattern`: `milestone-rounds/asdo-m1/r<round>`
+- `Task Scope`: `ASDO-T1`, `ASDO-T2`, `ASDO-T3`
+
+<!-- forgeloop:anchor milestone-master-table/milestone-reference-assignment/asdo-m2 -->
+- `Milestone Key`: `ASDO-M2`
+- `Milestone Review Rolling Doc Ref`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M2.md`
+- `Review Target Ref Pattern`: `milestone-rounds/asdo-m2/r<round>`
+- `Task Scope`: `ASDO-T4`, `ASDO-T5`, `ASDO-T6`
+
+<!-- forgeloop:anchor milestone-master-table/milestone-reference-assignment/asdo-m3 -->
+- `Milestone Key`: `ASDO-M3`
+- `Milestone Review Rolling Doc Ref`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M3.md`
+- `Review Target Ref Pattern`: `milestone-rounds/asdo-m3/r<round>`
+- `Task Scope`: `ASDO-T7`, `ASDO-T8`, `ASDO-T9`
 
 <!-- forgeloop:anchor task-ledger -->
 ## 4. Task 账本（Task Ledger）
+<!-- forgeloop:anchor task-ledger/task-list -->
 ### 4.1 Task 列表（Task List）
 | Task Key | Milestone | Summary | Dependencies |
 | --- | --- | --- | --- |
@@ -114,9 +159,11 @@
 | `ASDO-T8` | `ASDO-M3` | 建立 validation matrix、fixtures、与 legality / fallback / supersede 证据 | `ASDO-T7` |
 | `ASDO-T9` | `ASDO-M3` | 完成 coexistence、migration/cutover、admission 收尾与 Initiative delivery candidate | `ASDO-T8` |
 
+<!-- forgeloop:anchor task-ledger/task-definitions -->
 ### 4.2 Task 定义（Task Definitions）
 本节是 Task acceptance 的唯一权威来源。`4.1` 中每个 `Task Key` 在此恰好对应一个定义。
 
+<!-- forgeloop:anchor task-ledger/task-definitions/asdo-t1 -->
 **Task Definition: `ASDO-T1`**
 - `任务键（Task Key）`: `ASDO-T1`
 - `设计引用（Design Refs）`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md`
@@ -130,6 +177,7 @@
 - `验收（Acceptance）`: required formal surfaces 的 coverage 与 ownership 明确；text anchors 与 Task `anchor_ref` / `fixup_ref` 不再混义；不存在需要留给下游猜测的 coverage 缺口。
 - `Task 局部风险 / 备注（Task-local Risks / Notes）`: 若 coverage matrix 无法覆盖必要正式表面，则必须停在当前层并回流上游，而不是继续执行。
 
+<!-- forgeloop:anchor task-ledger/task-definitions/asdo-t2 -->
 **Task Definition: `ASDO-T2`**
 - `任务键（Task Key）`: `ASDO-T2`
 - `设计引用（Design Refs）`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md`
@@ -143,6 +191,7 @@
 - `验收（Acceptance）`: resolution 结果只能是唯一目标、显式冲突、或显式缺失；legality failure 会触发整文 fallback 或显式阻塞；repo-root-relative durable ref 语义保持不变。
 - `Task 局部风险 / 备注（Task-local Risks / Notes）`: 若 legality 机制需要额外 durable state 才能成立，应视为超出 sealed design 边界。
 
+<!-- forgeloop:anchor task-ledger/task-definitions/asdo-t3 -->
 **Task Definition: `ASDO-T3`**
 - `任务键（Task Key）`: `ASDO-T3`
 - `设计引用（Design Refs）`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md`
@@ -156,6 +205,7 @@
 - `验收（Acceptance）`: required formal surfaces 都有可解析的 anchor 暴露面，其中包含 review baselines；现有 `round` / `handoff_id` / `review_target_ref` 法律语义未变；runtime cold-start refs 仍保持 repo-root-relative durable form。
 - `Task 局部风险 / 备注（Task-local Risks / Notes）`: 若某个正式表面只能通过覆写合同语义才可 anchorize，必须停止并建议 reopen 上游。
 
+<!-- forgeloop:anchor task-ledger/task-definitions/asdo-t4 -->
 **Task Definition: `ASDO-T4`**
 - `任务键（Task Key）`: `ASDO-T4`
 - `设计引用（Design Refs）`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md`
@@ -169,6 +219,7 @@
 - `验收（Acceptance）`: planning-stage hot path 不再默认整文重读；current handoff 仍由 rolling-doc contract 选择；selector 非法或冲突时会升级为整文读取而非猜测继续。
 - `Task 局部风险 / 备注（Task-local Risks / Notes）`: 必须避免让 prompt mirror 或 dispatch 摘要变成新的真理源。
 
+<!-- forgeloop:anchor task-ledger/task-definitions/asdo-t5 -->
 **Task Definition: `ASDO-T5`**
 - `任务键（Task Key）`: `ASDO-T5`
 - `设计引用（Design Refs）`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md`
@@ -182,6 +233,7 @@
 - `验收（Acceptance）`: runtime hot path 默认读取最小 packet；`Global State Doc` 与 review rolling docs 的法律语义不变；conflict / legality failure 时可退回整文恢复。
 - `Task 局部风险 / 备注（Task-local Risks / Notes）`: 若 runtime shrink 需要改写 routing vocabulary 或新增 state 字段，则必须视为上游 fracture。
 
+<!-- forgeloop:anchor task-ledger/task-definitions/asdo-t6 -->
 **Task Definition: `ASDO-T6`**
 - `任务键（Task Key）`: `ASDO-T6`
 - `设计引用（Design Refs）`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md`
@@ -195,6 +247,7 @@
 - `验收（Acceptance）`: consumer-facing mirrors 与正式 skills/contracts 不冲突；最小 packet 与 fallback 规则均可从正式 refs 恢复；不存在平行 prompt truth。
 - `Task 局部风险 / 备注（Task-local Risks / Notes）`: 仅 mirror-only 文档更新不足以证明 runtime ready，必须与正式 contract 变更同步验证。
 
+<!-- forgeloop:anchor task-ledger/task-definitions/asdo-t7 -->
 **Task Definition: `ASDO-T7`**
 - `任务键（Task Key）`: `ASDO-T7`
 - `设计引用（Design Refs）`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md`
@@ -208,6 +261,7 @@
 - `验收（Acceptance）`: derived views 能从正式 rolling docs 重建；freshness / supersede law 仍由正式 rolling docs 决定；derived views 失效时可安全回退整文读取。
 - `Task 局部风险 / 备注（Task-local Risks / Notes）`: 若 derived view 需要抢占正式 rolling docs 的恢复优先级，则该任务失败。
 
+<!-- forgeloop:anchor task-ledger/task-definitions/asdo-t8 -->
 **Task Definition: `ASDO-T8`**
 - `任务键（Task Key）`: `ASDO-T8`
 - `设计引用（Design Refs）`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md`
@@ -221,6 +275,7 @@
 - `验收（Acceptance）`: 关键场景均有明确验证入口；证据足以支持 `ASDO-M1` 到 `ASDO-M3` 的 reviewer 判断；未验证区域被明确缩小为非阻塞残余。
 - `Task 局部风险 / 备注（Task-local Risks / Notes）`: 本 Initiative 当前无 runtime 实例样本，验证必须证明合同层正确性，而不是虚构业务 trace。
 
+<!-- forgeloop:anchor task-ledger/task-definitions/asdo-t9 -->
 **Task Definition: `ASDO-T9`**
 - `任务键（Task Key）`: `ASDO-T9`
 - `设计引用（Design Refs）`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md`
@@ -234,13 +289,15 @@
 - `验收（Acceptance）`: `run-initiative` planning admission 能接受新的 planning truth；migration 失败时仍可回滚到整文路径；三个 milestone review docs 与 initiative review doc 的 evidence chain 连续完整。
 - `Task 局部风险 / 备注（Task-local Risks / Notes）`: 若 cutover 仍依赖未决 authority line 或隐式人工步骤，则必须停在当前任务并修复，而不是伪装为 follow-up。
 
-<!-- forgeloop:anchor branch-and-pr -->
+<!-- forgeloop:anchor branch-pr-integration-path -->
 ## 5. 分支与 PR 集成路径（Branch & PR Integration Path）
+<!-- forgeloop:anchor branch-pr-integration-path/default-integration-model -->
 ### 5.1 默认集成模型（Default Integration Model）
 - 默认规则是 `one Milestone -> one branch -> one PR -> one Milestone Review Rolling Doc`。
 - 本 Initiative 不预设 `Multi-PR Exception`；若执行中发现某个 Milestone 无法在单 PR 内保持清晰状态边界，应先修复计划对象切法，而不是临时用多 PR 掩盖过厚 Milestone。
 - Task 不是独立 PR 对象；Task 在对应 Milestone branch 内完成，并通过 Task review rolling docs 提供 `G1 / anchor / fixup / R1` 证据。
 
+<!-- forgeloop:anchor branch-pr-integration-path/branch-plan -->
 ### 5.2 分支计划（Branch Plan）
 | Branch | Covers | Base | Merge Condition |
 | --- | --- | --- | --- |
@@ -248,13 +305,15 @@
 | `initiative/anchor-sliced-dispatch-optimization/m2-dispatch-shrink` | `ASDO-M2` / `ASDO-T4`-`ASDO-T6` | `initiative/anchor-sliced-dispatch-optimization/m1-anchor-slicing` 或 `main` 上已合入的 `ASDO-M1` | `ASDO-M2` 达到 `3.3` 验收并有 `ASDO-M2` Milestone review evidence |
 | `initiative/anchor-sliced-dispatch-optimization/m3-slim-validate-migrate` | `ASDO-M3` / `ASDO-T7`-`ASDO-T9` | `initiative/anchor-sliced-dispatch-optimization/m2-dispatch-shrink` 或 `main` 上已合入的 `ASDO-M2` | `ASDO-M3` 达到 `3.3` 验收并有 `ASDO-M3` Milestone review evidence |
 
+<!-- forgeloop:anchor branch-pr-integration-path/pr-plan -->
 ### 5.3 PR 计划（PR Plan）
 | PR | Scope | Acceptance Source | Review Handoff |
 | --- | --- | --- | --- |
-| `PR-1 / ASDO-M1` | anchor coverage、namespace、resolution、formal-surface anchorization | `3.3 / ASDO-M1` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M1.md` |
-| `PR-2 / ASDO-M2` | planning/runtime dispatch shrink 与 consumer contract alignment | `3.3 / ASDO-M2` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M2.md` |
-| `PR-3 / ASDO-M3` | rolling-doc derived views、validation、migration/cutover、delivery candidate | `3.3 / ASDO-M3` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M3.md` |
+| `PR-1 / ASDO-M1` | anchor coverage、namespace、resolution、formal-surface anchorization | `milestone-master-table/milestone-acceptance/asdo-m1` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M1.md` |
+| `PR-2 / ASDO-M2` | planning/runtime dispatch shrink 与 consumer contract alignment | `milestone-master-table/milestone-acceptance/asdo-m2` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M2.md` |
+| `PR-3 / ASDO-M3` | rolling-doc derived views、validation、migration/cutover、delivery candidate | `milestone-master-table/milestone-acceptance/asdo-m3` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M3.md` |
 
+<!-- forgeloop:anchor branch-pr-integration-path/pr-dependency-order -->
 ### 5.4 PR 依赖顺序（PR Dependency Order）
 1. `PR-1 / ASDO-M1`
 2. `PR-2 / ASDO-M2`
@@ -263,35 +322,98 @@
 
 <!-- forgeloop:anchor acceptance-matrix -->
 ## 6. 验收矩阵（Acceptance Matrix）
+<!-- forgeloop:anchor acceptance-matrix/task-acceptance-index -->
 ### 6.1 Task 验收索引（Task Acceptance Index）
-| Task Key | Acceptance Authority Ref | First Evidence Ref |
-| --- | --- | --- |
-| `ASDO-T1` | `4.2 / ASDO-T1` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/ASDO-T1.md` |
-| `ASDO-T2` | `4.2 / ASDO-T2` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/ASDO-T2.md` |
-| `ASDO-T3` | `4.2 / ASDO-T3` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/ASDO-T3.md` |
-| `ASDO-T4` | `4.2 / ASDO-T4` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/ASDO-T4.md` |
-| `ASDO-T5` | `4.2 / ASDO-T5` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/ASDO-T5.md` |
-| `ASDO-T6` | `4.2 / ASDO-T6` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/ASDO-T6.md` |
-| `ASDO-T7` | `4.2 / ASDO-T7` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/ASDO-T7.md` |
-| `ASDO-T8` | `4.2 / ASDO-T8` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/ASDO-T8.md` |
-| `ASDO-T9` | `4.2 / ASDO-T9` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/ASDO-T9.md` |
+<!-- forgeloop:anchor acceptance-matrix/task-acceptance-index/asdo-t1 -->
+- `Task Key`: `ASDO-T1`
+- `Acceptance Authority Ref`: `task-ledger/task-definitions/asdo-t1`
+- `First Evidence Ref`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/ASDO-T1.md`
 
+<!-- forgeloop:anchor acceptance-matrix/task-acceptance-index/asdo-t2 -->
+- `Task Key`: `ASDO-T2`
+- `Acceptance Authority Ref`: `task-ledger/task-definitions/asdo-t2`
+- `First Evidence Ref`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/ASDO-T2.md`
+
+<!-- forgeloop:anchor acceptance-matrix/task-acceptance-index/asdo-t3 -->
+- `Task Key`: `ASDO-T3`
+- `Acceptance Authority Ref`: `task-ledger/task-definitions/asdo-t3`
+- `First Evidence Ref`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/ASDO-T3.md`
+
+<!-- forgeloop:anchor acceptance-matrix/task-acceptance-index/asdo-t4 -->
+- `Task Key`: `ASDO-T4`
+- `Acceptance Authority Ref`: `task-ledger/task-definitions/asdo-t4`
+- `First Evidence Ref`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/ASDO-T4.md`
+
+<!-- forgeloop:anchor acceptance-matrix/task-acceptance-index/asdo-t5 -->
+- `Task Key`: `ASDO-T5`
+- `Acceptance Authority Ref`: `task-ledger/task-definitions/asdo-t5`
+- `First Evidence Ref`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/ASDO-T5.md`
+
+<!-- forgeloop:anchor acceptance-matrix/task-acceptance-index/asdo-t6 -->
+- `Task Key`: `ASDO-T6`
+- `Acceptance Authority Ref`: `task-ledger/task-definitions/asdo-t6`
+- `First Evidence Ref`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/ASDO-T6.md`
+
+<!-- forgeloop:anchor acceptance-matrix/task-acceptance-index/asdo-t7 -->
+- `Task Key`: `ASDO-T7`
+- `Acceptance Authority Ref`: `task-ledger/task-definitions/asdo-t7`
+- `First Evidence Ref`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/ASDO-T7.md`
+
+<!-- forgeloop:anchor acceptance-matrix/task-acceptance-index/asdo-t8 -->
+- `Task Key`: `ASDO-T8`
+- `Acceptance Authority Ref`: `task-ledger/task-definitions/asdo-t8`
+- `First Evidence Ref`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/ASDO-T8.md`
+
+<!-- forgeloop:anchor acceptance-matrix/task-acceptance-index/asdo-t9 -->
+- `Task Key`: `ASDO-T9`
+- `Acceptance Authority Ref`: `task-ledger/task-definitions/asdo-t9`
+- `First Evidence Ref`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/task-review/ASDO-T9.md`
+
+<!-- forgeloop:anchor acceptance-matrix/milestone-acceptance-index -->
 ### 6.2 Milestone 验收索引（Milestone Acceptance Index）
-| Milestone Key | Acceptance Authority Ref | First Evidence Ref |
-| --- | --- | --- |
-| `ASDO-M1` | `3.3 / ASDO-M1` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M1.md` |
-| `ASDO-M2` | `3.3 / ASDO-M2` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M2.md` |
-| `ASDO-M3` | `3.3 / ASDO-M3` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M3.md` |
+<!-- forgeloop:anchor acceptance-matrix/milestone-acceptance-index/asdo-m1 -->
+- `Milestone Key`: `ASDO-M1`
+- `Acceptance Authority Ref`: `milestone-master-table/milestone-acceptance/asdo-m1`
+- `First Evidence Ref`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M1.md`
 
+<!-- forgeloop:anchor acceptance-matrix/milestone-acceptance-index/asdo-m2 -->
+- `Milestone Key`: `ASDO-M2`
+- `Acceptance Authority Ref`: `milestone-master-table/milestone-acceptance/asdo-m2`
+- `First Evidence Ref`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M2.md`
+
+<!-- forgeloop:anchor acceptance-matrix/milestone-acceptance-index/asdo-m3 -->
+- `Milestone Key`: `ASDO-M3`
+- `Acceptance Authority Ref`: `milestone-master-table/milestone-acceptance/asdo-m3`
+- `First Evidence Ref`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M3.md`
+
+<!-- forgeloop:anchor acceptance-matrix/initiative-acceptance-index -->
 ### 6.3 Initiative 验收索引（Initiative Acceptance Index）
-| Initiative Criterion | Acceptance Authority Ref | First Evidence Ref |
-| --- | --- | --- |
-| `IC-1` | `2.4 / IC-1` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/initiative-review.md` |
-| `IC-2` | `2.4 / IC-2` | `plugins/forgeloop/skills/run-initiative/SKILL.md` |
-| `IC-3` | `2.4 / IC-3` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M2.md` |
-| `IC-4` | `2.4 / IC-4` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M3.md` |
-| `IC-5` | `2.4 / IC-5` | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/initiative-review.md` |
+<!-- forgeloop:anchor acceptance-matrix/initiative-acceptance-index/ic-1 -->
+- `Initiative Criterion`: `IC-1`
+- `Acceptance Authority Ref`: `initiative/success-criteria/ic-1`
+- `First Evidence Ref`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/initiative-review.md`
 
+<!-- forgeloop:anchor acceptance-matrix/initiative-acceptance-index/ic-2 -->
+- `Initiative Criterion`: `IC-2`
+- `Acceptance Authority Ref`: `initiative/success-criteria/ic-2`
+- `First Evidence Ref`: `plugins/forgeloop/skills/run-initiative/SKILL.md`
+
+<!-- forgeloop:anchor acceptance-matrix/initiative-acceptance-index/ic-3 -->
+- `Initiative Criterion`: `IC-3`
+- `Acceptance Authority Ref`: `initiative/success-criteria/ic-3`
+- `First Evidence Ref`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M2.md`
+
+<!-- forgeloop:anchor acceptance-matrix/initiative-acceptance-index/ic-4 -->
+- `Initiative Criterion`: `IC-4`
+- `Acceptance Authority Ref`: `initiative/success-criteria/ic-4`
+- `First Evidence Ref`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/milestone-review/ASDO-M3.md`
+
+<!-- forgeloop:anchor acceptance-matrix/initiative-acceptance-index/ic-5 -->
+- `Initiative Criterion`: `IC-5`
+- `Acceptance Authority Ref`: `initiative/success-criteria/ic-5`
+- `First Evidence Ref`: `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/initiative-review.md`
+
+<!-- forgeloop:anchor acceptance-matrix/evidence-entrypoints -->
 ### 6.4 证据入口（Evidence Entrypoints）
 | Evidence Ref | Why Reviewers Start Here |
 | --- | --- |
@@ -306,13 +428,15 @@
 | `docs/initiatives/active/anchor-sliced-dispatch-optimization/.forgeloop/initiative-review.md` | Initiative-level `G3 / R3` 交付候选与 residual-risk 最终判断入口 |
 | `plugins/forgeloop/skills/run-initiative/SKILL.md` | planning admission、runtime dispatch、与 cold-start / rebuild binding 规则入口 |
 
-<!-- forgeloop:anchor global-residual-risks -->
+<!-- forgeloop:anchor global-residual-risks-and-follow-ups -->
 ## 7. 全局残余风险与后续事项（Global Residual Risks & Follow-Ups）
+<!-- forgeloop:anchor global-residual-risks-and-follow-ups/global-residual-risks -->
 ### 7.1 全局残余风险（Global Residual Risks）
 - 初版 anchor coverage 与 slice granularity 可能偏粗，导致少量热路径仍暂时升级为整文 fallback；只要 fallback 显式合法，这属于可接受残余。
 - 由于当前 Initiative 还没有现成 runtime doc 样本，validation 会先证明合同层 correctness，而不是业务级 trace 完整性。
 - derived views 上线初期可能暴露更多 invalidation cases，但只要正式 rolling docs 仍是唯一权威源，这不会阻塞 seal。
 
+<!-- forgeloop:anchor global-residual-risks-and-follow-ups/follow-ups -->
 ### 7.2 后续事项（Follow-Ups）
 - 在本 Initiative sealed 后，再依据真实 runtime docs 的使用数据评估是否需要更细的 consumer-specific slice granularity。
 - 在 anchor-addressed dispatch 稳定后，进一步统一 reference mirrors 与 agent README 中的术语与示例。

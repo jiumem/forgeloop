@@ -59,6 +59,7 @@ current_runtime_cutover_mode: minimal_preferred
 ## Worker Packet Law
 
 - Ordinary coder / reviewer packets remain anchor-addressed minimal in every supported runtime mode.
+- Ordinary reviewer packets must stay object-scoped: preserve the current handoff identity, preserve `compare_base_ref` when the current handoff carries one, and prefer object-local planning truth over broad section bundles.
 - `full_doc_default` changes the runtime `Supervisor` read default; it does not by itself legalize thick worker packets.
 - Promote a coder or reviewer packet to a full-document packet only for explicit disaster recovery.
 - Every promoted worker packet must state both `fallback_mode` and `fallback_reason`.

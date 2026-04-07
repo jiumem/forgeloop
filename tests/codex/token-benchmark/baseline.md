@@ -19,38 +19,38 @@ Method:
 
 ## Runtime Aggregate
 
-- Hot path reduction: 59.5% (108296 -> 43840 tok approx)
-- Cold path reduction: 69.6% (57140 -> 17358 tok approx)
-- Total reduction: 63.0% (165436 -> 61198 tok approx)
-- Task hot path average reduction: 64.6%
+- Hot path reduction: 65.5% (123490 -> 42621 tok approx)
+- Cold path reduction: 78.6% (63505 -> 13577 tok approx)
+- Total reduction: 69.9% (186995 -> 56198 tok approx)
+- Task hot path average reduction: 67.3%
 - Gate mode: gating
 
 ## Planning Aggregate
 
-- Hot path reduction: 50.4% (25697 -> 12743 tok approx)
-- Cold path reduction: 78.1% (20929 -> 4579 tok approx)
-- Total reduction: 62.8% (46626 -> 17322 tok approx)
+- Hot path reduction: 50.6% (26313 -> 13010 tok approx)
+- Cold path reduction: 79.5% (22779 -> 4677 tok approx)
+- Total reduction: 64.0% (49092 -> 17687 tok approx)
 - Gate mode: report-only
 
 ## Scenario Baseline
 
 | Scenario | Scope | Gating | Bucket | Legacy | Minimal | Reduction |
 | --- | --- | --- | --- | ---: | ---: | ---: |
-| Runtime Cold Start | runtime | gating | cold_path | 22031 | 10905 | 50.5% |
-| Runtime Resume Into Active Task | runtime | gating | hot_path | 26088 | 7501 | 71.2% |
-| Same-Task Same-Round Coder Continue | runtime | gating | hot_path | 7974 | 4199 | 47.3% |
-| Same-Task Handoff To Fresh Reviewer | runtime | gating | hot_path | 9426 | 2674 | 71.6% |
-| Milestone Review | runtime | gating | hot_path | 13935 | 4750 | 65.9% |
-| Initiative Review | runtime | gating | hot_path | 13872 | 4366 | 68.5% |
-| Rebuild Runtime | runtime | gating | cold_path | 18591 | 4271 | 77.0% |
-| Waiting Or Blocked Resume | runtime | gating | cold_path | 16518 | 2182 | 86.8% |
-| same-task warm-path delta legal | runtime | gating | hot_path | 13563 | 4305 | 68.3% |
-| same-task warm-path delta illegal -> full packet fallback | runtime | gating | hot_path | 13593 | 8035 | 40.9% |
-| selector legality failure -> full-doc fallback | runtime | gating | hot_path | 9845 | 8010 | 18.6% |
-| planning cold entry | planning | report_only | cold_path | 20929 | 4579 | 78.1% |
-| same-stage planner continue | planning | report_only | hot_path | 7212 | 3554 | 50.7% |
-| fresh planning reviewer handoff | planning | report_only | hot_path | 8830 | 5315 | 39.8% |
-| review changes requested -> reopen next round | planning | report_only | hot_path | 9655 | 3874 | 59.9% |
+| Runtime Cold Start | runtime | gating | cold_path | 24314 | 7668 | 68.5% |
+| Runtime Resume Into Active Task | runtime | gating | hot_path | 29353 | 3991 | 86.4% |
+| Same-Task Same-Round Coder Continue | runtime | gating | hot_path | 9012 | 4421 | 50.9% |
+| Same-Task Handoff To Fresh Reviewer | runtime | gating | hot_path | 10634 | 4084 | 61.6% |
+| Milestone Review | runtime | gating | hot_path | 16579 | 4294 | 74.1% |
+| Initiative Review | runtime | gating | hot_path | 16509 | 4107 | 75.1% |
+| Rebuild Runtime | runtime | gating | cold_path | 20390 | 3696 | 81.9% |
+| Waiting Or Blocked Resume | runtime | gating | cold_path | 18801 | 2213 | 88.2% |
+| same-task warm-path delta legal | runtime | gating | hot_path | 15258 | 4529 | 70.3% |
+| same-task warm-path delta illegal -> full packet fallback | runtime | gating | hot_path | 15288 | 8610 | 43.7% |
+| selector legality failure -> full-doc fallback | runtime | gating | hot_path | 10857 | 8585 | 20.9% |
+| planning cold entry | planning | report_only | cold_path | 22779 | 4677 | 79.5% |
+| same-stage planner continue | planning | report_only | hot_path | 7417 | 3653 | 50.7% |
+| fresh planning reviewer handoff | planning | report_only | hot_path | 9035 | 5344 | 40.9% |
+| review changes requested -> reopen next round | planning | report_only | hot_path | 9861 | 4013 | 59.3% |
 
 ## Notes
 

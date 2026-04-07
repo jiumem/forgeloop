@@ -60,6 +60,7 @@
 ### 2.3 非目标（Non-Goals）
 <!-- forgeloop:anchor initiative/success-criteria -->
 ### 2.4 成功标准（Success Criteria）
+<!-- forgeloop:anchor initiative/success-criteria/ic-1 -->
 
 <!-- forgeloop:anchor milestone-master-table -->
 ## 3. Milestone 总表（Milestone Master Table）
@@ -69,8 +70,10 @@
 ### 3.2 Milestone 依赖（Milestone Dependencies）
 <!-- forgeloop:anchor milestone-master-table/milestone-acceptance -->
 ### 3.3 Milestone 验收（Milestone Acceptance）
+<!-- forgeloop:anchor milestone-master-table/milestone-acceptance/ms-1 -->
 <!-- forgeloop:anchor milestone-master-table/milestone-reference-assignment -->
 ### 3.4 Milestone 法定引用指派（Milestone Reference Assignment）
+<!-- forgeloop:anchor milestone-master-table/milestone-reference-assignment/ms-1 -->
 
 <!-- forgeloop:anchor task-ledger -->
 ## 4. Task 账本（Task Ledger）
@@ -78,6 +81,7 @@
 ### 4.1 Task 列表（Task List）
 <!-- forgeloop:anchor task-ledger/task-definitions -->
 ### 4.2 Task 定义（Task Definitions）
+<!-- forgeloop:anchor task-ledger/task-definitions/task-1 -->
 
 <!-- forgeloop:anchor branch-pr-integration-path -->
 ## 5. 分支与 PR 集成路径（Branch & PR Integration Path）
@@ -94,10 +98,13 @@
 ## 6. 验收矩阵（Acceptance Matrix）
 <!-- forgeloop:anchor acceptance-matrix/task-acceptance-index -->
 ### 6.1 Task 验收索引（Task Acceptance Index）
+<!-- forgeloop:anchor acceptance-matrix/task-acceptance-index/task-1 -->
 <!-- forgeloop:anchor acceptance-matrix/milestone-acceptance-index -->
 ### 6.2 Milestone 验收索引（Milestone Acceptance Index）
+<!-- forgeloop:anchor acceptance-matrix/milestone-acceptance-index/ms-1 -->
 <!-- forgeloop:anchor acceptance-matrix/initiative-acceptance-index -->
 ### 6.3 Initiative 验收索引（Initiative Acceptance Index）
+<!-- forgeloop:anchor acceptance-matrix/initiative-acceptance-index/ic-1 -->
 <!-- forgeloop:anchor acceptance-matrix/evidence-entrypoints -->
 ### 6.4 证据入口（Evidence Entrypoints）
 
@@ -124,10 +131,47 @@
 
 - 一级标题：使用英文语义名，例如 `input-baseline-and-sealed-decisions`、`task-ledger`、`acceptance-matrix`
 - 二级标题：使用 `父级/子级` 形式，例如 `input-baseline-and-sealed-decisions/execution-boundary`、`acceptance-matrix/evidence-entrypoints`
+- 当某个权威区块内部承载多个稳定对象时，必须为每个对象再补一层 object-local selector，放在该对象自己的 block、行、或 definition 前
+- object-local selector 继续使用 `父级/子级/对象键` 形式，例如 `initiative/success-criteria/ic-1`、`milestone-master-table/milestone-acceptance/ms-1`、`task-ledger/task-definitions/task-1`、`acceptance-matrix/task-acceptance-index/task-1`
 - selector 只允许 `[a-z0-9._/-]`
 - 同一模板的 selector 必须跨 Initiative 保持同名；`planner` 不得按个人习惯改名
 
 锚点本身属于正式合同，不是排版装饰。
+
+下面这些 placeholder block 不是执行真值，只是为了把 object-local selector 形状固定在参考模板里，确保模板本身也能被同一套锚点校验覆盖。
+
+<!-- forgeloop:anchor initiative/success-criteria/ic-1 -->
+- `Criterion Key`: `IC-1`
+- `Success Standard`: placeholder only; keep one Initiative criterion block shape in the reference template.
+
+<!-- forgeloop:anchor milestone-master-table/milestone-acceptance/ms-1 -->
+- `Milestone Key`: `MS-1`
+- `Acceptance`: placeholder only; keep one Milestone acceptance block shape in the reference template.
+
+<!-- forgeloop:anchor milestone-master-table/milestone-reference-assignment/ms-1 -->
+- `Milestone Key`: `MS-1`
+- `Milestone Review Rolling Doc Ref`: `docs/initiatives/<initiative-slug>/.forgeloop/milestone-review/MS-1.md`
+- `Review Target Ref Pattern`: `milestone-rounds/ms-1/r<round>`
+- `Task Scope`: `TASK-1`
+
+<!-- forgeloop:anchor task-ledger/task-definitions/task-1 -->
+- `Task Key`: `TASK-1`
+- `Acceptance`: placeholder only; keep one Task definition block shape in the reference template.
+
+<!-- forgeloop:anchor acceptance-matrix/task-acceptance-index/task-1 -->
+- `Task Key`: `TASK-1`
+- `Acceptance Authority Ref`: `task-ledger/task-definitions/task-1`
+- `First Evidence Ref`: `N/A in reference template`
+
+<!-- forgeloop:anchor acceptance-matrix/milestone-acceptance-index/ms-1 -->
+- `Milestone Key`: `MS-1`
+- `Acceptance Authority Ref`: `milestone-master-table/milestone-acceptance/ms-1`
+- `First Evidence Ref`: `N/A in reference template`
+
+<!-- forgeloop:anchor acceptance-matrix/initiative-acceptance-index/ic-1 -->
+- `Initiative Criterion`: `IC-1`
+- `Acceptance Authority Ref`: `initiative/success-criteria/ic-1`
+- `First Evidence Ref`: `N/A in reference template`
 
 <!-- forgeloop:anchor section-contracts -->
 ## 分节合同
@@ -163,6 +207,7 @@
 - `2.2 范围（Scope）`：定义 Initiative 层面的执行边界
 - `2.3 非目标（Non-Goals）`：定义这个 Initiative 以后不得悄悄吞进来的内容
 - `2.4 成功标准（Success Criteria）`：定义 Initiative 层面的成功与交付标准
+- `2.4` 中的每个 Initiative criterion 都必须是一个 object-local block，并使用稳定 criterion key anchor；下游不应为读取某一个 criterion 而重读整节
 - 本节保持轻薄；不要在这里重述设计长文
 
 <!-- forgeloop:anchor milestone-master-table -->
@@ -172,6 +217,7 @@
 - `3.2 Milestone 依赖（Milestone Dependencies）`：定义 Milestone 之间的串行、并行与收敛关系
 - `3.3 Milestone 验收（Milestone Acceptance）`：定义每个 Milestone 的验收线
 - `3.4 Milestone 法定引用指派（Milestone Reference Assignment）`：这是每个 Milestone 法定参考入口的唯一权威区块
+- `3.3` 与 `3.4` 中每个 Milestone 条目都必须使用同一个 `Milestone Key` 的 object-local anchor；若下游只需绑定一个 Milestone，可以配对读取这两个同 key block，而不是重读整表
 - `3.4 Milestone 法定引用指派（Milestone Reference Assignment）` 中的 repo-local refs 也必须保持 repo-root-relative durable form；不要把某个主工作区或旧 worktree 的绝对路径写成法定真值
 - `3.4` 中的 Milestone-level review refs 也必须落在同一个 Initiative-local `.forgeloop/` 根下，而不是为同一 Initiative 再开第二个 control-plane 根目录
 - `Milestone List` 中的 `Planned PR Model` 默认应为 `Single PR`；只有当某个 Milestone 必须保持为单一状态边界、且无法合理切成新 Milestone 时，才使用 `多 PR 例外（Multi-PR Exception）`
@@ -182,6 +228,7 @@
 - `4.1 Task 列表（Task List）`：列出所有 Task，并写出稳定的 `Task Key`、所属 Milestone、摘要与依赖
 - `4.2 Task 定义（Task Definitions）`：这是 Task 层字段定义的唯一权威区块
 - `4.1` 与 `4.2` 必须通过 `Task Key` 一一对应：每个 Task 行都必须有且只有一个匹配定义，`4.2` 中也不得出现孤儿 Task 区块
+- `4.2` 中每个 Task definition 都必须是一个 object-local block，并使用稳定 `Task Key` anchor；Task acceptance 继续留在该定义块内，不要拆成第二真理源
 - 每个 Task 定义至少必须包含：
   - `任务键（Task Key）`
   - `设计引用（Design Refs）`
@@ -216,7 +263,10 @@
 - `6.1 Task 验收索引（Task Acceptance Index）`：索引 Task 验收权威区块与首个可审查实物；优先指向可直接审查的 evidence，而不是说明性散文
 - `6.2 Milestone 验收索引（Milestone Acceptance Index）`：索引 Milestone 验收权威区块与首个可审查实物；优先指向可直接审查的 evidence，而不是说明性散文
 - `6.3 Initiative 验收索引（Initiative Acceptance Index）`：索引 Initiative 验收权威区块与首个可审查实物；优先指向可直接审查的 evidence，而不是说明性散文
+<!-- forgeloop:anchor acceptance-matrix/evidence-entrypoints -->
 - `6.4 证据入口（Evidence Entrypoints）`：这是下游验证与审查应当优先查看哪些证据入口的唯一权威区块；至少要覆盖 `primary run summary`、`auxiliary runtime summary`、`per-case evidence`、`export output`、`owning code surface`、`owning doc surface` 这六类，若某类不适用必须明确写 `N/A` 与理由
+- `6.1`、`6.2`、`6.3` 中每个索引条目都必须有自己的 object-local anchor，并使用与对应 Initiative criterion、Milestone key、Task key 相同的 key
+- `Acceptance Authority Ref` 应直接指向 object-local authority anchor，而不是模糊的人类章节短语
 - 这个矩阵是控制面索引，不是散文式复述
 
 <!-- forgeloop:anchor global-residual-risks-and-follow-ups -->
@@ -271,6 +321,7 @@
 - 完整的 Milestone 结构与依赖明确
 - Initiative 与 Milestone 的法定引用指派明确
 - Task 账本已完全展开，`4.1` 中的每个 `Task Key` 在 `4.2` 中都恰好有一个匹配定义，且不存在孤儿 Task 定义
+- `2.4`、`3.3`、`3.4`、`4.2`、`6.1`、`6.2`、`6.3` 中所有对象级条目都暴露稳定 object-local anchors，且同一对象在定义块与索引块中的 key 保持一致
 - 默认集成模型及任何 `Multi-PR Exception` 的使用都明确
 - 验收矩阵与 `6.4` 中的权威证据入口明确
 - `6.1`、`6.2`、`6.3` 都能指向首个可审查实物，而不是只回指说明文档

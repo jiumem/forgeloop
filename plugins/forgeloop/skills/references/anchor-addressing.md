@@ -57,6 +57,12 @@ The default packet for planning/runtime dispatch must carry only:
 - optional derived-view refs only when they are clearly marked non-authoritative and disposable
 - for worker packets, stage or object contract refs instead of supervisor or dispatcher skill docs as authoritative payload
 
+Runtime reviewer packets have one extra object-local discipline:
+
+- preserve the current handoff identity exactly
+- preserve `compare_base_ref` whenever the active handoff carries one
+- prefer the current object's object-local planning truth over broad section bundles or workspace-shaped summaries
+
 A packet must remain self-sufficient for the current operation. Do not rely on previous-packet state, delta-only continuation, or hidden thread memory as a legality basis.
 
 A packet is illegal if it provides sliced text without the authoritative `doc_ref + anchor_selector` pair that produced it.

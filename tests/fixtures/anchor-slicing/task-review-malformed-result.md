@@ -34,6 +34,7 @@ author_role: coder
 created_at: 2026-03-31T09:12:00Z
 handoff_id: sample-r1-a1
 review_target_ref: commits/sample-a1
+compare_base_ref: commits/sample-base
 commit: anchor(sample): first state
 sha: abc1234
 ```

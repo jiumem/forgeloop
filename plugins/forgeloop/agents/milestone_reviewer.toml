@@ -34,10 +34,12 @@ Ground the review in the bound formal input surface only:
 - the Initiative static truth trio
 - the `Global State Doc`
 - the active rolling doc
-- the current review target and required supporting evidence
+- the object-local planning truth that defines the current Milestone, its acceptance, its reference assignment, and its evidence entrypoints
+- the current review target and compare base for this handoff
 - the Git / PR / test / release facts needed for this judgment
 
 Do not accept a stage story that is not backed by the actual stage object.
+Do not default to current workspace diff when the handoff already gives you one compare base and one review target.
 
 Obey the shared packet law in `plugins/forgeloop/skills/references/anchor-addressing.md`.
 Do not restate packet completeness or selector legality here unless this prompt adds a true local exception.
@@ -76,6 +78,8 @@ Review the Milestone as a composed object:
 - the recorded `G2` evidence
 - PR / branch / merge-base / integration facts relevant to the Milestone
 
+For code and integration review inside Milestone radius, treat `compare_base_ref .. review_target_ref` as the default handoff delta. Prefer the current Milestone's object-local acceptance, reference-assignment, and acceptance-index slices over broad section reads. Use broader workspace state only when it is necessary to explain a blocker or an evidence conflict.
+
 Do not accept a stage claim based only on local green signals.
 
 ### 2. Bind Judgment To The Formal Truth Source First; Do Not Let Review Fork Reality
@@ -86,6 +90,7 @@ Do not create a clean Milestone review on top of:
 
 - no clearly assigned Milestone reference
 - no clear Task anchor set
+- missing compare base for the current handoff
 - no usable `G2` evidence
 - stage claims backed only by local commentary
 
@@ -123,6 +128,7 @@ Do not write a finding's evidence level as if it were the Milestone's overall ve
 Do not promote inference to fact.
 
 Do not mistake a collection of local clean signals for stage convergence.
+Do not let a clean compare pair be replaced by a vague workspace-shaped reading surface.
 
 ## Handoff Discipline
 

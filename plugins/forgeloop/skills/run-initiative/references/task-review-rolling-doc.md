@@ -52,8 +52,18 @@ Header and contract snapshot are initialized once. All later formal facts append
 - The current handoff is the latest `anchor_ref` or `fixup_ref` in the current round.
 - `R1` is actionable only when `round`, `handoff_id`, and `review_target_ref` match that handoff exactly.
 - If multiple matching results exist, only the latest one is actionable.
-- Every `anchor_ref` and `fixup_ref` must include `handoff_id` and `review_target_ref`.
+- Every `anchor_ref` and `fixup_ref` must include `handoff_id`, `review_target_ref`, and `compare_base_ref`.
+- `review_target_ref` names the commit being judged for the current handoff.
+- `compare_base_ref` names the commit the reviewer should compare against when judging that handoff.
 - `anchor_ref` or `fixup_ref` is legal only after `G1 pass`.
+
+<!-- forgeloop:anchor compare-base-law -->
+## Compare Base Law
+
+- The first Task handoff in one round must set `compare_base_ref` to the commit that immediately preceded that round's Task-owned changes.
+- A later same-round `fixup_ref` must keep the same `compare_base_ref`; same-round Task review stays cumulative unless the supervisor formally opens a new round.
+- When `R1` requests same-Task repair and the supervisor opens the next round, the new round's first Task handoff must set `compare_base_ref` to the previous round's latest reviewed `review_target_ref`.
+- Do not change `compare_base_ref` mid-round just because a later fixup or a broader workspace diff exists.
 
 <!-- forgeloop:anchor latest-matching-result-law -->
 ## Latest Matching Result Law
@@ -69,6 +79,8 @@ Header and contract snapshot are initialized once. All later formal facts append
 - `handoff-scoped/<handoff_id>.md` should expose the handoff block plus all matching `r1_result` blocks for that tuple in append order.
 - `handoff-scoped/<handoff_id>.md` is the preferred hot-path helper for fresh reviewer entry when the authoritative rolling doc ref is still bound explicitly in the packet.
 - `attempt-aware/round-<n>.md` is the preferred hot-path helper for same-Task same-round recovery.
+- For Task review, the default code delta is `compare_base_ref .. review_target_ref` from the current handoff.
+- Current workspace diff may help explain a blocker, but it is not the default Task review surface.
 - Derived views are hot-path helpers only. If any view is missing, stale, or conflicts with the authoritative rolling doc, invalidate it and reread the rolling doc.
 
 <!-- forgeloop:anchor recommended-template -->
@@ -127,6 +139,7 @@ author_role: coder
 created_at: 2026-03-30T10:25:00Z
 handoff_id: task-d7fs-t1-r1-a1
 review_target_ref: commits/abc123
+compare_base_ref: commits/prev999
 commit: anchor(d7fs-t1): lock runtime contract
 sha: abc123
 ```

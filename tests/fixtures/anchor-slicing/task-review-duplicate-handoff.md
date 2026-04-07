@@ -34,6 +34,7 @@ author_role: coder
 created_at: 2026-03-31T09:12:00Z
 handoff_id: duplicate-h1
 review_target_ref: commits/sample-a1
+compare_base_ref: commits/sample-base
 commit: anchor(sample): first state
 sha: abc1234
 ```
@@ -45,6 +46,7 @@ author_role: coder
 created_at: 2026-03-31T09:18:00Z
 handoff_id: duplicate-h1
 review_target_ref: commits/sample-a2
+compare_base_ref: commits/sample-base
 commit: fixup(sample): second state
 sha: def5678
 ```

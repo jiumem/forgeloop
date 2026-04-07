@@ -27,6 +27,7 @@ verdict: pass
 next_action: enter_r3
 handoff_id: init-asdo-r1-h1
 review_target_ref: initiative-rounds/asdo/r1
+compare_base_ref: initiative-rounds/asdo/r0
 milestones:
   - milestone-review/ASDO-M1.md
   - milestone-review/ASDO-M2.md

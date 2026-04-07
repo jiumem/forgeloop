@@ -46,7 +46,17 @@ Header and contract snapshot are initialized once. All later formal facts append
 - The current handoff is the latest `g3_result` in the current round whose `next_action=enter_r3`.
 - `R3` is actionable only when `round`, `handoff_id`, and `review_target_ref` match that handoff exactly.
 - If multiple matching results exist, only the latest one is actionable.
-- Every `g3_result` that opens reviewer handoff must include `handoff_id` and `review_target_ref`.
+- Every `g3_result` that opens reviewer handoff must include `handoff_id`, `review_target_ref`, and `compare_base_ref`.
+- `review_target_ref` names the Initiative delivery candidate being judged for the current handoff.
+- `compare_base_ref` names the baseline the reviewer should compare against when judging that Initiative candidate.
+
+<!-- forgeloop:anchor compare-base-law -->
+## Compare Base Law
+
+- The first Initiative handoff in one round must set `compare_base_ref` to the baseline that immediately preceded that round's Initiative delivery candidate.
+- A later same-round Initiative handoff must keep the same `compare_base_ref`; same-round Initiative review stays cumulative unless the supervisor formally opens a new round.
+- When `R3` requests same-Initiative repair and the supervisor opens the next round, the new round's first Initiative handoff must set `compare_base_ref` to the previous round's latest reviewed `review_target_ref`.
+- Do not change `compare_base_ref` mid-round just because a later Milestone repair, a broader branch diff, or a wider workspace state exists.
 
 <!-- forgeloop:anchor latest-matching-result-law -->
 ## Latest Matching Result Law
@@ -61,6 +71,8 @@ Header and contract snapshot are initialized once. All later formal facts append
 - `current-effective` should expose only the current Initiative handoff plus the latest matching `r3_result`.
 - `handoff-scoped/<handoff_id>.md` is the preferred hot-path helper for fresh `R3` entry when the authoritative rolling doc ref is still bound explicitly in the packet.
 - `attempt-aware/round-<n>.md` is the preferred hot-path helper for same-Initiative round recovery.
+- For Initiative review, the default delivery delta is `compare_base_ref .. review_target_ref` from the current handoff.
+- Current workspace diff may help explain a blocker, but it is not the default Initiative review surface.
 - Derived views are hot-path helpers only. If any view is missing, stale, or conflicts with the authoritative rolling doc, invalidate it and reread the rolling doc.
 
 <!-- forgeloop:anchor recommended-template -->
@@ -99,6 +111,7 @@ verdict: pass
 next_action: enter_r3
 handoff_id: init-day7-r1-h1
 review_target_ref: initiative-rounds/day7/r1
+compare_base_ref: initiative-rounds/day7/r0
 milestones:
   - milestone-review/D7FS-M1.md
   - milestone-review/D7FS-M2.md

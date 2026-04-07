@@ -73,6 +73,14 @@ REQUIRED_SELECTORS_BY_SUFFIX: dict[str, frozenset[str]] = {
             "task-ledger",
             "branch-pr-integration-path",
             "acceptance-matrix",
+            "initiative/success-criteria/ic-1",
+            "milestone-master-table/milestone-acceptance/ms-1",
+            "milestone-master-table/milestone-reference-assignment/ms-1",
+            "task-ledger/task-definitions/task-1",
+            "acceptance-matrix/task-acceptance-index/task-1",
+            "acceptance-matrix/milestone-acceptance-index/ms-1",
+            "acceptance-matrix/initiative-acceptance-index/ic-1",
+            "acceptance-matrix/evidence-entrypoints",
             "global-residual-risks-and-follow-ups",
             "writing-rules",
             "prohibited-content",
@@ -81,11 +89,27 @@ REQUIRED_SELECTORS_BY_SUFFIX: dict[str, frozenset[str]] = {
         }
     ),
 }
+ACTIVE_TOTAL_TASK_DOC_REQUIRED_SELECTORS = frozenset(
+    {
+        "document-card",
+        "input-baseline-and-sealed-decisions",
+        "input-baseline-and-sealed-decisions/execution-boundary",
+        "input-baseline-and-sealed-decisions/initiative-reference-assignment",
+        "initiative",
+        "milestone-master-table",
+        "task-ledger",
+        "branch-pr-integration-path",
+        "acceptance-matrix",
+        "acceptance-matrix/evidence-entrypoints",
+        "global-residual-risks-and-follow-ups",
+    }
+)
 FIELD_PATTERNS = {
     "kind": re.compile(r"^kind:\s*(.+?)\s*$"),
     "round": re.compile(r"^round:\s*(.+?)\s*$"),
     "handoff_id": re.compile(r"^handoff_id:\s*(.+?)\s*$"),
     "review_target_ref": re.compile(r"^review_target_ref:\s*(.+?)\s*$"),
+    "compare_base_ref": re.compile(r"^compare_base_ref:\s*(.+?)\s*$"),
     "next_action": re.compile(r"^next_action:\s*(.+?)\s*$"),
     "verdict": re.compile(r"^verdict:\s*(.+?)\s*$"),
     "requirement_fit": re.compile(r"^requirement_fit:\s*(.+?)\s*$"),
@@ -284,11 +308,15 @@ BLOCK_SPECS = {
         ),
     ),
     "anchor_ref": BlockSpec(
-        required_fields=frozenset({"round", "author_role", "created_at", "handoff_id", "review_target_ref"}),
+        required_fields=frozenset(
+            {"round", "author_role", "created_at", "handoff_id", "review_target_ref", "compare_base_ref"}
+        ),
         author_role="coder",
     ),
     "fixup_ref": BlockSpec(
-        required_fields=frozenset({"round", "author_role", "created_at", "handoff_id", "review_target_ref"}),
+        required_fields=frozenset(
+            {"round", "author_role", "created_at", "handoff_id", "review_target_ref", "compare_base_ref"}
+        ),
         author_role="coder",
     ),
     "r1_result": BlockSpec(
@@ -535,6 +563,8 @@ def required_selectors_for_path(path: pathlib.Path) -> frozenset[str]:
     for suffix, selectors in REQUIRED_SELECTORS_BY_SUFFIX.items():
         if normalized.endswith(suffix):
             return selectors
+    if normalized.endswith("total-task-doc.md"):
+        return ACTIVE_TOTAL_TASK_DOC_REQUIRED_SELECTORS
     return frozenset()
 
 
@@ -546,6 +576,128 @@ def validate_required_selectors(path: pathlib.Path, anchors: list[Anchor]) -> No
     missing = sorted(required - existing)
     if missing:
         raise ValueError(f"{path}: missing required selectors: {', '.join(missing)}")
+
+
+def selector_suffixes(anchors: list[Anchor], prefix: str) -> set[str]:
+    suffixes: set[str] = set()
+    for anchor in anchors:
+        if not anchor.selector.startswith(prefix):
+            continue
+        suffix = anchor.selector.removeprefix(prefix)
+        if suffix:
+            suffixes.add(suffix)
+    return suffixes
+
+
+def anchor_map(anchors: list[Anchor]) -> dict[str, Anchor]:
+    return {anchor.selector: anchor for anchor in anchors}
+
+
+ACCEPTANCE_AUTHORITY_REF_RE = re.compile(r"`Acceptance Authority Ref`:\s*`([^`]+)`")
+
+
+def validate_acceptance_authority_refs(
+    path: pathlib.Path,
+    anchors_by_selector: dict[str, Anchor],
+    keys: set[str],
+    index_prefix: str,
+    authority_prefix: str,
+    label: str,
+) -> None:
+    violations: list[str] = []
+    for key in sorted(keys):
+        index_selector = f"{index_prefix}{key}"
+        authority_selector = f"{authority_prefix}{key}"
+        index_anchor = anchors_by_selector.get(index_selector)
+        if index_anchor is None:
+            continue
+        match = ACCEPTANCE_AUTHORITY_REF_RE.search(index_anchor.body)
+        if match is None:
+            violations.append(f"{index_selector} missing Acceptance Authority Ref")
+            continue
+        actual = match.group(1).strip()
+        if actual != authority_selector:
+            violations.append(f"{index_selector} expects {authority_selector} got {actual}")
+            continue
+        if authority_selector not in anchors_by_selector:
+            violations.append(f"{index_selector} points to missing selector {authority_selector}")
+    if violations:
+        raise ValueError(f"{path}: {label} Acceptance Authority Ref drift: {'; '.join(violations)}")
+
+
+def validate_total_task_doc_object_local_anchors(path: pathlib.Path, anchors: list[Anchor]) -> None:
+    normalized = path.as_posix()
+    if not normalized.endswith("total-task-doc.md"):
+        return
+
+    anchors_by_selector = anchor_map(anchors)
+    initiative_keys = selector_suffixes(anchors, "initiative/success-criteria/")
+    milestone_acceptance_keys = selector_suffixes(anchors, "milestone-master-table/milestone-acceptance/")
+    milestone_ref_keys = selector_suffixes(anchors, "milestone-master-table/milestone-reference-assignment/")
+    task_keys = selector_suffixes(anchors, "task-ledger/task-definitions/")
+    task_index_keys = selector_suffixes(anchors, "acceptance-matrix/task-acceptance-index/")
+    milestone_index_keys = selector_suffixes(anchors, "acceptance-matrix/milestone-acceptance-index/")
+    initiative_index_keys = selector_suffixes(anchors, "acceptance-matrix/initiative-acceptance-index/")
+
+    missing_groups = []
+    if not initiative_keys:
+        missing_groups.append("initiative/success-criteria/<criterion-key>")
+    if not milestone_acceptance_keys:
+        missing_groups.append("milestone-master-table/milestone-acceptance/<milestone-key>")
+    if not milestone_ref_keys:
+        missing_groups.append("milestone-master-table/milestone-reference-assignment/<milestone-key>")
+    if not task_keys:
+        missing_groups.append("task-ledger/task-definitions/<task-key>")
+    if not task_index_keys:
+        missing_groups.append("acceptance-matrix/task-acceptance-index/<task-key>")
+    if not milestone_index_keys:
+        missing_groups.append("acceptance-matrix/milestone-acceptance-index/<milestone-key>")
+    if not initiative_index_keys:
+        missing_groups.append("acceptance-matrix/initiative-acceptance-index/<criterion-key>")
+    if missing_groups:
+        raise ValueError(f"{path}: missing object-local anchor groups: {', '.join(missing_groups)}")
+
+    if task_keys != task_index_keys:
+        raise ValueError(
+            f"{path}: Task object-local anchors drift between definitions and acceptance index: "
+            f"definitions={sorted(task_keys)} acceptance_index={sorted(task_index_keys)}"
+        )
+    if milestone_acceptance_keys != milestone_ref_keys or milestone_acceptance_keys != milestone_index_keys:
+        raise ValueError(
+            f"{path}: Milestone object-local anchors drift across acceptance, reference assignment, and acceptance index: "
+            f"acceptance={sorted(milestone_acceptance_keys)} "
+            f"reference_assignment={sorted(milestone_ref_keys)} "
+            f"acceptance_index={sorted(milestone_index_keys)}"
+        )
+    if initiative_keys != initiative_index_keys:
+        raise ValueError(
+            f"{path}: Initiative criterion anchors drift between success criteria and acceptance index: "
+            f"success_criteria={sorted(initiative_keys)} acceptance_index={sorted(initiative_index_keys)}"
+        )
+    validate_acceptance_authority_refs(
+        path,
+        anchors_by_selector,
+        task_index_keys,
+        "acceptance-matrix/task-acceptance-index/",
+        "task-ledger/task-definitions/",
+        "Task",
+    )
+    validate_acceptance_authority_refs(
+        path,
+        anchors_by_selector,
+        milestone_index_keys,
+        "acceptance-matrix/milestone-acceptance-index/",
+        "milestone-master-table/milestone-acceptance/",
+        "Milestone",
+    )
+    validate_acceptance_authority_refs(
+        path,
+        anchors_by_selector,
+        initiative_index_keys,
+        "acceptance-matrix/initiative-acceptance-index/",
+        "initiative/success-criteria/",
+        "Initiative",
+    )
 
 
 def parse_forgeloop_blocks(path: pathlib.Path) -> list[ForgeloopBlock]:
@@ -592,6 +744,7 @@ def check(paths: list[pathlib.Path]) -> int:
         try:
             anchors = parse_anchors(path)
             validate_required_selectors(path, anchors)
+            validate_total_task_doc_object_local_anchors(path, anchors)
         except ValueError as exc:
             failures.append(str(exc))
     if failures:
@@ -737,6 +890,9 @@ def validate_tuple_fields(doc: pathlib.Path, blocks: list[ForgeloopBlock], mode:
             missing.append("handoff_id")
         if not has_real_tuple_value(block.fields.get("review_target_ref")):
             missing.append("review_target_ref")
+        if mode in {"task", "milestone", "initiative"} and is_handoff_block(mode, block.fields):
+            if not has_real_tuple_value(block.fields.get("compare_base_ref")):
+                missing.append("compare_base_ref")
         if missing:
             violations.append(
                 f"{block.fields.get('kind', 'unknown_kind')}@{block.start_line} missing {','.join(missing)}"

@@ -47,7 +47,17 @@ Header and contract snapshot are initialized once. All later formal facts append
 - The current handoff is the latest `g2_result` in the current round whose `next_action=enter_r2`.
 - `R2` is actionable only when `round`, `handoff_id`, and `review_target_ref` match that handoff exactly.
 - If multiple matching results exist, only the latest one is actionable.
-- Every `g2_result` that opens reviewer handoff must include `handoff_id` and `review_target_ref`.
+- Every `g2_result` that opens reviewer handoff must include `handoff_id`, `review_target_ref`, and `compare_base_ref`.
+- `review_target_ref` names the Milestone candidate being judged for the current handoff.
+- `compare_base_ref` names the baseline the reviewer should compare against when judging that Milestone candidate.
+
+<!-- forgeloop:anchor compare-base-law -->
+## Compare Base Law
+
+- The first Milestone handoff in one round must set `compare_base_ref` to the baseline that immediately preceded that round's Milestone candidate.
+- A later same-round Milestone handoff must keep the same `compare_base_ref`; same-round Milestone review stays cumulative unless the supervisor formally opens a new round.
+- When `R2` requests same-Milestone repair and the supervisor opens the next round, the new round's first Milestone handoff must set `compare_base_ref` to the previous round's latest reviewed `review_target_ref`.
+- Do not change `compare_base_ref` mid-round just because a later Task repair, a broader branch diff, or a wider workspace state exists.
 
 <!-- forgeloop:anchor latest-matching-result-law -->
 ## Latest Matching Result Law
@@ -62,6 +72,8 @@ Header and contract snapshot are initialized once. All later formal facts append
 - `current-effective` should expose only the current Milestone handoff plus the latest matching `r2_result`.
 - `handoff-scoped/<handoff_id>.md` is the preferred hot-path helper for fresh `R2` entry when the authoritative rolling doc ref is still bound explicitly in the packet.
 - `attempt-aware/round-<n>.md` is the preferred hot-path helper for same-Milestone round recovery.
+- For Milestone review, the default stage delta is `compare_base_ref .. review_target_ref` from the current handoff.
+- Current workspace diff may help explain a blocker, but it is not the default Milestone review surface.
 - Derived views are hot-path helpers only. If any view is missing, stale, or conflicts with the authoritative rolling doc, invalidate it and reread the rolling doc.
 
 <!-- forgeloop:anchor recommended-template -->
@@ -99,6 +111,7 @@ verdict: pass
 next_action: enter_r2
 handoff_id: ms-d7fs-m1-r1-h1
 review_target_ref: milestone-rounds/d7fs-m1/r1
+compare_base_ref: milestone-rounds/d7fs-m1/r0
 anchors:
   - task-review/D7FS-T1.md#handoff:task-d7fs-t1-r1-a1
   - task-review/D7FS-T2.md#handoff:task-d7fs-t2-r1-a1

@@ -34,10 +34,12 @@ Ground the review in the bound formal input surface only:
 - the Initiative static truth trio
 - the `Global State Doc`
 - the active rolling doc
-- the current review target and required supporting evidence
+- the object-local planning truth that defines the current Initiative success criteria, acceptance index, and evidence entrypoints
+- the current review target and compare base for this handoff
 - the Git / PR / test / release facts needed for this judgment
 
 Do not treat scattered commentary as a valid substitute for the Initiative reference and delivery candidate.
+Do not default to current workspace diff when the handoff already gives you one compare base and one review target.
 
 Obey the shared packet law in `plugins/forgeloop/skills/references/anchor-addressing.md`.
 Do not restate packet completeness or selector legality here unless this prompt adds a true local exception.
@@ -76,6 +78,8 @@ Review the Initiative as a delivery object:
 - the recorded `G3` evidence
 - release / rollout / deployment / flag / readiness facts relevant to the candidate
 
+For code and delivery review inside Initiative radius, treat `compare_base_ref .. review_target_ref` as the default handoff delta. Prefer the current Initiative's object-local success-criterion and acceptance-index slices over broad section reads. Use broader workspace state only when it is necessary to explain a blocker or an evidence conflict.
+
 Do not accept a delivery claim based only on localized success.
 
 ### 2. Bind Judgment To The Formal Truth Source First; Do Not Let Review Fork Reality
@@ -86,6 +90,7 @@ Do not create a clean Initiative review on top of:
 
 - no clearly assigned Initiative reference
 - no clearly defined delivery candidate
+- missing compare base for the current handoff
 - no usable `G3` evidence
 - no believable release / rollout evidence where the claim depends on it
 
@@ -123,6 +128,7 @@ Do not write a finding's evidence level as if it were the Initiative's overall v
 Do not promote inference to fact.
 
 Do not hide delivery uncertainty behind soft approval language.
+Do not let a clean compare pair be replaced by a vague workspace-shaped reading surface.
 
 ## Handoff Discipline
 

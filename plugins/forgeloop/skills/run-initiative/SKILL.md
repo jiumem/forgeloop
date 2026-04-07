@@ -36,6 +36,7 @@ Obey the shared packet law in `../references/anchor-addressing.md`.
 Do not restate packet completeness, selector legality, or supervisor-doc exclusion here unless this file adds a true local exception.
 
 Derived views are helpers only. If a derived view is missing, stale, or conflicts with the rolling doc, invalidate it and read the rolling doc.
+For reviewer-bound runtime routing, preserve one clean compare pair plus the current object's object-local planning truth. Do not let reviewer dispatch fall back to workspace-shaped reading just because the current review result tuple does not echo the compare base.
 
 <!-- forgeloop:anchor runtime.warm-path-delta -->
 Warm-path delta is legal only while workspace, object, `coder_slot`, `round`, and authoritative refs remain unchanged.
@@ -190,6 +191,13 @@ Add Git or test facts only when document facts still cannot prove the next step.
 - if the facts do not conflict but the next step still cannot be determined uniquely: ask the user
 5. You may confirm only one next step or one clear stop point. If facts conflict, call skill: `rebuild-runtime`; if they are ambiguous, ask the user.
 
+When the chosen next step is reviewer entry through `code-loop`, the runtime basis must already preserve:
+- the current handoff identity: `round`, `handoff_id`, `review_target_ref`
+- the current handoff compare base: `compare_base_ref`
+- the current object's object-local planning truth slices from the sealed planning set
+
+Do not treat broad section slices, residual workspace diff, or older rolling history as the default reviewer packet just because they are easy to gather.
+
 ### Step 5: Prepare Execution And Execute The Next Step
 
 Consume only the conclusion already confirmed in the previous step. Do not reinterpret the facts, and do not rematerialize runtime refs against a different workspace mid-activation.
@@ -197,14 +205,19 @@ Consume only the conclusion already confirmed in the previous step. Do not reint
 1. If the confirmed next step is to call skill: `code-loop`, ensure the already bound active Initiative workspace is `execution_ready` first. If this activation has only done `bind_only` so far, call skill: `using-git-worktrees` again in `execution_ready` mode against that same active workspace before dispatching the loop.
 2. `execution_ready` means the active Initiative workspace has completed repo-obvious setup and baseline verification strongly enough to enter coder or reviewer execution.
 3. If `using-git-worktrees` in `execution_ready` mode exposes a conflict, waiting state, or blocker, stop at that point.
+4. If the confirmed next step enters reviewer work through `code-loop`, dispatch the lean reviewer packet that matches the bound object:
+- Task: current handoff identity + `compare_base_ref` + current Task definition block + current Task acceptance index entry + evidence entrypoint surface
+- Milestone: current handoff identity + `compare_base_ref` + current Milestone acceptance block + current Milestone reference-assignment block + current Milestone acceptance-index entry + evidence entrypoint surface
+- Initiative: current handoff identity + `compare_base_ref` + current Initiative success-criterion block + current Initiative acceptance-index entry + evidence entrypoint surface
+5. Do not promote reviewer packets to broad section bundles or workspace-diff summaries unless the runtime cutover contract explicitly permits disaster fallback and the fallback reason is written explicitly.
 
-4. New Initiative start: after planning admission has already passed, initialize the minimum `Global State Doc`. If there is a clear first executable Task, bind `current_snapshot` to that Task, bind `mode=task`, set `next_action.action = continue_task_coder_round`, then call skill: `code-loop`. Otherwise stop and ask the user.
-5. Existing Initiative resumes into the Task review/repair loop: if the Task that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then bind `mode=task` and call skill: `code-loop`.
-6. Existing Initiative resumes into the Milestone review/repair loop: if the Milestone that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then bind `mode=milestone` and call skill: `code-loop`.
-7. Existing Initiative resumes into the Initiative review/repair loop: if the Initiative that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then bind `mode=initiative` and call skill: `code-loop`.
-8. `rebuild-runtime` is required: call skill: `rebuild-runtime`.
-9. User confirmation is required: stop and ask the minimum necessary question.
-10. The system is already in a stop state: stop and enter no loop.
+6. New Initiative start: after planning admission has already passed, initialize the minimum `Global State Doc`. If there is a clear first executable Task, bind `current_snapshot` to that Task, bind `mode=task`, set `next_action.action = continue_task_coder_round`, then call skill: `code-loop`. Otherwise stop and ask the user.
+7. Existing Initiative resumes into the Task review/repair loop: if the Task that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then bind `mode=task` and call skill: `code-loop`.
+8. Existing Initiative resumes into the Milestone review/repair loop: if the Milestone that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then bind `mode=milestone` and call skill: `code-loop`.
+9. Existing Initiative resumes into the Initiative review/repair loop: if the Initiative that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then bind `mode=initiative` and call skill: `code-loop`.
+10. `rebuild-runtime` is required: call skill: `rebuild-runtime`.
+11. User confirmation is required: stop and ask the minimum necessary question.
+12. The system is already in a stop state: stop and enter no loop.
 
 If work will continue, first rewrite the materialized `Global State Doc` in the active Initiative workspace so that `current_snapshot`, `next_action`, and—when needed—`last_transition` are already sufficient for later recovery.
 If the active object or active plane is about to change, write the new `current_snapshot` and `next_action` first so that a later `Supervisor` can recover the current progress state without hidden context.

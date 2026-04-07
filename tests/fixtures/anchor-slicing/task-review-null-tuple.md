@@ -34,6 +34,7 @@ author_role: coder
 created_at: 2026-03-31T09:12:00Z
 handoff_id: null
 review_target_ref: null
+compare_base_ref: null
 commit: anchor(sample): null tuple
 sha: abc1234
 ```

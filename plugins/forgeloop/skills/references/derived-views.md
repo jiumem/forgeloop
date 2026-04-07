@@ -11,7 +11,7 @@
 <!-- forgeloop:anchor authority-line -->
 ## Authority Line
 
-- Formal rolling docs remain the only authority for `round`, `handoff_id`, `review_target_ref`, freshness, and supersede semantics.
+- Formal rolling docs remain the only authority for `round`, `handoff_id`, `review_target_ref`, `compare_base_ref` when the current handoff carries one, freshness, and supersede semantics.
 - Every derived view is disposable and rebuildable.
 - A derived view never outranks or overwrites its source rolling doc.
 - If any disagreement appears, invalidate the derived view and reread the formal rolling doc.
