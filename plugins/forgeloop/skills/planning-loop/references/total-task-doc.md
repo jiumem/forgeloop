@@ -179,7 +179,7 @@
 > 本文凡标注为“唯一权威区块”的小节，其他小节只能引用，不得重裁决；若需概括，只能做索引，不得改写边界。
 
 <!-- forgeloop:anchor document-card -->
-- 顶部 `状态` 是 `Total Task Doc` 的正式文档状态标记，供下游 planning 与 `run-initiative` admission 直接读取；planning loop 内部的 round、handoff、review history 仍由 `Planning State Doc` 与 rolling doc 承载
+- 顶部 `状态` 是 `Total Task Doc` 的正式文档状态标记，供下游 planning 与 `run-initiative` admission 直接读取。round、handoff 与 review history 仍由 `Planning State Doc` 与 rolling doc 承载；若两者不一致，`Supervisor` 必须先修正文档状态，不能让下游猜测。
 - 顶部 `阶段` 固定写 `Total Task Doc`
 
 <!-- forgeloop:anchor input-baseline-and-sealed-decisions -->

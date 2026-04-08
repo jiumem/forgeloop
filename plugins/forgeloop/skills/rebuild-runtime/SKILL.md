@@ -126,4 +126,4 @@ On correct completion, all of the following should be true:
 - the current active plane, active object, active `round`, and `coder_slot` can be recovered uniquely
 - the `Global State Doc` exists, and `current_snapshot`, `next_action`, and `last_transition` are self-consistent
 - the upstream dispatcher can re-enter `run-initiative` and continue without hidden context
-- no second runtime truth source has been created outside the four formal runtime surfaces
+- no second runtime truth source has been created outside the `Global State Doc` plus the Task, Milestone, and Initiative review rolling-doc layers

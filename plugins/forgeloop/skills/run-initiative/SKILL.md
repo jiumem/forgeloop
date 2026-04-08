@@ -40,7 +40,7 @@ Derived views are helpers only. If a derived view is missing, stale, or conflict
 For reviewer-bound runtime routing, preserve one clean compare pair plus the current object's object-local planning truth. Do not let reviewer dispatch fall back to workspace-shaped reading just because the current review result tuple does not echo the compare base.
 
 <!-- forgeloop:anchor runtime.warm-path-delta -->
-Warm-path delta is legal only while workspace, object, `coder_slot`, `round`, and authoritative refs remain unchanged.
+Same-session hot-path continuation is legal only while workspace, active object, `coder_slot`, `round`, and authoritative refs all remain unchanged. If any of them changes, fall back to a fresh lawful packet or reread.
 
 <!-- forgeloop:anchor goal -->
 ## Goal
@@ -56,7 +56,7 @@ In this framework, you act as the `Supervisor` dispatcher. You are responsible o
 You are not responsible for:
 - writing code
 - writing any review rolling doc body content
-- maintaining parallel state outside the four formal runtime surfaces
+- maintaining parallel state outside the `Global State Doc` plus the Task, Milestone, and Initiative review rolling-doc layers
 
 <!-- forgeloop:anchor core-rule -->
 ## Core Rule
@@ -193,10 +193,10 @@ Add Git or test facts only when document facts still cannot prove the next step.
 - if `Global State Doc` is missing and no rolling doc exists: treat it as a new Initiative start
 - if `Global State Doc` is missing but rolling docs already exist, or if `Global State Doc` clearly conflicts with the total task doc or rolling docs: call skill: `rebuild-runtime`
 - if workspace diff or interrupted agent narration suggests progress that has not appeared as a rereadable `review_handoff` or `review_result`: do not advance the object from that hint alone; continue only from the last legal formal runtime state or call skill: `rebuild-runtime` when the active state is no longer provable uniquely
-- if `current_snapshot.active_plane=frontier` or `next_action.action=select_next_ready_object`: resolve the next ready object from the admitted planning document set plus authoritative runtime rolling docs by applying this fixed supervisor routing order and stopping at the first match: required current Milestone closure -> required Initiative closure -> exactly one next-ready Task. Container forcing applies here first. Do not short-circuit directly into Task mode merely because one next-ready Task exists. If exactly one ready object exists after that closure-first frontier resolution, rebind and continue through the matching `mode`; otherwise ask the user
-- if current progress clearly belongs to the Task review/repair loop, including continuing the currently bound Task or continuing repair on the current Task: formally rebind `current_snapshot` and `next_action` to that Task if needed, bind `mode=task`, then call skill: `code-loop`
-- if current progress clearly belongs to a Milestone review/repair loop: formally rebind `current_snapshot` and `next_action` to that Milestone if needed, bind `mode=milestone`, then call skill: `code-loop`
-- if current progress clearly belongs to the Initiative review/repair loop: formally rebind `current_snapshot` and `next_action` to that Initiative if needed, bind `mode=initiative`, then call skill: `code-loop`
+- if `current_snapshot.active_plane=frontier` or `next_action.action=select_next_ready_object`: resolve the next ready object from the admitted planning document set plus authoritative runtime rolling docs by applying this fixed supervisor routing order and stopping at the first match: required current Milestone closure -> required Initiative closure -> exactly one next-ready Task. Apply this closure-first rule before considering any Task entry. Do not enter Task mode merely because one next-ready Task exists while a required Milestone or Initiative closure is still pending. If exactly one ready object exists after that closure-first frontier resolution, rebind and continue through the matching `mode`; otherwise ask the user
+- if current progress clearly belongs to the Task review/repair loop, including continuing the currently bound Task or continuing repair on the current Task: formally rebind `current_snapshot` and `next_action` to that Task if needed, bind `mode=task`, and treat Task-mode `code-loop` entry as the confirmed next step
+- if current progress clearly belongs to a Milestone review/repair loop: formally rebind `current_snapshot` and `next_action` to that Milestone if needed, bind `mode=milestone`, and treat Milestone-mode `code-loop` entry as the confirmed next step
+- if current progress clearly belongs to the Initiative review/repair loop: formally rebind `current_snapshot` and `next_action` to that Initiative if needed, bind `mode=initiative`, and treat Initiative-mode `code-loop` entry as the confirmed next step
 - if the facts do not conflict but the next step still cannot be determined uniquely: ask the user
 5. You may confirm only one next step or one clear stop point. If facts conflict, call skill: `rebuild-runtime`; if they are ambiguous, ask the user.
 
@@ -233,12 +233,9 @@ Consume only the conclusion already confirmed in the previous step. Do not reint
 6. Do not promote reviewer packets to broad section bundles, workspace-diff summaries, or supervisor-precut dossier prose unless the runtime cutover contract explicitly permits disaster fallback and the fallback reason is written explicitly.
 
 7. New Initiative start: after planning admission has already passed, initialize the minimum `Global State Doc`. If there is a clear first executable Task, bind `current_snapshot` to that Task, bind `mode=task`, set `next_action.action = continue_coder_round`, then call skill: `code-loop`. Otherwise stop and ask the user.
-8. Existing Initiative resumes into the Task review/repair loop: if the Task that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then bind `mode=task` and call skill: `code-loop`.
-9. Existing Initiative resumes into the Milestone review/repair loop: if the Milestone that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then bind `mode=milestone` and call skill: `code-loop`.
-10. Existing Initiative resumes into the Initiative review/repair loop: if the Initiative that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then bind `mode=initiative` and call skill: `code-loop`.
-11. `rebuild-runtime` is required: call skill: `rebuild-runtime`.
-12. User confirmation is required: stop and ask the minimum necessary question.
-13. The system is already in a stop state: stop and enter no loop.
+8. Existing execution continuation: if the confirmed next step is Task / Milestone / Initiative execution, ensure `current_snapshot` and `next_action` already reflect that bound object, then call skill: `code-loop` with the already chosen `mode`.
+9. `rebuild-runtime` is required: call skill: `rebuild-runtime`.
+10. User confirmation is required, or the system is already in a stop state: stop directly.
 
 If work will continue, first rewrite the materialized `Global State Doc` in the active Initiative workspace so that `current_snapshot`, `next_action`, and—when needed—`last_transition` are already sufficient for later recovery.
 If the active object or active plane is about to change, write the new `current_snapshot` and `next_action` first so that a later `Supervisor` can recover the current progress state without hidden context.
@@ -287,4 +284,4 @@ After a correct `run-initiative` activation, the system should satisfy all of th
 - if execution continues, the current planning document set has already passed the in-skill planning admission check
 - if execution continues, there is only one clear active loop
 - if execution stops, the stop reason is clear
-- no new runtime truth source exists outside the four formal runtime surfaces
+- no new runtime truth source exists outside the `Global State Doc` plus the Task, Milestone, and Initiative review rolling-doc layers

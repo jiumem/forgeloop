@@ -173,7 +173,7 @@ Header and contract snapshot are initialized once. All later formal facts append
 <!-- forgeloop:anchor derived-view-usage -->
 ## Derived View Usage
 
-- planning derived views are governed by `plugins/forgeloop/skills/planning-loop/references/planning-derived-views.md`
+- planning derived views are governed by `plugins/forgeloop/skills/references/derived-views.md`
 - `current-effective` remains the default synthesized current-handoff view
 - `attempt-aware/round-<n>.md` remains the default hot-path helper for same-stage repair recovery
 - `handoff-scoped/<handoff_id>.md` remains the default hot-path helper for current-stage reviewer entry

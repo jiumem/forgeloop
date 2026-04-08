@@ -140,7 +140,7 @@
 <!-- forgeloop:anchor document-card -->
 ### 1. 文档卡片（Document Card）
 
-- `1.1 状态与阶段（Status And Stage）`：标明当前文档状态，例如 `draft`、`review-ready` 或 `sealed`，并确认这是 `Design Doc` 阶段；这是文档自身的正式状态标记，供下游 planning 与 `run-initiative` admission 直接读取。planning loop 内部的 round、handoff、review history 仍由 `Planning State Doc` 与 rolling doc 承载；但一旦这个状态与当前 lifecycle 不一致，`Supervisor` 必须修复文档状态而不是让下游猜
+- `1.1 状态与阶段（Status And Stage）`：标明当前文档状态，例如 `draft`、`review-ready` 或 `sealed`，并确认这是 `Design Doc` 阶段；这是文档自身的正式状态标记，供下游 planning 与 `run-initiative` admission 直接读取。round、handoff 与 review history 仍由 `Planning State Doc` 与 rolling doc 承载；若两者不一致，`Supervisor` 必须先修正文档状态，不能让下游猜测。
 - `1.2 Initiative 类型（Initiative Type）`：只写 Initiative 类型；当 Initiative 类型会实质影响下游 planning 时，明确写出其类型，例如 greenfield feature、refactor、migration、replacement、governance convergence
 - `1.3 主要读者（Primary Readers）`：当这有助于避免误用时，写明当前主要读者
 - `1.4 Gap Analysis Requirement`：必须明确写 `required | not_required`；这是 planning 是否必须进入 `Gap Analysis Doc` 的唯一正式路由信号

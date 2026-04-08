@@ -77,11 +77,11 @@ Hard boundaries:
 - The coder packet must carry:
   - Initiative static truth refs
   - `Global State Doc`
-- the active mode-specific review rolling doc
-- current `mode`
-- current `round`
-- current `coder_slot`
-- the exact selectors required for this object and round
+  - the active mode-specific review rolling doc
+  - current `mode`
+  - current `round`
+  - current `coder_slot`
+  - the exact selectors required for this object and round
 
 4. Handle coder return
 - If the current round now exposes one legal `review_handoff` and no `review_result`, materialize reviewer entry in the `Global State Doc`.

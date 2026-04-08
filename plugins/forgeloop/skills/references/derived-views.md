@@ -3,15 +3,15 @@
 <!-- forgeloop:anchor document-role -->
 ## Document Role
 
-- Plane: runtime reference
-- Applies to: Task / Milestone / Initiative runtime review rolling docs
-- Primary readers: `run-initiative`, `rebuild-runtime`, runtime loop skills, reviewers, validation tooling
-- Primary purpose: define non-authoritative `current-effective` and `round-scoped` projections that may shrink hot-path reads without changing freshness law
+- Plane: shared planning/runtime reference
+- Applies to: planning rolling docs and runtime review rolling docs
+- Primary readers: `run-planning`, `planning-loop`, `run-initiative`, `rebuild-runtime`, loop skills, reviewers, validation tooling
+- Primary purpose: define non-authoritative derived projections that may shrink hot-path reads without changing authority or freshness law
 
 <!-- forgeloop:anchor authority-line -->
 ## Authority Line
 
-- Runtime review rolling docs remain the only authority for `round`, `review_target_ref`, `compare_base_ref`, prior-review linkage, freshness, and closure semantics.
+- Formal rolling docs remain the only authority for current `round`, current handoff identity, review-target identity, runtime `compare_base_ref` linkage when present, freshness, and supersede semantics.
 - Every derived view is disposable and rebuildable.
 - A derived view never outranks or overwrites its source rolling doc.
 - If any disagreement appears, invalidate the derived view and reread the formal rolling doc.
@@ -20,20 +20,25 @@
 ## View Types
 
 - `current-effective`
-  - one synthesized view of the latest runtime round
-  - it should expose the latest round's `review_handoff`, the same round's `review_result` when present, and the addressed prior `review_result` when `addresses_review_result_id` is present
-  - it must not surface superseded or duplicate current-round blocks because those are illegal in v2
+  - one synthesized current-frontier view built from the latest legally actionable formal blocks
+  - for planning: current handoff plus only the latest matching actionable review result for that handoff
+  - for runtime: latest round `review_handoff`, the same round's `review_result` when present, and the addressed prior `review_result` when `addresses_review_result_id` is present
 - `round-scoped`
-  - one projection per `round` containing every formal runtime block for that round in append order
-  - it is the default hot-path helper for reading one complete runtime cycle without scanning unrelated history
-
-Planning rolling docs use their own derived-view contract under `plugins/forgeloop/skills/planning-loop/references/planning-derived-views.md`.
+  - one projection per `round` containing that round's formal blocks in append order
+  - it is the default helper when one complete round must be read without unrelated history
+- `attempt-aware`
+  - planning-only
+  - one projection per planning `round` that isolates same-stage repair history within that round
+- `handoff-scoped`
+  - planning-only
+  - one projection per `handoff_id` containing only the formal blocks relevant to that handoff
+  - it is the default helper for fresh reviewer entry when the authoritative rolling-doc ref is still bound in the packet
 
 <!-- forgeloop:anchor materialization -->
 ## Materialization
 
 - Recommended location: `<initiative_dir>/.forgeloop/derived/<plane>/<object>/...`
-- Derived views for a repo-local Initiative must live under the same Initiative-local `.forgeloop/` root as the authoritative rolling doc they derive from.
+- For repo-local Initiatives, derived views must live under the same Initiative-local `.forgeloop/` root as the authoritative rolling doc they derive from.
 - Do not place repo-local Initiative derived views under repo-root `.forgeloop/<initiative_key>/...`.
 - Materialized files must state clearly that they are non-authoritative derived views.
 - Materialization may be skipped entirely; consumers can always fall back to direct anchored reads from the formal document.
@@ -45,10 +50,10 @@ Planning rolling docs use their own derived-view contract under `plugins/forgelo
 Invalidate the relevant derived view immediately when:
 
 - a newer formal block is appended to the source rolling doc
-- the source rolling doc now exposes an illegal duplicate `review_handoff` or `review_result` for one round
-- the latest round no longer matches what the view materialized
+- the source rolling doc now exposes an illegal duplicate current-round handoff or result
+- the latest current frontier no longer matches what the view materialized
 - the source packet can no longer prove selector legality for the formal inputs the view depends on
-- an addressed prior `review_result_id` no longer resolves uniquely
+- a referenced prior result no longer resolves uniquely
 - an anchor selector in the projection input becomes missing, duplicated, or illegal
 
 Invalidation never changes formal truth. It only changes whether the projection may still be consumed.
