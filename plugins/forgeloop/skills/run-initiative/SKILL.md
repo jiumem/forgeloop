@@ -15,7 +15,7 @@ The Initiative execution system uses one control spine plus one unified executio
 - legal runtime `mode` values are only `task`, `milestone`, and `initiative`
 
 `task-loop`, `milestone-loop`, and `initiative-loop` are not part of the canonical runtime execution architecture.
-Do not preserve or reintroduce wrapper-layer execution law outside `code-loop` and `references/runtime-object-modes.md`.
+Do not preserve or reintroduce wrapper-layer execution law outside `code-loop` and `plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md`.
 
 The repo-local control-plane root contract lives at `../references/control-plane-roots.md`.
 
@@ -31,7 +31,7 @@ If the current environment still prevents delegation, or if you will not actuall
 <!-- forgeloop:anchor runtime-read-law -->
 ## Runtime Read Law
 
-Bind `references/runtime-cutover.md` first and obey it.
+Bind `plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md` first and obey it.
 Obey the shared packet law in `../references/anchor-addressing.md`.
 Obey the shared truth-location law in `../references/truth-location.md`.
 Do not restate packet completeness, selector legality, or supervisor-doc exclusion here unless this file adds a true local exception.
@@ -79,7 +79,7 @@ Each update exists only to support the current next-step dispatch. Do not write 
 - Reuse means dispatching the existing bound `agent_id` with `send_input`. Do not call `spawn_agent` again for a still-live Task / Milestone / Initiative worker just because the same loop continues into another round.
 - `task_name`, role name, object key, or mode name are not reuse handles. Only the current session's stored `agent_id` binding is a legal reuse handle.
 - If an existing bound worker must be reopened before more input can be sent, resume that same `agent_id`; do not treat ordinary continuation as a reason to mint a new thread.
-- `close_agent` is runtime-local cleanup only. Once a runtime worker has been closed, that old `agent_id` is no longer the reusable binding for future runtime dispatch; later continuation must either resume that same worker explicitly or create a new binding with `spawn_agent`.
+- `close_agent` is runtime-local binding cleanup. Once a worker has been removed from the current reusable binding table, do not treat that old `agent_id` as the active reusable binding; later continuation must either reopen that same `agent_id` explicitly or create a new binding with `spawn_agent`.
 
 <!-- forgeloop:anchor runtime.admission-law -->
 ## Runtime Admission Law
@@ -117,7 +117,7 @@ If the shared packet law or runtime cutover contract forces fallback or stop dur
 First bind the formal source refs for the current Initiative.
 
 1. Use the user-provided `planning_doc_path`, `initiative_key`, or the only verifiable active Initiative in the current workspace to bind the current Initiative. If it cannot be verified uniquely, ask the user.
-2. Prefer exploring under the parent path of the user-provided planning doc. If that doc is already the sealed `Total Task Doc`, use its parent path directly. Only if that is insufficient should you continue under the repo `docs/` tree.
+2. Prefer exploring under the parent path of the user-provided planning doc. Only if that is insufficient should you continue under the repo `docs/` tree.
 3. When the sealed planning artifact directory is known, derive the one legal repo-local runtime control-plane root from `../references/control-plane-roots.md`: sibling `.forgeloop/` under that Initiative document directory. Bind the runtime refs there directly. Do not search for alternate repo-local runtime control-plane roots elsewhere in the repository.
 <!-- forgeloop:anchor canonical-ref-semantics -->
 4. Confirm seven Initiative-bound source slots as canonical refs: `design_ref`, `gap_analysis_ref`, `total_task_doc_ref`, `global_state_doc_ref`, `task_review_rolling_doc_root_ref`, `milestone_review_rolling_doc_root_ref`, and `initiative_review_rolling_doc_ref`.
@@ -168,14 +168,12 @@ Do this whenever runtime routing or loop execution needs workspace-local runtime
 
 ### Step 4: Determine The Runtime Next Step
 
-Only after workspace binding when needed, and only while the current planning admission basis still holds, choose the runtime read order from `current_runtime_cutover_mode`.
-Read only the runtime surfaces that the bound cutover mode makes legal as the default path for this call site.
-Add Git or test facts only when document facts still cannot prove the next step.
+Only after workspace binding when needed, and only while the current planning admission basis still holds, choose the runtime read order from `current_runtime_cutover_mode`. Read only the surfaces that the bound cutover mode makes legal for this call site; add Git or test facts only when document facts still cannot prove the next step.
 
-1. After active workspace binding when needed, choose the runtime read order from `current_runtime_cutover_mode`:
+1. Choose the read order from `current_runtime_cutover_mode`:
 - `full_doc_default`: authoritative full documents may be the default runtime route
 - `minimal_preferred` or `minimal_required`: read `global_state_doc_ref` first, then legal derived views, then authoritative rolling-doc blocks, then full-document fallback only when the cutover contract still allows it
-2. Only when document facts are still insufficient should you add the minimum necessary Git / test facts.
+2. Only when document facts remain insufficient should you add the minimum necessary Git / test facts.
 3. Then route by this priority:
 - stop state recorded by `initiative_delivered`, `wait_for_user`, or `stop_on_blocker` that is still consistent
 - cold start with no runtime docs
@@ -193,7 +191,7 @@ Add Git or test facts only when document facts still cannot prove the next step.
 - if `Global State Doc` is missing and no rolling doc exists: treat it as a new Initiative start
 - if `Global State Doc` is missing but rolling docs already exist, or if `Global State Doc` clearly conflicts with the total task doc or rolling docs: call skill: `rebuild-runtime`
 - if workspace diff or interrupted agent narration suggests progress that has not appeared as a rereadable `review_handoff` or `review_result`: do not advance the object from that hint alone; continue only from the last legal formal runtime state or call skill: `rebuild-runtime` when the active state is no longer provable uniquely
-- if `current_snapshot.active_plane=frontier` or `next_action.action=select_next_ready_object`: resolve the next ready object from the admitted planning document set plus authoritative runtime rolling docs by applying this fixed supervisor routing order and stopping at the first match: required current Milestone closure -> required Initiative closure -> exactly one next-ready Task. Apply this closure-first rule before considering any Task entry. Do not enter Task mode merely because one next-ready Task exists while a required Milestone or Initiative closure is still pending. If exactly one ready object exists after that closure-first frontier resolution, rebind and continue through the matching `mode`; otherwise ask the user
+- if `current_snapshot.active_plane=frontier` or `next_action.action=select_next_ready_object`: resolve exactly one next ready object from the admitted planning document set plus authoritative runtime rolling docs. Use this fixed order and stop at the first match: required current Milestone closure -> required current Initiative closure -> exactly one next-ready Task. Closure always beats Task entry. If that order still leaves multiple legal objects, ask the user
 - if current progress clearly belongs to the Task review/repair loop, including continuing the currently bound Task or continuing repair on the current Task: formally rebind `current_snapshot` and `next_action` to that Task if needed, bind `mode=task`, and treat Task-mode `code-loop` entry as the confirmed next step
 - if current progress clearly belongs to a Milestone review/repair loop: formally rebind `current_snapshot` and `next_action` to that Milestone if needed, bind `mode=milestone`, and treat Milestone-mode `code-loop` entry as the confirmed next step
 - if current progress clearly belongs to the Initiative review/repair loop: formally rebind `current_snapshot` and `next_action` to that Initiative if needed, bind `mode=initiative`, and treat Initiative-mode `code-loop` entry as the confirmed next step
@@ -207,7 +205,7 @@ When the activation cannot continue, classify the interruption before acting. Us
 - `execution_ready`: project environment, setup, install, or baseline verification is not yet sufficient; route through skill: `using-git-worktrees` in `execution_ready` mode and follow project docs
 - `runtime_resource`: agent quota, thread limit, or other session-local runtime housekeeping issue; clean up runtime-private bindings without treating the object itself as blocked
 - `transport`: stream disconnect, interrupted worker return, or other delivery failure; keep only formal truth and recover from the last legal formal state
-- `task_blocker`: a real object-level blocker, upstream dependency, or missing user judgment; materialize `wait_for_user` or `stop_on_blocker` only for this class or another genuinely blocking class that cannot be cleared inside the runtime session
+- `object_blocker`: a real object-level blocker, upstream dependency, or missing user judgment; materialize `wait_for_user` or `stop_on_blocker` only for this class
 
 Do not let tooling, transport, or housekeeping problems masquerade as object-level acceptance failure.
 
@@ -270,7 +268,7 @@ Never:
 - use skill: `rebuild-runtime` to compensate for illegal or unfinished planning truth
 - create a second state model inside JSON, notes, or hidden memory
 - persist any session-local coder / reviewer `agent_id` into formal runtime truth
-- let `run-initiative` execute `G1`, `G2`, `G3`, `R1`, `R2`, or `R3` itself
+- let `run-initiative` perform coder-side validation or Task / Milestone / Initiative review itself
 - treat inability or unwillingness to dispatch the required coder / reviewer subagents as permission for a single-agent fallback
 - silently replace the current coder with a new logical owner
 - continue advancing when `Global State Doc` already explicitly says to wait for the user

@@ -65,7 +65,7 @@ When this session leaves the planning plane for runtime, the planning worker tab
 - Reuse means dispatching the existing bound `agent_id` with `send_input`. Do not call `spawn_agent` again for a still-live worker just because the same stage continues into another round.
 - `task_name`, role name, or stage name are not reuse handles. Only the current session's stored `agent_id` binding is a legal reuse handle.
 - If an existing bound worker must be reopened before more input can be sent, resume that same `agent_id`; do not treat ordinary continuation as a reason to mint a new thread.
-- `close_agent` is plane-local cleanup only. Once a planning worker has been closed, that old `agent_id` is no longer the reusable binding for future planning dispatch; later continuation must either resume that same worker explicitly or create a new binding with `spawn_agent`.
+- `close_agent` is planning-local binding cleanup. Once a worker has been removed from the current reusable binding table, do not treat that old `agent_id` as the active reusable binding; later continuation must either reopen that same `agent_id` explicitly or create a new binding with `spawn_agent`.
 
 <!-- forgeloop:anchor when-to-stop -->
 ## When To Stop Or Ask The User

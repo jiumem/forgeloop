@@ -24,7 +24,7 @@
 
 - Each Initiative-local `.forgeloop/` root should include a lightweight `README.md` that points humans to `planning-state.md`, the planning rolling docs, `global-state.md`, and the runtime review roots.
 - This `README.md` is a navigation aid only. It must not redefine refs, stages, routing, or formal state.
-- Initiative-facing docs may link to that control-plane README, but must not restate the same control-plane refs as a parallel truth source.
+- Initiative-facing docs may link to that control-plane README. Except for the authoritative reference-assignment sections in `Total Task Doc`, they must not restate the same control-plane refs as a parallel truth source.
 
 <!-- forgeloop:anchor planning-defaults -->
 ## Canonical Planning Refs

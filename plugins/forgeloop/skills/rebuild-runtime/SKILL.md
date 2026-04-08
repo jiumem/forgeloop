@@ -101,7 +101,7 @@ Trigger only in the following situations:
 - If the `Global State Doc` does not exist, initialize `global_state_header` first according to the canonical contract
 - Write `current_snapshot` as the uniquely recovered active plane / active object / `coder_slot` / object `round`
 - Write `next_action` as the uniquely recovered next step, including recovered `blocking_reason` when the action is `wait_for_user` or `stop_on_blocker`
-- Write `last_transition` as a recovery transition explaining why the control plane was rebuilt, and classify the cause in `last_transition.reason` using the smallest fitting class: `control_plane`, `formal_state`, `execution_ready`, `runtime_resource`, `transport`, or `task_blocker`
+- Write `last_transition` as a recovery transition explaining why the control plane was rebuilt, and classify the cause in `last_transition.reason` using the smallest fitting class: `control_plane`, `formal_state`, `execution_ready`, `runtime_resource`, `transport`, or `object_blocker`
 - After writing, immediately hand control back to skill: `run-initiative`
 
 <!-- forgeloop:anchor red-lines -->

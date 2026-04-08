@@ -8,13 +8,15 @@
 
 ## Truth Location Precedence
 
-When current-object context must be located, use this fixed order and stop at the first sufficient layer:
+When current-object context must be located, first obey any bound runtime cutover contract.
 
-1. authoritative bound refs plus `doc_ref + anchor_selector`
-2. `rg` keyword discovery only when the needed selector or exact local section has not yet been bound clearly
-3. sealed full-document reading only when the current packet or bound contract still cannot prove the needed truth through legal slices
+- If that contract makes minimal reads the default, use this order and stop at the first sufficient layer:
+  1. authoritative bound refs plus `doc_ref + anchor_selector`
+  2. `rg` keyword discovery only when the needed selector or exact local section has not yet been bound clearly
+  3. sealed full-document reading only when the current packet or bound contract still cannot prove the needed truth through legal slices
+- If the bound runtime cutover contract is `full_doc_default`, authoritative full-document reads may be the supervisor default, but worker packets should still prefer the smallest lawful object-local slices.
 
-Do not skip directly to broad document reading just because it feels easier.
+Do not widen the read surface beyond what the bound contract or the current proof gap requires.
 
 ## Authoritative Slices First
 

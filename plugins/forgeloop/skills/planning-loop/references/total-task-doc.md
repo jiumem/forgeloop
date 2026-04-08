@@ -9,6 +9,7 @@
 - 主要目的：把上游已经 sealed 的 planning 决策压缩成一张轻薄、强索引、可直接执行的执行地图，而不是重新打开设计裁决
 
 这份文档不是第二篇设计长文，不是迁移账本，不是 reviewer verdict，也不是实现教程。
+文档是否进入评审、修复或 sealed lifecycle，仍以 rolling doc 为准。
 
 <!-- forgeloop:anchor questions-this-doc-must-answer -->
 ## 这份文档必须回答什么
@@ -169,7 +170,7 @@
 - `First Evidence Ref`: `N/A in reference template`
 
 <!-- forgeloop:anchor acceptance-matrix/initiative-acceptance-index/ic-1 -->
-- `Initiative Criterion`: `IC-1`
+- `Criterion Key`: `IC-1`
 - `Acceptance Authority Ref`: `initiative/success-criteria/ic-1`
 - `First Evidence Ref`: `N/A in reference template`
 

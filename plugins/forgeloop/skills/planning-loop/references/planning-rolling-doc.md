@@ -10,7 +10,7 @@
 - For repo-local Initiatives, required placement is the Initiative-local `.forgeloop/` root, using `design-rolling.md`, `gap-rolling.md`, or `total-task-doc-rolling.md`
 
 This reference governs the planning communication plane, not artifact shape. Stage-specific references still control the structure and judgment standard of `Design Doc`, `Gap Analysis Doc`, and `Total Task Doc`.
-rolling-doc state is the formal planning status truth.
+The rolling doc is the authority for round, handoff, review-result, seal, and reopen history. The artifact `状态` line remains the execution-facing document-status marker and must be kept in sync by the `Supervisor`.
 
 <!-- forgeloop:anchor contract-questions -->
 ## What This Contract Must Answer
