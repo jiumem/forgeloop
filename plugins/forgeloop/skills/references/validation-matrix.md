@@ -22,8 +22,8 @@
 | required contract doc lacks mandated selectors | release gate fails on coverage violation | `anchor-slice-smoke` + required-surface list |
 | minimal packet consumer gets legal selectors | consumer may stay on minimal-path read | workflow skills + tracked reference mirrors |
 | selector legality fails | consumer promotes to full-document fallback or blocks | workflow skills |
-| rolling doc has superseded same-handoff results | `current-effective` picks only the latest matching result | `anchor_slices.py derive` |
-| `handoff-scoped` is read for one handoff | view includes the handoff block plus all matching results in append order | `anchor_slices.py derive` |
+| runtime review round exposes duplicate handoff or result blocks | `derive` fails instead of guessing a current result | `anchor_slices.py derive` |
+| `round-scoped` is read for one review round | view includes the round's formal blocks in append order | `anchor_slices.py derive` |
 | derived view is missing or stale | consumer may invalidate and reread formal doc | workflow skills + derived-view contract |
 | newer formal block invalidates a derived view | consumer rejects the stale view and rebuilds from the authoritative rolling doc | `anchor_slices.py derive` + workflow skills |
 | reviewer enters a handoff for the first time | packet stays self-sufficient and does not assume a previous packet | runtime reviewer manifests + loop skills |

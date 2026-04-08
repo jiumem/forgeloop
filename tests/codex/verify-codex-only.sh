@@ -202,20 +202,17 @@ while IFS=':' read -r file pattern; do
     exit 1
   fi
 done <<'EOF'
-plugins/forgeloop/skills/code-loop/SKILL.md:handoff_id
+plugins/forgeloop/skills/code-loop/SKILL.md:review_handoff
 plugins/forgeloop/skills/code-loop/SKILL.md:current_runtime_cutover_mode
 plugins/forgeloop/skills/code-loop/SKILL.md:fresh reviewer for the current handoff
 plugins/forgeloop/skills/code-loop/SKILL.md:prior-thread memory is never a legality basis by itself
-plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:continue_task_coder_round
-plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:enter_r2
+plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:continue_coder_round
+plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:enter_review
 plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:mark_initiative_delivered
 plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:initiative_delivered
-plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:continue_current_round
-plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:enter_next_round
 plugins/forgeloop/skills/run-initiative/references/global-state.md:total_task_doc_ref
 plugins/forgeloop/skills/run-initiative/references/global-state.md:active_plane=frontier
-plugins/forgeloop/skills/run-initiative/references/global-state.md:callback_return_rolling_doc_ref
-plugins/forgeloop/skills/run-initiative/references/global-state.md:callback_round_behavior
+plugins/forgeloop/skills/run-initiative/references/global-state.md:continue_coder_round
 plugins/forgeloop/skills/rebuild-runtime/SKILL.md:mark_initiative_delivered
 plugins/forgeloop/skills/rebuild-runtime/SKILL.md:current object-local `round`
 plugins/forgeloop/agents/coder.toml:request_reviewer_handoff

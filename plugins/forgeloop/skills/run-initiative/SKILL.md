@@ -168,31 +168,29 @@ Add Git or test facts only when document facts still cannot prove the next step.
 2. Only when document facts are still insufficient should you add the minimum necessary Git / test facts.
 3. Then route by this priority:
 - stop state recorded by `initiative_delivered`, `wait_for_user`, or `stop_on_blocker` that is still consistent
-- callback return from an objectized repair Task whose latest actionable Task result requests `return_to_source_object`
 - cold start with no runtime docs
 - runtime rebuild when state is missing or conflicting
-- task-mode code loop when a Task is clearly active or next-ready
+- frontier selection when `current_snapshot.active_plane=frontier` or `next_action.action=select_next_ready_object`
+- task-mode code loop when a Task is clearly active
 - milestone-mode code loop when Milestone review/repair is clearly active
 - initiative-mode code loop when Initiative review/repair is clearly active
-- frontier selection when `current_snapshot.active_plane=frontier` or `next_action.action=select_next_ready_object`
 - ask the user only when facts are legal but still ambiguous
 4. Apply the first matching case:
 - if the `Global State Doc` already records `initiative_delivered`: stop and explain the stop point
 - if the `Global State Doc` already records `wait_for_user` or `stop_on_blocker`: first check whether this activation clearly resolves that stop reason
   - if not, stop at that state
   - if yes, record that resume in `last_transition`, then continue from newer formal runtime truth instead of treating the stop as terminal
-- if `last_transition` still carries active callback metadata for an objectized repair Task and the latest actionable Task result for that bounded repair Task requests `return_to_source_object`: treat callback return as higher priority than ordinary frontier selection; rebind the source object named by `callback_source_plane` and `callback_return_rolling_doc_ref`, apply `callback_round_behavior`, then call skill: `code-loop`
 - if `Global State Doc` is missing and no rolling doc exists: treat it as a new Initiative start
 - if `Global State Doc` is missing but rolling docs already exist, or if `Global State Doc` clearly conflicts with the total task doc or rolling docs: call skill: `rebuild-runtime`
-- if current progress clearly belongs to the Task review/repair loop, including continuing the currently bound Task, continuing repair on the current Task, or uniquely identifying the next ready Task: formally rebind `current_snapshot` and `next_action` to that Task if needed, bind `mode=task`, then call skill: `code-loop`
+- if `current_snapshot.active_plane=frontier` or `next_action.action=select_next_ready_object`: resolve the next ready object from the admitted planning document set plus authoritative runtime rolling docs; container forcing applies here first. Do not short-circuit directly into Task mode merely because one next-ready Task exists. If exactly one ready object exists after frontier resolution, rebind and continue through the matching `mode`; otherwise ask the user
+- if current progress clearly belongs to the Task review/repair loop, including continuing the currently bound Task or continuing repair on the current Task: formally rebind `current_snapshot` and `next_action` to that Task if needed, bind `mode=task`, then call skill: `code-loop`
 - if current progress clearly belongs to a Milestone review/repair loop: formally rebind `current_snapshot` and `next_action` to that Milestone if needed, bind `mode=milestone`, then call skill: `code-loop`
 - if current progress clearly belongs to the Initiative review/repair loop: formally rebind `current_snapshot` and `next_action` to that Initiative if needed, bind `mode=initiative`, then call skill: `code-loop`
-- if `current_snapshot.active_plane=frontier` or `next_action.action=select_next_ready_object`: resolve the next ready object from the admitted planning document set plus authoritative runtime rolling docs; if exactly one ready object exists, rebind and continue through the matching `mode`; otherwise ask the user
 - if the facts do not conflict but the next step still cannot be determined uniquely: ask the user
 5. You may confirm only one next step or one clear stop point. If facts conflict, call skill: `rebuild-runtime`; if they are ambiguous, ask the user.
 
 When the chosen next step is reviewer entry through `code-loop`, the runtime basis must already preserve:
-- the current handoff identity: `round`, `handoff_id`, `review_target_ref`
+- the current handoff identity: `round` and `review_target_ref`
 - the current handoff compare base: `compare_base_ref`
 - the current object's object-local planning truth slices from the sealed planning set
 
@@ -211,7 +209,7 @@ Consume only the conclusion already confirmed in the previous step. Do not reint
 - Initiative: current handoff identity + `compare_base_ref` + current Initiative success-criterion block + current Initiative acceptance-index entry + evidence entrypoint surface
 5. Do not promote reviewer packets to broad section bundles or workspace-diff summaries unless the runtime cutover contract explicitly permits disaster fallback and the fallback reason is written explicitly.
 
-6. New Initiative start: after planning admission has already passed, initialize the minimum `Global State Doc`. If there is a clear first executable Task, bind `current_snapshot` to that Task, bind `mode=task`, set `next_action.action = continue_task_coder_round`, then call skill: `code-loop`. Otherwise stop and ask the user.
+6. New Initiative start: after planning admission has already passed, initialize the minimum `Global State Doc`. If there is a clear first executable Task, bind `current_snapshot` to that Task, bind `mode=task`, set `next_action.action = continue_coder_round`, then call skill: `code-loop`. Otherwise stop and ask the user.
 7. Existing Initiative resumes into the Task review/repair loop: if the Task that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then bind `mode=task` and call skill: `code-loop`.
 8. Existing Initiative resumes into the Milestone review/repair loop: if the Milestone that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then bind `mode=milestone` and call skill: `code-loop`.
 9. Existing Initiative resumes into the Initiative review/repair loop: if the Initiative that should be advanced is not yet formally bound in `current_snapshot`, rebind `current_snapshot` and `next_action` first, then bind `mode=initiative` and call skill: `code-loop`.

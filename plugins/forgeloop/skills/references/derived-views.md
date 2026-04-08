@@ -3,15 +3,15 @@
 <!-- forgeloop:anchor document-role -->
 ## Document Role
 
-- Plane: shared planning/runtime reference
-- Applies to: planning rolling docs and runtime review rolling docs
+- Plane: runtime reference
+- Applies to: Task / Milestone / Initiative runtime review rolling docs
 - Primary readers: `run-initiative`, `rebuild-runtime`, runtime loop skills, reviewers, validation tooling
-- Primary purpose: define non-authoritative current-effective, handoff-scoped, and attempt-aware projections that may shrink hot-path reads without changing freshness law
+- Primary purpose: define non-authoritative `current-effective` and `round-scoped` projections that may shrink hot-path reads without changing freshness law
 
 <!-- forgeloop:anchor authority-line -->
 ## Authority Line
 
-- Formal rolling docs remain the only authority for `round`, `handoff_id`, `review_target_ref`, `compare_base_ref` when the current handoff carries one, freshness, and supersede semantics.
+- Runtime review rolling docs remain the only authority for `round`, `review_target_ref`, `compare_base_ref`, prior-review linkage, freshness, and closure semantics.
 - Every derived view is disposable and rebuildable.
 - A derived view never outranks or overwrites its source rolling doc.
 - If any disagreement appears, invalidate the derived view and reread the formal rolling doc.
@@ -20,17 +20,14 @@
 ## View Types
 
 - `current-effective`
-  - one synthesized view of the current handoff plus only the latest matching actionable result for that handoff
-  - it must not surface superseded same-handoff results as current
-- `handoff-scoped`
-  - one projection per `handoff_id` containing the handoff block plus every matching review-result block for the same tuple in append order
-  - it is historical and audit-friendly by design; it is not a latest-only view
-  - it is the default hot-path helper for fresh reviewer entry when the authoritative rolling doc ref is still bound in the packet
-- `attempt-aware`
-  - one projection per `round` containing the ordered formal blocks for that attempt
-  - it isolates same-object history within one round without changing durable `round` law
+  - one synthesized view of the latest runtime round
+  - it should expose the latest round's `review_handoff`, the same round's `review_result` when present, and the addressed prior `review_result` when `addresses_review_result_id` is present
+  - it must not surface superseded or duplicate current-round blocks because those are illegal in v2
+- `round-scoped`
+  - one projection per `round` containing every formal runtime block for that round in append order
+  - it is the default hot-path helper for reading one complete runtime cycle without scanning unrelated history
 
-These views may exist for planning rolling docs and runtime review rolling docs. The projection rules change by doc kind, but the authority line does not.
+Planning rolling docs use their own derived-view contract under `plugins/forgeloop/skills/planning-loop/references/planning-derived-views.md`.
 
 <!-- forgeloop:anchor materialization -->
 ## Materialization
@@ -48,10 +45,10 @@ These views may exist for planning rolling docs and runtime review rolling docs.
 Invalidate the relevant derived view immediately when:
 
 - a newer formal block is appended to the source rolling doc
-- the source rolling doc now exposes multiple actionable results for what was previously one unique current handoff
-- the underlying handoff no longer matches the latest current handoff
+- the source rolling doc now exposes an illegal duplicate `review_handoff` or `review_result` for one round
+- the latest round no longer matches what the view materialized
 - the source packet can no longer prove selector legality for the formal inputs the view depends on
-- the source rolling doc no longer exposes one unique actionable result
+- an addressed prior `review_result_id` no longer resolves uniquely
 - an anchor selector in the projection input becomes missing, duplicated, or illegal
 
 Invalidation never changes formal truth. It only changes whether the projection may still be consumed.

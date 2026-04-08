@@ -58,7 +58,7 @@
       {"type": "slice", "doc": "plugins/forgeloop/skills/code-loop/SKILL.md", "anchor": "truth-sources-boundaries"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/code-loop/SKILL.md", "anchor": "workflow"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md", "anchor": "task-mode"},
-      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md", "anchor": "handoff-law"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md", "anchor": "review-handoff-law"},
       {"type": "slice", "doc": "tests/codex/token-benchmark/fixtures/global-state-active-task.md", "anchor": "current-snapshot"},
       {"type": "slice", "doc": "tests/codex/token-benchmark/fixtures/global-state-active-task.md", "anchor": "next-action"},
       {"type": "derived_view", "doc": "tests/fixtures/anchor-slicing/task-review-sample.md", "view": "current-effective.md"}
@@ -86,11 +86,11 @@
     "minimal_packet": [
       {"type": "full_doc", "path": "plugins/forgeloop/agents/coder.toml"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md", "anchor": "task-mode"},
-      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md", "anchor": "canonical-task-vocabulary"},
-      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md", "anchor": "handoff-law"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md", "anchor": "round-shape-law"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md", "anchor": "review-handoff-law"},
       {"type": "slice", "doc": "tests/codex/token-benchmark/fixtures/global-state-active-task.md", "anchor": "current-snapshot"},
       {"type": "slice", "doc": "tests/codex/token-benchmark/fixtures/global-state-active-task.md", "anchor": "next-action"},
-      {"type": "derived_view", "doc": "tests/fixtures/anchor-slicing/task-review-sample.md", "view": "attempt-aware/round-2.md"}
+      {"type": "derived_view", "doc": "tests/fixtures/anchor-slicing/task-review-sample.md", "view": "round-scoped/round-2.md"}
     ],
     "fallback_points": [
       "round ambiguity",
@@ -118,8 +118,8 @@
       {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "acceptance-matrix/task-acceptance-index/asdo-t5"},
       {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "acceptance-matrix/evidence-entrypoints"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md", "anchor": "task-mode"},
-      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md", "anchor": "handoff-law"},
-      {"type": "derived_view", "doc": "tests/fixtures/anchor-slicing/task-review-sample.md", "view": "handoff-scoped/sample-r2-a1.md"}
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md", "anchor": "review-handoff-law"},
+      {"type": "derived_view", "doc": "tests/fixtures/anchor-slicing/task-review-sample.md", "view": "current-effective.md"}
     ],
     "fallback_points": [
       "fresh reviewer first packet must still be self-sufficient",
@@ -147,8 +147,8 @@
       {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "acceptance-matrix/milestone-acceptance-index/asdo-m2"},
       {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "acceptance-matrix/evidence-entrypoints"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md", "anchor": "milestone-mode"},
-      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/milestone-review-rolling-doc.md", "anchor": "handoff-law"},
-      {"type": "derived_view", "doc": "tests/codex/token-benchmark/fixtures/milestone-review-sample.md", "view": "handoff-scoped/ms-asdo-m2-r1-h1.md"}
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/milestone-review-rolling-doc.md", "anchor": "review-handoff-law"},
+      {"type": "derived_view", "doc": "tests/codex/token-benchmark/fixtures/milestone-review-sample.md", "view": "current-effective.md"}
     ],
     "fallback_points": [
       "multiple actionable results",
@@ -175,8 +175,8 @@
       {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "acceptance-matrix/initiative-acceptance-index/ic-5"},
       {"type": "slice", "doc": "docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "anchor": "acceptance-matrix/evidence-entrypoints"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md", "anchor": "initiative-mode"},
-      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/initiative-review-rolling-doc.md", "anchor": "handoff-law"},
-      {"type": "derived_view", "doc": "tests/codex/token-benchmark/fixtures/initiative-review-sample.md", "view": "handoff-scoped/init-asdo-r1-h1.md"}
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/initiative-review-rolling-doc.md", "anchor": "review-handoff-law"},
+      {"type": "derived_view", "doc": "tests/codex/token-benchmark/fixtures/initiative-review-sample.md", "view": "current-effective.md"}
     ],
     "fallback_points": [
       "initiative handoff drift",
@@ -263,11 +263,11 @@
     "minimal_packet": [
       {"type": "full_doc", "path": "plugins/forgeloop/agents/coder.toml"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md", "anchor": "task-mode"},
-      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md", "anchor": "canonical-task-vocabulary"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md", "anchor": "round-shape-law"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md", "anchor": "derived-view-usage"},
       {"type": "slice", "doc": "tests/codex/token-benchmark/fixtures/global-state-active-task.md", "anchor": "current-snapshot"},
       {"type": "slice", "doc": "tests/codex/token-benchmark/fixtures/global-state-active-task.md", "anchor": "next-action"},
-      {"type": "derived_view", "doc": "tests/fixtures/anchor-slicing/task-review-sample.md", "view": "attempt-aware/round-2.md"}
+      {"type": "derived_view", "doc": "tests/fixtures/anchor-slicing/task-review-sample.md", "view": "round-scoped/round-2.md"}
     ],
     "fallback_points": [
       "delta legality is proven only while the active object, round, slot, and handoff surface stay stable",
@@ -293,8 +293,8 @@
         "label": "latest current frontier has already advanced to round 3",
         "doc": "tests/fixtures/anchor-slicing/task-review-sample-appended.md",
         "view": "current-effective.md",
-        "include": ["sample-r3-a1"],
-        "exclude": ["sample-r2-a1"]
+        "include": ["## Current Frontier: round 3", "review_target_ref: commits/sample-a3"],
+        "exclude": ["## Current Frontier: round 2"]
       }
     ],
     "legacy_packet": [

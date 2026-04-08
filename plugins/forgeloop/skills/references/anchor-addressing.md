@@ -24,7 +24,7 @@
 <!-- forgeloop:anchor namespace-law -->
 ## Namespace Law
 
-- Text anchors are doc-address selectors only. They are not the same legal object as Task `anchor_ref` or `fixup_ref`.
+- Text anchors are doc-address selectors only. They are not the same legal object as a runtime `review_handoff`.
 - Text-anchor namespace is always bound by `doc_ref`.
 - A selector must be unique within one document.
 - Consumers must persist durable truth as repo-root-relative `doc_ref` plus a doc-local selector. They must not persist absolute paths, line numbers, or parser-specific offsets as durable truth.

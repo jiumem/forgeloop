@@ -1,14 +1,16 @@
 # Initiative Review Rolling Doc: anchor-sliced-dispatch-optimization
 
 ```forgeloop
-kind: initiative_review_header
+kind: review_header
+object_type: initiative
+schema_version: 2
 initiative_key: anchor-sliced-dispatch-optimization
 coder_slot: coder
 created_at: 2026-03-31T10:43:00Z
 ```
 
 ```forgeloop
-kind: initiative_contract_snapshot
+kind: review_contract_snapshot
 goal: Sample initiative review fixture for benchmark and derived-view checks.
 milestone_scope:
   - ASDO-M1
@@ -19,29 +21,23 @@ success_criteria:
 ```
 
 ```forgeloop
-kind: g3_result
+kind: review_handoff
 round: 1
 author_role: coder
 created_at: 2026-03-31T10:43:00Z
-verdict: pass
-next_action: enter_r3
-handoff_id: init-asdo-r1-h1
 review_target_ref: initiative-rounds/asdo/r1
 compare_base_ref: initiative-rounds/asdo/r0
-milestones:
-  - milestone-review/ASDO-M1.md
-  - milestone-review/ASDO-M2.md
-  - milestone-review/ASDO-M3.md
+summary: Initiative sample is ready for review.
 evidence_refs:
   - tests/codex/token-benchmark/fixtures/milestone-review-sample.md
 ```
 
 ```forgeloop
-kind: r3_result
+kind: review_result
+review_result_id: review-init-asdo-r1
 round: 1
 author_role: reviewer
 created_at: 2026-03-31T10:50:00Z
-handoff_id: init-asdo-r1-h1
 review_target_ref: initiative-rounds/asdo/r1
 verdict: clean
 delivery_readiness: pass

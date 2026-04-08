@@ -19,6 +19,7 @@ python3 plugins/forgeloop/scripts/anchor_slices.py check \
   plugins/forgeloop/skills/references/derived-views.md \
   plugins/forgeloop/skills/references/validation-matrix.md \
   plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md \
+  plugins/forgeloop/skills/planning-loop/references/planning-derived-views.md \
   plugins/forgeloop/skills/run-initiative/SKILL.md \
   plugins/forgeloop/skills/run-initiative/references/global-state.md \
   plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md \
@@ -162,10 +163,8 @@ python3 plugins/forgeloop/scripts/anchor_slices.py derive \
 
 for path in \
   "${TMP_ROOT}/derived/current-effective.md" \
-  "${TMP_ROOT}/derived/attempt-aware/round-1.md" \
-  "${TMP_ROOT}/derived/attempt-aware/round-2.md" \
-  "${TMP_ROOT}/derived/handoff-scoped/sample-r1-a1.md" \
-  "${TMP_ROOT}/derived/handoff-scoped/sample-r2-a1.md"
+  "${TMP_ROOT}/derived/round-scoped/round-1.md" \
+  "${TMP_ROOT}/derived/round-scoped/round-2.md"
 do
   if [ ! -f "$path" ]; then
     echo "missing derived view: $path"
@@ -173,24 +172,34 @@ do
   fi
 done
 
-if ! rg -q "sample-r2-a1" "${TMP_ROOT}/derived/current-effective.md"; then
+if ! rg -q "commits/sample-a2" "${TMP_ROOT}/derived/current-effective.md"; then
   echo "current-effective view did not include the latest handoff"
   exit 1
 fi
 
-if rg -q "sample-r1-a1" "${TMP_ROOT}/derived/current-effective.md"; then
+if rg -q "## Current Frontier: round 1" "${TMP_ROOT}/derived/current-effective.md"; then
   echo "current-effective view still included a stale handoff"
   exit 1
 fi
 
-if rg -q "Round 1" "${TMP_ROOT}/derived/current-effective.md"; then
+if ! rg -q "Addressed Prior Review Result" "${TMP_ROOT}/derived/current-effective.md"; then
+  echo "current-effective view did not include the addressed prior review result"
+  exit 1
+fi
+
+if rg -q "Current Frontier: round 1" "${TMP_ROOT}/derived/current-effective.md"; then
   echo "current-effective view still included stale round sections"
   exit 1
 fi
 
-HANDOFF_COUNT="$(rg -c "^handoff_id: sample-r2-a1$" "${TMP_ROOT}/derived/handoff-scoped/sample-r2-a1.md")"
-if [ "${HANDOFF_COUNT}" -ne 2 ]; then
-  echo "handoff-scoped view should contain exactly one handoff block plus one matching review result"
+ROUND_BLOCK_COUNT="$(rg -c "^kind: review_" "${TMP_ROOT}/derived/round-scoped/round-2.md")"
+if [ "${ROUND_BLOCK_COUNT}" -ne 2 ]; then
+  echo "round-scoped view should contain exactly one handoff block plus one matching review result"
+  exit 1
+fi
+
+if rg -q "^review_result_id: review-task-sample-r1$" "${TMP_ROOT}/derived/round-scoped/round-2.md"; then
+  echo "round-scoped view should not inline the prior review result block from another round"
   exit 1
 fi
 
@@ -209,9 +218,18 @@ if rg -q "continue_design_repair" "${STALE_MATCH_OUT}/current-effective.md"; the
   exit 1
 fi
 
-MATCHING_RESULT_COUNT="$(rg -c "^handoff_id: design-r1-a1$" "${STALE_MATCH_OUT}/handoff-scoped/design-r1-a1.md")"
-if [ "${MATCHING_RESULT_COUNT}" -ne 3 ]; then
-  echo "handoff-scoped view must contain the handoff block plus all matching review results in append order"
+if [ ! -f "${STALE_MATCH_OUT}/round-scoped/round-1.md" ]; then
+  echo "planning derive did not materialize the round-scoped view"
+  exit 1
+fi
+
+if [ ! -f "${STALE_MATCH_OUT}/attempt-aware/round-1.md" ]; then
+  echo "planning derive did not materialize the attempt-aware view"
+  exit 1
+fi
+
+if [ ! -f "${STALE_MATCH_OUT}/handoff-scoped/design-r1-a1.md" ]; then
+  echo "planning derive did not materialize the handoff-scoped view"
   exit 1
 fi
 
@@ -229,7 +247,7 @@ python3 plugins/forgeloop/scripts/anchor_slices.py derive \
   --doc tests/fixtures/anchor-slicing/task-review-sample.md \
   --out "${INVALIDATION_OUT}"
 
-if ! rg -q "sample-r2-a1" "${INVALIDATION_OUT}/current-effective.md"; then
+if ! rg -q "commits/sample-a2" "${INVALIDATION_OUT}/current-effective.md"; then
   echo "initial invalidation probe did not materialize the expected current handoff"
   exit 1
 fi
@@ -238,17 +256,22 @@ python3 plugins/forgeloop/scripts/anchor_slices.py derive \
   --doc tests/fixtures/anchor-slicing/task-review-sample-appended.md \
   --out "${INVALIDATION_OUT}"
 
-if ! rg -q "sample-r3-a1" "${INVALIDATION_OUT}/current-effective.md"; then
+if ! rg -q "commits/sample-a3" "${INVALIDATION_OUT}/current-effective.md"; then
   echo "rebuild after append did not promote the new current handoff"
   exit 1
 fi
 
-if rg -q "sample-r2-a1" "${INVALIDATION_OUT}/current-effective.md"; then
-  echo "rebuild after append left a stale current-effective frontier on disk"
+if ! rg -q "## Current Frontier: round 3" "${INVALIDATION_OUT}/current-effective.md"; then
+  echo "rebuild after append did not advance the current-effective frontier to round 3"
   exit 1
 fi
 
-if [ ! -f "${INVALIDATION_OUT}/attempt-aware/round-3.md" ]; then
+if ! rg -q "review_target_ref: commits/sample-a3" "${INVALIDATION_OUT}/current-effective.md"; then
+  echo "rebuild after append did not expose the new current handoff target"
+  exit 1
+fi
+
+if [ ! -f "${INVALIDATION_OUT}/round-scoped/round-3.md" ]; then
   echo "rebuild after append did not materialize the new round-scoped derived view"
   exit 1
 fi
@@ -290,7 +313,7 @@ then
   exit 1
 fi
 
-if [ -e "${STALE_OUT}/current-effective.md" ] || [ -d "${STALE_OUT}/attempt-aware" ] || [ -d "${STALE_OUT}/handoff-scoped" ]; then
+if [ -e "${STALE_OUT}/current-effective.md" ] || [ -d "${STALE_OUT}/round-scoped" ] || [ -d "${STALE_OUT}/handoff-scoped" ] || [ -d "${STALE_OUT}/attempt-aware" ]; then
   echo "failed derive left stale derived views on disk"
   exit 1
 fi
@@ -320,10 +343,10 @@ then
 fi
 
 if python3 plugins/forgeloop/scripts/anchor_slices.py derive \
-  --doc tests/fixtures/anchor-slicing/task-review-missing-round-coder-update.md \
-  --out "${TMP_ROOT}/missing-round-coder-update"
+  --doc tests/fixtures/anchor-slicing/task-review-missing-author-role-handoff.md \
+  --out "${TMP_ROOT}/missing-author-role-handoff"
 then
-  echo "missing-round-coder-update fixture unexpectedly derived successfully"
+  echo "missing-author-role-handoff fixture unexpectedly derived successfully"
   exit 1
 fi
 
@@ -368,10 +391,10 @@ then
 fi
 
 if python3 plugins/forgeloop/scripts/anchor_slices.py derive \
-  --doc tests/fixtures/anchor-slicing/task-review-missing-author-role-coder-update.md \
-  --out "${TMP_ROOT}/missing-author-role-coder-update"
+  --doc tests/fixtures/anchor-slicing/task-review-missing-author-role-result.md \
+  --out "${TMP_ROOT}/missing-author-role-result"
 then
-  echo "missing-author-role-coder-update fixture unexpectedly derived successfully"
+  echo "missing-author-role-result fixture unexpectedly derived successfully"
   exit 1
 fi
 

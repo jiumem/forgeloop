@@ -23,7 +23,7 @@ round: 2
 <!-- forgeloop:anchor next-action -->
 ```forgeloop
 kind: next_action
-action: continue_task_coder_round
+action: continue_coder_round
 blocking_reason: null
 updated_at: 2026-03-31T10:30:00Z
 ```
@@ -32,7 +32,7 @@ updated_at: 2026-03-31T10:30:00Z
 ```forgeloop
 kind: last_transition
 updated_at: 2026-03-31T10:30:00Z
-from_action: enter_r1
-to_action: continue_task_coder_round
+from_action: enter_review
+to_action: continue_coder_round
 reason: reviewer_requested_same_task_repair
 ```

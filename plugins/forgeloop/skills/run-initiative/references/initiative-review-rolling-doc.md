@@ -3,95 +3,148 @@
 <!-- forgeloop:anchor purpose -->
 ## Purpose
 
-`Initiative Review Rolling Doc` is the only append-only formal collaboration surface for one Initiative delivery loop.
+`Initiative Review Rolling Doc` is the only append-only formal review surface for one Initiative delivery loop.
 
-It carries:
+It carries only:
 
 - Initiative identity and continuity
-- Initiative delivery contract snapshot
-- coder `G3` facts
-- current Initiative review handoff
-- `R3` results
+- Initiative review contract snapshot
+- one coder-authored `review_handoff` per round when an Initiative candidate is formally ready for review
+- one reviewer-authored `review_result` per round
+
+It does not carry coder progress logs, gate attempt logs, navigation indexes, or evidence catalogs.
 
 <!-- forgeloop:anchor legal-machine-blocks -->
 ## Legal Machine Blocks
 
-- `initiative_review_header`
-- `initiative_contract_snapshot`
-- `coder_update`
-- `g3_result`
-- `r3_result`
+- `review_header`
+- `review_contract_snapshot`
+- `review_handoff`
+- `review_result`
 
 Header and contract snapshot are initialized once. All later formal facts append only.
 
-<!-- forgeloop:anchor canonical-initiative-vocabulary -->
-## Canonical Initiative Vocabulary
+<!-- forgeloop:anchor header-law -->
+## Header Law
 
-- `g3_result.next_action` must be one of:
-  - `continue_initiative_repair`
-  - `objectize_task_repair`
-  - `enter_r3`
-  - `wait_for_user`
-  - `stop_on_blocker`
-- `r3_result.next_action` must be one of:
-  - `continue_initiative_repair`
-  - `objectize_task_repair`
-  - `mark_initiative_delivered`
-  - `wait_for_user`
-  - `stop_on_blocker`
+`review_header` must include:
 
-<!-- forgeloop:anchor handoff-law -->
-## Handoff Law
+- `object_type: initiative`
+- `schema_version: 2`
+- `initiative_key`
+- `coder_slot`
+- `created_at`
 
-- The current handoff is the latest `g3_result` in the current round whose `next_action=enter_r3`.
-- `R3` is actionable only when `round`, `handoff_id`, and `review_target_ref` match that handoff exactly.
-- If multiple matching results exist, only the latest one is actionable.
-- Every `g3_result` that opens reviewer handoff must include `handoff_id`, `review_target_ref`, and `compare_base_ref`.
-- `review_target_ref` names the Initiative delivery candidate being judged for the current handoff.
-- `compare_base_ref` names the baseline the reviewer should compare against when judging that Initiative candidate.
+`review_contract_snapshot` is the smallest durable Initiative review contract snapshot. It may summarize goal, `milestone_scope`, success criteria, and other static Initiative-local review truth, but it must not become a reviewer bootstrap dossier.
 
-<!-- forgeloop:anchor compare-base-law -->
-## Compare Base Law
+<!-- forgeloop:anchor round-shape-law -->
+## Round Shape Law
 
-- The first Initiative handoff in one round must set `compare_base_ref` to the baseline that immediately preceded that round's Initiative delivery candidate.
-- A later same-round Initiative handoff must keep the same `compare_base_ref`; same-round Initiative review stays cumulative unless the supervisor formally opens a new round.
-- When `R3` requests same-Initiative repair and the supervisor opens the next round, the new round's first Initiative handoff must set `compare_base_ref` to the previous round's latest reviewed `review_target_ref`.
-- Do not change `compare_base_ref` mid-round just because a later Milestone repair, a broader branch diff, or a wider workspace state exists.
+Every Initiative round has at most:
 
-<!-- forgeloop:anchor latest-matching-result-law -->
-## Latest Matching Result Law
+- one `review_handoff`
+- one `review_result`
 
-- If multiple `r3_result` blocks exist, only the latest appended result whose `round`, `handoff_id`, and `review_target_ref` match the current handoff is actionable.
-- Older matching results remain history and must not be treated as current.
-- A mismatched or stale `r3_result` does not close the round.
+Same-round supersede is illegal.
+
+If new coder work is required after one `review_result`, the supervisor opens the next round in the `Global State Doc` first.
+
+Do not append a second same-round `review_handoff` or `review_result`.
+
+<!-- forgeloop:anchor review-handoff-law -->
+## Review Handoff Law
+
+`review_handoff` is the only coder-owned reviewer-entry block in this doc.
+
+It must include:
+
+- `kind`
+- `round`
+- `author_role: coder`
+- `created_at`
+- `review_target_ref`
+- `compare_base_ref`
+- `summary`
+- `evidence_refs`
+
+It may additionally include:
+
+- `addresses_review_result_id`
+
+The current Initiative handoff is the latest `review_handoff` in the current round.
+
+<!-- forgeloop:anchor review-result-law -->
+## Review Result Law
+
+`review_result` is the only reviewer-owned formal result block in this doc.
+
+It must include:
+
+- `kind`
+- `review_result_id`
+- `round`
+- `author_role: reviewer`
+- `created_at`
+- `review_target_ref`
+- `verdict`
+- `delivery_readiness`
+- `release_safety`
+- `evidence_adequacy`
+- `residual_risks`
+- `open_issues`
+- `next_action`
+- `required_follow_ups`
+- `findings`
+
+`review_result.next_action` must be one of:
+
+- `continue_initiative_repair`
+- `mark_initiative_delivered`
+- `wait_for_user`
+- `stop_on_blocker`
+
+`review_result` is actionable only when:
+
+- its `round` matches the current round
+- its `review_target_ref` matches the current round's `review_handoff.review_target_ref`
+
+One Initiative round closes only when its `review_result` exists.
+
+<!-- forgeloop:anchor previous-review-law -->
+## Previous Review Law
+
+Initiative repair history should be linked minimally:
+
+- use `review_handoff.addresses_review_result_id` to point at the exact prior reviewer judgment being addressed
+- do not create run-id chains, history indexes, or replay ledgers inside this doc
 
 <!-- forgeloop:anchor derived-view-usage -->
 ## Recommended Derived-View Usage
 
-- `current-effective` should expose only the current Initiative handoff plus the latest matching `r3_result`.
-- `handoff-scoped/<handoff_id>.md` is the preferred hot-path helper for fresh `R3` entry when the authoritative rolling doc ref is still bound explicitly in the packet.
-- `attempt-aware/round-<n>.md` is the preferred hot-path helper for same-Initiative round recovery.
-- For Initiative review, the default delivery delta is `compare_base_ref .. review_target_ref` from the current handoff.
-- Current workspace diff may help explain a blocker, but it is not the default Initiative review surface.
-- Derived views are hot-path helpers only. If any view is missing, stale, or conflicts with the authoritative rolling doc, invalidate it and reread the rolling doc.
+- `current-effective` should expose only the latest round's `review_handoff`, the same round's `review_result` when present, and the addressed prior `review_result` when the handoff links one
+- `round-scoped/round-<n>.md` is the preferred hot-path helper for one complete Initiative round
+- current workspace diff may help explain a blocker, but it is not the default Initiative review surface
+- derived views are hot-path helpers only; if any view is missing, stale, or conflicts with the authoritative rolling doc, invalidate it and reread the rolling doc
 
 <!-- forgeloop:anchor recommended-template -->
 ## Recommended Template
 
-- `r3_result` field structure is owned by `plugins/forgeloop/agents/initiative_reviewer.toml`; this template is only an aligned example.
+- `review_result` field structure is owned by `plugins/forgeloop/agents/initiative_reviewer.toml`; this template is only an aligned example.
 
 ````markdown
 # Initiative Review Rolling Doc: day7-first-situation-closure
 
 ```forgeloop
-kind: initiative_review_header
+kind: review_header
+object_type: initiative
+schema_version: 2
 initiative_key: day7-first-situation-closure
 coder_slot: coder
 created_at: 2026-03-30T10:00:00Z
 ```
 
 ```forgeloop
-kind: initiative_contract_snapshot
+kind: review_contract_snapshot
 goal: Deliver the first blessed reply-only Day 7 path.
 milestone_scope:
   - D7FS-M1
@@ -103,30 +156,23 @@ success_criteria:
 ```
 
 ```forgeloop
-kind: g3_result
+kind: review_handoff
 round: 1
 author_role: coder
 created_at: 2026-03-30T12:00:00Z
-verdict: pass
-next_action: enter_r3
-handoff_id: init-day7-r1-h1
 review_target_ref: initiative-rounds/day7/r1
 compare_base_ref: initiative-rounds/day7/r0
-milestones:
-  - milestone-review/D7FS-M1.md
-  - milestone-review/D7FS-M2.md
-  - milestone-review/D7FS-M3.md
-  - milestone-review/D7FS-M4.md
+summary: Ready for Initiative review after composing milestone evidence into one delivery candidate.
 evidence_refs:
   - local://g3-output/day7-r1.txt
 ```
 
 ```forgeloop
-kind: r3_result
+kind: review_result
+review_result_id: review-init-day7-r1
 round: 1
 author_role: reviewer
 created_at: 2026-03-30T12:30:00Z
-handoff_id: init-day7-r1-h1
 review_target_ref: initiative-rounds/day7/r1
 verdict: clean
 delivery_readiness: pass
@@ -145,7 +191,7 @@ findings: []
 
 When the rolling doc does not yet exist:
 
-- initialize only `initiative_review_header` and `initiative_contract_snapshot`
+- initialize only `review_header` and `review_contract_snapshot`
 - write `coder_slot=coder` into the header
 - let the `Global State Doc` carry `round=1`
-- do not append fake `g3_result` or `r3_result` blocks during cold start
+- do not append fake `review_handoff` or `review_result` blocks during cold start

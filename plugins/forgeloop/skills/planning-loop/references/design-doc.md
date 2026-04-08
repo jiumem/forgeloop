@@ -9,6 +9,7 @@
 - 主要目的：为当前 Initiative 定义目标态、范围边界与关键结构裁决
 
 这份文档不是迁移账本，不是任务计划，也不是实现教程。
+文档是否进入评审、修复、或 sealed lifecycle，以 rolling doc 为准。
 
 <!-- forgeloop:anchor questions-this-doc-must-answer -->
 ## 这份文档必须回答什么

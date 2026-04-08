@@ -46,6 +46,36 @@ import re
 from pathlib import Path
 
 scenarios = json.loads(Path("tests/codex/token-benchmark/fixtures/scenarios.json").read_text())
+run_initiative_text = Path("plugins/forgeloop/skills/run-initiative/SKILL.md").read_text()
+
+frontier_priority_marker = "- frontier selection when `current_snapshot.active_plane=frontier` or `next_action.action=select_next_ready_object`"
+task_priority_marker = "- task-mode code loop when a Task is clearly active"
+task_next_ready_legacy = "task-mode code loop when a Task is clearly active or next-ready"
+frontier_apply_marker = (
+    "- if `current_snapshot.active_plane=frontier` or `next_action.action=select_next_ready_object`: "
+    "resolve the next ready object from the admitted planning document set plus authoritative runtime rolling docs; "
+    "container forcing applies here first. Do not short-circuit directly into Task mode merely because one next-ready Task exists."
+)
+
+if task_next_ready_legacy in run_initiative_text:
+    raise SystemExit(
+        "runtime packet lint: run-initiative still allows next-ready Task to bypass frontier/container forcing"
+    )
+
+frontier_priority_index = run_initiative_text.find(frontier_priority_marker)
+task_priority_index = run_initiative_text.find(task_priority_marker)
+if frontier_priority_index == -1 or task_priority_index == -1:
+    raise SystemExit("runtime packet lint: run-initiative is missing frontier/task routing markers")
+if frontier_priority_index > task_priority_index:
+    raise SystemExit(
+        "runtime packet lint: frontier/container forcing must be routed before task-mode direct dispatch"
+    )
+
+if frontier_apply_marker not in run_initiative_text:
+    raise SystemExit(
+        "runtime packet lint: run-initiative apply-case is missing the explicit frontier/container-forcing law"
+    )
+
 targets = {
     "Same-Task Same-Round Coder Continue",
     "Same-Task Handoff To Fresh Reviewer",
@@ -98,16 +128,15 @@ reviewer_requirements = {
             ("docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "acceptance-matrix/task-acceptance-index/asdo-t5"),
             ("docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "acceptance-matrix/evidence-entrypoints"),
         },
-        "required_view": ("tests/fixtures/anchor-slicing/task-review-sample.md", "handoff-scoped/sample-r2-a1.md"),
+        "required_view": ("tests/fixtures/anchor-slicing/task-review-sample.md", "current-effective.md"),
         "required_header_fields": {
             "initiative_key": "anchor-sliced-dispatch-optimization",
             "milestone_key": "ASDO-M2",
             "task_key": "ASDO-T5",
         },
         "required_handoff_fields": {
-            "kind": "anchor_ref",
+            "kind": "review_handoff",
             "round": "2",
-            "handoff_id": "sample-r2-a1",
             "review_target_ref": "commits/sample-a2",
             "compare_base_ref": "commits/sample-a1",
         },
@@ -119,15 +148,14 @@ reviewer_requirements = {
             ("docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "acceptance-matrix/milestone-acceptance-index/asdo-m2"),
             ("docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "acceptance-matrix/evidence-entrypoints"),
         },
-        "required_view": ("tests/codex/token-benchmark/fixtures/milestone-review-sample.md", "handoff-scoped/ms-asdo-m2-r1-h1.md"),
+        "required_view": ("tests/codex/token-benchmark/fixtures/milestone-review-sample.md", "current-effective.md"),
         "required_header_fields": {
             "initiative_key": "anchor-sliced-dispatch-optimization",
             "milestone_key": "ASDO-M2",
         },
         "required_handoff_fields": {
-            "kind": "g2_result",
+            "kind": "review_handoff",
             "round": "1",
-            "handoff_id": "ms-asdo-m2-r1-h1",
             "review_target_ref": "milestone-rounds/asdo-m2/r1",
             "compare_base_ref": "milestone-rounds/asdo-m2/r0",
         },
@@ -138,14 +166,13 @@ reviewer_requirements = {
             ("docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "acceptance-matrix/initiative-acceptance-index/ic-5"),
             ("docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "acceptance-matrix/evidence-entrypoints"),
         },
-        "required_view": ("tests/codex/token-benchmark/fixtures/initiative-review-sample.md", "handoff-scoped/init-asdo-r1-h1.md"),
+        "required_view": ("tests/codex/token-benchmark/fixtures/initiative-review-sample.md", "current-effective.md"),
         "required_header_fields": {
             "initiative_key": "anchor-sliced-dispatch-optimization",
         },
         "required_handoff_fields": {
-            "kind": "g3_result",
+            "kind": "review_handoff",
             "round": "1",
-            "handoff_id": "init-asdo-r1-h1",
             "review_target_ref": "initiative-rounds/asdo/r1",
             "compare_base_ref": "initiative-rounds/asdo/r0",
         },
@@ -191,7 +218,7 @@ for scenario in scenarios:
     }
     if requirements["required_view"] not in views:
         raise SystemExit(
-            f"runtime packet lint: reviewer minimal packet missing required handoff-scoped view in scenario {scenario['name']}: {requirements['required_view']}"
+            f"runtime packet lint: reviewer minimal packet missing required review-cycle view in scenario {scenario['name']}: {requirements['required_view']}"
         )
     fixture_path = Path(requirements["required_view"][0])
     fixture_text = fixture_path.read_text()

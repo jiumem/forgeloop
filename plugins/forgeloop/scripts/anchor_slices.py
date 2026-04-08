@@ -106,11 +106,18 @@ ACTIVE_TOTAL_TASK_DOC_REQUIRED_SELECTORS = frozenset(
 )
 FIELD_PATTERNS = {
     "kind": re.compile(r"^kind:\s*(.+?)\s*$"),
+    "object_type": re.compile(r"^object_type:\s*(.+?)\s*$"),
+    "schema_version": re.compile(r"^schema_version:\s*(.+?)\s*$"),
     "round": re.compile(r"^round:\s*(.+?)\s*$"),
     "handoff_id": re.compile(r"^handoff_id:\s*(.+?)\s*$"),
+    "review_result_id": re.compile(r"^review_result_id:\s*(.+?)\s*$"),
+    "addresses_review_result_id": re.compile(r"^addresses_review_result_id:\s*(.+?)\s*$"),
     "review_target_ref": re.compile(r"^review_target_ref:\s*(.+?)\s*$"),
     "compare_base_ref": re.compile(r"^compare_base_ref:\s*(.+?)\s*$"),
+    "summary": re.compile(r"^summary:\s*(.+?)\s*$"),
+    "evidence_refs": re.compile(r"^evidence_refs:\s*(.*?)\s*$"),
     "next_action": re.compile(r"^next_action:\s*(.+?)\s*$"),
+    "blocking_reason": re.compile(r"^blocking_reason:\s*(.+?)\s*$"),
     "verdict": re.compile(r"^verdict:\s*(.+?)\s*$"),
     "requirement_fit": re.compile(r"^requirement_fit:\s*(.+?)\s*$"),
     "boundary_correctness": re.compile(r"^boundary_correctness:\s*(.+?)\s*$"),
@@ -152,7 +159,7 @@ FIELD_PATTERNS = {
     "author_role": re.compile(r"^author_role:\s*(.+?)\s*$"),
     "created_at": re.compile(r"^created_at:\s*(.+?)\s*$"),
 }
-PRESENCE_ONLY_FIELDS = frozenset({"residual_risks", "required_follow_ups", "open_issues", "findings"})
+PRESENCE_ONLY_FIELDS = frozenset({"evidence_refs", "residual_risks", "required_follow_ups", "open_issues", "findings"})
 
 
 @dataclasses.dataclass
@@ -290,158 +297,21 @@ BLOCK_SPECS = {
         ),
         author_role="reviewer",
     ),
-    "task_review_header": BlockSpec(
-        required_fields=frozenset({"initiative_key", "milestone_key", "task_key", "coder_slot", "created_at"})
+    "review_header": BlockSpec(
+        required_fields=frozenset({"object_type", "schema_version", "initiative_key", "coder_slot", "created_at"})
     ),
-    "task_contract_snapshot": BlockSpec(),
-    "coder_update": BlockSpec(required_fields=frozenset({"round", "author_role", "created_at"}), author_role="coder"),
-    "g1_result": BlockSpec(
-        required_fields=frozenset({"round", "author_role", "created_at", "verdict", "next_action"}),
-        author_role="coder",
-        next_actions=frozenset(
-            {
-                "continue_task_coder_round",
-                "request_reviewer_handoff",
-                "wait_for_user",
-                "stop_on_blocker",
-            }
-        ),
-    ),
-    "anchor_ref": BlockSpec(
+    "review_contract_snapshot": BlockSpec(),
+    "review_handoff": BlockSpec(
         required_fields=frozenset(
-            {"round", "author_role", "created_at", "handoff_id", "review_target_ref", "compare_base_ref"}
+            {"round", "author_role", "created_at", "review_target_ref", "compare_base_ref"}
         ),
         author_role="coder",
     ),
-    "fixup_ref": BlockSpec(
+    "review_result": BlockSpec(
         required_fields=frozenset(
-            {"round", "author_role", "created_at", "handoff_id", "review_target_ref", "compare_base_ref"}
-        ),
-        author_role="coder",
-    ),
-    "r1_result": BlockSpec(
-        required_fields=frozenset(
-            {
-                "round",
-                "author_role",
-                "created_at",
-                "handoff_id",
-                "review_target_ref",
-                "verdict",
-                "functional_correctness",
-                "validation_adequacy",
-                "local_structure_convergence",
-                "local_regression_risk",
-                "open_issues",
-                "next_action",
-                "findings",
-            }
+            {"review_result_id", "round", "author_role", "created_at", "review_target_ref", "verdict", "next_action"}
         ),
         author_role="reviewer",
-        next_actions=frozenset(
-            {
-                "continue_task_repair",
-                "return_to_source_object",
-                "select_next_ready_object",
-                "task_done",
-                "escalate_to_milestone",
-                "wait_for_user",
-                "stop_on_blocker",
-            }
-        ),
-    ),
-    "milestone_review_header": BlockSpec(
-        required_fields=frozenset({"initiative_key", "milestone_key", "coder_slot", "created_at"})
-    ),
-    "milestone_contract_snapshot": BlockSpec(),
-    "g2_result": BlockSpec(
-        required_fields=frozenset({"round", "author_role", "created_at", "verdict", "next_action"}),
-        author_role="coder",
-        next_actions=frozenset(
-            {
-                "continue_milestone_repair",
-                "objectize_task_repair",
-                "enter_r2",
-                "wait_for_user",
-                "stop_on_blocker",
-            }
-        ),
-    ),
-    "r2_result": BlockSpec(
-        required_fields=frozenset(
-            {
-                "round",
-                "author_role",
-                "created_at",
-                "handoff_id",
-                "review_target_ref",
-                "verdict",
-                "stage_structure_convergence",
-                "mainline_merge_safety",
-                "evidence_adequacy",
-                "residual_risks",
-                "open_issues",
-                "next_action",
-                "required_follow_ups",
-                "findings",
-            }
-        ),
-        author_role="reviewer",
-        next_actions=frozenset(
-            {
-                "continue_milestone_repair",
-                "objectize_task_repair",
-                "enter_initiative_review",
-                "select_next_ready_object",
-                "wait_for_user",
-                "stop_on_blocker",
-            }
-        ),
-    ),
-    "initiative_review_header": BlockSpec(required_fields=frozenset({"initiative_key", "coder_slot", "created_at"})),
-    "initiative_contract_snapshot": BlockSpec(),
-    "g3_result": BlockSpec(
-        required_fields=frozenset({"round", "author_role", "created_at", "verdict", "next_action"}),
-        author_role="coder",
-        next_actions=frozenset(
-            {
-                "continue_initiative_repair",
-                "objectize_task_repair",
-                "enter_r3",
-                "wait_for_user",
-                "stop_on_blocker",
-            }
-        ),
-    ),
-    "r3_result": BlockSpec(
-        required_fields=frozenset(
-            {
-                "round",
-                "author_role",
-                "created_at",
-                "handoff_id",
-                "review_target_ref",
-                "verdict",
-                "delivery_readiness",
-                "release_safety",
-                "evidence_adequacy",
-                "residual_risks",
-                "open_issues",
-                "next_action",
-                "required_follow_ups",
-                "findings",
-            }
-        ),
-        author_role="reviewer",
-        next_actions=frozenset(
-            {
-                "continue_initiative_repair",
-                "objectize_task_repair",
-                "mark_initiative_delivered",
-                "wait_for_user",
-                "stop_on_blocker",
-            }
-        ),
     ),
 }
 
@@ -465,25 +335,25 @@ MODE_SPECS = {
         result_kinds=frozenset({"design_review_result", "gap_review_result", "total_task_doc_review_result"}),
     ),
     "task": RollingDocModeSpec(
-        header_kind="task_review_header",
-        snapshot_kinds=frozenset({"task_contract_snapshot"}),
-        round_scoped_kinds=frozenset({"coder_update", "g1_result", "anchor_ref", "fixup_ref", "r1_result"}),
-        handoff_kinds=frozenset({"anchor_ref", "fixup_ref"}),
-        result_kinds=frozenset({"r1_result"}),
+        header_kind="review_header",
+        snapshot_kinds=frozenset({"review_contract_snapshot"}),
+        round_scoped_kinds=frozenset({"review_handoff", "review_result"}),
+        handoff_kinds=frozenset({"review_handoff"}),
+        result_kinds=frozenset({"review_result"}),
     ),
     "milestone": RollingDocModeSpec(
-        header_kind="milestone_review_header",
-        snapshot_kinds=frozenset({"milestone_contract_snapshot"}),
-        round_scoped_kinds=frozenset({"coder_update", "g2_result", "r2_result"}),
-        handoff_kinds=frozenset({"g2_result"}),
-        result_kinds=frozenset({"r2_result"}),
+        header_kind="review_header",
+        snapshot_kinds=frozenset({"review_contract_snapshot"}),
+        round_scoped_kinds=frozenset({"review_handoff", "review_result"}),
+        handoff_kinds=frozenset({"review_handoff"}),
+        result_kinds=frozenset({"review_result"}),
     ),
     "initiative": RollingDocModeSpec(
-        header_kind="initiative_review_header",
-        snapshot_kinds=frozenset({"initiative_contract_snapshot"}),
-        round_scoped_kinds=frozenset({"coder_update", "g3_result", "r3_result"}),
-        handoff_kinds=frozenset({"g3_result"}),
-        result_kinds=frozenset({"r3_result"}),
+        header_kind="review_header",
+        snapshot_kinds=frozenset({"review_contract_snapshot"}),
+        round_scoped_kinds=frozenset({"review_handoff", "review_result"}),
+        handoff_kinds=frozenset({"review_handoff"}),
+        result_kinds=frozenset({"review_result"}),
     ),
 }
 
@@ -768,7 +638,13 @@ def print_slice(doc: pathlib.Path, selector: str) -> int:
 
 
 def detect_mode(blocks: list[ForgeloopBlock]) -> str:
-    header_kind = next((block.fields.get("kind") for block in blocks if block.fields.get("kind", "").endswith("_header")), "")
+    header_block = next((block for block in blocks if block.fields.get("kind", "").endswith("_header")), None)
+    header_kind = header_block.fields.get("kind", "") if header_block else ""
+    if header_kind == "review_header":
+        object_type = header_block.fields.get("object_type", "").strip() if header_block else ""
+        if object_type in {"task", "milestone", "initiative"}:
+            return object_type
+        raise ValueError("runtime review_header missing legal object_type")
     for mode, spec in MODE_SPECS.items():
         if header_kind == spec.header_kind:
             return mode
@@ -778,16 +654,7 @@ def detect_mode(blocks: list[ForgeloopBlock]) -> str:
 def is_handoff_block(mode: str, fields: dict[str, str]) -> bool:
     spec = MODE_SPECS[mode]
     kind = fields.get("kind")
-    next_action = fields.get("next_action")
-    if kind not in spec.handoff_kinds:
-        return False
-    if mode in {"planning", "task"}:
-        return True
-    if mode == "milestone":
-        return next_action == "enter_r2"
-    if mode == "initiative":
-        return next_action == "enter_r3"
-    return False
+    return kind in spec.handoff_kinds
 
 
 def is_result_block(mode: str, fields: dict[str, str]) -> bool:
@@ -878,6 +745,106 @@ def validate_block_schema(doc: pathlib.Path, blocks: list[ForgeloopBlock], mode:
         raise ValueError(f"{doc}: malformed author_role values: {'; '.join(role_violations)}")
     if next_action_violations:
         raise ValueError(f"{doc}: malformed next_action values: {'; '.join(next_action_violations)}")
+    if mode in {"task", "milestone", "initiative"}:
+        header = next(block for block in blocks if block.fields.get("kind") == "review_header")
+        header_violations: list[str] = []
+        if header.fields.get("object_type", "").strip() != mode:
+            header_violations.append(f"object_type={header.fields.get('object_type', '')!r} expected {mode!r}")
+        if header.fields.get("schema_version", "").strip() != "2":
+            header_violations.append(
+                f"schema_version={header.fields.get('schema_version', '')!r} expected '2'"
+            )
+        if mode in {"task", "milestone"} and not has_real_tuple_value(header.fields.get("milestone_key")):
+            header_violations.append("missing milestone_key")
+        if mode == "task" and not has_real_tuple_value(header.fields.get("task_key")):
+            header_violations.append("missing task_key")
+        if header_violations:
+            raise ValueError(f"{doc}: malformed review_header: {', '.join(header_violations)}")
+        validate_runtime_review_schema(doc, blocks, mode)
+
+
+def validate_runtime_review_schema(doc: pathlib.Path, blocks: list[ForgeloopBlock], mode: str) -> None:
+    result_required_by_mode = {
+        "task": frozenset(
+            {
+                "functional_correctness",
+                "validation_adequacy",
+                "local_structure_convergence",
+                "local_regression_risk",
+                "open_issues",
+                "findings",
+            }
+        ),
+        "milestone": frozenset(
+            {
+                "stage_structure_convergence",
+                "mainline_merge_safety",
+                "evidence_adequacy",
+                "residual_risks",
+                "open_issues",
+                "required_follow_ups",
+                "findings",
+            }
+        ),
+        "initiative": frozenset(
+            {
+                "delivery_readiness",
+                "release_safety",
+                "evidence_adequacy",
+                "residual_risks",
+                "open_issues",
+                "required_follow_ups",
+                "findings",
+            }
+        ),
+    }
+    next_actions_by_mode = {
+        "task": frozenset(
+            {
+                "continue_task_repair",
+                "select_next_ready_object",
+                "task_done",
+                "escalate_to_milestone",
+                "wait_for_user",
+                "stop_on_blocker",
+            }
+        ),
+        "milestone": frozenset(
+            {
+                "continue_milestone_repair",
+                "enter_initiative_review",
+                "select_next_ready_object",
+                "wait_for_user",
+                "stop_on_blocker",
+            }
+        ),
+        "initiative": frozenset(
+            {
+                "continue_initiative_repair",
+                "mark_initiative_delivered",
+                "wait_for_user",
+                "stop_on_blocker",
+            }
+        ),
+    }
+    violations: list[str] = []
+    for block in blocks:
+        kind = block.fields.get("kind")
+        if kind == "review_handoff":
+            for field in ("summary", "evidence_refs"):
+                if not has_real_tuple_value(block.fields.get(field)):
+                    violations.append(f"review_handoff@{block.start_line} missing {field}")
+        if kind == "review_result":
+            missing = [
+                field for field in sorted(result_required_by_mode[mode]) if not has_real_tuple_value(block.fields.get(field))
+            ]
+            if missing:
+                violations.append(f"review_result@{block.start_line} missing {','.join(missing)}")
+            next_action = block.fields.get("next_action", "").strip()
+            if next_action and next_action not in next_actions_by_mode[mode]:
+                violations.append(f"review_result@{block.start_line} next_action={next_action}")
+    if violations:
+        raise ValueError(f"{doc}: malformed runtime review blocks: {'; '.join(violations)}")
 
 
 def validate_tuple_fields(doc: pathlib.Path, blocks: list[ForgeloopBlock], mode: str) -> None:
@@ -886,10 +853,10 @@ def validate_tuple_fields(doc: pathlib.Path, blocks: list[ForgeloopBlock], mode:
         if not (is_handoff_block(mode, block.fields) or is_result_block(mode, block.fields)):
             continue
         missing = []
-        if not has_real_tuple_value(block.fields.get("handoff_id")):
-            missing.append("handoff_id")
         if not has_real_tuple_value(block.fields.get("review_target_ref")):
             missing.append("review_target_ref")
+        if mode == "planning" and not has_real_tuple_value(block.fields.get("handoff_id")):
+            missing.append("handoff_id")
         if mode in {"task", "milestone", "initiative"} and is_handoff_block(mode, block.fields):
             if not has_real_tuple_value(block.fields.get("compare_base_ref")):
                 missing.append("compare_base_ref")
@@ -901,26 +868,70 @@ def validate_tuple_fields(doc: pathlib.Path, blocks: list[ForgeloopBlock], mode:
         raise ValueError(f"{doc}: malformed block fields: {'; '.join(violations)}")
 
 
-def block_tuple(block: ForgeloopBlock) -> tuple[str, str, str]:
+def block_tuple(block: ForgeloopBlock, mode: str) -> tuple[str, ...]:
+    if mode == "planning":
+        return (
+            block.fields["round"].strip(),
+            block.fields["handoff_id"].strip(),
+            block.fields["review_target_ref"].strip(),
+        )
     return (
         block.fields["round"].strip(),
-        block.fields["handoff_id"].strip(),
         block.fields["review_target_ref"].strip(),
     )
 
 
 def validate_result_handoff_consistency(doc: pathlib.Path, blocks: list[ForgeloopBlock], mode: str) -> None:
-    handoff_tuples = {block_tuple(block) for block in blocks if is_handoff_block(mode, block.fields)}
+    handoff_tuples = {block_tuple(block, mode) for block in blocks if is_handoff_block(mode, block.fields)}
     violations: list[str] = []
     for block in blocks:
         if not is_result_block(mode, block.fields):
             continue
-        result_tuple = block_tuple(block)
+        result_tuple = block_tuple(block, mode)
         if result_tuple not in handoff_tuples:
             rendered = "/".join(result_tuple)
             violations.append(f"{block.fields.get('kind', 'unknown_kind')}@{block.start_line} has no matching handoff tuple {rendered}")
     if violations:
         raise ValueError(f"{doc}: result/handoff tuple mismatches: {'; '.join(violations)}")
+    if mode in {"task", "milestone", "initiative"}:
+        duplicates: list[str] = []
+        review_result_ids: dict[str, int] = {}
+        round_counts: dict[str, dict[str, int]] = defaultdict(lambda: {"handoff": 0, "result": 0})
+        for block in blocks:
+            kind = block.fields.get("kind")
+            if kind == "review_handoff":
+                round_counts[block.fields["round"].strip()]["handoff"] += 1
+            elif kind == "review_result":
+                round_counts[block.fields["round"].strip()]["result"] += 1
+                review_result_id = block.fields.get("review_result_id", "").strip()
+                if review_result_id in review_result_ids:
+                    duplicates.append(
+                        f"{review_result_id}@{review_result_ids[review_result_id]},{block.start_line}"
+                    )
+                elif review_result_id:
+                    review_result_ids[review_result_id] = block.start_line
+        for round_id, counts in sorted(round_counts.items(), key=lambda item: int(item[0])):
+            if counts["handoff"] > 1:
+                duplicates.append(f"round-{round_id}:multiple-review_handoff")
+            if counts["result"] > 1:
+                duplicates.append(f"round-{round_id}:multiple-review_result")
+        if duplicates:
+            raise ValueError(f"{doc}: illegal runtime review multiplicity: {', '.join(duplicates)}")
+        linkage_violations: list[str] = []
+        known_review_ids = set(review_result_ids)
+        for block in blocks:
+            if block.fields.get("kind") != "review_handoff":
+                continue
+            prior_id = block.fields.get("addresses_review_result_id")
+            if not has_real_tuple_value(prior_id):
+                continue
+            prior_id = prior_id.strip()
+            if prior_id not in known_review_ids:
+                linkage_violations.append(
+                    f"review_handoff@{block.start_line} addresses unknown review_result_id={prior_id}"
+                )
+        if linkage_violations:
+            raise ValueError(f"{doc}: illegal prior-review linkage: {'; '.join(linkage_violations)}")
 
 
 def collect_handoff_blocks(
@@ -933,21 +944,20 @@ def collect_handoff_blocks(
     for block in blocks:
         if not is_handoff_block(mode, block.fields):
             continue
-        handoff_id = block.fields.get("handoff_id")
-        if not handoff_id:
+        index_key = block.fields.get("handoff_id") if mode == "planning" else block.fields.get("round")
+        if not index_key:
             continue
-        if handoff_id in handoff_index:
-            duplicates[handoff_id].append(block.start_line)
-            if len(duplicates[handoff_id]) == 1:
-                duplicates[handoff_id].insert(0, handoff_index[handoff_id].start_line)
+        if index_key in handoff_index:
+            duplicates[index_key].append(block.start_line)
+            if len(duplicates[index_key]) == 1:
+                duplicates[index_key].insert(0, handoff_index[index_key].start_line)
             continue
-        handoff_index[handoff_id] = block
+        handoff_index[index_key] = block
     if duplicates:
         rendered = ", ".join(
-            f"{handoff_id}@{','.join(str(line) for line in lines)}"
-            for handoff_id, lines in sorted(duplicates.items())
+            f"{key}@{','.join(str(line) for line in lines)}" for key, lines in sorted(duplicates.items())
         )
-        raise ValueError(f"{doc}: duplicate handoff_id found among handoff blocks: {rendered}")
+        raise ValueError(f"{doc}: duplicate handoff index found among handoff blocks: {rendered}")
     return handoff_index
 
 
@@ -960,7 +970,7 @@ def reset_derived_dir(out: pathlib.Path) -> None:
     current_effective = out / "current-effective.md"
     if current_effective.exists():
         current_effective.unlink()
-    for child in ("attempt-aware", "handoff-scoped"):
+    for child in ("round-scoped", "attempt-aware", "handoff-scoped"):
         shutil.rmtree(out / child, ignore_errors=True)
 
 
@@ -974,6 +984,11 @@ def derive(doc: pathlib.Path, out: pathlib.Path) -> int:
     grouped = latest_by_round(blocks, mode)
     handoff_index = collect_handoff_blocks(doc, blocks, mode)
     latest_round_data = latest_round(grouped)
+    review_result_index = {
+        block.fields.get("review_result_id", "").strip(): block
+        for block in blocks
+        if block.fields.get("kind") == "review_result" and has_real_tuple_value(block.fields.get("review_result_id"))
+    }
     current_effective_lines = [
         f"# Derived View: {doc.name}",
         "",
@@ -997,15 +1012,11 @@ def derive(doc: pathlib.Path, out: pathlib.Path) -> int:
         )
         current_result = None
         if current_handoff:
-            handoff_id = current_handoff.fields.get("handoff_id")
             review_target_ref = current_handoff.fields.get("review_target_ref")
             for block in reversed(current_round_blocks):
                 if not is_result_block(mode, block.fields):
                     continue
-                if (
-                    block.fields.get("handoff_id") == handoff_id
-                    and block.fields.get("review_target_ref") == review_target_ref
-                ):
+                if block.fields.get("review_target_ref") == review_target_ref:
                     current_result = block
                     break
 
@@ -1027,51 +1038,74 @@ def derive(doc: pathlib.Path, out: pathlib.Path) -> int:
             current_effective_lines.extend(
                 [
                     "",
-                    "### Latest Matching Result",
+                    "### Current Review Result",
                     "",
                     "```forgeloop",
                     current_result.raw,
                     "```",
                 ]
             )
+        if mode in {"task", "milestone", "initiative"} and current_handoff:
+            prior_id = current_handoff.fields.get("addresses_review_result_id", "").strip()
+            if prior_id and prior_id in review_result_index:
+                current_effective_lines.extend(
+                    [
+                        "",
+                        "### Addressed Prior Review Result",
+                        "",
+                        "```forgeloop",
+                        review_result_index[prior_id].raw,
+                        "```",
+                    ]
+                )
         current_effective_lines.append("")
 
         for round_id, round_blocks in grouped.items():
             round_lines = [
-                f"# Attempt-Aware View: round {round_id}",
+                f"# Round-Scoped View: round {round_id}",
                 "",
                 "> Non-authoritative. Rebuild from the formal rolling doc at any time.",
                 "",
             ]
             for block in round_blocks:
                 round_lines.extend(["```forgeloop", block.raw, "```", ""])
-            write_text(out / "attempt-aware" / f"round-{round_id}.md", "\n".join(round_lines).rstrip() + "\n")
+            write_text(out / "round-scoped" / f"round-{round_id}.md", "\n".join(round_lines).rstrip() + "\n")
+            if mode == "planning":
+                attempt_lines = [
+                    f"# Attempt-Aware View: round {round_id}",
+                    "",
+                    "> Non-authoritative. Rebuild from the formal rolling doc at any time.",
+                    "",
+                ]
+                for block in round_blocks:
+                    attempt_lines.extend(["```forgeloop", block.raw, "```", ""])
+                write_text(out / "attempt-aware" / f"round-{round_id}.md", "\n".join(attempt_lines).rstrip() + "\n")
 
     write_text(out / "current-effective.md", "\n".join(current_effective_lines).rstrip() + "\n")
-
-    for handoff_id, handoff_block in handoff_index.items():
-        handoff_tuple = block_tuple(handoff_block)
-        handoff_lines = [
-            f"# Handoff-Scoped View: {handoff_id}",
-            "",
-            "> Non-authoritative. Rebuild from the formal rolling doc at any time.",
-            "",
-            "## Handoff",
-            "",
-            "```forgeloop",
-            handoff_block.raw,
-            "```",
-            "",
-        ]
-        for block in blocks:
-            if block is handoff_block:
-                continue
-            if not is_result_block(mode, block.fields):
-                continue
-            if block_tuple(block) != handoff_tuple:
-                continue
-            handoff_lines.extend(["```forgeloop", block.raw, "```", ""])
-        write_text(out / "handoff-scoped" / f"{handoff_id}.md", "\n".join(handoff_lines).rstrip() + "\n")
+    if mode == "planning":
+        for handoff_id, handoff_block in handoff_index.items():
+            handoff_tuple = block_tuple(handoff_block, mode)
+            handoff_lines = [
+                f"# Handoff-Scoped View: {handoff_id}",
+                "",
+                "> Non-authoritative. Rebuild from the formal rolling doc at any time.",
+                "",
+                "## Handoff",
+                "",
+                "```forgeloop",
+                handoff_block.raw,
+                "```",
+                "",
+            ]
+            for block in blocks:
+                if block is handoff_block:
+                    continue
+                if not is_result_block(mode, block.fields):
+                    continue
+                if block_tuple(block, mode) != handoff_tuple:
+                    continue
+                handoff_lines.extend(["```forgeloop", block.raw, "```", ""])
+            write_text(out / "handoff-scoped" / f"{handoff_id}.md", "\n".join(handoff_lines).rstrip() + "\n")
     return 0
 
 

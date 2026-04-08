@@ -1,4 +1,4 @@
-# Task Review Rolling Doc: Invalid Round
+# Task Review Rolling Doc: Missing Author Role On Review Result
 
 ```forgeloop
 kind: review_header
@@ -13,15 +13,26 @@ created_at: 2026-03-31T09:00:00Z
 
 ```forgeloop
 kind: review_contract_snapshot
-summary: Non-numeric round should fail derive.
+summary: Missing author_role on review_result should fail derive.
 ```
 
 ```forgeloop
 kind: review_handoff
-round: one
+round: 1
 author_role: coder
 created_at: 2026-03-31T09:05:00Z
 review_target_ref: commits/sample-a1
 compare_base_ref: commits/sample-base
-summary: This malformed block uses a non-numeric round.
+summary: This sample handoff is otherwise valid.
+```
+
+```forgeloop
+kind: review_result
+review_result_id: missing-author-role-result-r1
+round: 1
+created_at: 2026-03-31T09:10:00Z
+review_target_ref: commits/sample-a1
+verdict: clean
+next_action: task_done
+findings: []
 ```

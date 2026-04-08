@@ -3,89 +3,143 @@
 <!-- forgeloop:anchor purpose -->
 ## Purpose
 
-`Milestone Review Rolling Doc` is the only append-only formal collaboration surface for one Milestone.
+`Milestone Review Rolling Doc` is the only append-only formal review surface for one Milestone.
 
-It carries:
+It carries only:
 
 - Milestone identity and continuity
-- Milestone contract snapshot
-- coder `G2` facts
-- current Milestone review handoff
-- `R2` results
+- Milestone review contract snapshot
+- one coder-authored `review_handoff` per round when a Milestone candidate is formally ready for review
+- one reviewer-authored `review_result` per round
+
+It does not carry coder progress logs, gate attempt logs, navigation indexes, or evidence catalogs.
 
 <!-- forgeloop:anchor legal-machine-blocks -->
 ## Legal Machine Blocks
 
-- `milestone_review_header`
-- `milestone_contract_snapshot`
-- `coder_update`
-- `g2_result`
-- `r2_result`
+- `review_header`
+- `review_contract_snapshot`
+- `review_handoff`
+- `review_result`
 
 Header and contract snapshot are initialized once. All later formal facts append only.
 
-<!-- forgeloop:anchor canonical-milestone-vocabulary -->
-## Canonical Milestone Vocabulary
+<!-- forgeloop:anchor header-law -->
+## Header Law
 
-- `g2_result.next_action` must be one of:
-  - `continue_milestone_repair`
-  - `objectize_task_repair`
-  - `enter_r2`
-  - `wait_for_user`
-  - `stop_on_blocker`
-- `r2_result.next_action` must be one of:
-  - `continue_milestone_repair`
-  - `objectize_task_repair`
-  - `enter_initiative_review`
-  - `select_next_ready_object`
-  - `wait_for_user`
-  - `stop_on_blocker`
+`review_header` must include:
 
-<!-- forgeloop:anchor handoff-law -->
-## Handoff Law
+- `object_type: milestone`
+- `schema_version: 2`
+- `initiative_key`
+- `milestone_key`
+- `coder_slot`
+- `created_at`
 
-- The current handoff is the latest `g2_result` in the current round whose `next_action=enter_r2`.
-- `R2` is actionable only when `round`, `handoff_id`, and `review_target_ref` match that handoff exactly.
-- If multiple matching results exist, only the latest one is actionable.
-- Every `g2_result` that opens reviewer handoff must include `handoff_id`, `review_target_ref`, and `compare_base_ref`.
-- `review_target_ref` names the Milestone candidate being judged for the current handoff.
-- `compare_base_ref` names the baseline the reviewer should compare against when judging that Milestone candidate.
+`review_contract_snapshot` is the smallest durable Milestone review contract snapshot. It may summarize goal, `task_scope`, acceptance, and other static Milestone-local review truth, but it must not become a reviewer bootstrap dossier.
 
-<!-- forgeloop:anchor compare-base-law -->
-## Compare Base Law
+<!-- forgeloop:anchor round-shape-law -->
+## Round Shape Law
 
-- The first Milestone handoff in one round must set `compare_base_ref` to the baseline that immediately preceded that round's Milestone candidate.
-- A later same-round Milestone handoff must keep the same `compare_base_ref`; same-round Milestone review stays cumulative unless the supervisor formally opens a new round.
-- When `R2` requests same-Milestone repair and the supervisor opens the next round, the new round's first Milestone handoff must set `compare_base_ref` to the previous round's latest reviewed `review_target_ref`.
-- Do not change `compare_base_ref` mid-round just because a later Task repair, a broader branch diff, or a wider workspace state exists.
+Every Milestone round has at most:
 
-<!-- forgeloop:anchor latest-matching-result-law -->
-## Latest Matching Result Law
+- one `review_handoff`
+- one `review_result`
 
-- If multiple `r2_result` blocks exist, only the latest appended result whose `round`, `handoff_id`, and `review_target_ref` match the current handoff is actionable.
-- Older matching results remain history and must not be treated as current.
-- A mismatched or stale `r2_result` does not close the round.
+Same-round supersede is illegal.
+
+If new coder work is required after one `review_result`, the supervisor opens the next round in the `Global State Doc` first.
+
+Do not append a second same-round `review_handoff` or `review_result`.
+
+<!-- forgeloop:anchor review-handoff-law -->
+## Review Handoff Law
+
+`review_handoff` is the only coder-owned reviewer-entry block in this doc.
+
+It must include:
+
+- `kind`
+- `round`
+- `author_role: coder`
+- `created_at`
+- `review_target_ref`
+- `compare_base_ref`
+- `summary`
+- `evidence_refs`
+
+It may additionally include:
+
+- `addresses_review_result_id`
+
+The current Milestone handoff is the latest `review_handoff` in the current round.
+
+<!-- forgeloop:anchor review-result-law -->
+## Review Result Law
+
+`review_result` is the only reviewer-owned formal result block in this doc.
+
+It must include:
+
+- `kind`
+- `review_result_id`
+- `round`
+- `author_role: reviewer`
+- `created_at`
+- `review_target_ref`
+- `verdict`
+- `stage_structure_convergence`
+- `mainline_merge_safety`
+- `evidence_adequacy`
+- `residual_risks`
+- `open_issues`
+- `next_action`
+- `required_follow_ups`
+- `findings`
+
+`review_result.next_action` must be one of:
+
+- `continue_milestone_repair`
+- `enter_initiative_review`
+- `select_next_ready_object`
+- `wait_for_user`
+- `stop_on_blocker`
+
+`review_result` is actionable only when:
+
+- its `round` matches the current round
+- its `review_target_ref` matches the current round's `review_handoff.review_target_ref`
+
+One Milestone round closes only when its `review_result` exists.
+
+<!-- forgeloop:anchor previous-review-law -->
+## Previous Review Law
+
+Milestone repair history should be linked minimally:
+
+- use `review_handoff.addresses_review_result_id` to point at the exact prior reviewer judgment being addressed
+- do not create run-id chains, history indexes, or replay ledgers inside this doc
 
 <!-- forgeloop:anchor derived-view-usage -->
 ## Recommended Derived-View Usage
 
-- `current-effective` should expose only the current Milestone handoff plus the latest matching `r2_result`.
-- `handoff-scoped/<handoff_id>.md` is the preferred hot-path helper for fresh `R2` entry when the authoritative rolling doc ref is still bound explicitly in the packet.
-- `attempt-aware/round-<n>.md` is the preferred hot-path helper for same-Milestone round recovery.
-- For Milestone review, the default stage delta is `compare_base_ref .. review_target_ref` from the current handoff.
-- Current workspace diff may help explain a blocker, but it is not the default Milestone review surface.
-- Derived views are hot-path helpers only. If any view is missing, stale, or conflicts with the authoritative rolling doc, invalidate it and reread the rolling doc.
+- `current-effective` should expose only the latest round's `review_handoff`, the same round's `review_result` when present, and the addressed prior `review_result` when the handoff links one
+- `round-scoped/round-<n>.md` is the preferred hot-path helper for one complete Milestone round
+- current workspace diff may help explain a blocker, but it is not the default Milestone review surface
+- derived views are hot-path helpers only; if any view is missing, stale, or conflicts with the authoritative rolling doc, invalidate it and reread the rolling doc
 
 <!-- forgeloop:anchor recommended-template -->
 ## Recommended Template
 
-- `r2_result` field structure is owned by `plugins/forgeloop/agents/milestone_reviewer.toml`; this template is only an aligned example.
+- `review_result` field structure is owned by `plugins/forgeloop/agents/milestone_reviewer.toml`; this template is only an aligned example.
 
 ````markdown
 # Milestone Review Rolling Doc: D7FS-M1
 
 ```forgeloop
-kind: milestone_review_header
+kind: review_header
+object_type: milestone
+schema_version: 2
 initiative_key: day7-first-situation-closure
 milestone_key: D7FS-M1
 coder_slot: coder
@@ -93,7 +147,7 @@ created_at: 2026-03-30T10:00:00Z
 ```
 
 ```forgeloop
-kind: milestone_contract_snapshot
+kind: review_contract_snapshot
 goal: Lock the canonical runtime contract and HUD truth surface.
 task_scope:
   - D7FS-T1
@@ -103,35 +157,30 @@ acceptance:
 ```
 
 ```forgeloop
-kind: g2_result
+kind: review_handoff
 round: 1
 author_role: coder
 created_at: 2026-03-30T11:00:00Z
-verdict: pass
-next_action: enter_r2
-handoff_id: ms-d7fs-m1-r1-h1
 review_target_ref: milestone-rounds/d7fs-m1/r1
 compare_base_ref: milestone-rounds/d7fs-m1/r0
-anchors:
-  - task-review/D7FS-T1.md#handoff:task-d7fs-t1-r1-a1
-  - task-review/D7FS-T2.md#handoff:task-d7fs-t2-r1-a1
+summary: Ready for Milestone review after composing Task outputs into one stage candidate.
 evidence_refs:
   - local://g2-output/d7fs-m1-r1.txt
 ```
 
 ```forgeloop
-kind: r2_result
+kind: review_result
+review_result_id: review-ms-d7fs-m1-r1
 round: 1
 author_role: reviewer
 created_at: 2026-03-30T11:20:00Z
-handoff_id: ms-d7fs-m1-r1-h1
 review_target_ref: milestone-rounds/d7fs-m1/r1
 verdict: changes_requested
 stage_structure_convergence: fail
 mainline_merge_safety: fail
 evidence_adequacy: pass
 residual_risks:
-  - Current task anchors do not yet compose into one stable Milestone boundary.
+  - Current Task outputs do not yet compose into one stable Milestone boundary.
 open_issues:
   - The mainline integration surface is still carrying a split truth path.
 next_action: continue_milestone_repair
@@ -149,7 +198,7 @@ findings:
 
 When the rolling doc does not yet exist:
 
-- initialize only `milestone_review_header` and `milestone_contract_snapshot`
+- initialize only `review_header` and `review_contract_snapshot`
 - write `coder_slot=coder` into the header
 - let the `Global State Doc` carry `round=1`
-- do not append fake `g2_result` or `r2_result` blocks during cold start
+- do not append fake `review_handoff` or `review_result` blocks during cold start

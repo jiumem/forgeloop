@@ -10,6 +10,7 @@
 - For repo-local Initiatives, required placement is the Initiative-local `.forgeloop/` root, using `design-rolling.md`, `gap-rolling.md`, or `total-task-doc-rolling.md`
 
 This reference governs the planning communication plane, not artifact shape. Stage-specific references still control the structure and judgment standard of `Design Doc`, `Gap Analysis Doc`, and `Total Task Doc`.
+rolling-doc state is the formal planning status truth.
 
 <!-- forgeloop:anchor contract-questions -->
 ## What This Contract Must Answer
@@ -20,6 +21,7 @@ This reference governs the planning communication plane, not artifact shape. Sta
 - how reviewer handoff works
 - how stale review results are rejected without rewriting history
 - how a clean seal, same-stage repair, or upstream reopen recommendation is represented
+- which planning derived views are legal hot-path helpers without changing authority law
 
 <!-- forgeloop:anchor required-header -->
 ## Required Header And Contract Snapshot
@@ -166,3 +168,12 @@ Header and contract snapshot are initialized once. All later formal facts append
 - a reviewer result that requests same-stage repair closes the current handoff and requires the `Supervisor` to open the next round before redispatching `planner`
 - an upstream stage may reopen only through an explicit supervisor route recorded in the `Planning State Doc`
 - upstream reopen must invalidate every downstream planning artifact that is no longer legally sealed; those artifacts must lose `状态：sealed` before they may be reused
+
+<!-- forgeloop:anchor derived-view-usage -->
+## Derived View Usage
+
+- planning derived views are governed by `plugins/forgeloop/skills/planning-loop/references/planning-derived-views.md`
+- `current-effective` remains the default synthesized current-handoff view
+- `attempt-aware/round-<n>.md` remains the default hot-path helper for same-stage repair recovery
+- `handoff-scoped/<handoff_id>.md` remains the default hot-path helper for fresh reviewer entry
+- `round-scoped/round-<n>.md` may be used when one full planning round needs to be read without unrelated history

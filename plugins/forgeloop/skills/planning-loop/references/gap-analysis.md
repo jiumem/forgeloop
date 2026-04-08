@@ -9,6 +9,7 @@
 - 主要目的：定义当前态与目标态之间真实存在的差距，以及下游 planning 必须遵守的收敛切法
 
 这份文档不是第二篇设计长文，不是任务计划，也不是实现教程。
+文档是否进入评审、修复、或 sealed lifecycle，以 rolling doc 为准。
 
 <!-- forgeloop:anchor questions-this-doc-must-answer -->
 ## 这份文档必须回答什么

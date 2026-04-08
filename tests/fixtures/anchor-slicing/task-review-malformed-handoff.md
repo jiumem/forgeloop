@@ -1,7 +1,9 @@
 # Task Review Rolling Doc: ASDO-TX
 
 ```forgeloop
-kind: task_review_header
+kind: review_header
+object_type: task
+schema_version: 2
 initiative_key: anchor-sliced-dispatch-optimization
 milestone_key: ASDO-MX
 task_key: ASDO-TX
@@ -10,7 +12,7 @@ created_at: 2026-03-31T09:00:00Z
 ```
 
 ```forgeloop
-kind: task_contract_snapshot
+kind: review_contract_snapshot
 summary: Fixture with a malformed handoff block.
 spec_refs:
   - docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md
@@ -19,19 +21,12 @@ acceptance:
 ```
 
 ```forgeloop
-kind: g1_result
+kind: review_handoff
 round: 1
 author_role: coder
 created_at: 2026-03-31T09:10:00Z
-verdict: pass
-next_action: request_reviewer_handoff
-```
-
-```forgeloop
-kind: anchor_ref
-round: 1
-author_role: coder
-created_at: 2026-03-31T09:12:00Z
-commit: anchor(sample): malformed handoff
-sha: abc1234
+review_target_ref: commits/sample-a1
+summary: Malformed handoff omits compare_base_ref.
+evidence_refs:
+  - tests/fixtures/anchor-slicing/task-review-malformed-handoff.md
 ```

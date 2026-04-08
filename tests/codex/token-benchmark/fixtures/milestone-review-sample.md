@@ -1,7 +1,9 @@
 # Milestone Review Rolling Doc: ASDO-M2
 
 ```forgeloop
-kind: milestone_review_header
+kind: review_header
+object_type: milestone
+schema_version: 2
 initiative_key: anchor-sliced-dispatch-optimization
 milestone_key: ASDO-M2
 coder_slot: coder
@@ -9,7 +11,7 @@ created_at: 2026-03-31T10:00:00Z
 ```
 
 ```forgeloop
-kind: milestone_contract_snapshot
+kind: review_contract_snapshot
 goal: Sample milestone review fixture for benchmark and derived-view checks.
 task_scope:
   - ASDO-T4
@@ -20,29 +22,23 @@ acceptance:
 ```
 
 ```forgeloop
-kind: g2_result
+kind: review_handoff
 round: 1
 author_role: coder
 created_at: 2026-03-31T10:10:00Z
-verdict: pass
-next_action: enter_r2
-handoff_id: ms-asdo-m2-r1-h1
 review_target_ref: milestone-rounds/asdo-m2/r1
 compare_base_ref: milestone-rounds/asdo-m2/r0
-anchors:
-  - task-review/ASDO-T4.md#handoff:asdo-t4-r1-a1
-  - task-review/ASDO-T5.md#handoff:asdo-t5-r1-a1
-  - task-review/ASDO-T6.md#handoff:asdo-t6-r1-a1
+summary: Milestone sample is ready for review.
 evidence_refs:
   - tests/codex/token-benchmark/fixtures/task-evidence-sample.txt
 ```
 
 ```forgeloop
-kind: r2_result
+kind: review_result
+review_result_id: review-ms-asdo-m2-r1
 round: 1
 author_role: reviewer
 created_at: 2026-03-31T10:20:00Z
-handoff_id: ms-asdo-m2-r1-h1
 review_target_ref: milestone-rounds/asdo-m2/r1
 verdict: clean
 stage_structure_convergence: pass

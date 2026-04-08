@@ -94,14 +94,13 @@
 第一条是旧主线的 Task-first 结构化视图与结果合同基础：
 
 - `schemas/task_packet.py`（旧结构化投影视图原型）
-- `schemas/coder_result.py`
 - `schemas/review_result.py`
 - `schemas/task_state.py`
 - `automation/controller/transitions.py`
 
 这条线已经证明：
 
-- 四个核心模型有清晰业务真值地位
+- 多个核心模型有清晰业务真值地位
 - controller 规则可以 deterministic 化
 - 合同优先、mock 优先的实施方法可行
 
