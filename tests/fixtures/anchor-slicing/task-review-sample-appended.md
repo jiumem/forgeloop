@@ -16,8 +16,9 @@ kind: review_contract_snapshot
 summary: Sample fixture for derived current-effective and round-scoped views.
 spec_refs:
   - docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md
-acceptance:
-  - sample fixture only
+acceptance_authority_ref: docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md#task-ledger/task-definitions/asdo-t5
+acceptance_index_ref: docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md#acceptance-matrix/task-acceptance-index/asdo-t5
+evidence_entrypoint_ref: docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md#acceptance-matrix/evidence-entrypoints
 ```
 
 ```forgeloop

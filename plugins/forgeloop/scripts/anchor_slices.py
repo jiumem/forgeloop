@@ -160,6 +160,8 @@ FIELD_PATTERNS = {
     "created_at": re.compile(r"^created_at:\s*(.+?)\s*$"),
 }
 PRESENCE_ONLY_FIELDS = frozenset({"evidence_refs", "residual_risks", "required_follow_ups", "open_issues", "findings"})
+FORBIDDEN_RUNTIME_SNAPSHOT_FIELDS = frozenset({"acceptance", "success_criteria"})
+BLOCK_FIELD_NAME_RE = re.compile(r"^([a-z_]+):\s*", re.MULTILINE)
 
 
 @dataclasses.dataclass
@@ -830,6 +832,18 @@ def validate_runtime_review_schema(doc: pathlib.Path, blocks: list[ForgeloopBloc
     violations: list[str] = []
     for block in blocks:
         kind = block.fields.get("kind")
+        if kind == "review_contract_snapshot":
+            forbidden_fields = sorted(
+                {
+                    match.group(1)
+                    for match in BLOCK_FIELD_NAME_RE.finditer(block.raw)
+                    if match.group(1) in FORBIDDEN_RUNTIME_SNAPSHOT_FIELDS
+                }
+            )
+            if forbidden_fields:
+                violations.append(
+                    f"review_contract_snapshot@{block.start_line} restates forbidden truth field(s): {','.join(forbidden_fields)}"
+                )
         if kind == "review_handoff":
             for field in ("summary", "evidence_refs"):
                 if not has_real_tuple_value(block.fields.get(field)):

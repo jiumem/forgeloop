@@ -39,6 +39,39 @@ check_pattern \
 check_pattern \
   "tests/codex/token-benchmark/fixtures/initiative-review-sample.md" \
   'compare_base_ref:'
+check_pattern \
+  "plugins/forgeloop/agents/coder.toml" \
+  'formal writeback not completed'
+check_pattern \
+  "plugins/forgeloop/agents/task_reviewer.toml" \
+  'formal writeback not completed'
+check_pattern \
+  "plugins/forgeloop/agents/milestone_reviewer.toml" \
+  'formal writeback not completed'
+check_pattern \
+  "plugins/forgeloop/agents/initiative_reviewer.toml" \
+  'formal writeback not completed'
+check_pattern \
+  "plugins/forgeloop/skills/code-loop/SKILL.md" \
+  'Treat coder natural-language completion as non-authoritative'
+check_pattern \
+  "plugins/forgeloop/skills/code-loop/SKILL.md" \
+  'Treat reviewer natural-language completion as non-authoritative'
+check_pattern \
+  "plugins/forgeloop/skills/using-git-worktrees/SKILL.md" \
+  'Read and obey project-level `AGENTS.md` first'
+check_pattern \
+  "plugins/forgeloop/skills/run-initiative/SKILL.md" \
+  'project-declared environment preparation from `AGENTS.md` or repo operator docs'
+check_pattern \
+  "plugins/forgeloop/skills/run-initiative/SKILL.md" \
+  'Use the smallest fitting class:'
+check_pattern \
+  "plugins/forgeloop/skills/rebuild-runtime/SKILL.md" \
+  'classify the cause in `last_transition.reason` using the smallest fitting class'
+check_pattern \
+  "plugins/forgeloop/skills/using-git-worktrees/SKILL.md" \
+  'stop and surface the gap as `execution_ready`, not as a task/object blocker'
 
 python3 - <<'PY'
 import json
@@ -47,14 +80,40 @@ from pathlib import Path
 
 scenarios = json.loads(Path("tests/codex/token-benchmark/fixtures/scenarios.json").read_text())
 run_initiative_text = Path("plugins/forgeloop/skills/run-initiative/SKILL.md").read_text()
+rebuild_runtime_text = Path("plugins/forgeloop/skills/rebuild-runtime/SKILL.md").read_text()
 
 frontier_priority_marker = "- frontier selection when `current_snapshot.active_plane=frontier` or `next_action.action=select_next_ready_object`"
 task_priority_marker = "- task-mode code loop when a Task is clearly active"
 task_next_ready_legacy = "task-mode code loop when a Task is clearly active or next-ready"
 frontier_apply_marker = (
     "- if `current_snapshot.active_plane=frontier` or `next_action.action=select_next_ready_object`: "
-    "resolve the next ready object from the admitted planning document set plus authoritative runtime rolling docs; "
-    "container forcing applies here first. Do not short-circuit directly into Task mode merely because one next-ready Task exists."
+    "resolve the next ready object from the admitted planning document set plus authoritative runtime rolling docs "
+    "by applying this fixed supervisor routing order and stopping at the first match: required current Milestone closure "
+    "-> required Initiative closure -> exactly one next-ready Task. Container forcing applies here first. "
+    "Do not short-circuit directly into Task mode merely because one next-ready Task exists."
+)
+rebuild_frontier_marker = (
+    "- If recovery lands on `current_snapshot.active_plane=frontier` or `next_action.action=select_next_ready_object`, "
+    "apply the same fixed supervisor routing order used by `run-initiative`: required current Milestone closure "
+    "-> required Initiative closure -> exactly one next-ready Task. Do not recover directly into Task plane merely "
+    "because one next-ready Task can be guessed."
+)
+rebuild_formal_only_marker = (
+    "- Recover only from formal runtime truth. Workspace diff, chat summaries, and interrupted worker intent may help "
+    "explain what happened, but they must never promote object progression without a rereadable formal block."
+)
+rebuild_uncommitted_marker = (
+    "- If the current round has neither, treat any uncommitted code or chat-only progress as unfinished in-object work "
+    "and recover coder continuation from the last legal formal state instead of promoting the object"
+)
+run_initiative_partial_progress_marker = (
+    "- if workspace diff or interrupted agent narration suggests progress that has not appeared as a rereadable "
+    "`review_handoff` or `review_result`: do not advance the object from that hint alone; continue only from the last "
+    "legal formal runtime state or call skill: `rebuild-runtime` when the active state is no longer provable uniquely"
+)
+run_initiative_disconnect_marker = (
+    "If the loop ended on disconnect or partial failure and no new formal block can be reread, keep the object on its "
+    "last legal formal state; uncommitted workspace progress stays merely local until a later round writes legal runtime truth."
 )
 
 if task_next_ready_legacy in run_initiative_text:
@@ -74,6 +133,31 @@ if frontier_priority_index > task_priority_index:
 if frontier_apply_marker not in run_initiative_text:
     raise SystemExit(
         "runtime packet lint: run-initiative apply-case is missing the explicit frontier/container-forcing law"
+    )
+
+if rebuild_frontier_marker not in rebuild_runtime_text:
+    raise SystemExit(
+        "runtime packet lint: rebuild-runtime is missing the closure-first frontier recovery law"
+    )
+
+if rebuild_formal_only_marker not in rebuild_runtime_text:
+    raise SystemExit(
+        "runtime packet lint: rebuild-runtime is missing the formal-truth-only recovery law"
+    )
+
+if rebuild_uncommitted_marker not in rebuild_runtime_text:
+    raise SystemExit(
+        "runtime packet lint: rebuild-runtime still allows uncommitted progress to promote object state"
+    )
+
+if run_initiative_partial_progress_marker not in run_initiative_text:
+    raise SystemExit(
+        "runtime packet lint: run-initiative is missing the partial-progress no-promotion law"
+    )
+
+if run_initiative_disconnect_marker not in run_initiative_text:
+    raise SystemExit(
+        "runtime packet lint: run-initiative is missing the disconnect recovery law"
     )
 
 targets = {

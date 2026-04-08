@@ -36,7 +36,7 @@ Header and contract snapshot are initialized once. All later formal facts append
 - `coder_slot`
 - `created_at`
 
-`review_contract_snapshot` is the smallest durable Initiative review contract snapshot. It may summarize goal, `milestone_scope`, success criteria, and other static Initiative-local review truth, but it must not become a reviewer bootstrap dossier.
+`review_contract_snapshot` is the smallest durable Initiative review contract snapshot. It may summarize goal, `milestone_scope`, and stable authority pointers such as `acceptance_authority_ref`, `acceptance_index_ref`, and `evidence_entrypoint_ref`, but it must not restate Initiative success criteria or become a reviewer bootstrap dossier.
 
 <!-- forgeloop:anchor round-shape-law -->
 ## Round Shape Law
@@ -152,8 +152,9 @@ milestone_scope:
   - D7FS-M2
   - D7FS-M3
   - D7FS-M4
-success_criteria:
-  - review.md reflects closure state and residual risks
+acceptance_authority_ref: docs/initiatives/active/day7-first-situation-closure/total-task-doc.md#initiative/success-criteria
+acceptance_index_ref: docs/initiatives/active/day7-first-situation-closure/total-task-doc.md#acceptance-matrix/initiative-acceptance-index/ic-1
+evidence_entrypoint_ref: docs/initiatives/active/day7-first-situation-closure/total-task-doc.md#acceptance-matrix/evidence-entrypoints
 ```
 
 ```forgeloop

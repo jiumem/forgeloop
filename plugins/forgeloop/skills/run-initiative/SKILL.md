@@ -191,12 +191,24 @@ Add Git or test facts only when document facts still cannot prove the next step.
   - if yes, record that resume in `last_transition`, then continue from newer formal runtime truth instead of treating the stop as terminal
 - if `Global State Doc` is missing and no rolling doc exists: treat it as a new Initiative start
 - if `Global State Doc` is missing but rolling docs already exist, or if `Global State Doc` clearly conflicts with the total task doc or rolling docs: call skill: `rebuild-runtime`
-- if `current_snapshot.active_plane=frontier` or `next_action.action=select_next_ready_object`: resolve the next ready object from the admitted planning document set plus authoritative runtime rolling docs; container forcing applies here first. Do not short-circuit directly into Task mode merely because one next-ready Task exists. If exactly one ready object exists after frontier resolution, rebind and continue through the matching `mode`; otherwise ask the user
+- if workspace diff or interrupted agent narration suggests progress that has not appeared as a rereadable `review_handoff` or `review_result`: do not advance the object from that hint alone; continue only from the last legal formal runtime state or call skill: `rebuild-runtime` when the active state is no longer provable uniquely
+- if `current_snapshot.active_plane=frontier` or `next_action.action=select_next_ready_object`: resolve the next ready object from the admitted planning document set plus authoritative runtime rolling docs by applying this fixed supervisor routing order and stopping at the first match: required current Milestone closure -> required Initiative closure -> exactly one next-ready Task. Container forcing applies here first. Do not short-circuit directly into Task mode merely because one next-ready Task exists. If exactly one ready object exists after that closure-first frontier resolution, rebind and continue through the matching `mode`; otherwise ask the user
 - if current progress clearly belongs to the Task review/repair loop, including continuing the currently bound Task or continuing repair on the current Task: formally rebind `current_snapshot` and `next_action` to that Task if needed, bind `mode=task`, then call skill: `code-loop`
 - if current progress clearly belongs to a Milestone review/repair loop: formally rebind `current_snapshot` and `next_action` to that Milestone if needed, bind `mode=milestone`, then call skill: `code-loop`
 - if current progress clearly belongs to the Initiative review/repair loop: formally rebind `current_snapshot` and `next_action` to that Initiative if needed, bind `mode=initiative`, then call skill: `code-loop`
 - if the facts do not conflict but the next step still cannot be determined uniquely: ask the user
 5. You may confirm only one next step or one clear stop point. If facts conflict, call skill: `rebuild-runtime`; if they are ambiguous, ask the user.
+
+When the activation cannot continue, classify the interruption before acting. Use the smallest fitting class:
+
+- `control_plane`: frontier conflict, active-object ambiguity, or routing-law inconsistency; resolve through supervisor routing repair or skill: `rebuild-runtime`
+- `formal_state`: missing or conflicting `review_handoff`, `review_result`, or `Global State Doc` writeback; recover from rereadable formal files only
+- `execution_ready`: project environment, setup, install, or baseline verification is not yet sufficient; route through skill: `using-git-worktrees` in `execution_ready` mode and follow project docs
+- `runtime_resource`: agent quota, thread limit, or other session-local runtime housekeeping issue; clean up runtime-private bindings without treating the object itself as blocked
+- `transport`: stream disconnect, interrupted worker return, or other delivery failure; keep only formal truth and recover from the last legal formal state
+- `task_blocker`: a real object-level blocker, upstream dependency, or missing user judgment; materialize `wait_for_user` or `stop_on_blocker` only for this class or another genuinely blocking class that cannot be cleared inside the runtime session
+
+Do not let tooling, transport, or housekeeping problems masquerade as object-level acceptance failure.
 
 When the chosen next step is reviewer entry through `code-loop`, the runtime basis must already preserve:
 - the current handoff identity: `round` and `review_target_ref`
@@ -210,7 +222,7 @@ Do not treat broad section slices, residual workspace diff, or older rolling his
 Consume only the conclusion already confirmed in the previous step. Do not reinterpret the facts, and do not rematerialize runtime refs against a different workspace mid-activation.
 
 1. If the confirmed next step is to call skill: `code-loop`, ensure the already bound active Initiative workspace is `execution_ready` first. If this activation has only done `bind_only` so far, call skill: `using-git-worktrees` again in `execution_ready` mode against that same active workspace before dispatching the loop.
-2. `execution_ready` means the active Initiative workspace has completed repo-obvious setup and baseline verification strongly enough to enter coder or reviewer execution.
+2. `execution_ready` means the active Initiative workspace has completed any project-declared environment preparation from `AGENTS.md` or repo operator docs, plus repo-obvious setup and baseline verification, strongly enough to enter coder or reviewer execution.
 3. If `using-git-worktrees` in `execution_ready` mode exposes a conflict, waiting state, or blocker, stop at that point.
 4. If the confirmed next step enters reviewer work through `code-loop`, dispatch the lean reviewer packet that matches the bound object:
 - Task: current handoff identity + `compare_base_ref` + current Task definition block + current Task acceptance index entry + evidence entrypoint surface
@@ -228,6 +240,7 @@ Consume only the conclusion already confirmed in the previous step. Do not reint
 
 If work will continue, first rewrite the materialized `Global State Doc` in the active Initiative workspace so that `current_snapshot`, `next_action`, and—when needed—`last_transition` are already sufficient for later recovery.
 If the active object or active plane is about to change, write the new `current_snapshot` and `next_action` first so that a later `Supervisor` can recover the current progress state without hidden context.
+When writing `last_transition.reason`, record the interruption class explicitly whenever this activation stopped, resumed, or recovered through one of the taxonomy classes above.
 
 Inside the current runtime session, the `Supervisor` may keep one private runtime-plane binding table of up to six reusable subagents: Task / Milestone / Initiative `coder` plus Task / Milestone / Initiative `reviewer`. That table is runtime-private only. It must never be treated as formal recovery state or written into the planning docs, the `Global State Doc`, or any rolling doc. Planning-plane bindings from the same session must already have been closed before this table is kept live.
 
@@ -236,6 +249,7 @@ When the active object is already in flight or has been recovered from an existi
 ### Step 6: Loop Back
 
 After any loop returns, reread the materialized `Global State Doc` and the active rolling doc in the same active Initiative workspace that was just modified. Do not infer from cached expectations about what should have happened in the previous round. Default to Step 4 and re-determine the next runtime step from fresher runtime truth.
+If the loop ended on disconnect or partial failure and no new formal block can be reread, keep the object on its last legal formal state; uncommitted workspace progress stays merely local until a later round writes legal runtime truth.
 
 Return to Step 2 first only when the planning admission basis from this activation has been invalidated under Step 2. If the planning basis is still the same, stay on the runtime hot path instead of replaying planning admission.
 

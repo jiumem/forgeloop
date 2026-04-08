@@ -30,6 +30,20 @@ python3 plugins/forgeloop/scripts/anchor_slices.py check \
   plugins/forgeloop/skills/run-initiative/references/initiative-review-rolling-doc.md \
   tests/fixtures/anchor-slicing/anchors-ok.md
 
+legacy_runtime_paths=(
+  tests/fixtures/anchor-slicing
+  tests/codex/token-benchmark/fixtures
+  plugins/forgeloop/skills/run-initiative/references
+)
+if rg -n '^kind: (task_review_header|milestone_review_header|initiative_review_header|task_contract_snapshot|milestone_contract_snapshot|initiative_contract_snapshot|coder_update|g1_result|g2_result|g3_result)$' \
+  "${legacy_runtime_paths[@]}" \
+  >"${TMP_ROOT}/legacy-runtime-kinds.txt"
+then
+  echo "legacy runtime review machine kinds remain in the canonical runtime schema surface"
+  cat "${TMP_ROOT}/legacy-runtime-kinds.txt"
+  exit 1
+fi
+
 CURRENT_MODE="$(sed -n 's/^current_runtime_cutover_mode: //p' plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md)"
 echo "runtime_cutover_mode=${CURRENT_MODE}"
 
@@ -419,6 +433,36 @@ if python3 plugins/forgeloop/scripts/anchor_slices.py derive \
   --out "${TMP_ROOT}/unclosed-fence"
 then
   echo "unclosed-fence fixture unexpectedly derived successfully"
+  exit 1
+fi
+
+cat >"${TMP_ROOT}/task-review-acceptance-truth-fork.md" <<'EOF'
+# Task Review Rolling Doc: ASDO-TX
+
+```forgeloop
+kind: review_header
+object_type: task
+schema_version: 2
+initiative_key: anchor-sliced-dispatch-optimization
+milestone_key: ASDO-MX
+task_key: ASDO-TX
+coder_slot: coder
+created_at: 2026-03-31T09:00:00Z
+```
+
+```forgeloop
+kind: review_contract_snapshot
+summary: Snapshot that illegally restates acceptance truth.
+acceptance:
+  - this should fail
+```
+EOF
+
+if python3 plugins/forgeloop/scripts/anchor_slices.py derive \
+  --doc "${TMP_ROOT}/task-review-acceptance-truth-fork.md" \
+  --out "${TMP_ROOT}/acceptance-truth-fork"
+then
+  echo "acceptance-truth-fork fixture unexpectedly derived successfully"
   exit 1
 fi
 

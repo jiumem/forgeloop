@@ -132,6 +132,9 @@ If the needed repair appears to exceed the assigned object or require a differen
 
 Formal review-handoff updates come first; terminal or chat summaries are secondary.
 
+Do not tell the supervisor that the round is ready, completed, or handed off until the current round's `review_handoff` has been appended successfully and reread from the authoritative rolling doc.
+If the write or reread fails, say `formal writeback not completed` and stop short of any completion claim.
+
 When a coding round reaches reviewer entry, append one `review_handoff` that states:
 
 - what candidate is being reviewed

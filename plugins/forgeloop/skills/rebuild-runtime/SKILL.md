@@ -84,6 +84,7 @@ Trigger only in the following situations:
 - First respect canonical stop literals `wait_for_user`, `stop_on_blocker`, and `initiative_delivered` when they are consistent with the newer formal facts
 - Prefer `current-effective` only when it can still be rebuilt from the same authoritative rolling doc without legality drift; otherwise invalidate it and reread the formal rolling doc
 - If a round exposes duplicate `review_handoff` or duplicate `review_result`, stop and surface the illegal state explicitly
+- Recover only from formal runtime truth. Workspace diff, chat summaries, and interrupted worker intent may help explain what happened, but they must never promote object progression without a rereadable formal block.
 - Otherwise, use the newest formal frontier that has not yet closed as the active candidate
 - If multiple candidates coexist, the fixed priority is: active Task repair / coder round > active Milestone review / repair > active Initiative review / repair > frontier selection after the last clean object
 
@@ -91,7 +92,8 @@ Trigger only in the following situations:
 - Reuse `coder_slot` and `round` from the `Global State Doc` when they are still consistent; otherwise recover them from the active rolling doc
 - If the current round has a `review_handoff` and no `review_result`, recover reviewer entry
 - If the current round has a `review_result`, recover next action from that result
-- If the current round has neither, recover coder continuation from the `Global State Doc`
+- If the current round has neither, treat any uncommitted code or chat-only progress as unfinished in-object work and recover coder continuation from the last legal formal state instead of promoting the object
+- If recovery lands on `current_snapshot.active_plane=frontier` or `next_action.action=select_next_ready_object`, apply the same fixed supervisor routing order used by `run-initiative`: required current Milestone closure -> required Initiative closure -> exactly one next-ready Task. Do not recover directly into Task plane merely because one next-ready Task can be guessed.
 - For Initiative delivery, recover reviewer intent exactly: actionable `review_result.next_action=mark_initiative_delivered` becomes dispatcher stop state `initiative_delivered`
 - If no single plane, object, `coder_slot`, `round`, and `next_action` can be proven, stop and ask the user
 
@@ -99,7 +101,7 @@ Trigger only in the following situations:
 - If the `Global State Doc` does not exist, initialize `global_state_header` first according to the canonical contract
 - Write `current_snapshot` as the uniquely recovered active plane / active object / `coder_slot` / object `round`
 - Write `next_action` as the uniquely recovered next step, including recovered `blocking_reason` when the action is `wait_for_user` or `stop_on_blocker`
-- Write `last_transition` as a recovery transition explaining why the control plane was rebuilt
+- Write `last_transition` as a recovery transition explaining why the control plane was rebuilt, and classify the cause in `last_transition.reason` using the smallest fitting class: `control_plane`, `formal_state`, `execution_ready`, `runtime_resource`, `transport`, or `task_blocker`
 - After writing, immediately hand control back to skill: `run-initiative`
 
 <!-- forgeloop:anchor red-lines -->
@@ -112,6 +114,8 @@ Never:
 - recover a reviewer binding as if it were durable control-plane truth
 - let an outdated `Global State Doc` override newer rolling-doc facts
 - treat chat memory, cache, or local derived hints as formal truth sources
+- promote interrupted work to reviewer-ready or review-complete without a rereadable `review_handoff` or `review_result`
+- collapse tooling, transport, quota, or environment failures into fake object-level blocker claims
 - silently guess the active object, `coder_slot`, or next action
 
 <!-- forgeloop:anchor completion-criteria -->

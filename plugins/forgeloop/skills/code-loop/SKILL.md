@@ -86,6 +86,7 @@ Hard boundaries:
 4. Handle coder return
 - If the current round now exposes one legal `review_handoff` and no `review_result`, materialize reviewer entry in the `Global State Doc`.
 - If the current round still exposes neither `review_handoff` nor `review_result`, keep the object in coder mode.
+- Treat coder natural-language completion as non-authoritative until the expected `review_handoff` can be reread from the authoritative rolling doc and the reviewer-entry materialization can be written legally.
 - Do not synthesize a canonical stop state from coder natural-language status alone. Runtime stop literals belong in the `Global State Doc` only when they already exist as explicit upstream control decisions or when they are required by a legal `review_result.next_action`.
 - Any illegal duplicate handoff or duplicate result is a formal stop.
 
@@ -103,6 +104,7 @@ Hard boundaries:
 
 6. Handle the review result
 - Use only the same-round `review_result` that matches the current round's `review_target_ref`.
+- Treat reviewer natural-language completion as non-authoritative until the expected `review_result` can be reread from the authoritative rolling doc and any required `Global State Doc` rewrite has succeeded.
 - If the result requests same-object repair, increment the object-local `round`, preserve `coder_slot`, and continue in the same mode.
 - If the result requests upstream return, rebind `current_snapshot` and `next_action` according to the bound mode contracts, then hand control back upstream.
 - If the result requests terminal delivery marking, accept only the Initiative-mode legal terminal transition.

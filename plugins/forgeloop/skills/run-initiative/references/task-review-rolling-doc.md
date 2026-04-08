@@ -38,7 +38,7 @@ Header and contract snapshot are initialized once. All later formal facts append
 - `coder_slot`
 - `created_at`
 
-`review_contract_snapshot` is the smallest durable Task review contract snapshot. It may summarize scope, `spec_refs`, acceptance, and other static Task-local review truth, but it must not become a reviewer bootstrap dossier.
+`review_contract_snapshot` is the smallest durable Task review contract snapshot. It may summarize scope, `spec_refs`, and stable authority pointers such as `acceptance_authority_ref`, `acceptance_index_ref`, and `evidence_entrypoint_ref`, but it must not restate Task acceptance content or become a reviewer bootstrap dossier.
 
 <!-- forgeloop:anchor round-shape-law -->
 ## Round Shape Law
@@ -162,8 +162,9 @@ kind: review_contract_snapshot
 summary: Lock the canonical runtime contract for PRICE_PUSHBACK.
 spec_refs:
   - kairos_foundation/packages/engines-visor/src/kernel/decision-core.ts
-acceptance:
-  - pnpm gate:visor.decision-system
+acceptance_authority_ref: docs/initiatives/active/day7-first-situation-closure/total-task-doc.md#task-ledger/task-definitions/d7fs-t1
+acceptance_index_ref: docs/initiatives/active/day7-first-situation-closure/total-task-doc.md#acceptance-matrix/task-acceptance-index/d7fs-t1
+evidence_entrypoint_ref: docs/initiatives/active/day7-first-situation-closure/total-task-doc.md#acceptance-matrix/evidence-entrypoints
 ```
 
 ```forgeloop

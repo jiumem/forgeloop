@@ -101,12 +101,14 @@ Otherwise create the worktree with a new branch.
 
 `execution_ready` additionally requires all of the following:
 
+- project-declared environment preparation from `AGENTS.md` or other repo operator docs, when such instructions exist
 - repo-obvious setup success
 - clean baseline verification success
 
 Do not guess generic dependency installers or baseline commands.
-Use repo-documented or repo-obvious setup and baseline commands only.
-If setup or baseline cannot be identified without guessing, stop and surface the gap.
+Read and obey project-level `AGENTS.md` first when it declares environment preparation or operator-surface requirements.
+Then use repo-documented or repo-obvious setup and baseline commands only.
+If setup or baseline cannot be identified without guessing, stop and surface the gap as `execution_ready`, not as a task/object blocker.
 
 Never proceed past failing baseline tests without explicit user judgment.
 Never edit `.gitignore`, never commit from this skill, and never create a second Initiative worktree just to continue on another branch.

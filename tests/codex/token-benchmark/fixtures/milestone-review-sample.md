@@ -17,8 +17,10 @@ task_scope:
   - ASDO-T4
   - ASDO-T5
   - ASDO-T6
-acceptance:
-  - sample fixture only
+acceptance_authority_ref: docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md#milestone-master-table/milestone-acceptance/asdo-m2
+reference_assignment_ref: docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md#milestone-master-table/milestone-reference-assignment/asdo-m2
+acceptance_index_ref: docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md#acceptance-matrix/milestone-acceptance-index/asdo-m2
+evidence_entrypoint_ref: docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md#acceptance-matrix/evidence-entrypoints
 ```
 
 ```forgeloop

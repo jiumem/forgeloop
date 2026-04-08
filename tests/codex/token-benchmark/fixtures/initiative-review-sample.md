@@ -16,8 +16,9 @@ milestone_scope:
   - ASDO-M1
   - ASDO-M2
   - ASDO-M3
-success_criteria:
-  - sample fixture only
+acceptance_authority_ref: docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md#initiative/success-criteria
+acceptance_index_ref: docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md#acceptance-matrix/initiative-acceptance-index/ic-5
+evidence_entrypoint_ref: docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md#acceptance-matrix/evidence-entrypoints
 ```
 
 ```forgeloop

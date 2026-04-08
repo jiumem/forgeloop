@@ -37,7 +37,7 @@ Header and contract snapshot are initialized once. All later formal facts append
 - `coder_slot`
 - `created_at`
 
-`review_contract_snapshot` is the smallest durable Milestone review contract snapshot. It may summarize goal, `task_scope`, acceptance, and other static Milestone-local review truth, but it must not become a reviewer bootstrap dossier.
+`review_contract_snapshot` is the smallest durable Milestone review contract snapshot. It may summarize goal, `task_scope`, and stable authority pointers such as `acceptance_authority_ref`, `reference_assignment_ref`, `acceptance_index_ref`, and `evidence_entrypoint_ref`, but it must not restate Milestone acceptance content or become a reviewer bootstrap dossier.
 
 <!-- forgeloop:anchor round-shape-law -->
 ## Round Shape Law
@@ -153,8 +153,10 @@ goal: Lock the canonical runtime contract and HUD truth surface.
 task_scope:
   - D7FS-T1
   - D7FS-T2
-acceptance:
-  - pnpm gate:visor.decision-system
+acceptance_authority_ref: docs/initiatives/active/day7-first-situation-closure/total-task-doc.md#milestone-master-table/milestone-acceptance/d7fs-m1
+reference_assignment_ref: docs/initiatives/active/day7-first-situation-closure/total-task-doc.md#milestone-master-table/milestone-reference-assignment/d7fs-m1
+acceptance_index_ref: docs/initiatives/active/day7-first-situation-closure/total-task-doc.md#acceptance-matrix/milestone-acceptance-index/d7fs-m1
+evidence_entrypoint_ref: docs/initiatives/active/day7-first-situation-closure/total-task-doc.md#acceptance-matrix/evidence-entrypoints
 ```
 
 ```forgeloop

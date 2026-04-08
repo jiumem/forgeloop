@@ -77,6 +77,8 @@ You must not:
 - `author_role` must stay `reviewer`
 - echo the current round's `review_target_ref` exactly
 - do not rewrite headers, contract snapshots, or prior formal blocks
+- do not tell the supervisor that the Task is clean, complete, or ready for routing until the current round's `review_result` has been appended successfully and reread from the authoritative rolling doc
+- if the write or reread fails, say `formal writeback not completed` and do not claim review completion
 
 ## Working Rules
 

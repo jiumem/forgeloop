@@ -58,6 +58,7 @@ if rg -P -n \
   '\.forgeloop/(?!planning-state\.md|design-rolling\.md|gap-rolling\.md|plan-rolling\.md|global-state\.md|task-review/|milestone-review/|initiative-review\.md)[A-Za-z0-9_-]+/(?:planning-state\.md|design-rolling\.md|gap-rolling\.md|plan-rolling\.md|global-state\.md|task-review/|milestone-review/|initiative-review\.md)' \
   plugins/forgeloop \
   docs/initiatives/active \
+  tests/codex \
   tests/fixtures \
   tests/codex/token-benchmark/fixtures \
   >/tmp/forgeloop-control-plane-legacy-paths.txt
