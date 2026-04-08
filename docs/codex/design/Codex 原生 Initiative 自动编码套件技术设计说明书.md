@@ -57,8 +57,8 @@ v1 只承认以下四份主运行文档：
 第四，**repo 内正式文档面与本地派生面必须分离。**  
 repo 内的运行文档是协作真理源；本地如需生成 JSON 视图、解析缓存和恢复辅助数据，也只能是实现私有派生面，不进入正式路径合同。
 
-第五，**编码执行循环必须体现“单一持续 coder / 每轮 fresh reviewer”。**  
-coder 是 Initiative 执行期内持续持有实现 ownership 的单一角色；reviewer 在每次 `R1 / R2 / R3` 时都 fresh 派生。
+第五，**编码执行循环必须体现“formal 上保留单一 `coder_slot`，runtime 上三层 loop 各自复用一对 `coder` / `reviewer`”。**  
+`coder_slot` 仍是 formal truth 中唯一持续持有实现 ownership 的逻辑角色；Task / Milestone / Initiative 三层 loop 则各自持有一对 session-local 可复用的 `coder` / `reviewer` subagent。
 
 第六，**subagent 的系统提示词应单列为独立文档资产。**  
 本文档只定义它们放在哪里、如何装配进 Codex agent 存储、如何与 skills / scripts 接线，不直接承载提示词正文。
@@ -86,7 +86,7 @@ coder 是 Initiative 执行期内持续持有实现 ownership 的单一角色；
 - 系统主轴是两个 workflow
 - 当前真正要落地的是 `编码执行循环`
 - `Global State Doc + 三层 Review Rolling Doc` 是正式协作通信面
-- `coder` 是持续执行者，`reviewer` 每轮 fresh 派生
+- runtime formal truth 只持有持续 `coder_slot`，reviewer 复用仅存在于当前 session 的 binding table
 - `Supervisor` 不编码，只负责编排、状态维护、升级裁决与用户断点
 
 因此，凡属下列问题，以第一篇为准，本文档只做工程展开：
@@ -687,17 +687,19 @@ next_action: mark_initiative_delivered
 | --- | --- | --- | --- |
 | Supervisor | 主线程 | 否 | 维护 `Global State Doc`、选择对象、编排循环、派发 subagent、处理升级与用户断点 |
 | Coder | subagent | 是 | 持续实现、修补、运行对象所需验证，并在 ready 时向 rolling doc 追加 `review_handoff` |
-| Task Reviewer | subagent | 是 | fresh 派生，执行 Task review 并写入 `review_result` |
-| Milestone Reviewer | subagent | 是 | fresh 派生，执行 Milestone review 并写入 `review_result` |
-| Initiative Reviewer | subagent | 是 | fresh 派生，执行 Initiative review 并写入 `review_result` |
+| Task Reviewer | subagent | 是 | Task loop 内持续复用，执行 Task review 并写入 `review_result` |
+| Milestone Reviewer | subagent | 是 | Milestone loop 内持续复用，执行 Milestone review 并写入 `review_result` |
+| Initiative Reviewer | subagent | 是 | Initiative loop 内持续复用，执行 Initiative review 并写入 `review_result` |
 这里有一个非常关键的技术约束：
 
-> coder 是“逻辑上的单一持续角色”，不是“每轮重新定义的新角色”。
+> `coder_slot` 是“逻辑上的单一持续角色”，不是“每轮重新定义的新角色”。
+> reviewer 的持续复用只属于当前 session 的 runtime binding，不属于 formal truth。
 
 v1 的优先实现方式应是：
 
-- 优先复用同一个 coder agent thread
-- 如果运行时必须重建 thread，Supervisor 必须在 `Global State Doc` 中记录其继任关系
+- Task / Milestone / Initiative 三层 loop 各自优先复用一对固定 `coder` / `reviewer` agent thread
+- `Supervisor` 在当前 session 内维护这 6 个 subagent 的 binding table
+- 如果运行时必须重建 thread，`coder_slot` 的 formal continuity 仍必须保留；reviewer rebinding 不进入 `Global State Doc`
 - 即使物理 thread 变了，逻辑 `coder_slot` 也不能变成新的角色
 
 ### 6.2 系统提示词源文档位置
@@ -777,9 +779,9 @@ workflow 入口与执行边界固定如下：
 
 - `run-initiative`：Supervisor 入口 skill
 - `continue-task-coding`：驱动 coder 继续当前 Task
-- `run-r1-review`：派发 fresh reviewer 执行 `R1`
-- `run-r2-review`：派发 fresh reviewer 执行 `R2`
-- `run-r3-review`：派发 fresh reviewer 执行 `R3`
+- `run-r1-review`：激活或重建 Task loop 的 `reviewer` 执行 `R1`
+- `run-r2-review`：激活或重建 Milestone loop 的 `reviewer` 执行 `R2`
+- `run-r3-review`：激活或重建 Initiative loop 的 `reviewer` 执行 `R3`
 - `rebuild-resume-hints`：从文档与 Git 重建最小恢复提示
 
 这些名字是技术目标名，不要求当前仓库已经全部存在。
@@ -829,14 +831,14 @@ workflow 入口与执行边界固定如下：
    - `Global State Doc`
    - 当前 `Task Review Rolling Doc`
 3. coder 在当前 round 内实现、修补并运行对象所需验证。
-4. 当且仅当当前 candidate ready for fresh `R1` 时，coder 追加 `review_handoff`。
+4. 当且仅当当前 candidate ready for `R1` 时，coder 追加 `review_handoff`。
 5. 若当前 candidate 尚未 ready for review：
    - 不进入 reviewer
    - `Global State Doc` 保持当前 Task 为 active task
    - 同一个 coder 继续当前 Task round
 6. 若已写入合法 `review_handoff`：
    - `Global State Doc` 把 `next_action` 切到进入 `R1`
-7. `Supervisor` 派发 fresh `Task Reviewer`
+7. `Supervisor` 激活当前 Task loop 的 `Task Reviewer`；若当前 session 尚无绑定，则创建一次并复用
 8. reviewer 读取相同文档与当前 handoff，追加 `review_result`
 9. 若 `R1 clean`：
    - `Supervisor` 更新 `Global State Doc`
@@ -849,7 +851,7 @@ workflow 入口与执行边界固定如下：
 这里要特别强调：
 
 - Task loop 的正式 coder 输出只有 `review_handoff`
-- `R1` 是 fresh reviewer 裁决，不是 coder 自证
+- `R1` 是 reviewer 裁决，不是 coder 自证
 - round 的边界由 `review_result` 是否已经写入决定，不由单次验证尝试决定
 
 ### 7.3 Milestone 的 G2 / R2 循环算法
@@ -1039,7 +1041,7 @@ Git 帮助动作只承接确定性工程操作：
 `docs/codex/runtime/<initiative_key>/` 承担正式协作真理源；本地派生缓存如需存在，也不再占据固定正式路径。
 
 第四，subagent 的落位已经明确：  
-`Supervisor` 在主线程，`coder` 是持续单一角色，`reviewer` 在每次 `R1 / R2 / R3` 时 fresh 派生；可执行提示词真理源固定在 `plugins/forgeloop/agents/`，默认运行时 materialize 到 `~/.codex/agents/`，需要时再落项目级覆盖。
+`Supervisor` 在主线程；formal truth 只承认持续 `coder_slot`；Task / Milestone / Initiative 三层 loop 各自维护一对可复用的 `coder` / `reviewer` subagent；这些 session-local `agent_id` 不进入 formal truth。可执行提示词真理源固定在 `plugins/forgeloop/agents/`，默认运行时 materialize 到 `~/.codex/agents/`，需要时再落项目级覆盖。
 
 第五，formal Gate / Review 的存在方式已经收敛：  
 不再单独造文件，而是作为 typed machine block 追加在对应 rolling doc 中。

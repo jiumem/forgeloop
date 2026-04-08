@@ -8,7 +8,7 @@ description: Internal planning stage skill used by `run-planning` when one confi
 <!-- forgeloop:anchor role -->
 `planning-loop` is the one-stage planning executor under `run-planning`.
 
-You act as the stage `Supervisor`: keep the minimum control plane, preserve one durable `planner_slot`, dispatch the planner and the bound reviewer, and route only within the current stage.
+You act as the stage `Supervisor`: keep the minimum control plane, preserve one durable `planner_slot`, maintain one session-local reusable `planner` binding plus one session-local reusable stage-reviewer binding for the current stage, and route only within the current stage.
 
 If review sends the Initiative to another planning stage, record that cross-stage route in the `Planning State Doc` and stop. `run-planning` must then reread state, explicitly bind the new stage, and decide whether to continue in the same activation.
 
@@ -89,6 +89,7 @@ Hard boundaries:
 - if `last_transition` records a reopen into the current stage, preserve or recover the existing `planner_slot` and open the next stage `round` instead of resuming the previously sealed round
 - `planning_contract_snapshot` must include at least: `stage`, `artifact_ref`, `stage_reference_ref`, `rolling_doc_contract_ref`, and the relevant upstream planning artifact refs
 - every `planner` dispatch and every formalized stage-reviewer dispatch must carry the same bound `stage_reference_ref` and `rolling_doc_contract_ref` explicitly
+- stage-reviewer reuse is session-local only; reviewer identity and physical `agent_id` never become formal planning truth
 - `Gap Analysis Requirement` becomes single-source planning truth only after `Design Doc` seals; once sealed, downstream planning must route from that line instead of re-inferring requirement from chat memory or loose Initiative labels
 - if the planning inputs conflict or the current stage cannot be confirmed uniquely, stop and ask for clarification instead of improvising a new planning object
 
@@ -131,6 +132,9 @@ Local exceptions for planning worker packets:
 3. Dispatch the `planner`
 - Keep only one durable `planner_slot` for the current planning stage
 - `planner_slot` is the only durable owner identity
+- For the current planning session, keep at most one reusable `planner` binding and one reusable stage-reviewer binding for the bound stage
+- If the bound `planner` already has a live `agent_id` in this session, reuse it with `send_input`; do not call `spawn_agent` again for the same live planner binding
+- Only when the stage has no usable planner binding, or the old planner binding is known closed, dead, or unrecoverable, may the supervisor create or rebind that worker with `spawn_agent`
 - physical thread reuse is optional and carries no formal meaning
 - all recovery must come from the current packet plus the bound formal docs, never from prior-thread memory as the only legality basis
 - The planner input must explicitly carry: active stage identity, requirement or `design draft`, the `Planning State Doc` ref or materialized path, the active `rolling_doc_ref`, the active `artifact_ref`, any materialized paths needed for dispatch, the current `round`, the bound `stage_reference_ref`, the bound `rolling_doc_contract_ref`, the anchor selectors for the exact planning-artifact and rolling-doc surfaces needed in the round, and any sealed upstream planning artifacts
@@ -140,7 +144,7 @@ Local exceptions for planning worker packets:
 - The latest `planner_update` in the current round is the current planner intent.
 - Route only from that latest `planner_update` in the current round.
 - `continue_stage_repair`: keep the same `planner_slot` and the same round.
-- `request_reviewer_handoff`: require one valid current handoff in the same round, normalize the current artifact `状态` to `review-ready`, then dispatch the bound reviewer with only the current handoff tuple, bound refs, selectors, and same-source slices needed for that review.
+- `request_reviewer_handoff`: require one valid current handoff in the same round, normalize the current artifact `状态` to `review-ready`, then reuse the current stage's reviewer binding with `send_input` when that reviewer still has a live `agent_id`; only create or rebind it with `spawn_agent` when the current stage has no usable reviewer binding, and send only the current handoff tuple, bound refs, selectors, and same-source slices needed for that review.
 - `wait_for_upstream_judgment`: write `next_action.action=waiting` and stop.
 - `stop_on_blocker`: write `next_action.action=blocked` and stop.
 - Anything else is illegal planner output.
@@ -186,6 +190,7 @@ Never:
 - re-decide `Gap Analysis Requirement` from chat summaries or loose Initiative labels after `Design Doc` has sealed it
 - treat a stale or mismatched review result as the current stage truth
 - invent a reviewer contract that does not exist in the repository
+- persist any session-local planner / reviewer `agent_id` into formal planning truth
 - continue into runtime execution from this skill
 - create a second planning state model outside the `Planning State Doc` and active planning rolling doc
 

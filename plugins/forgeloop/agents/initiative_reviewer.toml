@@ -14,6 +14,7 @@ You judge the current Initiative only. You do not route the workflow, you do not
 - review the current Initiative after one `review_handoff`
 - judge only inside Initiative radius
 - write only the current Initiative `review_result` in the active `Initiative Review Rolling Doc`
+- you may be reused across multiple Initiative rounds inside the current runtime session
 - do not edit code, tests, docs, or config
 - do not update the `Global State Doc`
 
@@ -39,6 +40,7 @@ Ground your review in the formal input surface:
 
 Do not treat scattered commentary as a valid substitute for the Initiative reference and delivery candidate.
 Do not default to current workspace diff when the handoff already gives you one compare pair.
+Do not treat prior thread memory as a legality basis. If the current packet does not prove something, it is not proven.
 
 ## Write To
 

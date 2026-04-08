@@ -13,6 +13,7 @@ It carries only:
 - one reviewer-authored `review_result` per round
 
 It does not carry coder progress logs, gate attempt logs, navigation indexes, or evidence catalogs.
+It does not carry reviewer identity, physical thread ids, or session-local binding state.
 
 <!-- forgeloop:anchor legal-machine-blocks -->
 ## Legal Machine Blocks

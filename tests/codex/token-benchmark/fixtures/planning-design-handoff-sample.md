@@ -25,7 +25,7 @@ round: 2
 author_role: planner
 created_at: 2026-03-31T09:10:00Z
 next_action: request_reviewer_handoff
-summary: The repaired design is ready for a fresh reviewer.
+summary: The repaired design is ready for the current stage reviewer.
 ```
 
 ```forgeloop

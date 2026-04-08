@@ -27,7 +27,7 @@ The representative paths currently include:
 - runtime cold start
 - runtime resume into active task
 - same-task same-round coder continue
-- same-task handoff to fresh reviewer
+- same-task reviewer entry
 - same-task warm-path delta legal
 - same-task warm-path delta illegal -> full packet fallback
 - selector legality failure -> full-doc fallback
@@ -37,7 +37,7 @@ The representative paths currently include:
 - waiting / blocked resume
 - planning cold entry
 - same-stage planner continue
-- fresh planning reviewer handoff
+- current-stage reviewer entry
 - review changes requested -> reopen next round
 
 ## Run

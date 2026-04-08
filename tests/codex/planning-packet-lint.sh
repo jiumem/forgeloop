@@ -54,7 +54,7 @@ from pathlib import Path
 scenarios = json.loads(Path("tests/codex/token-benchmark/fixtures/scenarios.json").read_text())
 targets = {
     "same-stage planner continue",
-    "fresh planning reviewer handoff",
+    "current-stage reviewer entry",
 }
 for scenario in scenarios:
     if scenario["name"] not in targets:

@@ -190,6 +190,10 @@ plugins/forgeloop/skills/planning-loop/references/total-task-doc.md:唯一法定
 plugins/forgeloop/skills/run-planning/SKILL.md:stay visible as a reopen route
 plugins/forgeloop/skills/planning-loop/SKILL.md:planner_slot=planner
 plugins/forgeloop/skills/planning-loop/SKILL.md:round=1
+plugins/forgeloop/skills/run-planning/SKILL.md:planning worker table must be closed first
+plugins/forgeloop/skills/run-planning/references/planning-state.md:cross-plane worker cleanup is mandatory before execution changes planes
+plugins/forgeloop/skills/run-planning/SKILL.md:Only the current session's stored `agent_id` binding is a legal reuse handle
+plugins/forgeloop/skills/planning-loop/SKILL.md:reuse it with `send_input`; do not call `spawn_agent` again for the same live planner binding
 EOF
 
 while IFS=':' read -r file pattern; do
@@ -204,7 +208,7 @@ while IFS=':' read -r file pattern; do
 done <<'EOF'
 plugins/forgeloop/skills/code-loop/SKILL.md:review_handoff
 plugins/forgeloop/skills/code-loop/SKILL.md:current_runtime_cutover_mode
-plugins/forgeloop/skills/code-loop/SKILL.md:fresh reviewer for the current handoff
+plugins/forgeloop/skills/code-loop/SKILL.md:session-local reusable reviewer binding
 plugins/forgeloop/skills/code-loop/SKILL.md:prior-thread memory is never a legality basis by itself
 plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:continue_coder_round
 plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:enter_review
@@ -213,12 +217,16 @@ plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:initiative
 plugins/forgeloop/skills/run-initiative/references/global-state.md:total_task_doc_ref
 plugins/forgeloop/skills/run-initiative/references/global-state.md:active_plane=frontier
 plugins/forgeloop/skills/run-initiative/references/global-state.md:continue_coder_round
+plugins/forgeloop/skills/run-initiative/references/global-state.md:cross-plane worker cleanup is mandatory before execution changes planes
 plugins/forgeloop/skills/rebuild-runtime/SKILL.md:mark_initiative_delivered
 plugins/forgeloop/skills/rebuild-runtime/SKILL.md:current object-local `round`
 plugins/forgeloop/agents/coder.toml:request_reviewer_handoff
 plugins/forgeloop/agents/initiative_reviewer.toml:mark_initiative_delivered
 tests/codex/token-benchmark/fixtures/global-state-active-task.md:total_task_doc_ref:
 tests/codex/token-benchmark/fixtures/global-state-waiting.md:total_task_doc_ref:
+plugins/forgeloop/skills/run-initiative/SKILL.md:Planning-plane bindings from the same session must already have been closed before this table is kept live
+plugins/forgeloop/skills/run-initiative/SKILL.md:Only the current session's stored `agent_id` binding is a legal reuse handle
+plugins/forgeloop/skills/code-loop/SKILL.md:reuse it with `send_input`; do not call `spawn_agent` again for the same live coder binding
 EOF
 
 while IFS=':' read -r file pattern; do

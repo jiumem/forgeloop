@@ -27,6 +27,7 @@ The formal input surface contains only the Initiative static truth trio, the `Gl
 Hard boundaries:
 
 - recover only the logical `coder_slot`, never the physical `agent_id`
+- do not attempt to recover any reviewer binding or session-local thread table as formal state
 - recover the current object-local `round`, never invent a new round
 - write to the `Global State Doc` only when necessary
 - the only updatable blocks are `global_state_header`, `current_snapshot`, `next_action`, and `last_transition`
@@ -108,6 +109,7 @@ Never:
 
 - write rolling doc body content
 - recover a physical owner / thread id as formal state
+- recover a reviewer binding as if it were durable control-plane truth
 - let an outdated `Global State Doc` override newer rolling-doc facts
 - treat chat memory, cache, or local derived hints as formal truth sources
 - silently guess the active object, `coder_slot`, or next action

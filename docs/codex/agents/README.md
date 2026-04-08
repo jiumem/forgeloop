@@ -217,6 +217,8 @@ Runtime roles such as `coder`, `task_reviewer`, `milestone_reviewer`, and `initi
 - lower-layer review docs, anchors, supporting evidence, and spec refs required by the current object
 - engineering facts such as Git / PR / commit / test data
 
+In the current workflow law, Design / Gap / Total Task planning stages each keep one reusable `planner` plus one reusable `reviewer` inside the current session, and Task / Milestone / Initiative runtime loops each keep one reusable `coder` plus one reusable `reviewer` inside the current session. Those session-local `agent_id` bindings are execution-only; formal truth still records only `planner_slot` on the planning side and only `coder_slot` on the runtime side. Only one plane's reusable worker table may remain live at a time, so cross-plane handoff must close the old plane's bindings first.
+
 No role should treat the following as formal truth sources:
 
 - temporary cache

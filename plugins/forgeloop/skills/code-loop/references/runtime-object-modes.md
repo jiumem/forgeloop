@@ -14,12 +14,16 @@ All runtime object modes share the same supervisor backbone:
 
 - one uniquely bound active object
 - one logical `coder_slot`
+- one session-local reusable `coder` binding for the loop
+- one session-local reusable `reviewer` binding for the loop
 - one supervisor-owned object-local `round`
 - one authoritative review rolling doc
 - one current `review_handoff` in the current round when the object is at reviewer entry
 - at most one `review_result` in the current round
 - one `Global State Doc` materialization of reviewer entry
 - one upstream dispatcher: `run-initiative`
+
+The session-local bindings above are runtime-private only. They may be recreated after session loss and must never be written into the `Global State Doc` or the rolling docs.
 
 `review rolling doc` carries only object identity, static review contract, and review-cycle truth. It does not carry coder progress logs, gate attempt ledgers, or runtime routing facts.
 

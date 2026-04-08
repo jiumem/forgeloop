@@ -63,7 +63,7 @@ Header and contract snapshot are initialized once. All later formal facts append
   - the `Supervisor` re-enters the same stage after a reviewer has requested changes
   - the `Supervisor` reopens an earlier sealed stage through an explicit cross-stage route
 - multiple planner updates may occur inside one round
-- reviewer freshness is per round: each review dispatch belongs to one current round, and a later same-stage repair must move to the next round before the next reviewer dispatch
+- reviewer dispatch is round-scoped: each actionable review belongs to one current round, and a later same-stage repair must move to the next round before the next reviewer judgment becomes actionable
 
 <!-- forgeloop:anchor append-only-ownership -->
 ## Append-Only Ownership
@@ -145,8 +145,8 @@ Header and contract snapshot are initialized once. All later formal facts append
 - never use `upstream_reopen_recommendation` for same-stage repair
 - `design_review_result` must not emit `upstream_reopen_recommendation`, because no earlier planning stage exists
 
-<!-- forgeloop:anchor freshness-selection -->
-## Freshness And Current-Law Selection
+<!-- forgeloop:anchor current-law-selection -->
+## Current-Law Selection
 
 - the `Supervisor` acts only on the current open handoff for the current round
 - a review result is actionable only when all of the following match that open handoff:
@@ -156,6 +156,7 @@ Header and contract snapshot are initialized once. All later formal facts append
 - if multiple review-result blocks match the same current handoff exactly, only the latest appended matching block is actionable; earlier matching blocks remain history and must not drive current routing
 - stale or mismatched review results remain historical facts and must not drive current routing
 - if the rolling doc does not expose one unique current handoff for the current round, or one unique latest matching review result, stop and surface a rolling-doc contract violation instead of guessing
+- reviewer reuse is legal only as session-local execution state; reviewer identity, physical thread ids, and binding tables never belong in the rolling doc
 
 <!-- forgeloop:anchor seal-repair-reopen -->
 ## Seal, Repair, And Reopen Law
@@ -175,5 +176,5 @@ Header and contract snapshot are initialized once. All later formal facts append
 - planning derived views are governed by `plugins/forgeloop/skills/planning-loop/references/planning-derived-views.md`
 - `current-effective` remains the default synthesized current-handoff view
 - `attempt-aware/round-<n>.md` remains the default hot-path helper for same-stage repair recovery
-- `handoff-scoped/<handoff_id>.md` remains the default hot-path helper for fresh reviewer entry
+- `handoff-scoped/<handoff_id>.md` remains the default hot-path helper for current-stage reviewer entry
 - `round-scoped/round-<n>.md` may be used when one full planning round needs to be read without unrelated history

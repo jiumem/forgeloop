@@ -23,7 +23,7 @@ These skills are meant to be mandatory workflow constraints, not optional sugges
 
 For repo-local Initiatives, the only legal planning and runtime control-plane root is an Initiative-local sibling `.forgeloop/` directory next to the Initiative documents.
 
-The suite's custom agent manifests live in [`plugins/forgeloop/agents/`](plugins/forgeloop/agents). They cover the planning roles `planner`, `design_reviewer`, `gap_reviewer`, and `total_task_doc_reviewer`, plus the runtime workflow roles `coder`, `task_reviewer`, `milestone_reviewer`, and `initiative_reviewer`. Those manifests are materialized into Codex global agent storage by default, or into a target project's `.codex/agents/` when you pass `--project-dir`.
+The suite's custom agent manifests live in [`plugins/forgeloop/agents/`](plugins/forgeloop/agents). They cover the planning roles `planner`, `design_reviewer`, `gap_reviewer`, and `total_task_doc_reviewer`, plus the runtime workflow roles `coder`, `task_reviewer`, `milestone_reviewer`, and `initiative_reviewer`. In the current law, Design / Gap / Total Task planning stages each keep one reusable `planner` plus one reusable `reviewer` inside the current session, while formal truth keeps only `planner_slot`; Task / Milestone / Initiative runtime loops each keep one reusable `coder` plus one reusable `reviewer`, while formal truth keeps only `coder_slot`. Only one plane's reusable worker table may stay live at a time, so planning bindings must be closed before runtime bindings stay active, and vice versa. Those manifests are materialized into Codex global agent storage by default, or into a target project's `.codex/agents/` when you pass `--project-dir`.
 
 ## Installation
 

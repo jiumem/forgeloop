@@ -50,7 +50,7 @@ Hard boundaries:
 - coder progress logs and gate attempt ledgers do not belong in review rolling docs
 - `round` is object-local and supervisor-owned through the `Global State Doc`; coder and reviewer only echo it in the rolling doc
 - preserve `coder_slot` and `round` while the same object remains active
-- every `R1` / `R2` / `R3` entry must use a fresh reviewer for the current handoff in the current round
+- each runtime `mode` may keep one session-local reusable reviewer binding for the current loop; that binding never becomes formal truth
 - if the `Global State Doc` conflicts with the bound rolling doc, hand control back to `rebuild-runtime`
 - prior-thread memory is never a legality basis by itself
 
@@ -71,6 +71,9 @@ Hard boundaries:
 
 3. Dispatch the `coder`
 - Keep one durable `coder_slot`.
+- For the current runtime session, keep at most one reusable `coder` binding and one reusable `reviewer` binding for the bound `mode`.
+- If the bound `coder` already has a live `agent_id` in this session, reuse it with `send_input`; do not call `spawn_agent` again for the same live coder binding.
+- Only when the bound mode has no usable coder binding, or the old coder binding is known closed, dead, or unrecoverable, may the supervisor create or rebind that worker with `spawn_agent`.
 - The coder packet must carry:
   - Initiative static truth refs
   - `Global State Doc`
@@ -88,7 +91,7 @@ Hard boundaries:
 
 5. Dispatch the mode-specific reviewer
 - Bind the reviewer from `references/runtime-object-modes.md`.
-- Every review entry uses a freshly spawned reviewer for the current round's `review_handoff`.
+- Reuse the current mode's reviewer binding with `send_input` when it still has a live `agent_id` in this session; otherwise create or rebind exactly one reviewer for this mode with `spawn_agent`.
 - Reviewer packets must carry:
   - `round`
   - `review_target_ref`
@@ -96,6 +99,7 @@ Hard boundaries:
   - the object-local selectors required by the bound reviewer contract
   - the exact prior reviewer judgment referenced by `addresses_review_result_id`, when present
 - Derived views are optional hot-path helpers only.
+- Reviewer legality must always come from the current packet, rolling doc, and formal refs, not from prior thread memory.
 
 6. Handle the review result
 - Use only the same-round `review_result` that matches the current round's `review_target_ref`.
@@ -132,6 +136,7 @@ Never:
 - write coder or reviewer body content into the `Global State Doc`
 - dispatch multiple coders concurrently for the same runtime object
 - silently replace the logical `coder_slot`
+- persist any physical `agent_id`, reviewer binding, or session-local thread table into formal runtime truth
 - skip the round-required handoff -> review path once a handoff exists
 - invent a mode-specific action not defined by the bound contracts
 - create a second runtime truth source outside the `Global State Doc` and the authoritative rolling docs
@@ -144,6 +149,7 @@ On correct completion, all of the following should be true:
 - one Initiative is bound uniquely
 - one runtime object and one `mode` are bound uniquely
 - `coder_slot` continuity is unambiguous
+- session-local reviewer reuse, when present, remains invisible to formal truth
 - object-local `round` continuity is unambiguous
 - the current round's `review_handoff` and `review_result` can be recovered uniquely when they exist
 - the mode-specific review chain remains contract-correct

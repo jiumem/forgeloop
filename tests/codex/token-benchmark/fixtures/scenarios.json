@@ -98,12 +98,12 @@
     ]
   },
   {
-    "name": "Same-Task Handoff To Fresh Reviewer",
+    "name": "Same-Task Reviewer Entry",
     "scope": "runtime",
     "gating": "gating",
     "bucket": "hot_path",
     "task_hot_path": true,
-    "description": "Dispatch a fresh Task reviewer against only the current handoff surface.",
+    "description": "Dispatch the current Task reviewer against only the current handoff surface.",
     "legacy_packet": [
       {"type": "full_doc", "path": "plugins/forgeloop/skills/code-loop/SKILL.md"},
       {"type": "full_doc", "path": "plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md"},
@@ -122,7 +122,7 @@
       {"type": "derived_view", "doc": "tests/fixtures/anchor-slicing/task-review-sample.md", "view": "current-effective.md"}
     ],
     "fallback_points": [
-      "fresh reviewer first packet must still be self-sufficient",
+      "reviewer packet must still be self-sufficient",
       "derived view invalidation"
     ]
   },
@@ -421,11 +421,11 @@
     ]
   },
   {
-    "name": "fresh planning reviewer handoff",
+    "name": "current-stage reviewer entry",
     "scope": "planning",
     "gating": "report_only",
     "bucket": "hot_path",
-    "description": "Dispatch a fresh planning reviewer from the current stage-local handoff surface instead of replaying the whole planning history.",
+    "description": "Dispatch the current planning reviewer from the current stage-local handoff surface instead of replaying the whole planning history.",
     "legacy_packet": [
       {"type": "full_doc", "path": "plugins/forgeloop/skills/planning-loop/SKILL.md"},
       {"type": "full_doc", "path": "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md"},
@@ -435,12 +435,12 @@
     "minimal_packet": [
       {"type": "full_doc", "path": "plugins/forgeloop/skills/planning-loop/references/design-doc.md"},
       {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md", "anchor": "handoff-law"},
-      {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md", "anchor": "freshness-selection"},
+      {"type": "slice", "doc": "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md", "anchor": "current-law-selection"},
       {"type": "derived_view", "doc": "tests/codex/token-benchmark/fixtures/planning-design-handoff-sample.md", "view": "handoff-scoped/design-r2-a1.md"},
       {"type": "full_doc", "path": "plugins/forgeloop/agents/design_reviewer.toml"}
     ],
     "fallback_points": [
-      "fresh reviewer packet must stay self-sufficient",
+      "reviewer packet must stay self-sufficient",
       "handoff-scoped view invalidation"
     ]
   },

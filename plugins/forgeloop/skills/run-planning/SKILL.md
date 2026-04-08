@@ -40,6 +40,7 @@ You are responsible only for:
 - recovering the minimum planning control plane when the `Planning State Doc` is missing or distorted but planning truth is still recoverable
 - determining the current active planning stage, or whether planning should stop
 - updating the `Planning State Doc` when needed
+- maintaining only the planning-plane reusable worker table for the current session: at most one `planner` binding plus one reviewer binding per active planning stage, and never keeping that table live alongside runtime-plane bindings
 - calling skill: `planning-loop` when the current planning stage should continue, then rereading state and explicitly rebinding the next stage when cross-stage routing says planning should keep advancing
 
 You are not responsible for:
@@ -55,7 +56,16 @@ You are not responsible for:
 
 Once the next planning step is clear, dispatch exactly one downstream skill for that decision point, or stop and ask the user. Sequential redispatch after `planning-loop` returns is allowed only after rereading the `Planning State Doc` and current planning truth; parallel dispatch and speculative skipped stages are forbidden.
 
-The `Planning State Doc` holds only the minimum planning control plane: `current_snapshot`, `next_action`, and `last_transition`, using only the canonical supervisor actions `enter_planning_loop`, `waiting`, `blocked`, and `sealed_planning_docs_ready`. Do not put planner or reviewer body content there, and do not create a second planning state model outside the formal planning artifacts, rolling docs, and the `Planning State Doc`.
+The `Planning State Doc` holds only the minimum planning control plane: `current_snapshot`, `next_action`, and `last_transition`, using only the canonical supervisor actions `enter_planning_loop`, `waiting`, `blocked`, and `sealed_planning_docs_ready`. Do not put planner or reviewer body content there, do not persist session-local `agent_id` bindings there, and do not create a second planning state model outside the formal planning artifacts, rolling docs, and the `Planning State Doc`.
+When this session leaves the planning plane for runtime, the planning worker table must be closed first. Reusable planning bindings are plane-local and must not remain live in parallel with runtime bindings.
+
+### Worker Binding Law
+
+- `spawn_agent` is create-only. Use it only when the current stage has no usable bound `planner` / reviewer `agent_id`, or when the previously bound one is known closed, dead, or otherwise unrecoverable.
+- Reuse means dispatching the existing bound `agent_id` with `send_input`. Do not call `spawn_agent` again for a still-live worker just because the same stage continues into another round.
+- `task_name`, role name, or stage name are not reuse handles. Only the current session's stored `agent_id` binding is a legal reuse handle.
+- If an existing bound worker must be reopened before more input can be sent, resume that same `agent_id`; do not treat ordinary continuation as a reason to mint a new thread.
+- `close_agent` is plane-local cleanup only. Once a planning worker has been closed, that old `agent_id` is no longer the reusable binding for future planning dispatch; later continuation must either resume that same worker explicitly or create a new binding with `spawn_agent`.
 
 <!-- forgeloop:anchor when-to-stop -->
 ## When To Stop Or Ask The User

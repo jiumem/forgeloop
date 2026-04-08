@@ -25,6 +25,8 @@
 - `artifact_ref` and `rolling_doc_ref` must use durable repo-root-relative refs. Materialize absolute paths only at dispatch time when needed.
 - only a fresh stage with no rolling doc may temporarily omit `planner_slot` and `round`
 - once `planner_slot` or `round` is known from the active rolling doc or recovery, write it back into `current_snapshot` immediately; do not leave recoverable values implicit after the stage is in flight
+- reviewer identity, physical `agent_id`, and session-local worker bindings are never legal fields here
+- cross-plane worker cleanup is mandatory before execution changes planes; planning bindings must be closed before runtime bindings stay active, and runtime bindings must be closed before planning bindings stay active
 - `next_action` owns only immediate in-stage dispatch or terminal stop for the currently bound stage
 - `last_transition` carries only the most recent bind, recovery, resume, reopen, or cross-stage routing fact
 - no other planning doc may invent a parallel routing vocabulary
@@ -119,4 +121,5 @@ reason: initial_entry
 ## Red Lines
 
 - do not write planner or reviewer body content here
+- do not persist planner / reviewer `agent_id` or session-local worker binding state here
 - do not create a second planning control model outside the formal planning artifacts, rolling docs, and this document

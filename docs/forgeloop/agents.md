@@ -10,7 +10,7 @@ Model policy lives in the agent TOML files, not in individual workflow skills. T
 - runtime `coder`: `gpt-5.3-codex` with `high` reasoning effort
 - runtime reviewers: `gpt-5.4` with `medium` reasoning effort
 
-The runtime `Supervisor` is not shipped as a custom agent manifest. It runs in the user-controlled Codex entry session, so the current recommendation is to run that entry session at `gpt-5.4` with `medium` reasoning effort.
+The runtime `Supervisor` is not shipped as a custom agent manifest. It runs in the user-controlled Codex entry session, so the current recommendation is to run that entry session at `gpt-5.4` with `medium` reasoning effort. In runtime execution, the current session keeps one reusable `coder` plus one reusable `reviewer` for each of the Task, Milestone, and Initiative loops; only `coder_slot` remains part of formal truth. On the planning side, the current session keeps one reusable `planner` plus one reusable `reviewer` for each of the Design, Gap, and Total Task stages; only `planner_slot` remains part of formal truth. Only one plane's reusable workers should remain live at once; cross-plane handoff must close the old table first.
 
 `plugins/forgeloop/scripts/materialize-agents.sh` copies those manifests into Codex global agent storage by default, or into a target project's `.codex/agents/` when `--project-dir` is supplied.
 
@@ -22,28 +22,28 @@ Runtime workflow roles obey the single runtime cutover contract in `plugins/forg
 
 - Stage: planning authoring
 - Used by: `run-planning` via `planning-loop`
-- Purpose: act as the single continuous planning owner, write and repair the current `Design Doc`, optional `Gap Analysis Doc`, or `Total Task Doc`, and append planner facts to the active planning rolling doc
+- Purpose: act as the reusable planning-stage owner, write and repair the current `Design Doc`, optional `Gap Analysis Doc`, or `Total Task Doc`, and append planner facts to the active planning rolling doc
 - Returns: formal planner facts and current document refs in the active planning rolling doc
 
 ### `design_reviewer`
 
 - Stage: Design-stage formal review inside planning
 - Used by: `run-planning` via `planning-loop`
-- Purpose: execute the formal Design Doc review, write only to the active `Design Rolling Doc`, and judge whether design closure is structurally sound and ready to advance
+- Purpose: act as the reusable Design-stage reviewer, write only to the active `Design Rolling Doc`, and judge whether design closure is structurally sound and ready to advance
 - Returns: Design-stage formal review result in the active `Design Rolling Doc`
 
 ### `gap_reviewer`
 
 - Stage: Gap-stage formal review inside planning
 - Used by: `run-planning` via `planning-loop`
-- Purpose: execute the formal Gap Analysis Doc review, write only to the active `Gap Rolling Doc`, and judge whether gap closure is factually grounded and ready to advance
+- Purpose: act as the reusable Gap-stage reviewer, write only to the active `Gap Rolling Doc`, and judge whether gap closure is factually grounded and ready to advance
 - Returns: Gap-stage formal review result in the active `Gap Rolling Doc`
 
 ### `total_task_doc_reviewer`
 
 - Stage: Total-task-stage formal review inside planning
 - Used by: `run-planning` via `planning-loop`
-- Purpose: execute the formal `Total Task Doc` review, write only to the active `Total Task Doc Rolling Doc`, and judge whether the execution map is structurally complete and ready to seal
+- Purpose: act as the reusable Total-Task-Doc-stage reviewer, write only to the active `Total Task Doc Rolling Doc`, and judge whether the execution map is structurally complete and ready to seal
 - Returns: Total-Task-Doc-stage formal review result in the active `Total Task Doc Rolling Doc`
 
 ### `coder`
@@ -57,21 +57,21 @@ Runtime workflow roles obey the single runtime cutover contract in `plugins/forg
 
 - Stage: Task formal review
 - Used by: `code-loop` in `task` mode
-- Purpose: execute `R1` against the current Task anchor after `G1 -> anchor / fixup`
+- Purpose: act as the reusable Task-loop reviewer, execute `R1` against the current Task anchor after `G1 -> anchor / fixup`
 - Returns: Task-level formal review result in the active `Task Review Rolling Doc`
 
 ### `milestone_reviewer`
 
 - Stage: Milestone formal review
 - Used by: `code-loop` in `milestone` mode
-- Purpose: execute `R2` against the current Milestone stage candidate after `G2`
+- Purpose: act as the reusable Milestone-loop reviewer, execute `R2` against the current Milestone stage candidate after `G2`
 - Returns: Milestone-level formal review result in the active `Milestone Review Rolling Doc`
 
 ### `initiative_reviewer`
 
 - Stage: Initiative formal review
 - Used by: `code-loop` in `initiative` mode
-- Purpose: execute `R3` against the current Initiative delivery candidate after `G3`
+- Purpose: act as the reusable Initiative-loop reviewer, execute `R3` against the current Initiative delivery candidate after `G3`
 - Returns: Initiative-level formal review result in the active `Initiative Review Rolling Doc`
 
 ## Boundary Rules

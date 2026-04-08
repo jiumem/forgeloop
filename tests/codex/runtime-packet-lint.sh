@@ -78,7 +78,7 @@ if frontier_apply_marker not in run_initiative_text:
 
 targets = {
     "Same-Task Same-Round Coder Continue",
-    "Same-Task Handoff To Fresh Reviewer",
+    "Same-Task Reviewer Entry",
     "Milestone Review",
     "Initiative Review",
     "same-task warm-path delta legal",
@@ -122,7 +122,7 @@ for scenario in scenarios:
             )
 
 reviewer_requirements = {
-    "Same-Task Handoff To Fresh Reviewer": {
+    "Same-Task Reviewer Entry": {
         "required_slices": {
             ("docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "task-ledger/task-definitions/asdo-t5"),
             ("docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "acceptance-matrix/task-acceptance-index/asdo-t5"),

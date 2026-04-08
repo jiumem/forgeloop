@@ -22,6 +22,8 @@ For repo-local Initiatives, required placement is sibling `.forgeloop/global-sta
 - `current_snapshot` carries only the minimum active-object state needed for recovery.
 - `next_action` must use the canonical runtime routing vocabulary directly. Do not invent parallel supervisor-only names such as `dispatch_coder_continue_task`.
 - `review_handoff` and `review_result` are rolling-doc-local facts, not legal `Global State Doc` blocks. The `Global State Doc` materializes only the canonical runtime control state derived from them plus the active coder/reviewer dispatch state.
+- physical `agent_id`s, reviewer bindings, and other session-local worker identity belong to runtime-private state only. They are never legal `Global State Doc` fields.
+- cross-plane worker cleanup is mandatory before execution changes planes; runtime bindings must be closed before planning bindings stay active, and planning bindings must be closed before runtime bindings stay active
 
 <!-- forgeloop:anchor formal-block-contract -->
 ## Formal Block Contract
@@ -117,6 +119,7 @@ reason: initial_task_entry
 - A frontier snapshot is legal after a clean Task or Milestone has closed but the next ready object is not yet uniquely bound.
 - A delivered Initiative stop snapshot may keep only `initiative_key` when `next_action.action=initiative_delivered`.
 - `coder_slot` is the logical owner identity. Never persist physical thread ids here.
+- reviewer continuity is never a formal field here; reused reviewers remain session-local only.
 - `round` is object-local and supervisor-owned whenever a concrete active object is still bound.
 - `last_transition` may carry resume or recovery details, but it must not become a second state model.
 

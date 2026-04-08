@@ -49,6 +49,7 @@ In this framework, you act as the `Supervisor` dispatcher. You are responsible o
 - running the execution-side planning admission check before any runtime dispatch
 - determining the next step, or whether to stop, rebuild, or ask the user
 - updating the `Global State Doc` when needed
+- maintaining only the runtime-plane reusable worker table for the current session: at most one `coder` binding plus one `reviewer` binding per active runtime loop layer, and never keeping that table live alongside planning-plane bindings
 - calling one of the following when needed: skill: `using-git-worktrees`, skill: `rebuild-runtime`, or skill: `code-loop`
 
 You are not responsible for:
@@ -69,7 +70,15 @@ Before any runtime loop dispatch, first decide whether the planning document set
 Once the next step is confirmed, dispatch exactly one downstream skill for that decision point, or stop and ask the user. Sequential redispatch after a skill returns is allowed only after rereading formal runtime state; parallel dispatch and speculative skipped steps are forbidden.
 
 The `Global State Doc` carries only the minimum control-plane state: `current_snapshot`, `next_action`, and `last_transition`, using only canonical runtime action literals such as `wait_for_user`, `stop_on_blocker`, and `initiative_delivered`.
-Each update exists only to support the current next-step dispatch. Do not write coder / reviewer body content, do not keep process logs, and do not create a second state model outside the formal runtime docs.
+Each update exists only to support the current next-step dispatch. Do not write coder / reviewer body content, do not keep process logs, do not persist session-local `agent_id` bindings, and do not create a second state model outside the formal runtime docs.
+
+### Worker Binding Law
+
+- `spawn_agent` is create-only. Use it only when the bound runtime loop layer has no usable `coder` / reviewer `agent_id`, or when the previously bound one is known closed, dead, or otherwise unrecoverable.
+- Reuse means dispatching the existing bound `agent_id` with `send_input`. Do not call `spawn_agent` again for a still-live Task / Milestone / Initiative worker just because the same loop continues into another round.
+- `task_name`, role name, object key, or mode name are not reuse handles. Only the current session's stored `agent_id` binding is a legal reuse handle.
+- If an existing bound worker must be reopened before more input can be sent, resume that same `agent_id`; do not treat ordinary continuation as a reason to mint a new thread.
+- `close_agent` is runtime-local cleanup only. Once a runtime worker has been closed, that old `agent_id` is no longer the reusable binding for future runtime dispatch; later continuation must either resume that same worker explicitly or create a new binding with `spawn_agent`.
 
 <!-- forgeloop:anchor runtime.admission-law -->
 ## Runtime Admission Law
@@ -220,6 +229,8 @@ Consume only the conclusion already confirmed in the previous step. Do not reint
 If work will continue, first rewrite the materialized `Global State Doc` in the active Initiative workspace so that `current_snapshot`, `next_action`, and—when needed—`last_transition` are already sufficient for later recovery.
 If the active object or active plane is about to change, write the new `current_snapshot` and `next_action` first so that a later `Supervisor` can recover the current progress state without hidden context.
 
+Inside the current runtime session, the `Supervisor` may keep one private runtime-plane binding table of up to six reusable subagents: Task / Milestone / Initiative `coder` plus Task / Milestone / Initiative `reviewer`. That table is runtime-private only. It must never be treated as formal recovery state or written into the planning docs, the `Global State Doc`, or any rolling doc. Planning-plane bindings from the same session must already have been closed before this table is kept live.
+
 When the active object is already in flight or has been recovered from an existing rolling doc, `current_snapshot` should preserve the active `coder_slot` and object `round`. Only on first entry into a fresh runtime object with no rolling doc yet may `current_snapshot` temporarily omit them; the target loop must then initialize `coder_slot=coder` and `round=1` before dispatching the first coder round.
 
 ### Step 6: Loop Back
@@ -245,6 +256,7 @@ Never:
 - treat temporary commentary, session memory, or cache as facts equivalent to the formal runtime docs
 - use skill: `rebuild-runtime` to compensate for illegal or unfinished planning truth
 - create a second state model inside JSON, notes, or hidden memory
+- persist any session-local coder / reviewer `agent_id` into formal runtime truth
 - let `run-initiative` execute `G1`, `G2`, `G3`, `R1`, `R2`, or `R3` itself
 - treat inability or unwillingness to dispatch the required coder / reviewer subagents as permission for a single-agent fallback
 - silently replace the current coder with a new logical owner
