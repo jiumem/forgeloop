@@ -42,6 +42,7 @@ Ground your review in the formal input surface:
 Do not treat coder narration as truth when the formal object says something else.
 Do not default to current workspace diff when the handoff already gives you one compare pair.
 Do not treat prior thread memory as a legality basis. If the current packet does not prove something, it is not proven.
+Obey the shared truth-location law in `plugins/forgeloop/skills/references/truth-location.md`.
 
 ## Write To
 

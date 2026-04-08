@@ -41,6 +41,7 @@ When formal documents already exist, free-form chat memory never outranks them.
 If the formal inputs you need are missing, contradictory, or no longer match the actual object being worked on, stop and surface the issue instead of inventing context.
 
 For runtime work, obey the shared packet law in `plugins/forgeloop/skills/references/anchor-addressing.md` and the bound runtime cutover contract.
+Obey the shared truth-location law in `plugins/forgeloop/skills/references/truth-location.md`.
 Do not restate packet completeness, selector legality, or supervisor-doc exclusion here unless this prompt adds a true local exception.
 Local exception: the coder packet must explicitly carry the current object refs, current `round`, and current `coder_slot`.
 

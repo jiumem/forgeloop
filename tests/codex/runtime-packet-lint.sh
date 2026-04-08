@@ -9,7 +9,7 @@ check_pattern() {
   local file="$1"
   local pattern="$2"
 
-  if ! rg -q "$pattern" "$file"; then
+  if ! rg -F -q "$pattern" "$file"; then
     echo "runtime packet lint: missing ${pattern} in ${file}"
     exit 1
   fi
@@ -18,6 +18,15 @@ check_pattern() {
 check_pattern \
   "plugins/forgeloop/skills/references/anchor-addressing.md" \
   '`run-initiative/SKILL.md`, or `code-loop/SKILL.md`'
+check_pattern \
+  "plugins/forgeloop/skills/references/truth-location.md" \
+  '1. authoritative bound refs plus `doc_ref + anchor_selector`'
+check_pattern \
+  "plugins/forgeloop/skills/references/truth-location.md" \
+  '2. `rg` keyword discovery only when the needed selector or exact local section has not yet been bound clearly'
+check_pattern \
+  "plugins/forgeloop/skills/references/truth-location.md" \
+  '3. sealed full-document reading only when the current packet or bound contract still cannot prove the needed truth through legal slices'
 check_pattern \
   "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md" \
   'Ordinary coder / reviewer packets remain anchor-addressed minimal in every supported runtime mode'
@@ -43,14 +52,26 @@ check_pattern \
   "plugins/forgeloop/agents/coder.toml" \
   'formal writeback not completed'
 check_pattern \
+  "plugins/forgeloop/agents/coder.toml" \
+  'Obey the shared truth-location law in `plugins/forgeloop/skills/references/truth-location.md`'
+check_pattern \
   "plugins/forgeloop/agents/task_reviewer.toml" \
   'formal writeback not completed'
+check_pattern \
+  "plugins/forgeloop/agents/task_reviewer.toml" \
+  'Obey the shared truth-location law in `plugins/forgeloop/skills/references/truth-location.md`'
 check_pattern \
   "plugins/forgeloop/agents/milestone_reviewer.toml" \
   'formal writeback not completed'
 check_pattern \
+  "plugins/forgeloop/agents/milestone_reviewer.toml" \
+  'Obey the shared truth-location law in `plugins/forgeloop/skills/references/truth-location.md`'
+check_pattern \
   "plugins/forgeloop/agents/initiative_reviewer.toml" \
   'formal writeback not completed'
+check_pattern \
+  "plugins/forgeloop/agents/initiative_reviewer.toml" \
+  'Obey the shared truth-location law in `plugins/forgeloop/skills/references/truth-location.md`'
 check_pattern \
   "plugins/forgeloop/skills/code-loop/SKILL.md" \
   'Treat coder natural-language completion as non-authoritative'
@@ -63,6 +84,12 @@ check_pattern \
 check_pattern \
   "plugins/forgeloop/skills/run-initiative/SKILL.md" \
   'project-declared environment preparation from `AGENTS.md` or repo operator docs'
+check_pattern \
+  "plugins/forgeloop/skills/run-initiative/SKILL.md" \
+  'Obey the shared truth-location law in `../references/truth-location.md`'
+check_pattern \
+  "plugins/forgeloop/skills/run-initiative/SKILL.md" \
+  'authoritative `doc_ref + anchor_selector` bindings for the bound object'
 check_pattern \
   "plugins/forgeloop/skills/run-initiative/SKILL.md" \
   'Use the smallest fitting class:'
@@ -176,7 +203,31 @@ forbidden = {
     "plugins/forgeloop/skills/milestone-loop/SKILL.md",
     "plugins/forgeloop/skills/initiative-loop/SKILL.md",
 }
+supervisor_scenarios = {
+    "Runtime Cold Start": {
+        "plugins/forgeloop/skills/run-initiative/SKILL.md",
+    },
+    "Runtime Resume Into Active Task": {
+        "plugins/forgeloop/skills/run-initiative/SKILL.md",
+        "plugins/forgeloop/skills/code-loop/SKILL.md",
+    },
+    "Rebuild Runtime": {
+        "plugins/forgeloop/skills/rebuild-runtime/SKILL.md",
+    },
+    "Waiting Or Blocked Resume": {
+        "plugins/forgeloop/skills/run-initiative/SKILL.md",
+    },
+}
 for scenario in scenarios:
+    active_skill_docs = supervisor_scenarios.get(scenario["name"])
+    if active_skill_docs:
+        for item in scenario["minimal_packet"]:
+            path = item.get("path") or item.get("doc")
+            if path in active_skill_docs:
+                raise SystemExit(
+                    f"runtime packet lint: supervisor minimal packet re-feeds active skill law in scenario {scenario['name']}: {path}"
+                )
+
     if scenario["name"] not in targets:
         continue
 
@@ -212,7 +263,7 @@ reviewer_requirements = {
             ("docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "acceptance-matrix/task-acceptance-index/asdo-t5"),
             ("docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "acceptance-matrix/evidence-entrypoints"),
         },
-        "required_view": ("tests/fixtures/anchor-slicing/task-review-sample.md", "current-effective.md"),
+        "optional_view": ("tests/fixtures/anchor-slicing/task-review-sample.md", "current-effective.md"),
         "required_header_fields": {
             "initiative_key": "anchor-sliced-dispatch-optimization",
             "milestone_key": "ASDO-M2",
@@ -232,7 +283,7 @@ reviewer_requirements = {
             ("docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "acceptance-matrix/milestone-acceptance-index/asdo-m2"),
             ("docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "acceptance-matrix/evidence-entrypoints"),
         },
-        "required_view": ("tests/codex/token-benchmark/fixtures/milestone-review-sample.md", "current-effective.md"),
+        "optional_view": ("tests/codex/token-benchmark/fixtures/milestone-review-sample.md", "current-effective.md"),
         "required_header_fields": {
             "initiative_key": "anchor-sliced-dispatch-optimization",
             "milestone_key": "ASDO-M2",
@@ -250,7 +301,7 @@ reviewer_requirements = {
             ("docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "acceptance-matrix/initiative-acceptance-index/ic-5"),
             ("docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md", "acceptance-matrix/evidence-entrypoints"),
         },
-        "required_view": ("tests/codex/token-benchmark/fixtures/initiative-review-sample.md", "current-effective.md"),
+        "optional_view": ("tests/codex/token-benchmark/fixtures/initiative-review-sample.md", "current-effective.md"),
         "required_header_fields": {
             "initiative_key": "anchor-sliced-dispatch-optimization",
         },
@@ -300,33 +351,31 @@ for scenario in scenarios:
         for item in packet
         if item.get("type") == "derived_view"
     }
-    if requirements["required_view"] not in views:
-        raise SystemExit(
-            f"runtime packet lint: reviewer minimal packet missing required review-cycle view in scenario {scenario['name']}: {requirements['required_view']}"
-        )
-    fixture_path = Path(requirements["required_view"][0])
-    fixture_text = fixture_path.read_text()
-    header_fields = dict(HEADER_FIELD_RE.findall(fixture_text))
-    blocks = parse_forgeloop_blocks(fixture_text)
-    for field, expected in requirements.get("required_header_fields", {}).items():
-        actual = header_fields.get(field)
-        if actual != expected:
-            raise SystemExit(
-                f"runtime packet lint: reviewer fixture/header mismatch in scenario {scenario['name']}: "
-                f"{field} expected {expected!r} got {actual!r}"
-            )
-    required_handoff_fields = requirements.get("required_handoff_fields", {})
-    if required_handoff_fields:
-        matched_block = None
-        for block in blocks:
-            if all(block.get(field) == expected for field, expected in required_handoff_fields.items()):
-                matched_block = block
-                break
-        if matched_block is None:
-            raise SystemExit(
-                f"runtime packet lint: reviewer fixture/handoff mismatch in scenario {scenario['name']}: "
-                f"missing compare-pair block {required_handoff_fields}"
-            )
+    optional_view = requirements.get("optional_view")
+    if optional_view and optional_view in views:
+        fixture_path = Path(optional_view[0])
+        fixture_text = fixture_path.read_text()
+        header_fields = dict(HEADER_FIELD_RE.findall(fixture_text))
+        blocks = parse_forgeloop_blocks(fixture_text)
+        for field, expected in requirements.get("required_header_fields", {}).items():
+            actual = header_fields.get(field)
+            if actual != expected:
+                raise SystemExit(
+                    f"runtime packet lint: reviewer fixture/header mismatch in scenario {scenario['name']}: "
+                    f"{field} expected {expected!r} got {actual!r}"
+                )
+        required_handoff_fields = requirements.get("required_handoff_fields", {})
+        if required_handoff_fields:
+            matched_block = None
+            for block in blocks:
+                if all(block.get(field) == expected for field, expected in required_handoff_fields.items()):
+                    matched_block = block
+                    break
+            if matched_block is None:
+                raise SystemExit(
+                    f"runtime packet lint: reviewer fixture/handoff mismatch in scenario {scenario['name']}: "
+                    f"missing compare-pair block {required_handoff_fields}"
+                )
 PY
 
 echo "runtime packet lint passed"
