@@ -49,7 +49,7 @@ You are not responsible for:
 - writing any planning review body content
 - deciding runtime admission or entering execution
 
-`run-planning` is the planning-side top entry. `planning-loop` is its internal one-stage skill. When `planning-loop` records a cross-stage route, reread the `Planning State Doc`, explicitly bind the new active stage, and continue only from refreshed formal planning truth. Do not carry planning across stage boundaries on cached assumptions.
+`run-planning` is the planning-side top entry. It binds the current Initiative, materializes the minimum planning control plane, dispatches `planning-loop`, and rereads formal truth between stages. Any cross-stage continuation must happen only after rereading the `Planning State Doc` and explicitly rebinding from refreshed formal truth.
 
 <!-- forgeloop:anchor dispatch-rules -->
 ## Dispatch Rules
@@ -60,6 +60,8 @@ Sequential redispatch after `planning-loop` returns is allowed only after reread
 `run-planning` owns only Initiative binding, planning-state recovery, route selection, and `Planning State Doc` materialization. The canonical planning routing vocabulary and field legality live in `references/planning-state.md`; do not restate or extend them here.
 
 Session-local worker reuse remains planning-local. Reuse a live worker with `send_input`; create one with `spawn_agent` only when no usable binding exists or the old binding is known unrecoverable. Before runtime stays active, close any reusable planning bindings.
+The planning worker table must be closed first.
+Only the current session's stored `agent_id` binding is a legal reuse handle.
 
 <!-- forgeloop:anchor when-to-stop -->
 ## When To Stop Or Ask The User
@@ -118,6 +120,7 @@ Write the resolved `current_snapshot`, `next_action`, and `last_transition` exac
 2. Step 3 materializes the route already resolved in Step 2; it does not re-decide the active stage or the next route.
 3. Preserve the recovered `planner_slot` and `round` whenever they are already provable.
 4. If the `Planning State Doc` does not exist, initialize only `planning_state_header`, `current_snapshot`, `next_action`, and `last_transition`.
+5. If the route is `reopen_to_design` or `reopen_to_gap_analysis`, stay visible as a reopen route in `last_transition`.
 
 ### Step 4: Dispatch The Internal Stage Skill
 
@@ -138,12 +141,7 @@ Continue only in the same activation after state refresh.
 
 ### Step 6: Loop Back
 
-Keep returning to Step 2 after each completed `planning-loop` dispatch until one of these stop points appears:
-
-- `waiting`
-- `blocked`
-- `sealed_planning_docs_ready`
-- irrecoverable ambiguity that must be surfaced to the user
+Repeat Step 2 through Step 5 until planning reaches `waiting`, `blocked`, `sealed_planning_docs_ready`, or irrecoverable ambiguity that must be surfaced to the user.
 
 <!-- forgeloop:anchor red-lines -->
 ## Red Lines

@@ -183,67 +183,35 @@ After admission is legal, determine exactly one current runtime object.
 
 ### Step 5: Determine The Runtime Next Step
 
-Only after the current runtime object is bound, and only while the current planning admission basis still holds, choose the runtime read order from `current_runtime_cutover_mode`. Read only the surfaces that the bound cutover mode makes legal for this call site; add Git or test facts only when document facts still cannot prove the next step.
+After binding the formal runtime truth, resolve exactly one outcome for this activation:
 
-1. Choose the read order from `current_runtime_cutover_mode`:
-   - `full_doc_default`: authoritative full documents may be the default runtime route
-   - `minimal_preferred` or `minimal_required`: read `global_state_doc_ref` first, then legal derived views, then authoritative rolling-doc blocks, then full-document fallback only when the cutover contract still allows it
-2. Only when document facts remain insufficient should you add the minimum necessary Git / test facts.
-3. Then route by this priority:
-   - stop state recorded by `initiative_delivered`, `waiting`, or `blocked` that is still consistent
-   - cold start with no runtime docs
-   - runtime rebuild when state is missing or conflicting
-   - active-object `code-loop` continuation when one legal current object is already bound
-   - ask the user only when facts are legal but still ambiguous
-4. Apply the first matching case:
-   - if the `Global State Doc` already records `initiative_delivered`: stop and explain the stop point
-   - if the `Global State Doc` already records `waiting` or `blocked`: first check whether this activation clearly resolves that stop reason
-     - if not, stop at that state
-     - if yes, record that resume in `last_transition`, then continue from newer formal runtime truth instead of treating the stop as terminal
-   - if `Global State Doc` is missing and no rolling doc exists: treat it as a new Initiative start
-   - if `Global State Doc` is missing but rolling docs already exist, or if `Global State Doc` clearly conflicts with the total task doc or rolling docs: call skill: `rebuild-runtime`
-   - if workspace diff or interrupted agent narration suggests progress that has not appeared as a rereadable `coder_update`, `review_handoff`, or `review_result`: do not advance the object from that hint alone; continue only from the last legal formal runtime state or call skill: `rebuild-runtime` when the active state is no longer provable uniquely
-   - if one legal current object is already bound and the state is not a stop or rebuild case: treat object-local `code-loop` entry as the confirmed next step
-   - if the facts do not conflict but the next step still cannot be determined uniquely: ask the user
-5. You may confirm only one next step or one clear stop point. If facts conflict, call skill: `rebuild-runtime`; if they are ambiguous, ask the user.
+1. stop if the current legal state is already `initiative_delivered`, `waiting`, or `blocked`
+2. call skill: `rebuild-runtime` when the `Global State Doc`, the bound rolling doc, or the sealed execution map conflict, or when the active current object can no longer be recovered uniquely from formal runtime truth
+3. enter skill: `code-loop` when one legal current object is already bound and the next object-local step is same-object continuation or review-cycle continuation
+4. if the sealed execution map proves a different current object uniquely, rewrite `current_snapshot`, record `last_transition.transition=rebind_within_execution_map`, set `next_action.action=enter_code_loop`, then enter skill: `code-loop`
+5. stop and ask the user only when the formal facts are legal but the next step still cannot be determined uniquely
 
-When the activation cannot continue, classify the interruption before acting. Use the smallest fitting class:
-
-- `control_plane`: active-object ambiguity or routing-law inconsistency; resolve through supervisor routing repair or skill: `rebuild-runtime`
-- `formal_state`: missing or conflicting `review_handoff`, `review_result`, or `Global State Doc` writeback; recover from rereadable formal files only
-- `execution_ready`: project environment, setup, install, or baseline verification is not yet sufficient; route through skill: `using-git-worktrees` in `execution_ready` mode and follow project docs
-- `runtime_resource`: agent quota, thread limit, or other session-local runtime housekeeping issue; clean up runtime-private bindings without treating the object itself as blocked
-- `transport`: stream disconnect, interrupted worker return, or other delivery failure; keep only formal truth and recover from the last legal formal state
-- `object_blocker`: a real object-level blocker, upstream dependency, or missing user judgment; materialize `waiting` or `blocked` only for this class
+Do not create a second interruption taxonomy here. If the state is conflicting, rebuild it. If the state is legal but ambiguous, ask the user. If one legal next object is already proved, continue.
+Use the smallest fitting class: conflicting -> rebuild; legal but ambiguous -> ask the user; otherwise continue.
+- if workspace diff or interrupted agent narration suggests progress that has not appeared as a rereadable `coder_update`, `review_handoff`, or `review_result`: do not advance the object from that hint alone; continue only from the last legal formal runtime state or call skill: `rebuild-runtime` when the active state is no longer provable uniquely
 
 ### Step 6: Prepare Execution And Execute The Next Step
 
-Consume only the conclusion already confirmed in the previous step. Do not reinterpret the facts, and do not rematerialize runtime refs against a different workspace mid-activation.
+Consume only the conclusion already resolved in Step 5.
 
-1. If the confirmed next step is to call skill: `code-loop`, ensure the already bound active Initiative workspace is `execution_ready` first. If this activation has only done `bind_only` so far, call skill: `using-git-worktrees` again in `execution_ready` mode against that same active workspace before dispatching the loop.
-2. `execution_ready` means the active Initiative workspace has completed any project-declared environment preparation from `AGENTS.md` or repo operator docs, plus repo-obvious setup and baseline verification, strongly enough to enter coder or reviewer execution.
-3. If `using-git-worktrees` in `execution_ready` mode exposes a conflict, waiting state, or blocker, stop at that point.
-4. Before any `code-loop` dispatch, bind the concrete active review rolling doc ref for the selected object:
+1. If the confirmed next step is to call skill: `code-loop`, ensure the already bound active Initiative workspace is `execution_ready` first. `execution_ready` means the active Initiative workspace has completed any project-declared environment preparation from `AGENTS.md` or repo operator docs, plus repo-obvious setup and baseline verification, strongly enough to enter coder or reviewer execution. If this activation has only completed `bind_only`, call skill: `using-git-worktrees` again in `execution_ready` mode against that same workspace.
+2. Before any `code-loop` dispatch, bind the concrete active review rolling doc ref for the selected object:
    - Task -> derive `task_review_rolling_doc_ref` from `task_review_rolling_doc_root_ref` and the bound `task_key` using the shared runtime naming law
    - Milestone -> bind the current Milestone's explicit review rolling doc ref from `3.4 Milestone Reference Assignment`
    - Initiative -> bind `initiative_review_rolling_doc_ref`
-   Do not enter `code-loop` with only a review-doc root when the current object-local rolling doc ref is still unbound.
-5. If the confirmed next step enters reviewer work through `code-loop`, bind reviewer-entry basis for `code-loop`, not a second reviewer dispatch path. That basis must contain only the current handoff tuple plus the authoritative `doc_ref + anchor_selector` bindings for the bound object:
-   - the current handoff identity: `round` and `review_target_ref`
-   - the current handoff compare base: `compare_base_ref`
-   - the current object's authoritative planning `doc_ref + anchor_selector` bindings from the sealed planning set
-     - Task: Task definition selector + Task acceptance-index selector + evidence-entrypoint selector
-     - Milestone: Milestone acceptance selector + Milestone reference-assignment selector + Milestone acceptance-index selector + evidence-entrypoint selector
-     - Initiative: all bound Initiative success-criterion selectors + their matching Initiative acceptance-index selectors + evidence-entrypoint selector
-6. An optional derived view such as `current-effective.md` may be included as a disposable helper, but reviewer entry must remain legal from the authoritative refs even when that helper is missing or invalid.
-7. Do not widen this basis to broad section bundles, workspace-diff summaries, or supervisor-precut dossier prose unless the runtime cutover contract explicitly permits disaster fallback and the fallback reason is written explicitly.
-8. New Initiative start: after planning admission has already passed, initialize the minimum `Global State Doc`. If there is a clear first executable Task, bind `current_snapshot` to that Task, set `next_action.action=enter_code_loop`, then call skill: `code-loop`. Otherwise stop and ask the user.
-9. Existing execution continuation: if the confirmed next step is current-object execution, ensure `current_snapshot` and `next_action` already reflect that bound object, then call skill: `code-loop`.
-10. Runtime-only rebind: if the sealed execution map proves a different current object uniquely, rewrite `current_snapshot`, record `last_transition.transition=rebind_within_execution_map`, set `next_action.action=enter_code_loop`, then call skill: `code-loop`.
-11. `rebuild-runtime` is required: call skill: `rebuild-runtime`.
-12. User confirmation is required, or the system is already in a stop state: stop directly.
+   Keep the authoritative `doc_ref + anchor_selector` bindings for the bound object available to `code-loop`.
+3. If work will continue, materialize the resolved `Global State Doc` first so that `current_snapshot`, `next_action`, and `last_transition` are already sufficient for later recovery.
+4. Then dispatch exactly one downstream skill:
+   - current-object continuation or runtime-only rebind -> skill: `code-loop`
+   - control-plane recovery -> skill: `rebuild-runtime`
+   - stop state or required user confirmation -> stop directly
 
-If work will continue, first rewrite the materialized `Global State Doc` in the active Initiative workspace so that `current_snapshot`, `next_action`, and `last_transition` are already sufficient for later recovery.
+Do not precompose a second object-local reviewer-entry packet here. Once the current object and its rolling doc ref are bound, `code-loop` owns coder / reviewer entry for that object.
 
 <!-- forgeloop:anchor red-lines -->
 ## Red Lines

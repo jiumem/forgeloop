@@ -117,20 +117,10 @@
 
 下游读取不得依赖标题文本、行号或目录结构。本文所有一级标题，以及所有会被下游直接引用的二级标题，都必须使用固定语义 selector 的文本锚点。
 
-合法写法如下：
-
-```text
-<!-- forgeloop:anchor document-card -->
-```
-
-命名法如下：
-
-- 一级标题：使用英文语义名，例如 `document-card`、`requirement-baseline`、`target-state-design`
-- 二级标题：使用 `父级/子级` 形式，例如 `document-card/status-and-stage`、`document-card/gap-analysis-requirement`
-- selector 只允许 `[a-z0-9._/-]`
-- 同一模板的 selector 必须跨 Initiative 保持同名；`planner` 不得按个人习惯改名
-
-锚点本身属于正式合同，不是排版装饰。
+- 所有一级标题，以及所有会被下游直接引用的二级标题，必须带稳定文本锚点。
+- 若某个权威区块内部承载多个法定对象，该对象自己的 block 也必须带 object-local 锚点。
+- selector 命名、合法字符集与完整规则遵循 `plugins/forgeloop/skills/references/anchor-addressing.md`。
+- 锚点属于正式合同，不是排版装饰。
 
 <!-- forgeloop:anchor section-contracts -->
 ## 分节合同
