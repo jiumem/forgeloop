@@ -45,6 +45,6 @@ validation_adequacy: pass
 local_structure_convergence: pass
 local_regression_risk: low
 open_issues: []
-next_action: task_done
+next_action: advance_frontier
 findings: []
 ```

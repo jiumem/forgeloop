@@ -109,18 +109,14 @@ scenarios = json.loads(Path("tests/codex/token-benchmark/fixtures/scenarios.json
 run_initiative_text = Path("plugins/forgeloop/skills/run-initiative/SKILL.md").read_text()
 rebuild_runtime_text = Path("plugins/forgeloop/skills/rebuild-runtime/SKILL.md").read_text()
 
-frontier_priority_marker = "- frontier selection when `current_snapshot.active_plane=frontier` or `next_action.action=select_next_ready_object`"
+frontier_priority_marker = "- frontier selection when `current_snapshot.active_plane=frontier` or `next_action.action=advance_frontier`"
 task_priority_marker = "- task-mode code loop when a Task is clearly active"
 task_next_ready_legacy = "task-mode code loop when a Task is clearly active or next-ready"
 frontier_apply_marker = (
-    "- if `current_snapshot.active_plane=frontier` or `next_action.action=select_next_ready_object`: "
-    "resolve the next ready object from the admitted planning document set plus authoritative runtime rolling docs "
-    "by applying this fixed supervisor routing order and stopping at the first match: required current Milestone closure "
-    "-> required Initiative closure -> exactly one next-ready Task. Container forcing applies here first. "
-    "Do not short-circuit directly into Task mode merely because one next-ready Task exists."
+    "- if `current_snapshot.active_plane=frontier` or `next_action.action=advance_frontier`: resolve exactly one next runtime object from the admitted planning document set plus authoritative runtime rolling docs"
 )
 rebuild_frontier_marker = (
-    "- If recovery lands on `current_snapshot.active_plane=frontier` or `next_action.action=select_next_ready_object`, "
+    "- If recovery lands on `current_snapshot.active_plane=frontier` or `next_action.action=advance_frontier`, "
     "apply the same fixed supervisor routing order used by `run-initiative`: required current Milestone closure "
     "-> required Initiative closure -> exactly one next-ready Task. Do not recover directly into Task plane merely "
     "because one next-ready Task can be guessed."
@@ -161,6 +157,16 @@ if frontier_apply_marker not in run_initiative_text:
     raise SystemExit(
         "runtime packet lint: run-initiative apply-case is missing the explicit frontier/container-forcing law"
     )
+
+for marker in (
+    "- use this fixed order and stop at the first match: required current Milestone closure -> required current Initiative closure -> exactly one next-ready Task",
+    "- closure always beats Task entry",
+    "- this step advances only the existing runtime frontier; it must not reopen planning, regenerate Task plans, or synthesize a new Milestone / Task decomposition",
+):
+    if marker not in run_initiative_text:
+        raise SystemExit(
+            "runtime packet lint: run-initiative apply-case is missing part of the explicit frontier/container-forcing law"
+        )
 
 if rebuild_frontier_marker not in rebuild_runtime_text:
     raise SystemExit(

@@ -132,8 +132,8 @@ Every Initiative review must explicitly cover all of the following dimensions:
 
 `Next Action` must be one of:
 
-- `continue_initiative_repair`
-- `mark_initiative_delivered`
+- `continue_coder_round`
+- `initiative_delivered`
 - `wait_for_user`
 - `stop_on_blocker`
 

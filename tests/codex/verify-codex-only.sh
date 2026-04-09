@@ -212,16 +212,16 @@ plugins/forgeloop/skills/code-loop/SKILL.md:session-local reusable reviewer bind
 plugins/forgeloop/skills/code-loop/SKILL.md:prior-thread memory is never a legality basis by itself
 plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:continue_coder_round
 plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:enter_review
-plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:mark_initiative_delivered
+plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:initiative_delivered
 plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:initiative_delivered
 plugins/forgeloop/skills/run-initiative/references/global-state.md:total_task_doc_ref
 plugins/forgeloop/skills/run-initiative/references/global-state.md:active_plane=frontier
 plugins/forgeloop/skills/run-initiative/references/global-state.md:continue_coder_round
 plugins/forgeloop/skills/run-initiative/references/global-state.md:cross-plane worker cleanup is mandatory before execution changes planes
-plugins/forgeloop/skills/rebuild-runtime/SKILL.md:mark_initiative_delivered
+plugins/forgeloop/skills/rebuild-runtime/SKILL.md:initiative_delivered
 plugins/forgeloop/skills/rebuild-runtime/SKILL.md:current object-local `round`
 plugins/forgeloop/agents/coder.toml:request_reviewer_handoff
-plugins/forgeloop/agents/initiative_reviewer.toml:mark_initiative_delivered
+plugins/forgeloop/agents/initiative_reviewer.toml:initiative_delivered
 tests/codex/token-benchmark/fixtures/global-state-active-task.md:total_task_doc_ref:
 tests/codex/token-benchmark/fixtures/global-state-waiting.md:total_task_doc_ref:
 plugins/forgeloop/skills/run-initiative/SKILL.md:Planning-plane bindings from the same session must already have been closed before this table is kept live

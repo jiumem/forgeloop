@@ -107,12 +107,18 @@ It must include:
 
 `review_result.next_action` must be one of:
 
-- `continue_task_repair`
-- `select_next_ready_object`
-- `task_done`
-- `escalate_to_milestone`
+- `continue_coder_round`
+- `advance_frontier`
 - `wait_for_user`
 - `stop_on_blocker`
+
+Materialization law:
+
+- these values are the canonical Task reviewer output vocabulary
+- `code-loop` may materialize them directly into the `Global State Doc`
+- `continue_coder_round` means same-Task repair in a new Task round with the same execution universe still bound
+- `advance_frontier` means the current Task has passed its own layer and runtime frontier must advance
+- none of these values authorizes planning re-entry, Task regeneration, or a new execution-map decomposition
 
 `review_result` is actionable only when:
 
@@ -193,7 +199,7 @@ validation_adequacy: pass
 local_structure_convergence: pass
 local_regression_risk: low
 open_issues: []
-next_action: task_done
+next_action: advance_frontier
 findings: []
 ```
 ````

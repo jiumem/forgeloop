@@ -48,7 +48,7 @@ mainline_merge_safety: pass
 evidence_adequacy: pass
 residual_risks: []
 open_issues: []
-next_action: enter_initiative_review
+next_action: advance_frontier
 required_follow_ups: []
 findings: []
 ```

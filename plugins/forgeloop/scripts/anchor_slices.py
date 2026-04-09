@@ -803,27 +803,24 @@ def validate_runtime_review_schema(doc: pathlib.Path, blocks: list[ForgeloopBloc
     next_actions_by_mode = {
         "task": frozenset(
             {
-                "continue_task_repair",
-                "select_next_ready_object",
-                "task_done",
-                "escalate_to_milestone",
+                "continue_coder_round",
+                "advance_frontier",
                 "wait_for_user",
                 "stop_on_blocker",
             }
         ),
         "milestone": frozenset(
             {
-                "continue_milestone_repair",
-                "enter_initiative_review",
-                "select_next_ready_object",
+                "continue_coder_round",
+                "advance_frontier",
                 "wait_for_user",
                 "stop_on_blocker",
             }
         ),
         "initiative": frozenset(
             {
-                "continue_initiative_repair",
-                "mark_initiative_delivered",
+                "continue_coder_round",
+                "initiative_delivered",
                 "wait_for_user",
                 "stop_on_blocker",
             }

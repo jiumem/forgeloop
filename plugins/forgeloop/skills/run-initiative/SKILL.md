@@ -67,6 +67,15 @@ Before any runtime loop dispatch, first decide whether the planning document set
 This planning admission check lives inside `run-initiative`. It is not a separate skill, does not author planning docs, and does not replace runtime recovery.
 It only accepts or rejects the current `Design Doc`, optional `Gap Analysis Doc`, and `Total Task Doc` as the legal runtime starting point.
 
+<!-- forgeloop:anchor runtime-cross-layer-law -->
+## Runtime Cross-Layer Law
+
+Task, Milestone, and Initiative are runtime acceptance layers, not planning re-entry points.
+
+When any runtime layer finds a fixable problem, the system must open a new round on that same bound runtime object and continue with the `coder`. Do not reopen planning, regenerate Task plans, or synthesize a new execution map from runtime review feedback alone.
+
+When a runtime layer accepts the current object, the only supervisor consequence is frontier advancement inside the already sealed execution map. `run-initiative` may bind the next concrete Task, Milestone, or Initiative object only by resolving the existing formal runtime frontier.
+
 <!-- forgeloop:anchor dispatch-rules -->
 ## Dispatch Rules
 
@@ -180,7 +189,7 @@ Only after workspace binding when needed, and only while the current planning ad
 - stop state recorded by `initiative_delivered`, `wait_for_user`, or `stop_on_blocker` that is still consistent
 - cold start with no runtime docs
 - runtime rebuild when state is missing or conflicting
-- frontier selection when `current_snapshot.active_plane=frontier` or `next_action.action=select_next_ready_object`
+- frontier selection when `current_snapshot.active_plane=frontier` or `next_action.action=advance_frontier`
 - task-mode code loop when a Task is clearly active
 - milestone-mode code loop when Milestone review/repair is clearly active
 - initiative-mode code loop when Initiative review/repair is clearly active
@@ -193,10 +202,11 @@ Only after workspace binding when needed, and only while the current planning ad
 - if `Global State Doc` is missing and no rolling doc exists: treat it as a new Initiative start
 - if `Global State Doc` is missing but rolling docs already exist, or if `Global State Doc` clearly conflicts with the total task doc or rolling docs: call skill: `rebuild-runtime`
 - if workspace diff or interrupted agent narration suggests progress that has not appeared as a rereadable `review_handoff` or `review_result`: do not advance the object from that hint alone; continue only from the last legal formal runtime state or call skill: `rebuild-runtime` when the active state is no longer provable uniquely
-- if `current_snapshot.active_plane=frontier` or `next_action.action=select_next_ready_object`: resolve exactly one next ready object from the admitted planning document set plus authoritative runtime rolling docs.
-- use this fixed order and stop at the first match: required current Milestone closure -> required current Initiative closure -> exactly one next-ready Task.
-- closure always beats Task entry.
-- if that order still leaves multiple legal objects, ask the user.
+- if `current_snapshot.active_plane=frontier` or `next_action.action=advance_frontier`: resolve exactly one next runtime object from the admitted planning document set plus authoritative runtime rolling docs
+- use this fixed order and stop at the first match: required current Milestone closure -> required current Initiative closure -> exactly one next-ready Task
+- closure always beats Task entry
+- this step advances only the existing runtime frontier; it must not reopen planning, regenerate Task plans, or synthesize a new Milestone / Task decomposition
+- if that order still leaves multiple legal objects, ask the user
 - if current progress clearly belongs to the Task review/repair loop, including continuing the currently bound Task or continuing repair on the current Task: formally rebind `current_snapshot` and `next_action` to that Task if needed, bind `mode=task`, and treat Task-mode `code-loop` entry as the confirmed next step
 - if current progress clearly belongs to a Milestone review/repair loop: formally rebind `current_snapshot` and `next_action` to that Milestone if needed, bind `mode=milestone`, and treat Milestone-mode `code-loop` entry as the confirmed next step
 - if current progress clearly belongs to the Initiative review/repair loop: formally rebind `current_snapshot` and `next_action` to that Initiative if needed, bind `mode=initiative`, and treat Initiative-mode `code-loop` entry as the confirmed next step
@@ -226,7 +236,7 @@ Consume only the conclusion already confirmed in the previous step. Do not reint
 - Milestone -> bind the current Milestone's explicit review rolling doc ref from `3.4 Milestone Reference Assignment`
 - Initiative -> bind `initiative_review_rolling_doc_ref`
 Do not enter `code-loop` with only a review-doc root when the current object-local rolling doc ref is still unbound.
-5. If the confirmed next step enters reviewer work through `code-loop`, bind reviewer-entry basis for `code-loop`, not a second reviewer dispatch path. That basis must contain only:
+5. If the confirmed next step enters reviewer work through `code-loop`, bind reviewer-entry basis for `code-loop`, not a second reviewer dispatch path. That basis must contain only the current handoff tuple plus the authoritative `doc_ref + anchor_selector` bindings for the bound object:
 - the current handoff identity: `round` and `review_target_ref`
 - the current handoff compare base: `compare_base_ref`
 - the current object's authoritative planning `doc_ref + anchor_selector` bindings from the sealed planning set
@@ -236,16 +246,17 @@ Do not enter `code-loop` with only a review-doc root when the current object-loc
 6. An optional derived view such as `current-effective.md` may be included as a disposable helper, but reviewer entry must remain legal from the authoritative refs even when that helper is missing or invalid.
 7. Do not widen this basis to broad section bundles, workspace-diff summaries, or supervisor-precut dossier prose unless the runtime cutover contract explicitly permits disaster fallback and the fallback reason is written explicitly.
 
-8. New Initiative start: after planning admission has already passed, initialize the minimum `Global State Doc`. If there is a clear first executable Task, bind `current_snapshot` to that Task, bind `mode=task`, set `next_action.action = continue_coder_round`, then call skill: `code-loop`. Otherwise stop and ask the user.
+8. New Initiative start: after planning admission has already passed, initialize the minimum `Global State Doc`. If there is a clear first executable Task, bind `current_snapshot` to that Task, bind `mode=task`, set `next_action.action=continue_coder_round`, then call skill: `code-loop`. Otherwise stop and ask the user.
 9. Existing execution continuation: if the confirmed next step is Task / Milestone / Initiative execution, ensure `current_snapshot` and `next_action` already reflect that bound object, then call skill: `code-loop` with the already chosen `mode`.
-10. `rebuild-runtime` is required: call skill: `rebuild-runtime`.
-11. User confirmation is required, or the system is already in a stop state: stop directly.
+10. Frontier advancement: if the confirmed next step is runtime frontier advancement, keep `current_snapshot.active_plane=frontier`, keep `next_action.action=advance_frontier`, resolve exactly one next runtime object under the closure-first order above, then rebind and call skill: `code-loop`.
+11. `rebuild-runtime` is required: call skill: `rebuild-runtime`.
+12. User confirmation is required, or the system is already in a stop state: stop directly.
 
 If work will continue, first rewrite the materialized `Global State Doc` in the active Initiative workspace so that `current_snapshot`, `next_action`, and—when needed—`last_transition` are already sufficient for later recovery.
 If the active object or active plane is about to change, write the new `current_snapshot` and `next_action` first so that a later `Supervisor` can recover the current progress state without hidden context.
 When writing `last_transition.reason`, record the interruption class explicitly whenever this activation stopped, resumed, or recovered through one of the taxonomy classes above.
 
-Inside the current runtime session, the `Supervisor` may keep one runtime-private reusable binding table: Task / Milestone / Initiative `coder` plus Task / Milestone / Initiative `reviewer`. It is never formal recovery state and must never be written into planning docs, the `Global State Doc`, or any rolling doc. Planning-plane bindings must already have been closed before this table stays live.
+Inside the current runtime session, the `Supervisor` may keep one runtime-private reusable binding table: Task / Milestone / Initiative `coder` plus Task / Milestone / Initiative `reviewer`. It is never formal recovery state and must never be written into planning docs, the `Global State Doc`, or any rolling doc. Planning-plane bindings from the same session must already have been closed before this table is kept live.
 
 When the active object is already in flight or has been recovered from an existing rolling doc, `current_snapshot` should preserve the active `coder_slot` and object `round`. Only on first entry into a fresh runtime object with no rolling doc yet may `current_snapshot` temporarily omit them; the target loop must then initialize `coder_slot=coder` and `round=1` before dispatching the first coder round.
 

@@ -133,9 +133,8 @@ Every Milestone review must explicitly cover all of the following dimensions:
 
 `Next Action` must be one of:
 
-- `continue_milestone_repair`
-- `enter_initiative_review`
-- `select_next_ready_object`
+- `continue_coder_round`
+- `advance_frontier`
 - `wait_for_user`
 - `stop_on_blocker`
 

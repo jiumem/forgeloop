@@ -101,11 +101,18 @@ It must include:
 
 `review_result.next_action` must be one of:
 
-- `continue_milestone_repair`
-- `enter_initiative_review`
-- `select_next_ready_object`
+- `continue_coder_round`
+- `advance_frontier`
 - `wait_for_user`
 - `stop_on_blocker`
+
+Materialization law:
+
+- these values are the canonical Milestone reviewer output vocabulary
+- `code-loop` may materialize them directly into the `Global State Doc`
+- `continue_coder_round` means same-Milestone repair in a new Milestone round with the same execution universe still bound
+- `advance_frontier` means the current Milestone has passed its own layer and runtime frontier must advance
+- none of these values authorizes planning re-entry, Task regeneration, or a new execution-map decomposition
 
 `review_result` is actionable only when:
 
@@ -187,7 +194,7 @@ residual_risks:
   - Current Task outputs do not yet compose into one stable Milestone boundary.
 open_issues:
   - The mainline integration surface is still carrying a split truth path.
-next_action: continue_milestone_repair
+next_action: continue_coder_round
 required_follow_ups:
   - tighten HUD truth exposure
 findings:

@@ -46,7 +46,7 @@ release_safety: pass
 evidence_adequacy: pass
 residual_risks: []
 open_issues: []
-next_action: mark_initiative_delivered
+next_action: initiative_delivered
 required_follow_ups: []
 findings: []
 ```

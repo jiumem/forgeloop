@@ -41,12 +41,15 @@ The bound Task / Milestone / Initiative review rolling doc carries only object i
 - supervisor default coder continuation action when no formal coder exit exists: `continue_coder_round`
 - supervisor reviewer-entry materialization action: `enter_review`
 - legal reviewer next actions:
-  - `continue_task_repair`
-  - `select_next_ready_object`
-  - `task_done`
-  - `escalate_to_milestone`
+  - `continue_coder_round`
+  - `advance_frontier`
   - `wait_for_user`
   - `stop_on_blocker`
+- reviewer materialization:
+  - `continue_coder_round` -> `continue_coder_round`
+  - `advance_frontier` -> `advance_frontier`
+  - `wait_for_user` -> `wait_for_user`
+  - `stop_on_blocker` -> `stop_on_blocker`
 
 <!-- forgeloop:anchor milestone-mode -->
 ### Milestone
@@ -59,11 +62,15 @@ The bound Task / Milestone / Initiative review rolling doc carries only object i
 - supervisor default coder continuation action when no formal coder exit exists: `continue_coder_round`
 - supervisor reviewer-entry materialization action: `enter_review`
 - legal reviewer next actions:
-  - `continue_milestone_repair`
-  - `enter_initiative_review`
-  - `select_next_ready_object`
+  - `continue_coder_round`
+  - `advance_frontier`
   - `wait_for_user`
   - `stop_on_blocker`
+- reviewer materialization:
+  - `continue_coder_round` -> `continue_coder_round`
+  - `advance_frontier` -> `advance_frontier`
+  - `wait_for_user` -> `wait_for_user`
+  - `stop_on_blocker` -> `stop_on_blocker`
 
 <!-- forgeloop:anchor initiative-mode -->
 ### Initiative
@@ -76,19 +83,27 @@ The bound Task / Milestone / Initiative review rolling doc carries only object i
 - supervisor default coder continuation action when no formal coder exit exists: `continue_coder_round`
 - supervisor reviewer-entry materialization action: `enter_review`
 - legal reviewer next actions:
-  - `continue_initiative_repair`
-  - `mark_initiative_delivered`
+  - `continue_coder_round`
+  - `initiative_delivered`
   - `wait_for_user`
   - `stop_on_blocker`
-- terminal review consequence: `mark_initiative_delivered`; dispatcher terminal stop state: `initiative_delivered`
+- reviewer materialization:
+  - `continue_coder_round` -> `continue_coder_round`
+  - `initiative_delivered` -> `initiative_delivered`
+  - `wait_for_user` -> `wait_for_user`
+  - `stop_on_blocker` -> `stop_on_blocker`
 
 <!-- forgeloop:anchor consumer-law -->
 ## Consumer Law
 
-When `code-loop` binds one mode, it must then consume:
+When `code-loop` binds one mode, it must consume:
 
-- the exact `next_action` semantics from the bound rolling-doc contract
-- the runtime routing vocabulary from `plugins/forgeloop/skills/run-initiative/references/global-state.md`
+- the bound rolling-doc contract as the canonical reviewer-output contract for that mode
+- the canonical runtime routing vocabulary from `plugins/forgeloop/skills/run-initiative/references/global-state.md`
 - the exact judgment surface from the bound reviewer prompt
 
-Do not create a second mode contract here by paraphrasing all legal `verdict + next_action` combinations.
+`code-loop` may materialize reviewer `next_action` values directly into the `Global State Doc` because both surfaces now share one runtime vocabulary.
+
+`enter_review` remains supervisor-only state materialization for handoff entry and is not a legal reviewer output.
+
+Do not create a second mode contract here by paraphrasing separate per-mode dispatcher vocabularies.

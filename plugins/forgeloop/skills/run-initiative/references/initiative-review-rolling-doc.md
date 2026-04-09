@@ -100,10 +100,18 @@ It must include:
 
 `review_result.next_action` must be one of:
 
-- `continue_initiative_repair`
-- `mark_initiative_delivered`
+- `continue_coder_round`
+- `initiative_delivered`
 - `wait_for_user`
 - `stop_on_blocker`
+
+Materialization law:
+
+- these values are the canonical Initiative reviewer output vocabulary
+- `code-loop` may materialize them directly into the `Global State Doc`
+- `continue_coder_round` means same-Initiative repair in a new Initiative round with the same execution universe still bound
+- `initiative_delivered` is the only legal Initiative acceptance result that materializes to the delivered stop state
+- none of these values authorizes planning re-entry or execution-map regeneration
 
 `review_result` is actionable only when:
 
@@ -183,7 +191,7 @@ release_safety: pass
 evidence_adequacy: pass
 residual_risks: []
 open_issues: []
-next_action: mark_initiative_delivered
+next_action: initiative_delivered
 required_follow_ups: []
 findings: []
 ```

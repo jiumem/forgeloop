@@ -29,7 +29,7 @@ check_pattern \
   'Do not search for alternate repo-local runtime control-plane roots'
 check_pattern \
   "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md" \
-  'rolling-doc state is the formal planning status truth'
+  'The rolling doc is the authority for round, handoff, review-result, seal, and reopen history'
 check_pattern \
   "plugins/forgeloop/skills/planning-loop/references/design-doc.md" \
   '以 rolling doc 为准'

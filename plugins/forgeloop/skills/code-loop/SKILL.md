@@ -110,12 +110,32 @@ Hard boundaries:
 - Reviewer legality must always come from the current packet, rolling doc, and formal refs, not from prior thread memory.
 
 7. Handle the review result
-- Use only the same-round `review_result` that matches the current round's `review_target_ref`.
+- Use only the latest current-round `review_result` whose `review_target_ref` matches the current handoff.
 - Treat reviewer natural-language completion as non-authoritative until the expected `review_result` can be reread from the authoritative rolling doc and any required `Global State Doc` rewrite has succeeded.
-- If the result requests same-object repair, increment the object-local `round`, preserve `coder_slot`, and continue in the same mode.
-- If the result requests upstream return, materialize the reviewer-side object-local `next_action` through the canonical runtime routing vocabulary defined by `Global State Doc`, then rebind `current_snapshot` and `next_action` according to the bound mode contracts before handing control back upstream.
-- Do not copy reviewer-local literals such as `task_done`, `enter_initiative_review`, or `mark_initiative_delivered` directly into `Global State Doc.next_action.action`.
-- If the result requests terminal delivery marking, accept only the Initiative-mode legal terminal transition.
+- Treat reviewer `next_action` as canonical runtime control input for the current object-local conclusion.
+- Materialize reviewer output directly into the `Global State Doc`.
+
+Task mode:
+- `continue_coder_round` -> keep the current Task bound, increment the Task round, keep the same `coder_slot`, write `next_action.action=continue_coder_round`, then return upstream
+- `advance_frontier` -> move to `active_plane=frontier`, clear concrete Task execution fields, write `next_action.action=advance_frontier`, then return upstream
+- `wait_for_user` -> write `next_action.action=wait_for_user`, then return upstream
+- `stop_on_blocker` -> write `next_action.action=stop_on_blocker`, then return upstream
+
+Milestone mode:
+- `continue_coder_round` -> keep the current Milestone bound, increment the Milestone round, keep the same `coder_slot`, write `next_action.action=continue_coder_round`, then return upstream
+- `advance_frontier` -> move to `active_plane=frontier`, clear concrete Milestone execution fields except any still-legal frontier constraint, write `next_action.action=advance_frontier`, then return upstream
+- `wait_for_user` -> write `next_action.action=wait_for_user`, then return upstream
+- `stop_on_blocker` -> write `next_action.action=stop_on_blocker`, then return upstream
+
+Initiative mode:
+- `continue_coder_round` -> keep the current Initiative bound, increment the Initiative round, keep the same `coder_slot`, write `next_action.action=continue_coder_round`, then return upstream
+- `initiative_delivered` -> keep Initiative delivered-stop snapshot shape legal, write `next_action.action=initiative_delivered`, then return upstream
+- `wait_for_user` -> write `next_action.action=wait_for_user`, then return upstream
+- `stop_on_blocker` -> write `next_action.action=stop_on_blocker`, then return upstream
+
+- Do not call planning skills from here.
+- Do not regenerate Task plans from reviewer output.
+- Do not create a new runtime object inside `code-loop`.
 - Any illegal `verdict + next_action` combination is a formal stop.
 
 8. Return upstream

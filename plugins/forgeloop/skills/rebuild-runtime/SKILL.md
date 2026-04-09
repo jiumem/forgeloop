@@ -47,6 +47,9 @@ Hard boundaries:
 - one round may expose at most one `review_handoff` and at most one `review_result`
 - when recovery rebuilds reviewer entry, preserve the current handoff's `compare_base_ref`; do not fall back to workspace diff just because the review result does not echo the compare base
 - a new round opens only on first entry into an object or after a reviewer requests same-object repair
+- if `current_snapshot.active_plane=frontier` or `next_action.action=advance_frontier`, recover exactly one next runtime object from the admitted planning truth plus authoritative rolling docs
+- use the same closure-first order as `run-initiative`: required current Milestone closure -> required current Initiative closure -> exactly one next-ready Task
+- runtime recovery may rebuild the frontier, but it must not reopen planning, regenerate Task plans, or invent a new execution map
 
 <!-- forgeloop:anchor recovery-order -->
 ## Recovery Order
@@ -93,8 +96,8 @@ Trigger only in the following situations:
 - If the current round has a `review_handoff` and no `review_result`, recover reviewer entry
 - If the current round has a `review_result`, recover next action from that result
 - If the current round has neither, treat any uncommitted code or chat-only progress as unfinished in-object work and recover coder continuation from the last legal formal state instead of promoting the object
-- If recovery lands on `current_snapshot.active_plane=frontier` or `next_action.action=select_next_ready_object`, apply the same fixed supervisor routing order used by `run-initiative`: required current Milestone closure -> required Initiative closure -> exactly one next-ready Task. Do not recover directly into Task plane merely because one next-ready Task can be guessed.
-- For Initiative delivery, recover reviewer intent exactly: actionable `review_result.next_action=mark_initiative_delivered` becomes dispatcher stop state `initiative_delivered`
+- If recovery lands on `current_snapshot.active_plane=frontier` or `next_action.action=advance_frontier`, apply the same fixed supervisor routing order used by `run-initiative`: required current Milestone closure -> required Initiative closure -> exactly one next-ready Task. Do not recover directly into Task plane merely because one next-ready Task can be guessed.
+- For Initiative delivery, recover reviewer intent exactly: actionable `review_result.next_action=initiative_delivered` becomes dispatcher stop state `initiative_delivered`
 - If no single plane, object, `coder_slot`, `round`, and `next_action` can be proven, stop and ask the user
 
 4. Rewrite the minimum control plane

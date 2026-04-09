@@ -33,6 +33,6 @@ round: 1
 created_at: 2026-03-31T09:10:00Z
 review_target_ref: commits/sample-a1
 verdict: clean
-next_action: task_done
+next_action: advance_frontier
 findings: []
 ```

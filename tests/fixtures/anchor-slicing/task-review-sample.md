@@ -47,7 +47,7 @@ local_structure_convergence: pass
 local_regression_risk: medium
 open_issues:
   - Negative-path evidence is still missing for the current sample round.
-next_action: continue_task_repair
+next_action: continue_coder_round
 findings:
   - id: sample-r1-f1
     evidence_level: Confirmed
@@ -80,6 +80,6 @@ validation_adequacy: pass
 local_structure_convergence: pass
 local_regression_risk: low
 open_issues: []
-next_action: task_done
+next_action: advance_frontier
 findings: []
 ```

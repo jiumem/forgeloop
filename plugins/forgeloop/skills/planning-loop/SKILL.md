@@ -101,7 +101,7 @@ Do not restate packet completeness, selector legality, or supervisor-doc exclusi
 
 Local packet additions for planning workers:
 
-- every planning worker packet must carry the bound contract pair: `stage_reference_ref` + `rolling_doc_contract_ref`
+- every planner and stage-reviewer packet must explicitly carry the bound `stage_reference_ref` and `rolling_doc_contract_ref`
 - planner packets must additionally carry active stage identity, `planning_state_doc_ref`, `artifact_ref`, `rolling_doc_ref`, current `round`, and the necessary sealed upstream refs
 - reviewer packets must additionally carry the current handoff tuple
 

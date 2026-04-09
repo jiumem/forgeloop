@@ -46,30 +46,54 @@ For repo-local Initiatives, required placement is sibling `.forgeloop/global-sta
 
 `next_action.action` may only use these values:
 
-- Shared active-object routing:
-  - `continue_coder_round`
-  - `enter_review`
-  - `select_next_ready_object`
-  - `initiative_delivered`
-- Shared stop routing:
-  - `wait_for_user`
-  - `stop_on_blocker`
+- `continue_coder_round`
+- `enter_review`
+- `advance_frontier`
+- `initiative_delivered`
+- `wait_for_user`
+- `stop_on_blocker`
 
-`review_result.next_action` remains object-local truth in the rolling doc.
-Do not mirror object-local reviewer literals such as `continue_task_repair`, `task_done`, or `enter_initiative_review` into the `Global State Doc`; materialize them to the shared control action that the dispatcher actually needs next.
+Law:
 
-`mark_initiative_delivered` is reviewer output only. It must appear in `review_result.next_action`, not in `Global State Doc.next_action.action`.
-`initiative_delivered` is the dispatcher-written terminal stop state after that reviewer result has been accepted.
+- `continue_coder_round` means the currently bound runtime object remains active and the same logical `coder_slot` continues after formal state refresh.
+- `enter_review` means the currently bound runtime object already exposes one legal current `review_handoff` and reviewer entry is the only legal next step.
+- `advance_frontier` means the currently bound runtime object has been accepted at its own runtime layer and `run-initiative` must resolve the next concrete runtime object from formal truth.
+- `advance_frontier` is runtime-only frontier progress. It is never permission to reopen planning, regenerate Task plans, or synthesize a new execution map.
+- `initiative_delivered` is the only terminal delivered state.
+- `wait_for_user` and `stop_on_blocker` are the only canonical stop actions.
+- any legacy frontier-selection literal outside the canonical vocabulary is illegal in the `Global State Doc`.
+- `review_result.next_action` uses the same canonical runtime vocabulary, except that `enter_review` remains a supervisor-side materialization state rather than a reviewer output.
 
-Supervisor materialization law:
+<!-- forgeloop:anchor supervisor-materialization-law -->
+## Supervisor Materialization Law
 
-- `wait_for_user`, `stop_on_blocker`, and `initiative_delivered` are the only canonical runtime stop literals
-- same-object coder continuation materializes to `continue_coder_round`
-- reviewer entry materializes to `enter_review`
-- any non-terminal upstream-return result materializes to `select_next_ready_object`
-- actionable reviewer-side `mark_initiative_delivered` materializes immediately to dispatcher stop state `initiative_delivered`
-- when a formal runtime stop comes from `review_result`, copy its `blocking_reason` into `next_action.blocking_reason`
-- do not introduce a second informal runtime state vocabulary such as prose stop-state aliases
+When `run-initiative`, `code-loop`, or `rebuild-runtime` materializes formal runtime truth into the `Global State Doc`:
+
+- no current-round `review_handoff` and no current-round matching `review_result` -> `next_action.action=continue_coder_round`
+- one legal current-round `review_handoff` and no current-round matching `review_result` -> `next_action.action=enter_review`
+
+Task-mode reviewer materialization:
+
+- `continue_coder_round` -> keep the current Task bound, open the next Task round, write `next_action.action=continue_coder_round`
+- `advance_frontier` -> move to `active_plane=frontier`, clear concrete Task execution fields, write `next_action.action=advance_frontier`
+- `wait_for_user` -> write `next_action.action=wait_for_user`
+- `stop_on_blocker` -> write `next_action.action=stop_on_blocker`
+
+Milestone-mode reviewer materialization:
+
+- `continue_coder_round` -> keep the current Milestone bound, open the next Milestone round, write `next_action.action=continue_coder_round`
+- `advance_frontier` -> move to `active_plane=frontier`, clear concrete Milestone execution fields except any still-legal frontier constraint, write `next_action.action=advance_frontier`
+- `wait_for_user` -> write `next_action.action=wait_for_user`
+- `stop_on_blocker` -> write `next_action.action=stop_on_blocker`
+
+Initiative-mode reviewer materialization:
+
+- `continue_coder_round` -> keep the current Initiative bound, open the next Initiative round, write `next_action.action=continue_coder_round`
+- `initiative_delivered` -> keep `active_plane=initiative`, write `next_action.action=initiative_delivered`, and allow delivered-stop snapshot shape
+- `wait_for_user` -> write `next_action.action=wait_for_user`
+- `stop_on_blocker` -> write `next_action.action=stop_on_blocker`
+
+Reviewer-side action names and supervisor-side action names now share one canonical runtime vocabulary.
 
 <!-- forgeloop:anchor recommended-template -->
 ## Recommended Template
