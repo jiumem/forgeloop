@@ -19,7 +19,7 @@
 | adjacent anchors create an empty slice | `check` fails and names the empty selector | `anchor_slices.py check` |
 | illegal selector input is requested | resolver stops with `illegal_selector` | `anchor_slices.py slice` |
 | missing text anchor requested | resolver stops with `missing_anchor` | `anchor_slices.py slice` |
-| required contract doc lacks mandated selectors | release gate fails on coverage violation | `anchor-slice-smoke` + required-surface list |
+| required machine-addressed formal surface lacks mandated selectors | release gate fails on coverage violation | `anchor-slice-smoke` + required-surface list |
 | minimal packet consumer gets legal selectors | consumer may stay on minimal-path read | workflow skills + tracked reference mirrors |
 | selector legality fails | consumer promotes to full-document fallback or blocks | workflow skills |
 | runtime review round exposes duplicate handoff or result blocks | `derive` fails instead of guessing a current result | `anchor_slices.py derive` |
@@ -53,6 +53,8 @@
 - `tests/codex/token-benchmark/fixtures/scenarios.json`
 
 These fixtures are intentionally small. They prove contract behavior, not business-domain traces.
+
+Coverage validation applies only to the required machine-addressed surface list defined by `anchor-addressing.md`. Optional workflow or explanatory docs may omit anchors without causing release failure.
 
 <!-- forgeloop:anchor release-gate -->
 ## Release Gate

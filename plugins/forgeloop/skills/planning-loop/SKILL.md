@@ -99,20 +99,18 @@ Hard boundaries:
 Obey the shared packet law in `../references/anchor-addressing.md`.
 Do not restate packet completeness, selector legality, or supervisor-doc exclusion here unless this file adds a true local exception.
 
-Local exceptions for planning worker packets:
+Local packet additions for planning workers:
 
-- every planner and stage-reviewer packet must explicitly carry the bound `stage_reference_ref` and `rolling_doc_contract_ref`
-- planner packets must additionally carry active stage identity, `planning_state_doc_ref`, `artifact_ref`, `rolling_doc_ref`, current `round`, and the necessary sealed upstream refs for the current round
-- reviewer packets must additionally carry the current handoff tuple plus the same bound refs for the current handoff
+- every planning worker packet must carry the bound contract pair: `stage_reference_ref` + `rolling_doc_contract_ref`
+- planner packets must additionally carry active stage identity, `planning_state_doc_ref`, `artifact_ref`, `rolling_doc_ref`, current `round`, and the necessary sealed upstream refs
+- reviewer packets must additionally carry the current handoff tuple
 
 <!-- forgeloop:anchor workflow -->
 ## Workflow
 
 1. Bind the current planning stage
 - Read the requirement or `design draft`, the `Planning State Doc`, the active planning rolling doc when it exists, the current stage artifact when it exists, and the minimum repo facts needed to confirm the stage boundary
-- Bind the canonical `stage_reference_ref` for the active stage before dispatch
-- Bind the canonical `rolling_doc_contract_ref` before dispatch
-- Confirm that the Initiative and active stage are unique, the formal `artifact_ref` is known, the `rolling_doc_ref` is known or can be initialized uniquely, `stage_reference_ref` is uniquely confirmed, and `rolling_doc_contract_ref` is uniquely confirmed
+- Before dispatch, bind and uniquely confirm the current stage contract pair: `stage_reference_ref` and `rolling_doc_contract_ref`, together with the active `artifact_ref` and `rolling_doc_ref`.
 - If the active planning rolling doc already exists, also confirm that `planner_slot` is unique and the stage `round` is unique
 - If the active planning rolling doc does not yet exist, it is legal to initialize the stage here with `planner_slot=planner` and `round=1`
 - If `last_transition` records an explicit reopen into this stage, recover `planner_slot` from the rolling doc when possible and open the next integer `round` instead of resuming the previously sealed round

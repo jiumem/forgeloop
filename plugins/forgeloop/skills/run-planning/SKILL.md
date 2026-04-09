@@ -40,7 +40,7 @@ You are responsible only for:
 - recovering the minimum planning control plane when the `Planning State Doc` is missing or distorted but planning truth is still recoverable
 - determining the current active planning stage, or whether planning should stop
 - updating the `Planning State Doc` when needed
-- maintaining only the planning-plane reusable worker table for the current session: at most one `planner` binding plus one reviewer binding per active planning stage, and never keeping that table live alongside runtime-plane bindings
+- keeping planning-plane bindings plane-local and ensuring they are closed before runtime bindings stay live; active-stage worker reuse and the at-most-one planner/reviewer rule are handled inside `planning-loop`
 - calling skill: `planning-loop` when the current planning stage should continue, then rereading state and explicitly rebinding the next stage when cross-stage routing says planning should keep advancing
 
 You are not responsible for:

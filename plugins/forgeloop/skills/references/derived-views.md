@@ -8,6 +8,8 @@
 - Primary readers: `run-planning`, `planning-loop`, `run-initiative`, `rebuild-runtime`, loop skills, reviewers, validation tooling
 - Primary purpose: define non-authoritative derived projections that may shrink hot-path reads without changing authority or freshness law
 
+Its anchors, when present, are navigation aids or optional selector targets. This document is not a mandatory machine-addressed payload surface unless a local contract explicitly binds one of its sections.
+
 <!-- forgeloop:anchor authority-line -->
 ## Authority Line
 

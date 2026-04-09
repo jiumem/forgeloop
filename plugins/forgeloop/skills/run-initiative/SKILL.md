@@ -50,7 +50,7 @@ In this framework, you act as the `Supervisor` dispatcher. You are responsible o
 - running the execution-side planning admission check before any runtime dispatch
 - determining the next step, or whether to stop, rebuild, or ask the user
 - updating the `Global State Doc` when needed
-- maintaining only the runtime-plane reusable worker table for the current session: at most one `coder` binding plus one `reviewer` binding per active runtime loop layer, and never keeping that table live alongside planning-plane bindings
+- keeping runtime-plane bindings plane-local and ensuring they are closed before planning bindings stay live; current-object worker reuse and the at-most-one coder/reviewer rule per active loop layer are handled inside `code-loop`
 - calling one of the following when needed: skill: `using-git-worktrees`, skill: `rebuild-runtime`, or skill: `code-loop`
 
 You are not responsible for:
@@ -119,7 +119,7 @@ If the shared packet law or runtime cutover contract forces fallback or stop dur
 First bind the formal source refs for the current Initiative.
 
 1. Use the user-provided `planning_doc_path`, `initiative_key`, or the only verifiable active Initiative in the current workspace to bind the current Initiative. If it cannot be verified uniquely, ask the user.
-2. Prefer exploring under the parent path of the user-provided planning doc. Only if that is insufficient should you continue under the repo `docs/` tree.
+2. When `planning_doc_path` is provided, prefer exploring under its parent path. Only if that is insufficient should you continue under the repo `docs/` tree.
 3. When the sealed planning artifact directory is known, derive the one legal repo-local runtime control-plane root from `../references/control-plane-roots.md`: sibling `.forgeloop/` under that Initiative document directory. Bind the runtime refs there directly. Do not search for alternate repo-local runtime control-plane roots elsewhere in the repository.
 <!-- forgeloop:anchor canonical-ref-semantics -->
 4. Confirm seven Initiative-bound source slots as canonical refs: `design_ref`, `gap_analysis_ref`, `total_task_doc_ref`, `global_state_doc_ref`, `task_review_rolling_doc_root_ref`, `milestone_review_rolling_doc_root_ref`, and `initiative_review_rolling_doc_ref`.
@@ -214,13 +214,6 @@ When the activation cannot continue, classify the interruption before acting. Us
 
 Do not let tooling, transport, or housekeeping problems masquerade as object-level acceptance failure.
 
-When the chosen next step is reviewer entry through `code-loop`, the runtime basis must already preserve:
-- the current handoff identity: `round` and `review_target_ref`
-- the current handoff compare base: `compare_base_ref`
-- the current object's authoritative planning `doc_ref + anchor_selector` bindings from the sealed planning set
-
-Do not treat broad section slices, residual workspace diff, or older rolling history as the default reviewer packet just because they are easy to gather.
-
 ### Step 5: Prepare Execution And Execute The Next Step
 
 Consume only the conclusion already confirmed in the previous step. Do not reinterpret the facts, and do not rematerialize runtime refs against a different workspace mid-activation.
@@ -233,12 +226,15 @@ Consume only the conclusion already confirmed in the previous step. Do not reint
 - Milestone -> bind the current Milestone's explicit review rolling doc ref from `3.4 Milestone Reference Assignment`
 - Initiative -> bind `initiative_review_rolling_doc_ref`
 Do not enter `code-loop` with only a review-doc root when the current object-local rolling doc ref is still unbound.
-5. If the confirmed next step enters reviewer work through `code-loop`, dispatch the lean reviewer packet as current handoff identity + `compare_base_ref` + authoritative `doc_ref + anchor_selector` bindings for the bound object:
-- Task: Task definition selector + Task acceptance-index selector + evidence-entrypoint selector
-- Milestone: Milestone acceptance selector + Milestone reference-assignment selector + Milestone acceptance-index selector + evidence-entrypoint selector
-- Initiative: all bound Initiative success-criterion selectors + their matching Initiative acceptance-index selectors + evidence-entrypoint selector
+5. If the confirmed next step enters reviewer work through `code-loop`, bind reviewer-entry basis for `code-loop`, not a second reviewer dispatch path. That basis must contain only:
+- the current handoff identity: `round` and `review_target_ref`
+- the current handoff compare base: `compare_base_ref`
+- the current object's authoritative planning `doc_ref + anchor_selector` bindings from the sealed planning set
+  - Task: Task definition selector + Task acceptance-index selector + evidence-entrypoint selector
+  - Milestone: Milestone acceptance selector + Milestone reference-assignment selector + Milestone acceptance-index selector + evidence-entrypoint selector
+  - Initiative: all bound Initiative success-criterion selectors + their matching Initiative acceptance-index selectors + evidence-entrypoint selector
 6. An optional derived view such as `current-effective.md` may be included as a disposable helper, but reviewer entry must remain legal from the authoritative refs even when that helper is missing or invalid.
-7. Do not promote reviewer packets to broad section bundles, workspace-diff summaries, or supervisor-precut dossier prose unless the runtime cutover contract explicitly permits disaster fallback and the fallback reason is written explicitly.
+7. Do not widen this basis to broad section bundles, workspace-diff summaries, or supervisor-precut dossier prose unless the runtime cutover contract explicitly permits disaster fallback and the fallback reason is written explicitly.
 
 8. New Initiative start: after planning admission has already passed, initialize the minimum `Global State Doc`. If there is a clear first executable Task, bind `current_snapshot` to that Task, bind `mode=task`, set `next_action.action = continue_coder_round`, then call skill: `code-loop`. Otherwise stop and ask the user.
 9. Existing execution continuation: if the confirmed next step is Task / Milestone / Initiative execution, ensure `current_snapshot` and `next_action` already reflect that bound object, then call skill: `code-loop` with the already chosen `mode`.

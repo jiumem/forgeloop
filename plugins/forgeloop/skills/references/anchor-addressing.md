@@ -33,17 +33,27 @@
 <!-- forgeloop:anchor coverage-matrix -->
 ## Required Coverage Matrix
 
-The following surfaces must expose stable text anchors for hot-path consumption:
+The anchor system applies only to formal surfaces that may be consumed through persisted or dispatched `doc_ref + anchor_selector` pairs.
+
+The following surfaces must expose stable text anchors:
 
 - sealed planning artifacts: `Design Doc`, `Gap Analysis Doc`, `Total Task Doc`
-- planning rolling-doc contract reference
-- runtime control-plane contract references: `Global State Doc`, Task/Milestone/Initiative review rolling-doc contracts
-- workflow skill sections that define packet shape, fallback law, admission law, or object routing
-- Markdown reference mirrors and human-readable contract docs that describe consumer-facing packet expectations
+- planning control-plane truth: `Planning State Doc`
+- runtime control-plane truth: `Global State Doc`
+- authoritative rolling-doc contract refs that workers or supervisors bind directly for minimal reads:
+  - planning rolling-doc contract reference
+  - Task / Milestone / Initiative review rolling-doc contract references
+  - runtime cutover contract when a caller binds selector-addressed sections from it
 
-Executable manifests are still part of the formal contract surface, but under the current Markdown-comment anchor syntax they are validated indirectly through the tracked skill docs and reference mirrors that bind their packet semantics. They are not themselves required to embed Markdown text anchors.
+The following surfaces are not mandatory anchor surfaces unless a stricter local contract explicitly promotes them into selector-addressed payload:
 
-Consumers may expose more anchors than this minimum, but they must not rely on hidden or implicit sections outside this coverage set.
+- supervisor or dispatcher workflow skills such as `run-planning`, `planning-loop`, `run-initiative`, `code-loop`, `rebuild-runtime`, `using-git-worktrees`
+- explanatory references such as truth-location, derived-view guidance, validation notes, or control-plane commentary
+- executable manifests and agent prompt files
+
+Optional anchors are legal on those non-mandatory surfaces, but release validation must not fail merely because they are absent.
+
+Coverage is determined by packet participation, not by file extension, file location, or whether a document is named `SKILL` or `reference`.
 
 <!-- forgeloop:anchor minimal-packet -->
 ## Minimal Packet Contract
