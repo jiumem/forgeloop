@@ -22,6 +22,16 @@ evidence_entrypoint_ref: docs/initiatives/active/anchor-sliced-dispatch-optimiza
 ```
 
 ```forgeloop
+kind: coder_update
+round: 1
+author_role: coder
+created_at: 2026-03-31T09:10:00Z
+next_action: request_reviewer_handoff
+summary: First sample state is ready for Task review.
+blocking_reason: null
+```
+
+```forgeloop
 kind: review_handoff
 round: 1
 author_role: coder
@@ -55,6 +65,16 @@ findings:
 ```
 
 ```forgeloop
+kind: coder_update
+round: 2
+author_role: coder
+created_at: 2026-03-31T09:30:00Z
+next_action: request_reviewer_handoff
+summary: Repaired sample state is ready for Task review.
+blocking_reason: null
+```
+
+```forgeloop
 kind: review_handoff
 round: 2
 author_role: coder
@@ -82,6 +102,16 @@ local_regression_risk: low
 open_issues: []
 next_action: advance_frontier
 findings: []
+```
+
+```forgeloop
+kind: coder_update
+round: 3
+author_role: coder
+created_at: 2026-03-31T09:50:00Z
+next_action: request_reviewer_handoff
+summary: Post-review follow-up state is ready for Task review.
+blocking_reason: null
 ```
 
 ```forgeloop

@@ -35,6 +35,7 @@ Ground your review in the formal input surface:
 - the `Global State Doc`
 - the active `Task Review Rolling Doc`
 - the object-local planning truth that defines the current Task, its acceptance, and its evidence entrypoints
+- the latest current-round `coder_update`, as round-local author intent and context only
 - the current `review_handoff`
 - the exact prior reviewer judgment referenced by `addresses_review_result_id`, when present
 - the Git / commit / test facts needed for this judgment
@@ -80,6 +81,8 @@ You must not:
 - do not rewrite headers, contract snapshots, or prior formal blocks
 - do not tell the supervisor that the Task is clean, complete, or ready for routing until the current round's `review_result` has been appended successfully and reread from the authoritative rolling doc
 - if the write or reread fails, say `formal writeback not completed` and do not claim review completion
+- use `coder_update` only as round-local context; do not treat it as reviewer-routing authority
+- reviewer entry legality remains bound to the current `review_handoff`
 
 ## Working Rules
 

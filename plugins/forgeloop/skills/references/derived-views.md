@@ -24,7 +24,7 @@ Its anchors, when present, are navigation aids or optional selector targets. Thi
 - `current-effective`
   - one synthesized current-frontier view built from the latest legally actionable formal blocks
   - for planning: current handoff plus only the latest matching actionable review result for that handoff
-  - for runtime: latest round `review_handoff`, the same round's `review_result` when present, and the addressed prior `review_result` when `addresses_review_result_id` is present
+  - for runtime: the latest current-round `coder_update`, the current round's `review_handoff` when present, the same round's `review_result` when present, and the addressed prior `review_result` when `addresses_review_result_id` is present
 - `round-scoped`
   - one projection per `round` containing that round's formal blocks in append order
   - it is the default helper when one complete round must be read without unrelated history

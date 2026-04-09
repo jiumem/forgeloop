@@ -17,6 +17,16 @@ summary: Non-numeric round should fail derive.
 ```
 
 ```forgeloop
+kind: coder_update
+round: 1
+author_role: coder
+created_at: 2026-03-31T09:04:00Z
+next_action: request_reviewer_handoff
+summary: Non-numeric round should fail derive.
+blocking_reason: null
+```
+
+```forgeloop
 kind: review_handoff
 round: one
 author_role: coder

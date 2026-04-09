@@ -126,12 +126,12 @@ rebuild_formal_only_marker = (
     "explain what happened, but they must never promote object progression without a rereadable formal block."
 )
 rebuild_uncommitted_marker = (
-    "- If the current round has neither, treat any uncommitted code or chat-only progress as unfinished in-object work "
+    "- If the current round has no formal `coder_update`, `review_handoff`, or `review_result`, treat any uncommitted code or chat-only progress as unfinished in-object work "
     "and recover coder continuation from the last legal formal state instead of promoting the object"
 )
 run_initiative_partial_progress_marker = (
     "- if workspace diff or interrupted agent narration suggests progress that has not appeared as a rereadable "
-    "`review_handoff` or `review_result`: do not advance the object from that hint alone; continue only from the last "
+    "`coder_update`, `review_handoff`, or `review_result`: do not advance the object from that hint alone; continue only from the last "
     "legal formal runtime state or call skill: `rebuild-runtime` when the active state is no longer provable uniquely"
 )
 run_initiative_disconnect_marker = (

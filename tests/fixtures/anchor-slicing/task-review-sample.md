@@ -22,6 +22,16 @@ evidence_entrypoint_ref: docs/initiatives/active/anchor-sliced-dispatch-optimiza
 ```
 
 ```forgeloop
+kind: coder_update
+round: 1
+author_role: coder
+created_at: 2026-03-31T09:10:00Z
+next_action: request_reviewer_handoff
+summary: First sample state is ready for Task review.
+blocking_reason: null
+```
+
+```forgeloop
 kind: review_handoff
 round: 1
 author_role: coder
@@ -52,6 +62,16 @@ findings:
   - id: sample-r1-f1
     evidence_level: Confirmed
     summary: The sample round lacks the validation evidence required for a clean Task judgment.
+```
+
+```forgeloop
+kind: coder_update
+round: 2
+author_role: coder
+created_at: 2026-03-31T09:30:00Z
+next_action: request_reviewer_handoff
+summary: Repaired sample state is ready for Task review.
+blocking_reason: null
 ```
 
 ```forgeloop

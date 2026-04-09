@@ -303,6 +303,20 @@ BLOCK_SPECS = {
         required_fields=frozenset({"object_type", "schema_version", "initiative_key", "coder_slot", "created_at"})
     ),
     "review_contract_snapshot": BlockSpec(),
+    "coder_update": BlockSpec(
+        required_fields=frozenset(
+            {"round", "author_role", "created_at", "next_action", "summary"}
+        ),
+        author_role="coder",
+        next_actions=frozenset(
+            {
+                "continue_local_repair",
+                "request_reviewer_handoff",
+                "wait_for_user",
+                "stop_on_blocker",
+            }
+        ),
+    ),
     "review_handoff": BlockSpec(
         required_fields=frozenset(
             {"round", "author_role", "created_at", "review_target_ref", "compare_base_ref"}
@@ -339,21 +353,21 @@ MODE_SPECS = {
     "task": RollingDocModeSpec(
         header_kind="review_header",
         snapshot_kinds=frozenset({"review_contract_snapshot"}),
-        round_scoped_kinds=frozenset({"review_handoff", "review_result"}),
+        round_scoped_kinds=frozenset({"coder_update", "review_handoff", "review_result"}),
         handoff_kinds=frozenset({"review_handoff"}),
         result_kinds=frozenset({"review_result"}),
     ),
     "milestone": RollingDocModeSpec(
         header_kind="review_header",
         snapshot_kinds=frozenset({"review_contract_snapshot"}),
-        round_scoped_kinds=frozenset({"review_handoff", "review_result"}),
+        round_scoped_kinds=frozenset({"coder_update", "review_handoff", "review_result"}),
         handoff_kinds=frozenset({"review_handoff"}),
         result_kinds=frozenset({"review_result"}),
     ),
     "initiative": RollingDocModeSpec(
         header_kind="review_header",
         snapshot_kinds=frozenset({"review_contract_snapshot"}),
-        round_scoped_kinds=frozenset({"review_handoff", "review_result"}),
+        round_scoped_kinds=frozenset({"coder_update", "review_handoff", "review_result"}),
         handoff_kinds=frozenset({"review_handoff"}),
         result_kinds=frozenset({"review_result"}),
     ),
@@ -766,6 +780,14 @@ def validate_block_schema(doc: pathlib.Path, blocks: list[ForgeloopBlock], mode:
 
 
 def validate_runtime_review_schema(doc: pathlib.Path, blocks: list[ForgeloopBlock], mode: str) -> None:
+    coder_next_actions = frozenset(
+        {
+            "continue_local_repair",
+            "request_reviewer_handoff",
+            "wait_for_user",
+            "stop_on_blocker",
+        }
+    )
     result_required_by_mode = {
         "task": frozenset(
             {
@@ -841,6 +863,16 @@ def validate_runtime_review_schema(doc: pathlib.Path, blocks: list[ForgeloopBloc
                 violations.append(
                     f"review_contract_snapshot@{block.start_line} restates forbidden truth field(s): {','.join(forbidden_fields)}"
                 )
+        if kind == "coder_update":
+            next_action = block.fields.get("next_action", "").strip()
+            if next_action and next_action not in coder_next_actions:
+                violations.append(f"coder_update@{block.start_line} next_action={next_action}")
+            blocking_reason = block.fields.get("blocking_reason")
+            if next_action in {"wait_for_user", "stop_on_blocker"}:
+                if not has_real_tuple_value(blocking_reason):
+                    violations.append(f"coder_update@{block.start_line} missing blocking_reason")
+            elif has_real_tuple_value(blocking_reason):
+                violations.append(f"coder_update@{block.start_line} blocking_reason must be null")
         if kind == "review_handoff":
             for field in ("summary", "evidence_refs"):
                 if not has_real_tuple_value(block.fields.get(field)):
@@ -908,9 +940,12 @@ def validate_result_handoff_consistency(doc: pathlib.Path, blocks: list[Forgeloo
         duplicates: list[str] = []
         review_result_ids: dict[str, int] = {}
         round_counts: dict[str, dict[str, int]] = defaultdict(lambda: {"handoff": 0, "result": 0})
+        latest_coder_update_by_round: dict[str, ForgeloopBlock] = {}
         for block in blocks:
             kind = block.fields.get("kind")
-            if kind == "review_handoff":
+            if kind == "coder_update":
+                latest_coder_update_by_round[block.fields["round"].strip()] = block
+            elif kind == "review_handoff":
                 round_counts[block.fields["round"].strip()]["handoff"] += 1
             elif kind == "review_result":
                 round_counts[block.fields["round"].strip()]["result"] += 1
@@ -933,6 +968,16 @@ def validate_result_handoff_consistency(doc: pathlib.Path, blocks: list[Forgeloo
         for block in blocks:
             if block.fields.get("kind") != "review_handoff":
                 continue
+            round_id = block.fields["round"].strip()
+            latest_coder_update = latest_coder_update_by_round.get(round_id)
+            if latest_coder_update is None:
+                linkage_violations.append(
+                    f"review_handoff@{block.start_line} missing current-round coder_update"
+                )
+            elif latest_coder_update.fields.get("next_action", "").strip() != "request_reviewer_handoff":
+                linkage_violations.append(
+                    f"review_handoff@{block.start_line} missing request_reviewer_handoff opener"
+                )
             prior_id = block.fields.get("addresses_review_result_id")
             if not has_real_tuple_value(prior_id):
                 continue
@@ -1017,6 +1062,10 @@ def derive(doc: pathlib.Path, out: pathlib.Path) -> int:
         )
     else:
         current_round_id, current_round_blocks = latest_round_data
+        current_coder_update = next(
+            (block for block in reversed(current_round_blocks) if block.fields.get("kind") == "coder_update"),
+            None,
+        )
         current_handoff = next(
             (block for block in reversed(current_round_blocks) if is_handoff_block(mode, block.fields)),
             None,
@@ -1032,6 +1081,17 @@ def derive(doc: pathlib.Path, out: pathlib.Path) -> int:
                     break
 
         current_effective_lines.append(f"## Current Frontier: round {current_round_id}")
+        if current_coder_update:
+            current_effective_lines.extend(
+                [
+                    "",
+                    "### Current Coder Update",
+                    "",
+                    "```forgeloop",
+                    current_coder_update.raw,
+                    "```",
+                ]
+            )
         if current_handoff:
             current_effective_lines.extend(
                 [

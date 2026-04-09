@@ -18,6 +18,7 @@ All runtime object modes share the same supervisor backbone:
 - one session-local reusable `reviewer` binding for the currently bound `mode`
 - one supervisor-owned object-local `round`
 - one authoritative review rolling doc
+- one current coder intent from the latest `coder_update` in the current round when present
 - one current `review_handoff` in the current round when the object is at reviewer entry
 - at most one `review_result` in the current round
 - one `Global State Doc` materialization of reviewer entry
@@ -26,6 +27,29 @@ All runtime object modes share the same supervisor backbone:
 These per-mode session-local bindings are runtime-private only. They may be recreated after session loss and must never be written into the `Global State Doc` or the rolling docs.
 
 The bound Task / Milestone / Initiative review rolling doc carries only object identity, static review contract, and review-cycle truth. It does not carry coder progress logs, gate attempt ledgers, or runtime routing facts.
+
+<!-- forgeloop:anchor shared-runtime-author-intent-law -->
+## Shared Runtime Author-Intent Law
+
+Across `task`, `milestone`, and `initiative` modes:
+
+- current coder intent: the latest `coder_update` in the current round, when present
+- current handoff opener: the current round's `review_handoff`, when present
+- current review result: the current round's `review_result`, when present
+
+Legal coder-local `next_action` values:
+
+- `continue_local_repair`
+- `request_reviewer_handoff`
+- `wait_for_user`
+- `stop_on_blocker`
+
+Law:
+
+- reviewer entry is legal only when the current round exposes one legal `review_handoff`
+- that `review_handoff` must be opened by the latest current-round `coder_update.next_action=request_reviewer_handoff`
+- reviewer outputs still use the canonical runtime routing vocabulary from `global-state.md`
+- `code-loop` must not invent a second runtime dispatcher vocabulary here
 
 <!-- forgeloop:anchor mode-bindings -->
 ## Mode Bindings
@@ -36,7 +60,7 @@ The bound Task / Milestone / Initiative review rolling doc carries only object i
 - `active_plane`: `task`
 - rolling doc contract: `plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md`
 - reviewer: `task_reviewer`
-- current handoff opener: latest `review_handoff` in the current Task round
+- current handoff opener: the current round's `review_handoff`, when present
 - current review result: same-round `review_result`, when present
 - supervisor default coder continuation action when no formal coder exit exists: `continue_coder_round`
 - supervisor reviewer-entry materialization action: `enter_review`
@@ -57,7 +81,7 @@ The bound Task / Milestone / Initiative review rolling doc carries only object i
 - `active_plane`: `milestone`
 - rolling doc contract: `plugins/forgeloop/skills/run-initiative/references/milestone-review-rolling-doc.md`
 - reviewer: `milestone_reviewer`
-- current handoff opener: latest `review_handoff` in the current Milestone round
+- current handoff opener: the current round's `review_handoff`, when present
 - current review result: same-round `review_result`, when present
 - supervisor default coder continuation action when no formal coder exit exists: `continue_coder_round`
 - supervisor reviewer-entry materialization action: `enter_review`
@@ -78,7 +102,7 @@ The bound Task / Milestone / Initiative review rolling doc carries only object i
 - `active_plane`: `initiative`
 - rolling doc contract: `plugins/forgeloop/skills/run-initiative/references/initiative-review-rolling-doc.md`
 - reviewer: `initiative_reviewer`
-- current handoff opener: latest `review_handoff` in the current Initiative round
+- current handoff opener: the current round's `review_handoff`, when present
 - current review result: same-round `review_result`, when present
 - supervisor default coder continuation action when no formal coder exit exists: `continue_coder_round`
 - supervisor reviewer-entry materialization action: `enter_review`

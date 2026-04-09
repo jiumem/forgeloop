@@ -46,7 +46,7 @@ Hard boundaries:
 
 - the `Global State Doc` remains the only runtime-wide control spine
 - the bound review rolling doc remains the only object-local review truth
-- review rolling docs carry only object identity, static contract, and review-cycle truth: `review_header`, `review_contract_snapshot`, `review_handoff`, and `review_result`
+- review rolling docs carry only object identity, static contract, and review-cycle truth: `review_header`, `review_contract_snapshot`, `coder_update`, `review_handoff`, and `review_result`
 - coder progress logs and gate attempt ledgers do not belong in review rolling docs
 - `round` is object-local and supervisor-owned through the `Global State Doc`; coder and reviewer only echo it in the rolling doc
 - preserve `coder_slot` and `round` while the same object remains active
@@ -66,15 +66,17 @@ Hard boundaries:
 - Confirm the active rolling doc matches the bound object and the recovered `coder_slot` / `round`.
 
 2. Recover or initialize the review surface
-- If the rolling doc exists, recover the latest round's `review_handoff` and same-round `review_result` from the authoritative rolling doc or legal derived views.
+- If the rolling doc exists, recover the latest current-round `coder_update`, the current round's `review_handoff`, and the same-round `review_result` from the authoritative rolling doc or legal derived views.
 - If the rolling doc does not exist, initialize only the legal header and contract snapshot for the bound mode, then write `coder_slot=coder` and `round=1` through the canonical `Global State Doc` rules before dispatching the first coder round.
-- Do not append fake handoff or review-result blocks during cold start.
+- Do not append fake `coder_update`, `review_handoff`, or `review_result` blocks during cold start.
 
 3. Determine the current object-local frontier
-- If the current round already exposes one legal `review_handoff` and no matching `review_result`, do not redispatch `coder`; dispatch the reviewer directly.
-- If the current round already exposes one matching `review_result`, do not redispatch `coder`; handle that review result directly.
-- Otherwise continue with coder dispatch for the current round.
-- If the current round exposes more than one legal `review_handoff`, or more than one legal same-round matching `review_result`, stop and surface the formal-state conflict explicitly.
+- If the current round already exposes one matching current `review_result`, do not redispatch `coder`; handle that review result directly.
+- If the current round exposes one legal `review_handoff`, require that the latest current-round `coder_update` exists and uses `next_action=request_reviewer_handoff`; then dispatch the current reviewer directly.
+- If the latest current-round `coder_update` uses `next_action=wait_for_user`, write `next_action.action=wait_for_user`, copy `blocking_reason`, and stop.
+- If the latest current-round `coder_update` uses `next_action=stop_on_blocker`, write `next_action.action=stop_on_blocker`, copy `blocking_reason`, and stop.
+- Otherwise dispatch `coder` for the current round.
+- If the current round exposes more than one legal `review_handoff`, more than one legal matching current `review_result`, or a `review_handoff` without a current-round `coder_update` requesting reviewer handoff, stop and surface the rolling-doc contract violation explicitly.
 
 4. Dispatch the `coder`
 - Keep one durable `coder_slot`.
@@ -90,12 +92,15 @@ Hard boundaries:
   - current `coder_slot`
   - the exact selectors required for this object and round
 
-5. Handle coder return
-- If the current round now exposes one legal `review_handoff` and no `review_result`, materialize reviewer entry in the `Global State Doc`.
-- If the current round still exposes neither `review_handoff` nor `review_result`, keep the object in coder mode.
-- Treat coder natural-language completion as non-authoritative until the expected `review_handoff` can be reread from the authoritative rolling doc and the reviewer-entry materialization can be written legally.
-- Do not synthesize a canonical stop state from coder natural-language status alone. Runtime stop literals belong in the `Global State Doc` only when they already exist as explicit upstream control decisions or when they are required by a legal `review_result.next_action`.
-- Any illegal duplicate handoff or duplicate result is a formal stop.
+5. Handle coder output
+- The latest `coder_update` in the current round is the current coder intent.
+- Route only from that latest `coder_update` in the current round.
+- Treat coder natural-language completion as non-authoritative until the expected `coder_update` or `review_handoff` can be reread from the authoritative rolling doc and the required control-plane materialization can be written legally.
+- `continue_local_repair`: keep the same `coder_slot` and the same round, write `next_action.action=continue_coder_round`, then return upstream.
+- `request_reviewer_handoff`: require one legal current `review_handoff` in the same round, write `next_action.action=enter_review`, then continue to Step 6 using that handoff.
+- `wait_for_user`: write `next_action.action=wait_for_user`, copy `blocking_reason`, and stop.
+- `stop_on_blocker`: write `next_action.action=stop_on_blocker`, copy `blocking_reason`, and stop.
+- Anything else is illegal coder output.
 
 6. Dispatch the mode-specific reviewer
 - Bind the reviewer from `references/runtime-object-modes.md`.
@@ -167,7 +172,7 @@ Never:
 - dispatch multiple coders concurrently for the same runtime object
 - silently replace the logical `coder_slot`
 - persist any physical `agent_id`, reviewer binding, or session-local thread table into formal runtime truth
-- skip the round-required handoff -> review path once a handoff exists
+- dispatch reviewer before the current round exposes both one legal `review_handoff` and a latest current-round `coder_update.next_action=request_reviewer_handoff`
 - invent a mode-specific action not defined by the bound contracts
 - create a second runtime truth source outside the `Global State Doc` and the authoritative rolling docs
 

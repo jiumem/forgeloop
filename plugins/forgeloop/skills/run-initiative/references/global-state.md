@@ -56,7 +56,7 @@ For repo-local Initiatives, required placement is sibling `.forgeloop/global-sta
 Law:
 
 - `continue_coder_round` means the currently bound runtime object remains active and the same logical `coder_slot` continues after formal state refresh.
-- `enter_review` means the currently bound runtime object already exposes one legal current `review_handoff` and reviewer entry is the only legal next step.
+- `enter_review` means the currently bound runtime object already exposes one legal current `review_handoff`, that handoff was opened by the current round's latest `coder_update.next_action=request_reviewer_handoff`, and reviewer entry is the only legal next step.
 - `advance_frontier` means the currently bound runtime object has been accepted at its own runtime layer and `run-initiative` must resolve the next concrete runtime object from formal truth.
 - `advance_frontier` is runtime-only frontier progress. It is never permission to reopen planning, regenerate Task plans, or synthesize a new execution map.
 - `initiative_delivered` is the only terminal delivered state.
@@ -69,7 +69,12 @@ Law:
 
 When `run-initiative`, `code-loop`, or `rebuild-runtime` materializes formal runtime truth into the `Global State Doc`:
 
-- no current-round `review_handoff` and no current-round matching `review_result` -> `next_action.action=continue_coder_round`
+Shared current-round materialization:
+
+- no current-round `review_handoff`, no current-round matching `review_result`, and no current-round `coder_update` -> `next_action.action=continue_coder_round`
+- no current-round `review_handoff`, no current-round matching `review_result`, and the latest current-round `coder_update.next_action=continue_local_repair` -> `next_action.action=continue_coder_round`
+- no current-round `review_handoff`, no current-round matching `review_result`, and the latest current-round `coder_update.next_action=wait_for_user` -> `next_action.action=wait_for_user`
+- no current-round `review_handoff`, no current-round matching `review_result`, and the latest current-round `coder_update.next_action=stop_on_blocker` -> `next_action.action=stop_on_blocker`
 - one legal current-round `review_handoff` and no current-round matching `review_result` -> `next_action.action=enter_review`
 
 Task-mode reviewer materialization:
@@ -93,7 +98,8 @@ Initiative-mode reviewer materialization:
 - `wait_for_user` -> write `next_action.action=wait_for_user`
 - `stop_on_blocker` -> write `next_action.action=stop_on_blocker`
 
-Reviewer-side action names and supervisor-side action names now share one canonical runtime vocabulary.
+Reviewer-side action names and supervisor-side action names share one canonical runtime vocabulary.
+Coder-side local intent stays inside `coder_update` and must never be written directly as a second supervisor vocabulary.
 
 <!-- forgeloop:anchor recommended-template -->
 ## Recommended Template

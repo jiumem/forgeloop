@@ -22,6 +22,16 @@ evidence_entrypoint_ref: docs/initiatives/active/anchor-sliced-dispatch-optimiza
 ```
 
 ```forgeloop
+kind: coder_update
+round: 1
+author_role: coder
+created_at: 2026-03-31T10:40:00Z
+next_action: request_reviewer_handoff
+summary: Initiative sample is ready for review.
+blocking_reason: null
+```
+
+```forgeloop
 kind: review_handoff
 round: 1
 author_role: coder

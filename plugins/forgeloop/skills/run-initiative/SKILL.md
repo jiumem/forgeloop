@@ -10,7 +10,7 @@ description: Use when the user asks to advance, continue, or resume an Initiativ
 
 The Initiative execution system uses one control spine plus one unified execution backbone:
 - `Supervisor` acts as the dispatcher and maintains the `Global State Doc`
-- coder and reviewer perform formal handoff inside object-level review rolling docs
+- coder and reviewer advance formal runtime truth inside object-level review rolling docs through `coder_update`, `review_handoff`, and `review_result`
 - `run-initiative` binds one runtime `mode` and enters `code-loop`
 - legal runtime `mode` values are only `task`, `milestone`, and `initiative`
 
@@ -201,7 +201,7 @@ Only after workspace binding when needed, and only while the current planning ad
   - if yes, record that resume in `last_transition`, then continue from newer formal runtime truth instead of treating the stop as terminal
 - if `Global State Doc` is missing and no rolling doc exists: treat it as a new Initiative start
 - if `Global State Doc` is missing but rolling docs already exist, or if `Global State Doc` clearly conflicts with the total task doc or rolling docs: call skill: `rebuild-runtime`
-- if workspace diff or interrupted agent narration suggests progress that has not appeared as a rereadable `review_handoff` or `review_result`: do not advance the object from that hint alone; continue only from the last legal formal runtime state or call skill: `rebuild-runtime` when the active state is no longer provable uniquely
+- if workspace diff or interrupted agent narration suggests progress that has not appeared as a rereadable `coder_update`, `review_handoff`, or `review_result`: do not advance the object from that hint alone; continue only from the last legal formal runtime state or call skill: `rebuild-runtime` when the active state is no longer provable uniquely
 - if `current_snapshot.active_plane=frontier` or `next_action.action=advance_frontier`: resolve exactly one next runtime object from the admitted planning document set plus authoritative runtime rolling docs
 - use this fixed order and stop at the first match: required current Milestone closure -> required current Initiative closure -> exactly one next-ready Task
 - closure always beats Task entry

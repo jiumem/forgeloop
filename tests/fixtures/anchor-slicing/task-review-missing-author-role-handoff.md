@@ -17,6 +17,16 @@ summary: Missing author_role on review_handoff should fail derive.
 ```
 
 ```forgeloop
+kind: coder_update
+round: 1
+author_role: coder
+created_at: 2026-03-31T09:04:00Z
+next_action: request_reviewer_handoff
+summary: Missing author_role on review_handoff should fail derive.
+blocking_reason: null
+```
+
+```forgeloop
 kind: review_handoff
 round: 1
 created_at: 2026-03-31T09:05:00Z

@@ -39,14 +39,29 @@ Hard boundaries:
 
 - `round` is object-local and supervisor-owned through the `Global State Doc`
 - if the existing `Global State Doc` still agrees with newer formal facts, preserve its `round`; otherwise recover `round` from the active rolling doc when that rolling doc exposes one unique current round
+- the current coder intent is object-scoped:
+  - Task: the latest `coder_update` in the current Task round
+  - Milestone: the latest `coder_update` in the current Milestone round
+  - Initiative: the latest `coder_update` in the current Initiative round
 - the current review handoff is object-scoped:
-  - Task: the latest `review_handoff` in the current Task round
-  - Milestone: the latest `review_handoff` in the current Milestone round
-  - Initiative: the latest `review_handoff` in the current Initiative round
+  - Task: the current round's `review_handoff`
+  - Milestone: the current round's `review_handoff`
+  - Initiative: the current round's `review_handoff`
 - a review result is actionable only when its `round` matches the current handoff round and its `review_target_ref` matches the current handoff's `review_target_ref`
-- one round may expose at most one `review_handoff` and at most one `review_result`
+- one round may expose:
+  - multiple `coder_update` blocks
+  - at most one `review_handoff`
+  - at most one `review_result`
+- when recovery rebuilds non-review runtime state from current-round coder intent:
+  - latest `coder_update.next_action=continue_local_repair` -> `continue_coder_round`
+  - latest `coder_update.next_action=wait_for_user` -> `wait_for_user`
+  - latest `coder_update.next_action=stop_on_blocker` -> `stop_on_blocker`
+- when recovery rebuilds reviewer entry:
+  - one legal current-round `review_handoff`
+  - latest current-round `coder_update.next_action=request_reviewer_handoff`
+  - no current-round matching `review_result`
+  -> `enter_review`
 - when recovery rebuilds reviewer entry, preserve the current handoff's `compare_base_ref`; do not fall back to workspace diff just because the review result does not echo the compare base
-- a new round opens only on first entry into an object or after a reviewer requests same-object repair
 - if `current_snapshot.active_plane=frontier` or `next_action.action=advance_frontier`, recover exactly one next runtime object from the admitted planning truth plus authoritative rolling docs
 - use the same closure-first order as `run-initiative`: required current Milestone closure -> required current Initiative closure -> exactly one next-ready Task
 - runtime recovery may rebuild the frontier, but it must not reopen planning, regenerate Task plans, or invent a new execution map
@@ -93,9 +108,10 @@ Trigger only in the following situations:
 
 3. Determine the active object and next action
 - Reuse `coder_slot` and `round` from the `Global State Doc` when they are still consistent; otherwise recover them from the active rolling doc
-- If the current round has a `review_handoff` and no `review_result`, recover reviewer entry
 - If the current round has a `review_result`, recover next action from that result
-- If the current round has neither, treat any uncommitted code or chat-only progress as unfinished in-object work and recover coder continuation from the last legal formal state instead of promoting the object
+- If the current round has a `review_handoff` and no `review_result`, recover reviewer entry only when the latest current-round `coder_update.next_action=request_reviewer_handoff`
+- If the current round has no `review_handoff` and no `review_result`, recover current coder intent from the latest current-round `coder_update`
+- If the current round has no formal `coder_update`, `review_handoff`, or `review_result`, treat any uncommitted code or chat-only progress as unfinished in-object work and recover coder continuation from the last legal formal state instead of promoting the object
 - If recovery lands on `current_snapshot.active_plane=frontier` or `next_action.action=advance_frontier`, apply the same fixed supervisor routing order used by `run-initiative`: required current Milestone closure -> required Initiative closure -> exactly one next-ready Task. Do not recover directly into Task plane merely because one next-ready Task can be guessed.
 - For Initiative delivery, recover reviewer intent exactly: actionable `review_result.next_action=initiative_delivered` becomes dispatcher stop state `initiative_delivered`
 - If no single plane, object, `coder_slot`, `round`, and `next_action` can be proven, stop and ask the user

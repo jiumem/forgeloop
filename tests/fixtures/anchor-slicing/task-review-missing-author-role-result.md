@@ -17,6 +17,16 @@ summary: Missing author_role on review_result should fail derive.
 ```
 
 ```forgeloop
+kind: coder_update
+round: 1
+author_role: coder
+created_at: 2026-03-31T09:00:00Z
+next_action: request_reviewer_handoff
+summary: Missing-author-role result fixture still opens reviewer entry legally.
+blocking_reason: null
+```
+
+```forgeloop
 kind: review_handoff
 round: 1
 author_role: coder
