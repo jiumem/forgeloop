@@ -81,7 +81,7 @@ Formal inputs:
 Hard boundaries:
 
 - only `planner` may write substantive current-stage planning content and append planner-owned blocks to the active planning rolling doc
-- `planning-loop` may update only the `Planning State Doc`, rolling-doc header / contract-snapshot initialization when the current stage rolling doc does not yet exist, and the top-of-document `状态` line for planning artifacts whose lifecycle state the supervisor is materializing
+- `planning-loop` may update only the `Planning State Doc`, rolling-doc header / contract-snapshot initialization when the current stage rolling doc does not yet exist, and the planning artifact's formal `状态` marker when the supervisor is materializing lifecycle state
 - do not write review body text, code, or runtime control-plane state from this skill
 - if the active stage, active artifact, or active owner changes, record that transition in the `Planning State Doc`
 - if the active planning rolling doc does not exist, initialize only the header, including object identity and `planner_slot`, plus `planning_contract_snapshot`
@@ -130,7 +130,7 @@ Local exceptions for planning worker packets:
 - Do not write planner body text into the `Planning State Doc`
 
 3. Determine the current in-stage frontier
-- If the current round exposes one valid current handoff and no matching current review result, keep the same `planner_slot` and `round`, then dispatch the current stage reviewer directly.
+- If the latest `planner_update` in the current round uses `next_action=request_reviewer_handoff`, and the current round exposes one valid current handoff with no matching current review result, keep the same `planner_slot` and `round`, then dispatch the current stage reviewer directly.
 - If the current round already exposes one matching current review result, do not redispatch `planner`; handle that review result directly.
 - Otherwise dispatch `planner` for the current round.
 - If the current round exposes more than one legal current handoff, or more than one latest matching review result, stop and surface the rolling-doc contract violation explicitly.
@@ -216,5 +216,5 @@ On correct completion, all of the following should be true:
 - the current rolling doc contract snapshot binds one unambiguous `stage_reference_ref` and one unambiguous `rolling_doc_contract_ref`
 - the current actionable `handoff_id` can be recovered uniquely whenever the stage is in reviewer handoff or review-result state
 - the current artifact is either still in repair, formally ready for review handoff, explicitly stopped on upstream judgment, stopped on an explicit cross-stage route to the next planning stage, or formally sealed as planning output
-- every planning artifact that remains eligible for downstream use exposes the correct top-of-document `状态` value for that point in the lifecycle
+- every planning artifact that remains eligible for downstream use exposes the correct formal `状态` marker for that lifecycle point
 - no second planning truth source has been created outside the formal planning docs

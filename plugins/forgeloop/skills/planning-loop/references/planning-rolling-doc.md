@@ -10,7 +10,7 @@
 - For repo-local Initiatives, required placement is the Initiative-local `.forgeloop/` root, using `design-rolling.md`, `gap-rolling.md`, or `total-task-doc-rolling.md`
 
 This reference governs the planning communication plane, not artifact shape. Stage-specific references still control the structure and judgment standard of `Design Doc`, `Gap Analysis Doc`, and `Total Task Doc`.
-The rolling doc is the authority for round, handoff, review-result, seal, and reopen history. The artifact `状态` line remains the execution-facing document-status marker and must be kept in sync by the `Supervisor`.
+The rolling doc is the authority for round, handoff, review-result, seal, and reopen history. The artifact `状态` marker remains the execution-facing document-status marker and must be kept in sync by the `Supervisor`.
 
 <!-- forgeloop:anchor contract-questions -->
 ## What This Contract Must Answer
@@ -165,7 +165,7 @@ Header and contract snapshot are initialized once. All later formal facts append
 - any other combination is non-sealing and must be treated as repair, wait, blocker, or reopen advice
 - a clean reviewer result with explicit `seal_status=sealed` authorizes only the current planning stage to be finalized; only the `Supervisor` may set the current artifact `状态` to `sealed` and route to another stage afterward
 - the rolling doc is planning communication history, not execution admission input; downstream execution reads the planning documents themselves
-- the artifact `状态` line is the execution-facing document-status marker for the current stage; if it drifts from the stage lifecycle that the supervisor is materializing, repair it before continuing
+- the artifact `状态` marker is the execution-facing document-status marker for the current stage; if it drifts from the stage lifecycle that the supervisor is materializing, repair it before continuing
 - a reviewer result that requests same-stage repair closes the current handoff and requires the `Supervisor` to open the next round before redispatching `planner`
 - an upstream stage may reopen only through an explicit supervisor route recorded in the `Planning State Doc`
 - upstream reopen must invalidate every downstream planning artifact that is no longer legally sealed; those artifacts must lose `状态：sealed` before they may be reused

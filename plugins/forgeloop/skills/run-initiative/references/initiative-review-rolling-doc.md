@@ -37,6 +37,7 @@ Header and contract snapshot are initialized once. All later formal facts append
 - `created_at`
 
 `review_contract_snapshot` is the smallest durable Initiative review contract snapshot. It may summarize goal, `milestone_scope`, and stable authority pointers such as `acceptance_authority_ref`, `acceptance_index_ref`, and `evidence_entrypoint_ref`, but it must not restate Initiative success criteria or become a reviewer bootstrap dossier.
+When one of these pointers targets a Markdown anchor, store it as compact repo-root-relative-doc-ref#anchor-selector shorthand for the canonical `doc_ref + anchor_selector` pair. Packet assembly must split that shorthand back into the canonical pair before dispatch.
 
 <!-- forgeloop:anchor round-shape-law -->
 ## Round Shape Law
@@ -152,7 +153,7 @@ milestone_scope:
   - D7FS-M2
   - D7FS-M3
   - D7FS-M4
-acceptance_authority_ref: docs/initiatives/active/day7-first-situation-closure/total-task-doc.md#initiative/success-criteria
+acceptance_authority_ref: docs/initiatives/active/day7-first-situation-closure/total-task-doc.md#initiative/success-criteria/ic-1
 acceptance_index_ref: docs/initiatives/active/day7-first-situation-closure/total-task-doc.md#acceptance-matrix/initiative-acceptance-index/ic-1
 evidence_entrypoint_ref: docs/initiatives/active/day7-first-situation-closure/total-task-doc.md#acceptance-matrix/evidence-entrypoints
 ```

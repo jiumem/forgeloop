@@ -63,7 +63,9 @@ You are not responsible for:
 
 You only determine the next step. You do not personally perform coding or review.
 
-Before any runtime loop dispatch, first decide whether the planning document set is legal execution input. This planning admission check lives inside `run-initiative`; it is not a separate skill, it does not author planning docs, and it does not replace runtime recovery. It only accepts or rejects the current `Design Doc`, optional `Gap Analysis Doc`, and `Total Task Doc` as the legal runtime starting point.
+Before any runtime loop dispatch, first decide whether the planning document set is legal execution input.
+This planning admission check lives inside `run-initiative`. It is not a separate skill, does not author planning docs, and does not replace runtime recovery.
+It only accepts or rejects the current `Design Doc`, optional `Gap Analysis Doc`, and `Total Task Doc` as the legal runtime starting point.
 
 <!-- forgeloop:anchor dispatch-rules -->
 ## Dispatch Rules
@@ -191,7 +193,10 @@ Only after workspace binding when needed, and only while the current planning ad
 - if `Global State Doc` is missing and no rolling doc exists: treat it as a new Initiative start
 - if `Global State Doc` is missing but rolling docs already exist, or if `Global State Doc` clearly conflicts with the total task doc or rolling docs: call skill: `rebuild-runtime`
 - if workspace diff or interrupted agent narration suggests progress that has not appeared as a rereadable `review_handoff` or `review_result`: do not advance the object from that hint alone; continue only from the last legal formal runtime state or call skill: `rebuild-runtime` when the active state is no longer provable uniquely
-- if `current_snapshot.active_plane=frontier` or `next_action.action=select_next_ready_object`: resolve exactly one next ready object from the admitted planning document set plus authoritative runtime rolling docs. Use this fixed order and stop at the first match: required current Milestone closure -> required current Initiative closure -> exactly one next-ready Task. Closure always beats Task entry. If that order still leaves multiple legal objects, ask the user
+- if `current_snapshot.active_plane=frontier` or `next_action.action=select_next_ready_object`: resolve exactly one next ready object from the admitted planning document set plus authoritative runtime rolling docs.
+- use this fixed order and stop at the first match: required current Milestone closure -> required current Initiative closure -> exactly one next-ready Task.
+- closure always beats Task entry.
+- if that order still leaves multiple legal objects, ask the user.
 - if current progress clearly belongs to the Task review/repair loop, including continuing the currently bound Task or continuing repair on the current Task: formally rebind `current_snapshot` and `next_action` to that Task if needed, bind `mode=task`, and treat Task-mode `code-loop` entry as the confirmed next step
 - if current progress clearly belongs to a Milestone review/repair loop: formally rebind `current_snapshot` and `next_action` to that Milestone if needed, bind `mode=milestone`, and treat Milestone-mode `code-loop` entry as the confirmed next step
 - if current progress clearly belongs to the Initiative review/repair loop: formally rebind `current_snapshot` and `next_action` to that Initiative if needed, bind `mode=initiative`, and treat Initiative-mode `code-loop` entry as the confirmed next step

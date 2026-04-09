@@ -113,7 +113,8 @@ Hard boundaries:
 - Use only the same-round `review_result` that matches the current round's `review_target_ref`.
 - Treat reviewer natural-language completion as non-authoritative until the expected `review_result` can be reread from the authoritative rolling doc and any required `Global State Doc` rewrite has succeeded.
 - If the result requests same-object repair, increment the object-local `round`, preserve `coder_slot`, and continue in the same mode.
-- If the result requests upstream return, rebind `current_snapshot` and `next_action` according to the bound mode contracts, then hand control back upstream.
+- If the result requests upstream return, materialize the reviewer-side object-local `next_action` through the canonical runtime routing vocabulary defined by `Global State Doc`, then rebind `current_snapshot` and `next_action` according to the bound mode contracts before handing control back upstream.
+- Do not copy reviewer-local literals such as `task_done`, `enter_initiative_review`, or `mark_initiative_delivered` directly into `Global State Doc.next_action.action`.
 - If the result requests terminal delivery marking, accept only the Initiative-mode legal terminal transition.
 - Any illegal `verdict + next_action` combination is a formal stop.
 
