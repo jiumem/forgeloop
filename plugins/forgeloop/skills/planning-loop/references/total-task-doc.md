@@ -198,6 +198,7 @@
   - `task_review_rolling_doc_root_ref = <initiative_dir>/.forgeloop/task-review/`
   - `milestone_review_rolling_doc_root_ref = <initiative_dir>/.forgeloop/milestone-review/`
   - `initiative_review_rolling_doc_ref = <initiative_dir>/.forgeloop/initiative-review.md`
+- Task review rolling docs follow one shared naming law and are not assigned one by one in `1.6`: `<task_review_rolling_doc_root_ref>/<Task Key>.md`
 - 不要在 `1.6` 中写当前 workspace 绝对路径、worktree 绝对路径或 shell-cwd-relative path；如果下游执行时需要绝对路径，应在 active workspace 已绑定后从同一个 repo-root-relative ref materialize
 - 这一节要证明执行地图继承的是 sealed 上游真值，而不是本地临时即兴推导
 
@@ -288,8 +289,8 @@
 - 每条边界、验收规则与法定引用指派都只保留一个真理源；如果另一个区块才是权威来源，就明确引用，不要在别处重新裁决
 - 验收真理必须保持单一来源：`2.4 成功标准（Success Criteria）` 管 Initiative 成功，`3.3 Milestone 验收（Milestone Acceptance）` 管 Milestone 验收，`4.2 Task 定义（Task Definitions）` 管 Task 验收；`6` 只能索引这些区块并指向证据
 - 把 `1.5 执行边界（Execution Boundary）`、`1.6 Initiative 法定引用指派（Initiative Reference Assignment）`、`3.4 Milestone 法定引用指派（Milestone Reference Assignment）`、`4.2 Task 定义（Task Definitions）`、`5.1 默认集成模型（Default Integration Model）` 与 `6.4 证据入口（Evidence Entrypoints）` 视为本文档的结构核心，不能退化成模糊散文
-- repo-local formal refs 只保留一种 durable path semantics：repo-root-relative；如果为了人类阅读额外提供 markdown link 或解释，那也不能让 workspace-specific absolute path 成为唯一法定值
-- 所谓完全展开，指所有对象、依赖、验收线与集成路径都已明确，而不是堆砌教程式实现细节
+- repo-local formal refs 只保留 repo-root-relative 这一种 durable 语义；可附人类可读链接，但不得把 workspace-specific absolute path 写成唯一法定值
+- 所谓完全展开，是对象、依赖、验收线与集成路径都已明确，而不是堆砌教程式实现细节
 - 任何未决裁决都不得进入 `Total Task Doc`
 
 <!-- forgeloop:anchor prohibited-content -->

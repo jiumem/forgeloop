@@ -53,6 +53,7 @@ Hard boundaries:
 - each runtime `mode` may keep one session-local reusable reviewer binding for the current loop; that binding never becomes formal truth
 - if the `Global State Doc` conflicts with the bound rolling doc, hand control back to `rebuild-runtime`
 - prior-thread memory is never a legality basis by itself
+- before entering `code-loop`, the caller must already bind the concrete active review rolling doc ref for the current object; `code-loop` consumes that bound ref and does not search a review-doc root to guess one
 
 <!-- forgeloop:anchor workflow -->
 ## Workflow
@@ -69,7 +70,13 @@ Hard boundaries:
 - If the rolling doc does not exist, initialize only the legal header and contract snapshot for the bound mode, then write `coder_slot=coder` and `round=1` through the canonical `Global State Doc` rules before dispatching the first coder round.
 - Do not append fake handoff or review-result blocks during cold start.
 
-3. Dispatch the `coder`
+3. Determine the current object-local frontier
+- If the current round already exposes one legal `review_handoff` and no matching `review_result`, do not redispatch `coder`; dispatch the reviewer directly.
+- If the current round already exposes one matching `review_result`, do not redispatch `coder`; handle that review result directly.
+- Otherwise continue with coder dispatch for the current round.
+- If the current round exposes more than one legal `review_handoff`, or more than one legal same-round matching `review_result`, stop and surface the formal-state conflict explicitly.
+
+4. Dispatch the `coder`
 - Keep one durable `coder_slot`.
 - For the current runtime session, keep at most one reusable `coder` binding and one reusable `reviewer` binding for the bound `mode`.
 - If the bound `coder` already has a live `agent_id` in this session, reuse it with `send_input`; do not call `spawn_agent` again for the same live coder binding.
@@ -83,14 +90,14 @@ Hard boundaries:
   - current `coder_slot`
   - the exact selectors required for this object and round
 
-4. Handle coder return
+5. Handle coder return
 - If the current round now exposes one legal `review_handoff` and no `review_result`, materialize reviewer entry in the `Global State Doc`.
 - If the current round still exposes neither `review_handoff` nor `review_result`, keep the object in coder mode.
 - Treat coder natural-language completion as non-authoritative until the expected `review_handoff` can be reread from the authoritative rolling doc and the reviewer-entry materialization can be written legally.
 - Do not synthesize a canonical stop state from coder natural-language status alone. Runtime stop literals belong in the `Global State Doc` only when they already exist as explicit upstream control decisions or when they are required by a legal `review_result.next_action`.
 - Any illegal duplicate handoff or duplicate result is a formal stop.
 
-5. Dispatch the mode-specific reviewer
+6. Dispatch the mode-specific reviewer
 - Bind the reviewer from `references/runtime-object-modes.md`.
 - Reuse the current mode's reviewer binding with `send_input` when it still has a live `agent_id` in this session; otherwise create or rebind exactly one reviewer for this mode with `spawn_agent`.
 - Reviewer packets must carry:
@@ -102,7 +109,7 @@ Hard boundaries:
 - Derived views are optional hot-path helpers only.
 - Reviewer legality must always come from the current packet, rolling doc, and formal refs, not from prior thread memory.
 
-6. Handle the review result
+7. Handle the review result
 - Use only the same-round `review_result` that matches the current round's `review_target_ref`.
 - Treat reviewer natural-language completion as non-authoritative until the expected `review_result` can be reread from the authoritative rolling doc and any required `Global State Doc` rewrite has succeeded.
 - If the result requests same-object repair, increment the object-local `round`, preserve `coder_slot`, and continue in the same mode.
@@ -110,7 +117,7 @@ Hard boundaries:
 - If the result requests terminal delivery marking, accept only the Initiative-mode legal terminal transition.
 - Any illegal `verdict + next_action` combination is a formal stop.
 
-7. Return upstream
+8. Return upstream
 
 `code-loop` never decides the next runtime object beyond the current formal result.
 

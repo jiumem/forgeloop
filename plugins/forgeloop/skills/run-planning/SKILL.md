@@ -119,12 +119,11 @@ After reading the formal planning sources, decide whether planning should enter 
 Before dispatching, make the active planning stage explicit in the `Planning State Doc`.
 
 1. `Planning State Doc` is the only planning control spine. `current_snapshot` carries the bound Initiative, active stage, active `artifact_ref`, active `rolling_doc_ref`, and when known `planner_slot` plus `round`; `next_action` may only be `enter_planning_loop`, `waiting`, `blocked`, or `sealed_planning_docs_ready`; `last_transition` carries recovery, resume, reopen, and cross-stage routing facts.
-2. When resuming an existing stage, preserve `planner_slot` and stage `round`, and write them back immediately when recovery has already proved them.
-3. Only a fresh stage with no rolling doc may omit them temporarily; once a stage is in flight and either value is known, `planning-loop` or recovery must write `planner_slot=planner` and the current `round` back into `current_snapshot`.
-4. `next_action` records entry into `planning-loop` for the bound stage.
-5. `last_transition` records cold start, recovery, rebind, reopen, or resume.
-6. If the route is `reopen_to_design` or `reopen_to_gap_analysis`, stay visible as a reopen route in `last_transition`.
-7. If the `Planning State Doc` does not exist, initialize only `planning_state_header`, `current_snapshot`, `next_action`, and `last_transition`.
+2. Preserve the recovered `planner_slot` and `round` whenever they are already provable. Only a fresh stage with no rolling doc may omit them temporarily; once known, write them back into `current_snapshot` immediately.
+3. `next_action` records entry into `planning-loop` for the bound stage.
+4. `last_transition` records cold start, recovery, rebind, reopen, or resume.
+5. If the route is `reopen_to_design` or `reopen_to_gap_analysis`, stay visible as a reopen route in `last_transition`.
+6. If the `Planning State Doc` does not exist, initialize only `planning_state_header`, `current_snapshot`, `next_action`, and `last_transition`.
 
 ### Step 4: Dispatch The Internal Stage Skill
 

@@ -223,23 +223,28 @@ Consume only the conclusion already confirmed in the previous step. Do not reint
 1. If the confirmed next step is to call skill: `code-loop`, ensure the already bound active Initiative workspace is `execution_ready` first. If this activation has only done `bind_only` so far, call skill: `using-git-worktrees` again in `execution_ready` mode against that same active workspace before dispatching the loop.
 2. `execution_ready` means the active Initiative workspace has completed any project-declared environment preparation from `AGENTS.md` or repo operator docs, plus repo-obvious setup and baseline verification, strongly enough to enter coder or reviewer execution.
 3. If `using-git-worktrees` in `execution_ready` mode exposes a conflict, waiting state, or blocker, stop at that point.
-4. If the confirmed next step enters reviewer work through `code-loop`, dispatch the lean reviewer packet as current handoff identity + `compare_base_ref` + authoritative `doc_ref + anchor_selector` bindings for the bound object:
+4. Before any `code-loop` dispatch, bind the concrete active review rolling doc ref for the selected object:
+- Task -> derive `task_review_rolling_doc_ref` from `task_review_rolling_doc_root_ref` and the bound `task_key` using the shared runtime naming law
+- Milestone -> bind the current Milestone's explicit review rolling doc ref from `3.4 Milestone Reference Assignment`
+- Initiative -> bind `initiative_review_rolling_doc_ref`
+Do not enter `code-loop` with only a review-doc root when the current object-local rolling doc ref is still unbound.
+5. If the confirmed next step enters reviewer work through `code-loop`, dispatch the lean reviewer packet as current handoff identity + `compare_base_ref` + authoritative `doc_ref + anchor_selector` bindings for the bound object:
 - Task: Task definition selector + Task acceptance-index selector + evidence-entrypoint selector
 - Milestone: Milestone acceptance selector + Milestone reference-assignment selector + Milestone acceptance-index selector + evidence-entrypoint selector
-- Initiative: Initiative success-criterion selector + Initiative acceptance-index selector + evidence-entrypoint selector
-5. An optional derived view such as `current-effective.md` may be included as a disposable helper, but reviewer entry must remain legal from the authoritative refs even when that helper is missing or invalid.
-6. Do not promote reviewer packets to broad section bundles, workspace-diff summaries, or supervisor-precut dossier prose unless the runtime cutover contract explicitly permits disaster fallback and the fallback reason is written explicitly.
+- Initiative: all bound Initiative success-criterion selectors + their matching Initiative acceptance-index selectors + evidence-entrypoint selector
+6. An optional derived view such as `current-effective.md` may be included as a disposable helper, but reviewer entry must remain legal from the authoritative refs even when that helper is missing or invalid.
+7. Do not promote reviewer packets to broad section bundles, workspace-diff summaries, or supervisor-precut dossier prose unless the runtime cutover contract explicitly permits disaster fallback and the fallback reason is written explicitly.
 
-7. New Initiative start: after planning admission has already passed, initialize the minimum `Global State Doc`. If there is a clear first executable Task, bind `current_snapshot` to that Task, bind `mode=task`, set `next_action.action = continue_coder_round`, then call skill: `code-loop`. Otherwise stop and ask the user.
-8. Existing execution continuation: if the confirmed next step is Task / Milestone / Initiative execution, ensure `current_snapshot` and `next_action` already reflect that bound object, then call skill: `code-loop` with the already chosen `mode`.
-9. `rebuild-runtime` is required: call skill: `rebuild-runtime`.
-10. User confirmation is required, or the system is already in a stop state: stop directly.
+8. New Initiative start: after planning admission has already passed, initialize the minimum `Global State Doc`. If there is a clear first executable Task, bind `current_snapshot` to that Task, bind `mode=task`, set `next_action.action = continue_coder_round`, then call skill: `code-loop`. Otherwise stop and ask the user.
+9. Existing execution continuation: if the confirmed next step is Task / Milestone / Initiative execution, ensure `current_snapshot` and `next_action` already reflect that bound object, then call skill: `code-loop` with the already chosen `mode`.
+10. `rebuild-runtime` is required: call skill: `rebuild-runtime`.
+11. User confirmation is required, or the system is already in a stop state: stop directly.
 
 If work will continue, first rewrite the materialized `Global State Doc` in the active Initiative workspace so that `current_snapshot`, `next_action`, and—when needed—`last_transition` are already sufficient for later recovery.
 If the active object or active plane is about to change, write the new `current_snapshot` and `next_action` first so that a later `Supervisor` can recover the current progress state without hidden context.
 When writing `last_transition.reason`, record the interruption class explicitly whenever this activation stopped, resumed, or recovered through one of the taxonomy classes above.
 
-Inside the current runtime session, the `Supervisor` may keep one private runtime-plane binding table of up to six reusable subagents: Task / Milestone / Initiative `coder` plus Task / Milestone / Initiative `reviewer`. That table is runtime-private only. It must never be treated as formal recovery state or written into the planning docs, the `Global State Doc`, or any rolling doc. Planning-plane bindings from the same session must already have been closed before this table is kept live.
+Inside the current runtime session, the `Supervisor` may keep one runtime-private reusable binding table: Task / Milestone / Initiative `coder` plus Task / Milestone / Initiative `reviewer`. It is never formal recovery state and must never be written into planning docs, the `Global State Doc`, or any rolling doc. Planning-plane bindings must already have been closed before this table stays live.
 
 When the active object is already in flight or has been recovered from an existing rolling doc, `current_snapshot` should preserve the active `coder_slot` and object `round`. Only on first entry into a fresh runtime object with no rolling doc yet may `current_snapshot` temporarily omit them; the target loop must then initialize `coder_slot=coder` and `round=1` before dispatching the first coder round.
 

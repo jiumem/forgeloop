@@ -43,8 +43,10 @@
 - `task_review_rolling_doc_root_ref` -> `<initiative_dir>/.forgeloop/task-review/`
 - `milestone_review_rolling_doc_root_ref` -> `<initiative_dir>/.forgeloop/milestone-review/`
 - `initiative_review_rolling_doc_ref` -> `<initiative_dir>/.forgeloop/initiative-review.md`
+- concrete `task_review_rolling_doc_ref` derivation law -> `<task_review_rolling_doc_root_ref>/<task_key>.md`
 
 `Total Task Doc` reference assignment must use these runtime refs for repo-local Initiatives.
+`run-initiative`, `rebuild-runtime`, and `code-loop` must bind the concrete Task review rolling doc from this root plus the bound `task_key`. They must not scan the directory for alternate Task filenames.
 
 <!-- forgeloop:anchor single-root-consequences -->
 ## Single-Root Consequences

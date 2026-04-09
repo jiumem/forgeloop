@@ -129,7 +129,13 @@ Local exceptions for planning worker packets:
 - open a new round only when entering a stage for the first time, re-entering the same stage after review-requested changes, or reopening an earlier sealed stage; determine reopen from the durable transition already recorded in the `Planning State Doc`, not from chat memory
 - Do not write planner body text into the `Planning State Doc`
 
-3. Dispatch the `planner`
+3. Determine the current in-stage frontier
+- If the current round exposes one valid current handoff and no matching current review result, keep the same `planner_slot` and `round`, then dispatch the current stage reviewer directly.
+- If the current round already exposes one matching current review result, do not redispatch `planner`; handle that review result directly.
+- Otherwise dispatch `planner` for the current round.
+- If the current round exposes more than one legal current handoff, or more than one latest matching review result, stop and surface the rolling-doc contract violation explicitly.
+
+4. Dispatch the `planner`
 - Keep only one durable `planner_slot` for the current planning stage
 - `planner_slot` is the only durable owner identity
 - For the current planning session, keep at most one reusable `planner` binding and one reusable stage-reviewer binding for the bound stage
@@ -140,16 +146,21 @@ Local exceptions for planning worker packets:
 - The planner input must explicitly carry: active stage identity, requirement or `design draft`, the `Planning State Doc` ref or materialized path, the active `rolling_doc_ref`, the active `artifact_ref`, any materialized paths needed for dispatch, the current `round`, the bound `stage_reference_ref`, the bound `rolling_doc_contract_ref`, the anchor selectors for the exact planning-artifact and rolling-doc surfaces needed in the round, and any sealed upstream planning artifacts
 - The planner reads artifact-shape rules from `stage_reference_ref` and communication-plane rules from `rolling_doc_contract_ref`
 
-4. Handle planner output
+5. Handle planner output
 - The latest `planner_update` in the current round is the current planner intent.
 - Route only from that latest `planner_update` in the current round.
 - `continue_stage_repair`: keep the same `planner_slot` and the same round.
-- `request_reviewer_handoff`: require one valid current handoff in the same round, normalize the current artifact `状态` to `review-ready`, then reuse the current stage's reviewer binding with `send_input` when that reviewer still has a live `agent_id`; only create or rebind it with `spawn_agent` when the current stage has no usable reviewer binding, and send only the current handoff tuple, bound refs, selectors, and same-source slices needed for that review.
+- `request_reviewer_handoff`: require one valid current handoff in the same round, normalize the current artifact `状态` to `review-ready`, then continue to Step 6 using that handoff.
 - `wait_for_upstream_judgment`: write `next_action.action=waiting` and stop.
 - `stop_on_blocker`: write `next_action.action=blocked` and stop.
 - Anything else is illegal planner output.
 
-5. Handle reviewer output
+6. Dispatch the stage reviewer
+- Reuse the current stage reviewer binding with `send_input` when it still has a live `agent_id` in this session; otherwise create or rebind exactly one reviewer for this stage with `spawn_agent`.
+- Reviewer input must carry only the current handoff tuple, the bound refs, the selectors, and the same-source slices needed for that review.
+- Reviewer legality must always come from the current packet plus the rolling doc and formal refs, not from prior-thread memory.
+
+7. Handle reviewer output
 - Use only the latest review result whose `round`, `handoff_id`, and `review_target_ref` match the current handoff.
 - `clean seal`:
   - first normalize the current planning artifact `状态` to `sealed`
