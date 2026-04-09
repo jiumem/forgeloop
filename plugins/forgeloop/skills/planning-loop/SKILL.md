@@ -12,34 +12,19 @@ You act as the stage `Supervisor`: keep the minimum control plane, preserve one 
 
 If review sends the Initiative to another planning stage, record that cross-stage route in the `Planning State Doc` and stop. `run-planning` must then reread state, explicitly bind the new stage, and decide whether to continue in the same activation.
 
-<!-- forgeloop:anchor stage-reference-binding -->
-## Stage Reference Binding
+<!-- forgeloop:anchor stage-contract-binding -->
+## Stage Contract Binding
 
-Each planning stage must bind exactly one canonical `stage_reference_ref`.
+For the current stage, bind exactly one `stage_reference_ref` and one shared `rolling_doc_contract_ref`.
 
 - `Design Doc` -> `plugins/forgeloop/skills/planning-loop/references/design-doc.md`
 - `Gap Analysis Doc` -> `plugins/forgeloop/skills/planning-loop/references/gap-analysis.md`
 - `Total Task Doc` -> `plugins/forgeloop/skills/planning-loop/references/total-task-doc.md`
+- shared rolling-doc contract -> `plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md`
 
-Bind `stage_reference_ref` as a repo-root-relative path. Materialize an absolute path only at dispatch time when needed. Keep the repo-root-relative form as the durable truth in the rolling-doc contract snapshot.
+Persist both refs only as repo-root-relative paths in the rolling doc contract snapshot. Materialize absolute paths only at dispatch time. Neither ref belongs in the `Planning State Doc`.
 
-`stage_reference_ref` belongs to the active planning rolling doc's contract snapshot, not to the `Planning State Doc`.
-
-The active rolling doc contract snapshot is the formal bridge between the workflow layer and subagents. `planner` and the current stage reviewer must receive `stage_reference_ref` explicitly in every dispatch packet; they must not rely on discovering references from directory layout or session memory.
-
-<!-- forgeloop:anchor shared-rolling-doc-contract -->
-## Shared Rolling Doc Contract
-
-Every planning stage also binds the same canonical `rolling_doc_contract_ref`.
-
-- shared planning rolling-doc contract -> `plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md`
-
-Bind `rolling_doc_contract_ref` the same way: repo-root-relative as durable truth, absolute only as an ephemeral dispatch value.
-
-`rolling_doc_contract_ref` belongs to the active planning rolling doc's contract snapshot, not to the `Planning State Doc`.
-
-The stage reference controls artifact shape and stage judgment. The shared rolling-doc contract controls communication-plane shape, block legality, round law, handoff law, and stale-result handling.
-Framework contract refs and Initiative repo refs follow the same durable-path rule: repo-root-relative. Do not persist workspace-specific absolute paths in planning truth.
+Every planner and reviewer packet must carry both refs explicitly. They must not discover them from folder layout or session memory.
 
 <!-- forgeloop:anchor stage-reviewer-binding -->
 ## Stage Reviewer Binding
@@ -60,12 +45,7 @@ Framework contract refs and Initiative repo refs follow the same durable-path ru
 
 The formal planning input surface is limited to the requirement baseline or design draft, the `Planning State Doc`, the active rolling doc, the current artifact when it exists, sealed upstream planning artifacts, relevant repo facts, and the bound reference docs.
 
-Within that surface, keep four boundaries separate:
-
-- write authority
-- control-plane ownership
-- packet legality
-- downstream routing truth
+The current stage is governed by four separate concerns: artifact write authority, control-plane ownership, packet legality, and downstream routing truth.
 
 Formal inputs:
 
@@ -129,7 +109,7 @@ Local packet additions for planning workers:
 
 3. Determine the current in-stage frontier
 - If the latest `planner_update` in the current round uses `next_action=request_reviewer_handoff`, and the current round exposes one valid current handoff with no matching current review result, keep the same `planner_slot` and `round`, then dispatch the current stage reviewer directly.
-- If the current round already exposes one matching current review result, do not redispatch `planner`; handle that review result directly.
+- If the current round already exposes one matching current review result, do not redispatch `planner`; continue directly to Step 7.
 - Otherwise dispatch `planner` for the current round.
 - If the current round exposes more than one legal current handoff, or more than one latest matching review result, stop and surface the rolling-doc contract violation explicitly.
 
@@ -165,7 +145,7 @@ Local packet additions for planning workers:
   - `Design Doc` -> route by sealed `Gap Analysis Requirement`
   - `Gap Analysis Doc` -> `advance_to_total_task_doc`
   - `Total Task Doc` -> `sealed_planning_docs_ready`
-- `changes_requested + same-stage repair action` -> normalize the current planning artifact `状态` to `draft`, increment the stage `round`, keep the same `planner_slot`, and continue repair.
+- `changes_requested + same-stage repair action` -> normalize the current planning artifact `状态` to `draft`, increment the stage `round`, keep the same `planner_slot`, and return to Step 3.
 - `changes_requested + valid upstream reopen recommendation` -> record `reopen_to_*` in the `Planning State Doc`, demote every downstream planning artifact that is no longer legally sealed back to `draft`, and stop.
 - `changes_requested + wait_for_upstream_judgment` -> `next_action.action=waiting`.
 - `changes_requested + stop_on_blocker` -> `next_action.action=blocked`.

@@ -54,20 +54,12 @@ You are not responsible for:
 <!-- forgeloop:anchor dispatch-rules -->
 ## Dispatch Rules
 
-Once the next planning step is clear, dispatch exactly one downstream skill for that decision point, or stop and ask the user. Sequential redispatch after `planning-loop` returns is allowed only after rereading the `Planning State Doc` and current planning truth; parallel dispatch and speculative skipped stages are forbidden.
+Once the next planning step is clear, dispatch exactly one downstream skill or stop and ask the user.
+Sequential redispatch after `planning-loop` returns is allowed only after rereading formal planning truth.
 
-The `Planning State Doc` holds only the minimum planning control plane: `current_snapshot`, `next_action`, and `last_transition`.
-It may use only the canonical supervisor actions `enter_planning_loop`, `waiting`, `blocked`, and `sealed_planning_docs_ready`.
-Do not put planner or reviewer body content there, do not persist session-local `agent_id` bindings there, and do not create a second planning state model outside the formal planning artifacts, rolling docs, and the `Planning State Doc`.
-When this session leaves the planning plane for runtime, the planning worker table must be closed first. Reusable planning bindings are plane-local and must not remain live in parallel with runtime bindings.
+`run-planning` owns only Initiative binding, planning-state recovery, route selection, and `Planning State Doc` materialization. The canonical planning routing vocabulary and field legality live in `references/planning-state.md`; do not restate or extend them here.
 
-### Worker Binding Law
-
-- `spawn_agent` is create-only. Use it only when the current stage has no usable bound `planner` / reviewer `agent_id`, or when the previously bound one is known closed, dead, or otherwise unrecoverable.
-- Reuse means dispatching the existing bound `agent_id` with `send_input`. Do not call `spawn_agent` again for a still-live worker just because the same stage continues into another round.
-- `task_name`, role name, or stage name are not reuse handles. Only the current session's stored `agent_id` binding is a legal reuse handle.
-- If an existing bound worker must be reopened before more input can be sent, resume that same `agent_id`; do not treat ordinary continuation as a reason to mint a new thread.
-- `close_agent` is planning-local binding cleanup. Once a worker has been removed from the current reusable binding table, do not treat that old `agent_id` as the active reusable binding; later continuation must either reopen that same `agent_id` explicitly or create a new binding with `spawn_agent`.
+Session-local worker reuse remains planning-local. Reuse a live worker with `send_input`; create one with `spawn_agent` only when no usable binding exists or the old binding is known unrecoverable. Before runtime stays active, close any reusable planning bindings.
 
 <!-- forgeloop:anchor when-to-stop -->
 ## When To Stop Or Ask The User
@@ -106,28 +98,26 @@ After reading the formal planning sources, decide whether planning should enter 
 4. Treat the `Planning State Doc` plus the active planning rolling doc as the in-flight planning truth.
 The artifact's formal `状态` marker is the execution-facing status signal and must stay in sync before stage close-out or downstream admission.
 If the `Planning State Doc` is missing, or if it conflicts with newer planning artifacts or rolling docs, first recover the minimum planning control plane from formal planning truth instead of stopping immediately.
-5. Recover state only when one active stage, one `planner_slot`, and one stage `round` can be proven.
+5. Recover state only when one active `stage`, one `planner_slot`, and one stage `round` can be proved.
 - If the existing `Planning State Doc` is still consistent, preserve `planner_slot` and `round`.
 - If it is missing or stale, recover them from the active rolling doc.
 - If this is a fresh cross-stage entry and no rolling doc exists yet, bind only the target stage and paths here; let `planning-loop` initialize `planner_slot=planner` and `round=1`.
 - If any of `stage`, `planner_slot`, or `round` still has multiple legal answers, stop and ask the user.
-6. Once state is consistent, decide the route.
-- Resolved `waiting` / `blocked`: record `resume_waiting` or `resume_blocked` in `last_transition`, rewrite the minimum `Planning State Doc`, and continue.
-- Recorded `advance_*` or `reopen_*`: bind the target stage, keep the route in `last_transition`, and enter `planning-loop` in the same activation after state refresh.
-- Existing in-stage repair / reviewer handoff / review-result state: keep the same stage and enter `planning-loop`.
-- Recovered active stage from artifact + rolling doc: rewrite the minimum `Planning State Doc` around that stage and continue.
-7. If the stage cannot be recovered uniquely, or the planning sources conflict in a way that no single stage can legally be chosen, stop and ask the user.
+6. Resolve exactly one outcome for this activation:
+- stay in the current stage
+- resume from `waiting` or `blocked`
+- enter the routed stage named by `advance_*` or `reopen_*`
+- stop and ask the user
+7. Carry that resolved outcome into Step 3. Do not partially rewrite the `Planning State Doc` during route analysis.
 
-### Step 3: Update The Minimum Planning Control Plane
+### Step 3: Materialize The Resolved Planning State
 
-Before dispatching, make the active planning stage explicit in the `Planning State Doc`.
+Write the resolved `current_snapshot`, `next_action`, and `last_transition` exactly once.
 
-1. `Planning State Doc` is the only planning control spine. `current_snapshot` carries the bound Initiative, active stage, active `artifact_ref`, active `rolling_doc_ref`, and when known `planner_slot` plus `round`; `next_action` may only be `enter_planning_loop`, `waiting`, `blocked`, or `sealed_planning_docs_ready`; `last_transition` carries recovery, resume, reopen, and cross-stage routing facts.
-2. Preserve the recovered `planner_slot` and `round` whenever they are already provable. Only a fresh stage with no rolling doc may omit them temporarily; once known, write them back into `current_snapshot` immediately.
-3. `next_action` records entry into `planning-loop` for the bound stage.
-4. `last_transition` records cold start, recovery, resume, reopen, or cross-stage route.
-5. If the route is `reopen_to_design` or `reopen_to_gap_analysis`, stay visible as a reopen route in `last_transition`.
-6. If the `Planning State Doc` does not exist, initialize only `planning_state_header`, `current_snapshot`, `next_action`, and `last_transition`.
+1. `Planning State Doc` is the only planning control spine.
+2. Step 3 materializes the route already resolved in Step 2; it does not re-decide the active stage or the next route.
+3. Preserve the recovered `planner_slot` and `round` whenever they are already provable.
+4. If the `Planning State Doc` does not exist, initialize only `planning_state_header`, `current_snapshot`, `next_action`, and `last_transition`.
 
 ### Step 4: Dispatch The Internal Stage Skill
 
@@ -143,6 +133,7 @@ After `planning-loop` returns, reread the `Planning State Doc`.
 
 1. If the returned state is `waiting`, `blocked`, or `sealed_planning_docs_ready`, stop.
 2. If the returned state records a cross-stage route, reread the `Planning State Doc` and the minimum formal planning truth needed for that route, explicitly bind the target stage from `last_transition`, then go back to Step 2 in the same activation.
+Continue only in the same activation after state refresh.
 3. If the returned state no longer exposes one legal stop point or one recoverable active stage, stop and surface the illegal planning state explicitly.
 
 ### Step 6: Loop Back

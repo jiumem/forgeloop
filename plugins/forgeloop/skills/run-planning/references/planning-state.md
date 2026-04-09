@@ -52,11 +52,9 @@
 - `reopen_to_design`
 - `reopen_to_gap_analysis`
 
-Law:
-
-- `next_action` owns only in-stage dispatch and terminal stop for the currently bound stage
-- `last_transition` owns recovery, resume, and cross-stage routing facts
-- no other planning doc may invent a parallel routing vocabulary
+`next_action` owns only in-stage dispatch or terminal stop for the currently bound stage.
+`last_transition` owns only recovery, resume, reopen, and cross-stage routing facts.
+No other planning doc may define a parallel dispatcher vocabulary.
 
 <!-- forgeloop:anchor supervisor-materialization-law -->
 ## Supervisor Materialization Law

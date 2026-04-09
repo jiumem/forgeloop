@@ -140,7 +140,7 @@
 <!-- forgeloop:anchor document-card -->
 ### 1. 文档卡片（Document Card）
 
-- `1.1 状态与阶段（Status And Stage）`：标明当前文档状态，例如 `draft`、`review-ready` 或 `sealed`，并确认这是 `Design Doc` 阶段；这是文档自身的正式状态标记，供下游 planning 与 `run-initiative` admission 直接读取。round、handoff 与 review history 仍由 `Planning State Doc` 与 rolling doc 承载；若两者不一致，`Supervisor` 必须先修正文档状态，不能让下游猜测。
+- `1.1 状态与阶段（Status And Stage）`：标明当前文档状态，例如 `draft`、`review-ready` 或 `sealed`，并确认当前阶段。这是文档自身的正式状态标记。`round`、`handoff` 与 `review history` 仍以控制状态文档和 rolling doc 为准；若两者不一致，`Supervisor` 必须先修正文档状态，不能让下游自行推断。
 - `1.2 Initiative 类型（Initiative Type）`：只写 Initiative 类型；当 Initiative 类型会实质影响下游 planning 时，明确写出其类型，例如 greenfield feature、refactor、migration、replacement、governance convergence
 - `1.3 主要读者（Primary Readers）`：当这有助于避免误用时，写明当前主要读者
 - `1.4 Gap Analysis Requirement`：必须明确写 `required | not_required`；这是 planning 是否必须进入 `Gap Analysis Doc` 的唯一正式路由信号
@@ -159,7 +159,7 @@
 
 - `3.1 主要矛盾（Primary Contradiction）`：指出这份设计要解决的主要矛盾
 - `3.2 胜出切法（Winning Cut）`：用压缩形式写出选定的设计切法
-- `3.3 下游绑定影响（Downstream Binding Effects）`：概括哪些内容从现在开始对下游 planning 与 coding 构成绑定，但固定与可变的最终裁决线仍以 `5.4 边界划分与实现自由度（Boundary Allocation And Implementation Freedom）` 为准
+- `3.3 下游绑定影响（Downstream Binding Effects）`：概括从现在开始对下游 planning 与 coding 生效的绑定项，不重复裁决实现自由度。
 - 要让下游 `coder` 或 `design_reviewer` 在不读完整篇文档的情况下，也能理解目标态
 - 优先使用少量明确的裁决要点或短段落，而不是长篇铺陈
 
@@ -196,7 +196,7 @@
 - `7.1 不变量（Invariants）`：说明实现后必须持续成立的内容
 - `7.2 契约边界（Contract Boundaries）`：说明下游角色必须守住哪些边界
 - `7.3 失败与安全红线（Failure And Safety Lines）`：说明哪些失败、安全线或红线绝不能被越过
-- `7.4 允许的实现变体（Allowed Implementation Variation）`：概括哪些地方下游实现可以变化而不违反设计，但固定与可变的最终裁决仍以 `5.4` 为准
+- `7.4 允许的实现变体（Allowed Implementation Variation）`：概括不违反设计的实现变化范围。
 - 必须让人一眼看出什么叫“实现正确”，以及什么叫“实现不同但仍合法”
 
 <!-- forgeloop:anchor residual-risks-and-follow-ups -->
@@ -249,7 +249,7 @@
 - 正确性表面明确
 - 没有把阻塞性设计不确定性藏到下游去
 - 文档顶部 `状态` 已明确写为 `review-ready`
-- 只有当 rolling doc 同 round 的最新 `planner_update` 使用 `next_action=request_reviewer_handoff`，并且存在匹配的当前 `design_doc_ref` handoff block 时，reviewer dispatch 才正式成立；`review-ready` 本身只说明文档已达到 handoff 条件
+- `review-ready` 只表示文档已满足 handoff 条件。正式 reviewer dispatch 仅在同 round 最新 `planner_update.next_action=request_reviewer_handoff` 且存在匹配的当前 handoff block 时成立。
 
 <!-- forgeloop:anchor seal-standard -->
 ## Seal 标准
