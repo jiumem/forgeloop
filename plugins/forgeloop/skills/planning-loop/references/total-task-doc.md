@@ -10,6 +10,9 @@
 
 这份文档不是第二篇设计长文，不是迁移账本，不是 reviewer verdict，也不是实现教程。
 文档是否进入评审、修复或 sealed lifecycle，仍以 rolling doc 为准。
+这份文档定义的是 sealed execution map 的静态对象真值，而不是 runtime dispatcher 的动态调度程序。
+runtime 可以在这张 sealed execution map 内重绑定当前执行对象，而无需回到 planning。
+这不会改变对象真值，只会改变当前执行焦点。
 
 <!-- forgeloop:anchor questions-this-doc-must-answer -->
 ## 这份文档必须回答什么
@@ -191,6 +194,12 @@
 - `1.3 差距分析引用（Gap Analysis Refs, if applicable）`：当 sealed `Design Doc` 写明 `Gap Analysis Requirement: required` 时，指向 sealed `Gap Analysis Doc`；否则标记为 `N/A`
 - `1.4 已封板决策（Sealed Decisions）`：只概括那些已经 sealed、并且实质影响执行地图的上游决策
 - `1.5 执行边界（Execution Boundary）`：这是说明当前 `Total Task Doc` 承载什么、不承载什么的唯一权威区块
+- 本节必须明确区分三件事：
+  - sealed execution objects
+  - acceptance truth
+  - delivery wrappers such as branches and PRs
+- branches and PRs are delivery packaging only; they are not legal replacements for Initiative, Milestone, or Task truth
+- runtime may legally rebind across already-defined execution objects inside this sealed document without reopening planning
 - `1.6 Initiative 法定引用指派（Initiative Reference Assignment）`：这是下游使用的 Initiative 层法定参考入口的唯一权威区块
 - `1.6 Initiative 法定引用指派（Initiative Reference Assignment）` 中的 repo-local durable refs 必须使用 repo-root-relative path；这同样适用于 `.forgeloop/` 下的 runtime control-plane refs
 - 对于 repo-local Initiative，`1.6` 的唯一法定控制面根目录应为与本 `Total Task Doc` 同目录的 sibling `.forgeloop/`；应直接填写：
@@ -222,7 +231,7 @@
 - `3.3` 与 `3.4` 中每个 Milestone 条目都必须使用同一个 `Milestone Key` 的 object-local anchor；若下游只需绑定一个 Milestone，可以配对读取这两个同 key block，而不是重读整表
 - `3.4 Milestone 法定引用指派（Milestone Reference Assignment）` 中的 repo-local refs 也必须保持 repo-root-relative durable form；不要把某个主工作区或旧 worktree 的绝对路径写成法定真值
 - `3.4` 中的 Milestone-level review refs 也必须落在同一个 Initiative-local `.forgeloop/` 根下，而不是为同一 Initiative 再开第二个 control-plane 根目录
-- `Milestone List` 中的 `Planned PR Model` 默认应为 `Single PR`；只有当某个 Milestone 必须保持为单一状态边界、且无法合理切成新 Milestone 时，才使用 `多 PR 例外（Multi-PR Exception）`
+- `Milestone List` 中可记录推荐交付包装，但不得让 PR 包装替代 Milestone 对象真值
 
 <!-- forgeloop:anchor task-ledger -->
 ### 4. Task 账本（Task Ledger）
@@ -251,7 +260,14 @@
 <!-- forgeloop:anchor branch-pr-integration-path -->
 ### 5. 分支与 PR 集成路径（Branch & PR Integration Path）
 
-- `5.1 默认集成模型（Default Integration Model）`：这是默认 `one Milestone -> one PR` 规则及其 `Multi-PR Exception` 的唯一权威区块
+- `5.1 默认集成模型（Default Integration Model）`：这是说明执行对象如何被交付包装承载的唯一权威区块
+- Default law:
+  - one execution object should map to one review boundary
+  - one PR is only a common packaging pattern, not an ontology rule
+- `Single PR` is preferred only when it preserves the cleanest review boundary
+- `Multi-PR` is legal when one object must be landed incrementally but still remains one sealed execution object
+- `Zero dedicated PR per object` is also legal when several thin objects are landed together without destroying object-local acceptance truth
+- Never let branch or PR packaging replace Initiative / Milestone / Task object truth
 - `5.2 分支计划（Branch Plan）`：以 planning 层粒度定义计划中的分支模型与命名方式
 - `5.3 PR 计划（PR Plan）`：定义计划中的 PR 对象、覆盖范围与验收清单
 - `5.4 PR 依赖顺序（PR Dependency Order）`：定义 PR 之间的串行、并行与收敛顺序
@@ -291,6 +307,9 @@
 - 把 `1.5 执行边界（Execution Boundary）`、`1.6 Initiative 法定引用指派（Initiative Reference Assignment）`、`3.4 Milestone 法定引用指派（Milestone Reference Assignment）`、`4.2 Task 定义（Task Definitions）`、`5.1 默认集成模型（Default Integration Model）` 与 `6.4 证据入口（Evidence Entrypoints）` 视为本文档的结构核心，不能退化成模糊散文
 - repo-local formal refs 只保留 repo-root-relative 这一种 durable 语义；可附人类可读链接，但不得把 workspace-specific absolute path 写成唯一法定值
 - 所谓完全展开，是对象、依赖、验收线与集成路径都已明确，而不是堆砌教程式实现细节
+- PR planning serves object truth; object truth never serves PR planning
+- do not encode runtime wrapper hierarchy into this document
+- sealed execution map must stay stable even if runtime execution focus moves across objects
 - 任何未决裁决都不得进入 `Total Task Doc`
 
 <!-- forgeloop:anchor prohibited-content -->

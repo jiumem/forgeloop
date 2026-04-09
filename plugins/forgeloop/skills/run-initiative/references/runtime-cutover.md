@@ -17,6 +17,9 @@ planning_cutover_scope: out_of_scope
 - This contract changes only runtime default routing.
 - Planning remains report-only for cutover purposes in the current phase.
 - Anchors, derived views, benchmark tooling, and validation fixtures may still exist outside runtime cutover scope; this contract only decides what runtime treats as the default path.
+- Runtime object selection, runtime-only rebinding, and next-object hierarchy are out of scope here.
+- Those rules belong only to `runtime-object-selection.md`.
+- Do not encode closure-first wrapper law or persisted `frontier` behavior in this file.
 
 <!-- forgeloop:anchor supported-modes -->
 ## Supported Modes

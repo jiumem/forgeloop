@@ -214,17 +214,18 @@ plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:continue_c
 plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:enter_review
 plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:initiative_delivered
 plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md:initiative_delivered
-plugins/forgeloop/skills/run-initiative/references/global-state.md:total_task_doc_ref
-plugins/forgeloop/skills/run-initiative/references/global-state.md:active_plane=frontier
-plugins/forgeloop/skills/run-initiative/references/global-state.md:continue_coder_round
-plugins/forgeloop/skills/run-initiative/references/global-state.md:cross-plane worker cleanup is mandatory before execution changes planes
+plugins/forgeloop/skills/run-initiative/references/global-state.md:active_object_kind
+plugins/forgeloop/skills/run-initiative/references/global-state.md:enter_code_loop
+plugins/forgeloop/skills/run-initiative/references/global-state.md:rebind_within_execution_map
+plugins/forgeloop/skills/run-initiative/references/global-state.md:rolling_doc_ref
 plugins/forgeloop/skills/rebuild-runtime/SKILL.md:initiative_delivered
 plugins/forgeloop/skills/rebuild-runtime/SKILL.md:current object-local `round`
 plugins/forgeloop/agents/coder.toml:request_reviewer_handoff
 plugins/forgeloop/agents/initiative_reviewer.toml:initiative_delivered
-tests/codex/token-benchmark/fixtures/global-state-active-task.md:total_task_doc_ref:
-tests/codex/token-benchmark/fixtures/global-state-waiting.md:total_task_doc_ref:
-plugins/forgeloop/skills/run-initiative/SKILL.md:Planning-plane bindings from the same session must already have been closed before this table is kept live
+tests/codex/token-benchmark/fixtures/global-state-active-task.md:active_object_kind: task
+tests/codex/token-benchmark/fixtures/global-state-waiting.md:active_object_kind: initiative
+plugins/forgeloop/skills/run-initiative/SKILL.md:Runtime-only rebinding is legal
+plugins/forgeloop/skills/run-initiative/SKILL.md:runtime-object-selection.md
 plugins/forgeloop/skills/run-initiative/SKILL.md:Only the current session's stored `agent_id` binding is a legal reuse handle
 plugins/forgeloop/skills/code-loop/SKILL.md:reuse it with `send_input`; do not call `spawn_agent` again for the same live coder binding
 EOF

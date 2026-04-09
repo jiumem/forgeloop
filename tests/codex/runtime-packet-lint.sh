@@ -109,68 +109,44 @@ scenarios = json.loads(Path("tests/codex/token-benchmark/fixtures/scenarios.json
 run_initiative_text = Path("plugins/forgeloop/skills/run-initiative/SKILL.md").read_text()
 rebuild_runtime_text = Path("plugins/forgeloop/skills/rebuild-runtime/SKILL.md").read_text()
 
-frontier_priority_marker = "- frontier selection when `current_snapshot.active_plane=frontier` or `next_action.action=advance_frontier`"
-task_priority_marker = "- task-mode code loop when a Task is clearly active"
-task_next_ready_legacy = "task-mode code loop when a Task is clearly active or next-ready"
-frontier_apply_marker = (
-    "- if `current_snapshot.active_plane=frontier` or `next_action.action=advance_frontier`: resolve exactly one next runtime object from the admitted planning document set plus authoritative runtime rolling docs"
+selection_contract_marker = "The only legal runtime object selection law lives at `references/runtime-object-selection.md`."
+step4_marker = "### Step 4: Determine The Current Runtime Object"
+same_object_marker = (
+    "1. If `Global State Doc` already binds one legal current object and that object still has an open same-object repair or review cycle, preserve that object, preserve `coder_slot`, preserve `round`, and continue."
 )
-rebuild_frontier_marker = (
-    "- If recovery lands on `current_snapshot.active_plane=frontier` or `next_action.action=advance_frontier`, "
-    "apply the same fixed supervisor routing order used by `run-initiative`: required current Milestone closure "
-    "-> required Initiative closure -> exactly one next-ready Task. Do not recover directly into Task plane merely "
-    "because one next-ready Task can be guessed."
+selection_apply_marker = (
+    "2. Otherwise bind `plugins/forgeloop/skills/run-initiative/references/runtime-object-selection.md` and use it as the only legal next-object selector."
+)
+stale_frontier_marker = (
+    "3. `frontier` is never a legal persisted runtime object or plane. If older runtime truth still exposes `frontier`, treat that state as stale and recover through the shared selection contract instead of preserving it."
+)
+rebuild_selection_marker = (
+    "- Use `plugins/forgeloop/skills/run-initiative/references/runtime-object-selection.md` as the only legal selector for recovering one current runtime object."
 )
 rebuild_formal_only_marker = (
     "- Recover only from formal runtime truth. Workspace diff, chat summaries, and interrupted worker intent may help "
     "explain what happened, but they must never promote object progression without a rereadable formal block."
-)
-rebuild_uncommitted_marker = (
-    "- If the current round has no formal `coder_update`, `review_handoff`, or `review_result`, treat any uncommitted code or chat-only progress as unfinished in-object work "
-    "and recover coder continuation from the last legal formal state instead of promoting the object"
 )
 run_initiative_partial_progress_marker = (
     "- if workspace diff or interrupted agent narration suggests progress that has not appeared as a rereadable "
     "`coder_update`, `review_handoff`, or `review_result`: do not advance the object from that hint alone; continue only from the last "
     "legal formal runtime state or call skill: `rebuild-runtime` when the active state is no longer provable uniquely"
 )
-run_initiative_disconnect_marker = (
-    "If the loop ended on disconnect or partial failure and no new formal block can be reread, keep the object on its "
-    "last legal formal state; uncommitted workspace progress stays merely local until a later round writes legal runtime truth."
-)
-
-if task_next_ready_legacy in run_initiative_text:
-    raise SystemExit(
-        "runtime packet lint: run-initiative still allows next-ready Task to bypass frontier/container forcing"
-    )
-
-frontier_priority_index = run_initiative_text.find(frontier_priority_marker)
-task_priority_index = run_initiative_text.find(task_priority_marker)
-if frontier_priority_index == -1 or task_priority_index == -1:
-    raise SystemExit("runtime packet lint: run-initiative is missing frontier/task routing markers")
-if frontier_priority_index > task_priority_index:
-    raise SystemExit(
-        "runtime packet lint: frontier/container forcing must be routed before task-mode direct dispatch"
-    )
-
-if frontier_apply_marker not in run_initiative_text:
-    raise SystemExit(
-        "runtime packet lint: run-initiative apply-case is missing the explicit frontier/container-forcing law"
-    )
-
 for marker in (
-    "- use this fixed order and stop at the first match: required current Milestone closure -> required current Initiative closure -> exactly one next-ready Task",
-    "- closure always beats Task entry",
-    "- this step advances only the existing runtime frontier; it must not reopen planning, regenerate Task plans, or synthesize a new Milestone / Task decomposition",
+    selection_contract_marker,
+    step4_marker,
+    same_object_marker,
+    selection_apply_marker,
+    stale_frontier_marker,
 ):
     if marker not in run_initiative_text:
         raise SystemExit(
-            "runtime packet lint: run-initiative apply-case is missing part of the explicit frontier/container-forcing law"
+            f"runtime packet lint: run-initiative is missing object-selection law marker: {marker}"
         )
 
-if rebuild_frontier_marker not in rebuild_runtime_text:
+if rebuild_selection_marker not in rebuild_runtime_text:
     raise SystemExit(
-        "runtime packet lint: rebuild-runtime is missing the closure-first frontier recovery law"
+        "runtime packet lint: rebuild-runtime is missing the shared runtime object selection law"
     )
 
 if rebuild_formal_only_marker not in rebuild_runtime_text:
@@ -178,19 +154,9 @@ if rebuild_formal_only_marker not in rebuild_runtime_text:
         "runtime packet lint: rebuild-runtime is missing the formal-truth-only recovery law"
     )
 
-if rebuild_uncommitted_marker not in rebuild_runtime_text:
-    raise SystemExit(
-        "runtime packet lint: rebuild-runtime still allows uncommitted progress to promote object state"
-    )
-
 if run_initiative_partial_progress_marker not in run_initiative_text:
     raise SystemExit(
         "runtime packet lint: run-initiative is missing the partial-progress no-promotion law"
-    )
-
-if run_initiative_disconnect_marker not in run_initiative_text:
-    raise SystemExit(
-        "runtime packet lint: run-initiative is missing the disconnect recovery law"
     )
 
 targets = {
