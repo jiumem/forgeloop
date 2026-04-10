@@ -12,7 +12,7 @@ This file binds object-local review surfaces only.
 It does not define runtime hierarchy, wrapper law, or next-object selection.
 Those belong only to `plugins/forgeloop/skills/run-initiative/references/runtime-object-selection.md`.
 
-<!-- forgeloop:anchor task-kind -->
+<!-- forgeloop:anchor task-mode -->
 ## Task
 
 - `active_object_kind`: `task`
@@ -31,7 +31,7 @@ Those belong only to `plugins/forgeloop/skills/run-initiative/references/runtime
   - `wait_for_user` -> `waiting`
   - `stop_on_blocker` -> `blocked`
 
-<!-- forgeloop:anchor milestone-kind -->
+<!-- forgeloop:anchor milestone-mode -->
 ## Milestone
 
 - `active_object_kind`: `milestone`
@@ -50,7 +50,7 @@ Those belong only to `plugins/forgeloop/skills/run-initiative/references/runtime
   - `wait_for_user` -> `waiting`
   - `stop_on_blocker` -> `blocked`
 
-<!-- forgeloop:anchor initiative-kind -->
+<!-- forgeloop:anchor initiative-mode -->
 ## Initiative
 
 - `active_object_kind`: `initiative`

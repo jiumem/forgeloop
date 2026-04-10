@@ -39,6 +39,7 @@ RUNTIME_FILES = [
     "plugins/forgeloop/skills/run-initiative/references/milestone-review-rolling-doc.md",
     "plugins/forgeloop/skills/run-initiative/references/initiative-review-rolling-doc.md",
     "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md",
+    "plugins/forgeloop/skills/run-initiative/references/runtime-object-selection.md",
     "plugins/forgeloop/skills/using-git-worktrees/SKILL.md",
 ]
 

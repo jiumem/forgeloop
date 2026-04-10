@@ -12,7 +12,7 @@ You act as the stage `Supervisor`: keep the minimum control plane, preserve one 
 
 If review sends the Initiative to another planning stage, record that cross-stage route in the `Planning State Doc` and stop. `run-planning` must then reread state, explicitly bind the new stage, and decide whether to continue in the same activation.
 
-<!-- forgeloop:anchor stage-contract-binding -->
+<!-- forgeloop:anchor stage-reference-binding -->
 ## Stage Contract Binding
 
 For the current stage, bind exactly one `stage_reference_ref` and one shared `rolling_doc_contract_ref`.
@@ -20,11 +20,12 @@ For the current stage, bind exactly one `stage_reference_ref` and one shared `ro
 - `Design Doc` -> `plugins/forgeloop/skills/planning-loop/references/design-doc.md`
 - `Gap Analysis Doc` -> `plugins/forgeloop/skills/planning-loop/references/gap-analysis.md`
 - `Total Task Doc` -> `plugins/forgeloop/skills/planning-loop/references/total-task-doc.md`
+<!-- forgeloop:anchor shared-rolling-doc-contract -->
 - shared rolling-doc contract -> `plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md`
 
 Persist both refs only as repo-root-relative paths in the rolling doc contract snapshot. Materialize absolute paths only at dispatch time. Neither ref belongs in the `Planning State Doc`.
 
-Every planner or stage-reviewer packet in this activation must explicitly carry the bound `stage_reference_ref` and `rolling_doc_contract_ref`. They are fixed for the whole activation and must not be rediscovered from folder layout, session memory, or implicit stage inference. Later sections assume this law and do not restate it unless a true local exception exists.
+Every planner or stage-reviewer packet in this activation must explicitly carry the bound `stage_reference_ref` and `rolling_doc_contract_ref`. every planner and stage-reviewer packet must explicitly carry the bound `stage_reference_ref` and `rolling_doc_contract_ref`. They are fixed for the whole activation and must not be rediscovered from folder layout, session memory, or implicit stage inference. Later sections assume this law and do not restate it unless a true local exception exists.
 
 <!-- forgeloop:anchor stage-reviewer-binding -->
 ## Stage Reviewer Binding

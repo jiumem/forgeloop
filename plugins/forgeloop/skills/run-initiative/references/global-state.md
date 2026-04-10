@@ -16,10 +16,22 @@
 - `next_action`
 - `last_transition`
 
+<!-- forgeloop:anchor bootstrap-law -->
+## Bootstrap Law
+
+- On cold start, initialize only `runtime_state_header`, `current_snapshot`, `next_action`, and `last_transition`.
+- Do not invent reviewer-ready, delivered, or rebound state during bootstrap.
+- Once runtime truth can recover a unique current object, rewrite the initialized blocks from that formal state instead of keeping placeholder control values.
+
 <!-- forgeloop:anchor control-law -->
 ## Control Law
 
 - `Global State Doc` is the only runtime-wide control spine.
+- reviewer identity, physical `agent_id`, and session-local worker bindings are never legal fields here.
+
+<!-- forgeloop:anchor durable-rules -->
+## Durable Rules
+
 - `current_snapshot` carries only:
   - `initiative_key`
   - `active_object_kind`
@@ -34,9 +46,8 @@
 - `rolling_doc_ref` must use durable repo-root-relative refs.
 - `next_action` owns only immediate dispatch or terminal stop for the currently bound object.
 - `last_transition` owns recovery, resume, same-object continuation, runtime-only rebinding, and object-advance facts.
-- reviewer identity, physical `agent_id`, and session-local worker bindings are never legal fields here.
 
-<!-- forgeloop:anchor canonical-runtime-routing-vocabulary -->
+<!-- forgeloop:anchor runtime-routing-vocabulary -->
 ## Canonical Runtime Routing Vocabulary
 
 `next_action.action` may only be:

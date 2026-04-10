@@ -1,6 +1,6 @@
 # Forgeloop Custom Agents
 
-Forgeloop 0.9.0 ships a small, explicit set of custom agent manifests under `plugins/forgeloop/agents/`.
+Forgeloop 1.0.0 ships a small, explicit set of custom agent manifests under `plugins/forgeloop/agents/`.
 
 These agents are the stable role layer for the built-in workflow skills. They are intentionally narrow. The skill decides when to dispatch them and binds the formal input surface; the custom agent defines how that role should think and what it should return.
 

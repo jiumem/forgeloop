@@ -121,7 +121,7 @@ REQUIRED_SELECTOR_REGISTRY: dict[str, frozenset[str]] = {
             "document-role",
             "legal-blocks",
             "control-law",
-            "canonical-runtime-routing-vocabulary",
+            "runtime-routing-vocabulary",
             "supervisor-materialization-law",
             "formal-block-contract",
             "recommended-template",

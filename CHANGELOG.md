@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.0 - 2026-04-10
+
+- closed the remaining planning/runtime contract gaps so `Planning State Doc` and `Global State Doc` now act as the only control spines with explicit dispatcher ownership and reread-plus-rebind rules
+- finalized the unified runtime object model around `run-initiative`, `code-loop`, `rebuild-runtime`, and `runtime-object-selection.md`, including non-persisted `frontier`, explicit object release semantics, and runtime-only rebinding inside one sealed execution map
+- added coder-owned runtime intent blocks, aligned reviewer and supervisor routing vocabulary, and kept formal stop and delivery state distinct between routing facts and terminal actions
+- closed anchor-addressing release validation by moving required selector coverage onto one enforced registry shared by `anchor-addressing.md`, `validation-matrix.md`, `anchor_slices.py`, and `anchor-slice-smoke.sh`
+- refreshed the formal loops bundle export surface to include the finalized runtime object-selection contract and the current shared tooling/contract set
+
 ## 0.9.0 - 2026-04-03
 
 - aligned the public release surface with the packaged runtime architecture by treating `task-loop`, `milestone-loop`, and `initiative-loop` as historical compatibility vocabulary while documenting `code-loop` as the shipped runtime executor
