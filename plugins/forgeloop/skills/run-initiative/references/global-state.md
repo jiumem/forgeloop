@@ -80,9 +80,9 @@ When runtime worker output is materialized into `Global State Doc`:
 
 - reviewer `advance_frontier`
   - `advance_frontier` is a release signal only and is never persisted as runtime state
-  - write `last_transition.transition=advance_to_next_object` when the current object has finished its own layer and the next active object must still be chosen by ordinary runtime object selection
-  - write `last_transition.transition=rebind_within_execution_map` only when this same activation has already proved a more sufficient target object uniquely inside the sealed execution map
-  - then let the caller bind the selected next object and rewrite `current_snapshot` before re-entering `code-loop`
+  - write only `last_transition.transition=advance_to_next_object`
+  - do not bind, imply, or persist the next object here
+  - the caller must reread formal runtime truth, apply the shared selection contract, and only then, when rewriting `current_snapshot`, may record `last_transition.transition=rebind_within_execution_map`
 
 - worker `wait_for_user`
   - write `next_action.action=waiting`

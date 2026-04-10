@@ -8,26 +8,23 @@ trap 'rm -rf "$TMP_ROOT"' EXIT
 
 cd "$ROOT"
 
+REQUIRED_SURFACES=()
+while IFS= read -r path; do
+  REQUIRED_SURFACES+=("$path")
+done < <(python3 plugins/forgeloop/scripts/anchor_slices.py list-required-surfaces)
+
 python3 plugins/forgeloop/scripts/anchor_slices.py check \
   docs/initiatives/active/anchor-sliced-dispatch-optimization/design.md \
   docs/initiatives/active/anchor-sliced-dispatch-optimization/gap-analysis.md \
   docs/initiatives/active/anchor-sliced-dispatch-optimization/total-task-doc.md \
-  plugins/forgeloop/skills/planning-loop/references/design-doc.md \
-  plugins/forgeloop/skills/planning-loop/references/gap-analysis.md \
-  plugins/forgeloop/skills/planning-loop/references/total-task-doc.md \
+  "${REQUIRED_SURFACES[@]}" \
   plugins/forgeloop/skills/references/anchor-addressing.md \
   plugins/forgeloop/skills/references/derived-views.md \
   plugins/forgeloop/skills/references/validation-matrix.md \
-  plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md \
   plugins/forgeloop/skills/planning-loop/references/planning-derived-views.md \
   plugins/forgeloop/skills/run-initiative/SKILL.md \
-  plugins/forgeloop/skills/run-initiative/references/global-state.md \
-  plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md \
   plugins/forgeloop/skills/code-loop/SKILL.md \
   plugins/forgeloop/skills/code-loop/references/runtime-object-modes.md \
-  plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md \
-  plugins/forgeloop/skills/run-initiative/references/milestone-review-rolling-doc.md \
-  plugins/forgeloop/skills/run-initiative/references/initiative-review-rolling-doc.md \
   tests/fixtures/anchor-slicing/anchors-ok.md
 
 legacy_runtime_paths=(
@@ -35,7 +32,7 @@ legacy_runtime_paths=(
   tests/codex/token-benchmark/fixtures
   plugins/forgeloop/skills/run-initiative/references
 )
-if rg -n '^kind: (task_review_header|milestone_review_header|initiative_review_header|task_contract_snapshot|milestone_contract_snapshot|initiative_contract_snapshot|coder_update|g1_result|g2_result|g3_result)$' \
+if rg -n '^kind: (task_review_header|milestone_review_header|initiative_review_header|task_contract_snapshot|milestone_contract_snapshot|initiative_contract_snapshot|g1_result|g2_result|g3_result)$' \
   "${legacy_runtime_paths[@]}" \
   >"${TMP_ROOT}/legacy-runtime-kinds.txt"
 then

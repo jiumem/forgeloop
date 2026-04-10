@@ -17,7 +17,7 @@ ANCHOR_MARKER_RE = re.compile(r"forgeloop:anchor")
 CODE_FENCE_RE = re.compile(r"^\s*```")
 FENCE_START = re.compile(r"^\s*```forgeloop\s*$")
 FENCE_END = re.compile(r"^\s*```\s*$")
-REQUIRED_SELECTORS_BY_SUFFIX: dict[str, frozenset[str]] = {
+REQUIRED_SELECTOR_REGISTRY: dict[str, frozenset[str]] = {
     "plugins/forgeloop/skills/planning-loop/references/design-doc.md": frozenset(
         {
             "document-position",
@@ -86,6 +86,105 @@ REQUIRED_SELECTORS_BY_SUFFIX: dict[str, frozenset[str]] = {
             "prohibited-content",
             "review-ready-standard",
             "seal-standard",
+        }
+    ),
+    "plugins/forgeloop/skills/run-planning/references/planning-state.md": frozenset(
+        {
+            "document-role",
+            "legal-blocks",
+            "control-law",
+            "canonical-planning-routing-vocabulary",
+            "supervisor-materialization-law",
+            "formal-block-contract",
+            "recommended-template",
+            "red-lines",
+        }
+    ),
+    "plugins/forgeloop/skills/planning-loop/references/planning-rolling-doc.md": frozenset(
+        {
+            "document-role",
+            "contract-questions",
+            "required-header",
+            "legal-machine-blocks",
+            "round-law",
+            "append-only-ownership",
+            "planner-update-law",
+            "handoff-law",
+            "review-result-law",
+            "current-law-selection",
+            "seal-repair-reopen",
+            "derived-view-usage",
+        }
+    ),
+    "plugins/forgeloop/skills/run-initiative/references/global-state.md": frozenset(
+        {
+            "document-role",
+            "legal-blocks",
+            "control-law",
+            "canonical-runtime-routing-vocabulary",
+            "supervisor-materialization-law",
+            "formal-block-contract",
+            "recommended-template",
+            "red-lines",
+        }
+    ),
+    "plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md": frozenset(
+        {
+            "document-role",
+            "scope",
+            "supported-modes",
+            "current-mode",
+            "default-read-law",
+            "worker-packet-law",
+            "fallback-law",
+            "rollback-law",
+            "retained-capabilities",
+            "validation-hook",
+        }
+    ),
+    "plugins/forgeloop/skills/run-initiative/references/task-review-rolling-doc.md": frozenset(
+        {
+            "purpose",
+            "legal-machine-blocks",
+            "header-law",
+            "round-shape-law",
+            "coder-update-law",
+            "review-handoff-law",
+            "review-result-law",
+            "previous-review-law",
+            "derived-view-usage",
+            "recommended-template",
+            "initialization-law",
+        }
+    ),
+    "plugins/forgeloop/skills/run-initiative/references/milestone-review-rolling-doc.md": frozenset(
+        {
+            "purpose",
+            "legal-machine-blocks",
+            "header-law",
+            "round-shape-law",
+            "coder-update-law",
+            "review-handoff-law",
+            "review-result-law",
+            "previous-review-law",
+            "derived-view-usage",
+            "recommended-template",
+            "initialization-law",
+        }
+    ),
+    "plugins/forgeloop/skills/run-initiative/references/initiative-review-rolling-doc.md": frozenset(
+        {
+            "purpose",
+            "legal-machine-blocks",
+            "header-law",
+            "round-shape-law",
+            "coder-update-law",
+            "review-handoff-law",
+            "review-result-law",
+            "previous-review-law",
+            "derived-view-usage",
+            "recommended-template",
+            "initialization-law",
         }
     ),
 }
@@ -446,7 +545,7 @@ def parse_anchors(path: pathlib.Path) -> list[Anchor]:
 
 def required_selectors_for_path(path: pathlib.Path) -> frozenset[str]:
     normalized = path.as_posix()
-    for suffix, selectors in REQUIRED_SELECTORS_BY_SUFFIX.items():
+    for suffix, selectors in REQUIRED_SELECTOR_REGISTRY.items():
         if normalized.endswith(suffix):
             return selectors
     if normalized.endswith("total-task-doc.md"):
@@ -462,6 +561,10 @@ def validate_required_selectors(path: pathlib.Path, anchors: list[Anchor]) -> No
     missing = sorted(required - existing)
     if missing:
         raise ValueError(f"{path}: missing required selectors: {', '.join(missing)}")
+
+
+def list_required_surface_paths() -> list[str]:
+    return sorted(REQUIRED_SELECTOR_REGISTRY)
 
 
 def selector_suffixes(anchors: list[Anchor], prefix: str) -> set[str]:
@@ -1196,6 +1299,11 @@ def build_parser() -> argparse.ArgumentParser:
     derive_parser = subparsers.add_parser("derive", help="Build disposable rolling-doc projections.")
     derive_parser.add_argument("--doc", required=True)
     derive_parser.add_argument("--out", required=True)
+
+    subparsers.add_parser(
+        "list-required-surfaces",
+        help="Print the repo-root-relative required surface list enforced by anchor coverage validation.",
+    )
     return parser
 
 
@@ -1215,6 +1323,10 @@ def main() -> int:
             return print_slice(pathlib.Path(args.doc), args.anchor)
         if args.command == "derive":
             return derive(pathlib.Path(args.doc), pathlib.Path(args.out))
+        if args.command == "list-required-surfaces":
+            for path in list_required_surface_paths():
+                print(path)
+            return 0
         parser.error("unknown command")
         return 1
     except (ValueError, OSError) as exc:

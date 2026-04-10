@@ -40,7 +40,7 @@ Apply this order strictly:
    - If the current bound object still has an open same-object repair or review cycle, keep the same object.
 
 2. **Explicit runtime rebind target**
-   - If `last_transition` already records a legal runtime-only rebind target inside the same sealed execution map, and it is still valid, bind that target.
+   - If `current_snapshot` already reflects one legal runtime-only rebind target inside the same sealed execution map, and `last_transition.transition=rebind_within_execution_map`, preserve that bound object when the same sealed execution map still proves it legal.
 
 3. **Nearest sufficient parent object**
    - If the current object is no longer the correct execution focus, but the sealed execution map proves that a parent object now owns the next acceptance or integration frontier, bind the nearest sufficient parent object.

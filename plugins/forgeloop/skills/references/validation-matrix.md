@@ -55,6 +55,7 @@
 These fixtures are intentionally small. They prove contract behavior, not business-domain traces.
 
 Coverage validation applies only to the required machine-addressed surface list defined by `anchor-addressing.md`. Optional workflow or explanatory docs may omit anchors without causing release failure.
+`anchor_slices.py` must enforce that same required-surface list symmetrically. A surface is not formally required unless validation enforces it, and validation must not enforce a narrower or different set than the declared contract.
 
 <!-- forgeloop:anchor release-gate -->
 ## Release Gate

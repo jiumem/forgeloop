@@ -49,6 +49,7 @@ Hard boundaries:
 - If exactly one legal current runtime object cannot be recovered, stop and hand control back upstream.
 
 2. Recover current object-local formal state
+- Read `runtime-cutover.md` first and bind `current_runtime_cutover_mode`.
 - Read the bound object-local rolling doc through the runtime cutover law and shared packet law.
 - Recover the latest current-round `coder_update`, the current round's `review_handoff`, and the same-round `review_result` when present.
 - If a round exposes duplicate `review_handoff` or duplicate `review_result`, stop and surface the illegal state explicitly.

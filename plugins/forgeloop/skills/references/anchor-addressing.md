@@ -124,8 +124,9 @@ Every failure must become either full-document fallback or explicit stop. Silent
 ## Validation Hooks
 
 - `python3 plugins/forgeloop/scripts/anchor_slices.py check ...` validates anchor syntax, duplicate detection, and empty-slice detection
+- `python3 plugins/forgeloop/scripts/anchor_slices.py list-required-surfaces` prints the required machine-addressed surface registry enforced by coverage validation
 - `python3 plugins/forgeloop/scripts/anchor_slices.py slice --doc <path> --anchor <selector>` materializes one addressed slice
 - `python3 plugins/forgeloop/scripts/anchor_slices.py derive --doc <rolling-doc> --out <dir>` rebuilds disposable rolling-doc views from formal rolling docs
-- release validation must also verify that required formal surfaces expose the mandated selector set
+- release validation must enforce the same required-surface registry declared here; the validator must not enforce a narrower or different surface set than the declared contract
 
 These commands are tooling conveniences, not new truth sources.

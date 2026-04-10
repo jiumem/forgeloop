@@ -36,9 +36,7 @@ Runtime-only rebinding is legal.
 
 If the current execution problem is still fully contained inside the sealed execution map, the `Supervisor` may rebind from the current runtime object to the nearest sufficient runtime object and continue through the same `code-loop`.
 
-This is not a return to planning.
-This is not a wrapper-layer loop handoff.
-This is only a dispatcher-level current-object rebind inside one sealed execution map.
+This is neither a return to planning nor a wrapper-layer loop handoff; it is only a dispatcher-level current-object rebind inside one sealed execution map.
 
 Return to planning only when the sealed execution map itself is missing, contradictory, or insufficient.
 
@@ -199,7 +197,7 @@ After binding the formal runtime truth, resolve exactly one outcome for this act
 4. if the sealed execution map proves a different current object uniquely, rewrite `current_snapshot`, record `last_transition.transition=rebind_within_execution_map`, set `next_action.action=enter_code_loop`, then enter skill: `code-loop`
 5. stop and ask the user only when the formal facts are legal but the next step still cannot be determined uniquely
 
-Do not create a second interruption taxonomy here. If the state is conflicting, rebuild it. If the state is legal but ambiguous, ask the user. If one legal next object is already proved, continue.
+Do not create a second interruption taxonomy here. Use exactly this triage: conflicting -> rebuild; legal but ambiguous -> ask the user; otherwise continue.
 Use the smallest fitting class: conflicting -> rebuild; legal but ambiguous -> ask the user; otherwise continue.
 Use `rebind_within_execution_map` only when the new active object is already proved uniquely in this activation. Otherwise record only the release fact and let the ordinary selection contract choose the next object.
 - if workspace diff or interrupted agent narration suggests progress that has not appeared as a rereadable `coder_update`, `review_handoff`, or `review_result`: do not advance the object from that hint alone; continue only from the last legal formal runtime state or call skill: `rebuild-runtime` when the active state is no longer provable uniquely
