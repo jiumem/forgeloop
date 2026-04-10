@@ -25,6 +25,9 @@ For the current stage, bind exactly one `stage_reference_ref` and one shared `ro
 Persist both refs only as repo-root-relative paths in the rolling doc contract snapshot. Materialize absolute paths only at dispatch time. Neither ref belongs in the `Planning State Doc`.
 
 Every planner and reviewer packet must carry both refs explicitly. They must not discover them from folder layout or session memory.
+For the bound stage, `stage_reference_ref` and `rolling_doc_contract_ref` are fixed inputs for the whole activation.
+every planner and stage-reviewer packet must explicitly carry the bound `stage_reference_ref` and `rolling_doc_contract_ref`.
+Later sections assume this law and do not restate it unless a true local exception exists.
 
 <!-- forgeloop:anchor stage-reviewer-binding -->
 ## Stage Reviewer Binding
@@ -68,7 +71,6 @@ Hard boundaries:
 - on first entry into a stage with no rolling doc yet, initialize the stage as `planner_slot=planner` and `round=1` before the first `planner` dispatch
 - if `last_transition` records a reopen into the current stage, preserve or recover the existing `planner_slot` and open the next stage `round` instead of resuming the previously sealed round
 - `planning_contract_snapshot` must include at least: `stage`, `artifact_ref`, `stage_reference_ref`, `rolling_doc_contract_ref`, and the relevant upstream planning artifact refs
-- every `planner` dispatch and every formalized stage-reviewer dispatch must carry the same bound `stage_reference_ref` and `rolling_doc_contract_ref` explicitly
 - stage-reviewer reuse is session-local only; reviewer identity and physical `agent_id` never become formal planning truth
 - `Gap Analysis Requirement` becomes single-source planning truth only after `Design Doc` seals; once sealed, downstream planning must route from that line instead of re-inferring requirement from chat memory or loose Initiative labels
 - if the planning inputs conflict or the current stage cannot be confirmed uniquely, stop and ask for clarification instead of improvising a new planning object
@@ -81,7 +83,6 @@ Do not restate packet completeness, selector legality, or supervisor-doc exclusi
 
 Local packet additions for planning workers:
 
-- every planner and stage-reviewer packet must explicitly carry the bound `stage_reference_ref` and `rolling_doc_contract_ref`
 - planner packets must additionally carry active stage identity, `planning_state_doc_ref`, `artifact_ref`, `rolling_doc_ref`, current `round`, and the necessary sealed upstream refs
 - reviewer packets must additionally carry the current handoff tuple
 

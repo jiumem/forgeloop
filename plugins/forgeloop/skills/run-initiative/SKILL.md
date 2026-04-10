@@ -70,6 +70,12 @@ You are not responsible for:
 - writing any review rolling doc body content
 - maintaining parallel state outside the `Global State Doc` plus the object-local review rolling docs
 
+`run-initiative` is the only runtime dispatcher that may bind the current runtime object.
+It selects the current object only from formal runtime truth and `runtime-object-selection.md`.
+`code-loop` executes only the already bound object.
+If object-local execution proves that control should leave the current object, `code-loop` may record only the release fact in `last_transition` and stop.
+Any change of current object becomes effective only after `run-initiative` rereads formal truth and rebinds the next object.
+
 <!-- forgeloop:anchor core-rule -->
 ## Core Rule
 

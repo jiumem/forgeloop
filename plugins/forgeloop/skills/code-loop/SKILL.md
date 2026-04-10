@@ -12,8 +12,9 @@ The bound object may be a `task`, `milestone`, or `initiative`.
 This skill does not define runtime hierarchy and does not persist `frontier`.
 
 If the current object should continue same-object repair or review, keep the same object.
-If the current object should release control back to dispatcher selection, materialize that release through `last_transition` and stop.
-The caller must then use the shared runtime object selection contract to bind the next current object before re-entering `code-loop`.
+If object-local execution proves that the current object should no longer remain active, record only the release fact in `last_transition` and stop.
+Do not prebind, persist, or imply the next object here.
+The caller must reread formal runtime truth and use `runtime-object-selection.md` before any object change becomes effective.
 
 <!-- forgeloop:anchor canonical-runtime-contract-refs -->
 ## Canonical Runtime Contract Refs
@@ -60,7 +61,9 @@ Hard boundaries:
 - If the rolling doc does not exist, initialize only the legal header and contract snapshot for the bound object kind, then write `coder_slot=coder` and `round=1` through the canonical `Global State Doc` rules before dispatching the first coder round.
 - Do not append fake `coder_update`, `review_handoff`, or `review_result` blocks during cold start.
 
-3. Determine the current object-local frontier
+3. Determine the current object-local review state
+- Here `frontier` or object-local review state means only the current object's in-round repair / handoff / review position.
+- It is never a persisted runtime object, never a `current_snapshot` value, and never a substitute for dispatcher-side object selection.
 - If the current round already exposes one matching current `review_result`, do not redispatch `coder`; handle that review result directly.
 - If the current round exposes one legal `review_handoff`, dispatch the current reviewer directly.
 - Otherwise dispatch `coder` for the current round.

@@ -49,7 +49,8 @@ You are not responsible for:
 - writing any planning review body content
 - deciding runtime admission or entering execution
 
-`run-planning` is the planning-side top entry. It binds the current Initiative, materializes the minimum planning control plane, dispatches `planning-loop`, and rereads formal truth between stages. Any cross-stage continuation must happen only after rereading the `Planning State Doc` and explicitly rebinding from refreshed formal truth.
+`run-planning` binds the current Initiative, materializes the minimum planning control plane, dispatches exactly one active planning stage through `planning-loop`, and rereads formal planning truth before any legal cross-stage continuation.
+Cross-stage advancement is never implicit.
 
 <!-- forgeloop:anchor dispatch-rules -->
 ## Dispatch Rules

@@ -63,6 +63,11 @@ Law:
 - `last_transition` owns recovery, resume, and runtime-only object routing facts
 - no runtime file may invent a parallel dispatcher vocabulary
 
+`initiative_completed` is the routing fact that no runnable object remains and Initiative acceptance is satisfied.
+`initiative_delivered` is the terminal stop action written after that fact is materialized.
+Do not use `initiative_delivered` as a transition name.
+Do not use `initiative_completed` as a persisted stop action.
+
 <!-- forgeloop:anchor supervisor-materialization-law -->
 ## Supervisor Materialization Law
 
