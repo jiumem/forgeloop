@@ -6,7 +6,7 @@
 - Applies to: `Supervisor`, runtime `coder`, runtime reviewers, and any worker packet that must recover current-object truth without creating a second source
 - Primary purpose: define the legal order for locating current-object truth before coding, review, routing, or recovery
 
-This document defines read-order law. It is not itself a required selector-addressed packet payload unless a stricter local contract explicitly binds one of its sections.
+This document starts only after packet legality and runtime cutover mode are already bound. It defines read-order escalation only. It does not redefine selector legality, packet completeness, or fallback authorization.
 
 ## Truth Location Precedence
 

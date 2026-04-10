@@ -24,8 +24,7 @@ For the current stage, bind exactly one `stage_reference_ref` and one shared `ro
 
 Persist both refs only as repo-root-relative paths in the rolling doc contract snapshot. Materialize absolute paths only at dispatch time. Neither ref belongs in the `Planning State Doc`.
 
-Every planner and reviewer packet must carry both refs explicitly. They must not discover them from folder layout or session memory.
-For the bound stage, `stage_reference_ref` and `rolling_doc_contract_ref` are fixed inputs for the whole activation.
+Every planner or stage-reviewer packet in this activation must carry both bound refs explicitly. They are fixed for the whole activation and must not be rediscovered from folder layout, session memory, or implicit stage inference.
 every planner and stage-reviewer packet must explicitly carry the bound `stage_reference_ref` and `rolling_doc_contract_ref`.
 Later sections assume this law and do not restate it unless a true local exception exists.
 
@@ -108,7 +107,7 @@ Local packet additions for planning workers:
 - open a new round only when entering a stage for the first time, re-entering the same stage after review-requested changes, or reopening an earlier sealed stage; determine reopen from the durable transition already recorded in the `Planning State Doc`, not from chat memory
 - Do not write planner body text into the `Planning State Doc`
 
-3. Determine the current in-stage frontier
+3. Determine the current in-stage round state
 - If the latest `planner_update` in the current round uses `next_action=request_reviewer_handoff`, and the current round exposes one valid current handoff with no matching current review result, keep the same `planner_slot` and `round`, then dispatch the current stage reviewer directly.
 - If the current round already exposes one matching current review result, do not redispatch `planner`; continue directly to Step 7.
 - Otherwise dispatch `planner` for the current round.

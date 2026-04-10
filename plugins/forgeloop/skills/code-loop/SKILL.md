@@ -61,8 +61,8 @@ Hard boundaries:
 - If the rolling doc does not exist, initialize only the legal header and contract snapshot for the bound object kind, then write `coder_slot=coder` and `round=1` through the canonical `Global State Doc` rules before dispatching the first coder round.
 - Do not append fake `coder_update`, `review_handoff`, or `review_result` blocks during cold start.
 
-3. Determine the current object-local review state
-- Here `frontier` or object-local review state means only the current object's in-round repair / handoff / review position.
+3. Determine the current object-local round state
+- object-local round state means only the current object's in-round repair, review handoff, or review-result position.
 - It is never a persisted runtime object, never a `current_snapshot` value, and never a substitute for dispatcher-side object selection.
 - If the current round already exposes one matching current `review_result`, do not redispatch `coder`; handle that review result directly.
 - If the current round exposes one legal `review_handoff`, dispatch the current reviewer directly.

@@ -146,15 +146,15 @@ First bind the formal source refs for the current Initiative.
 8. Bind `runtime_cutover_ref=plugins/forgeloop/skills/run-initiative/references/runtime-cutover.md` and `runtime_object_selection_ref=plugins/forgeloop/skills/run-initiative/references/runtime-object-selection.md` separately as framework contract refs before any runtime routing or packet assembly.
 9. If `design_ref` or `total_task_doc_ref` is missing, if `gap_analysis_ref` is required but missing, or if `total_task_doc_ref` cannot identify the Initiative reference entry clearly, stop, do not write `Global State Doc`, and ask the user to provide or confirm the missing information.
 
-### Step 2: Run Planning Admission When The Basis Is New Or Invalidated
+### Step 2: Run Planning Admission Only When The Admission Basis Changes
 
-After binding the planning refs, prove only runtime-admission legality for the current activation's planning basis. Do not treat this admission check as the default hot-path loop on every runtime return.
+After binding the planning refs, run this check only on cold start, after any bound planning ref changes, after `rebuild-runtime`, or when sealed planning truth conflicts with persisted runtime truth. Do not rerun it as the default hot-path loop on every runtime return.
 
-1. Read `total_task_doc_ref` first.
-2. Read `design_ref` before any runtime routing. Read `gap_analysis_ref` when the current `Design Doc` marks `Gap Analysis Requirement: required`, or when the upstream planning refs disagree and the conflict must be resolved.
-3. Read `runtime_cutover_ref` and bind `current_runtime_cutover_mode` before deciding whether runtime defaults to full-document reads or the minimal read order.
-4. When the current call site is not in cold start or rebuild recovery, follow the shared packet law and the bound runtime cutover contract for selector-first reads versus fallback.
-5. Inside this skill, perform a thin planning admission check. At minimum confirm all of the following:
+1. Read `runtime_cutover_ref` first and bind `current_runtime_cutover_mode`.
+2. Read `total_task_doc_ref` next.
+3. Read `design_ref` before any runtime routing. Read `gap_analysis_ref` only when the current `Design Doc` marks `Gap Analysis Requirement: required`, or when the upstream planning refs disagree and the conflict must be resolved.
+4. Outside cold start or rebuild recovery, obey the bound runtime cutover contract plus the shared packet law for minimal reads versus fallback.
+5. Inside this skill, keep planning admission thin. At minimum confirm all of the following:
    - `total_task_doc_ref` explicitly says `状态：sealed` and is not obviously unfinished
    - `design_ref` explicitly says `状态：sealed` and explicitly states `Gap Analysis Requirement: required | not_required`
    - if `Gap Analysis Requirement: required`, `gap_analysis_ref` exists, explicitly says `状态：sealed`, and the `Total Task Doc` points to it explicitly; otherwise the `Total Task Doc` marks gap refs `N/A`
@@ -167,6 +167,8 @@ After binding the planning refs, prove only runtime-admission legality for the c
 ### Step 3: Bind The Active Initiative Workspace
 
 Do this whenever runtime routing or loop execution needs workspace-local runtime docs.
+
+This is the first step that may materialize workspace-local absolute paths from the durable repo-root-relative refs bound in Step 1. No earlier step may convert those refs into workspace-specific paths.
 
 1. If planning admission has already failed, or if the current stop point is already clear without reading workspace-local runtime docs, skip this step.
 2. If runtime routing depends on `global_state_doc_ref` or any rolling doc and the current workspace is not already confirmed as the active Initiative workspace, call skill: `using-git-worktrees` first in `bind_only` mode.
@@ -199,6 +201,7 @@ After binding the formal runtime truth, resolve exactly one outcome for this act
 
 Do not create a second interruption taxonomy here. If the state is conflicting, rebuild it. If the state is legal but ambiguous, ask the user. If one legal next object is already proved, continue.
 Use the smallest fitting class: conflicting -> rebuild; legal but ambiguous -> ask the user; otherwise continue.
+Use `rebind_within_execution_map` only when the new active object is already proved uniquely in this activation. Otherwise record only the release fact and let the ordinary selection contract choose the next object.
 - if workspace diff or interrupted agent narration suggests progress that has not appeared as a rereadable `coder_update`, `review_handoff`, or `review_result`: do not advance the object from that hint alone; continue only from the last legal formal runtime state or call skill: `rebuild-runtime` when the active state is no longer provable uniquely
 
 ### Step 6: Prepare Execution And Execute The Next Step

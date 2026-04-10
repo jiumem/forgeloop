@@ -55,7 +55,7 @@ Cross-stage advancement is never implicit.
 <!-- forgeloop:anchor dispatch-rules -->
 ## Dispatch Rules
 
-Once the next planning step is clear, dispatch exactly one downstream skill or stop and ask the user.
+Once the next step is clear, either dispatch exactly one downstream skill or stop and ask the user. If `planning-loop` returns a cross-stage route, reread formal planning truth first, explicitly bind the routed stage, and only then continue in the same activation.
 Sequential redispatch after `planning-loop` returns is allowed only after rereading formal planning truth.
 
 `run-planning` owns only Initiative binding, planning-state recovery, route selection, and `Planning State Doc` materialization. The canonical planning routing vocabulary and field legality live in `references/planning-state.md`; do not restate or extend them here.
@@ -136,8 +136,7 @@ Call skill: `planning-loop` only after the active planning stage is explicit.
 After `planning-loop` returns, reread the `Planning State Doc`.
 
 1. If the returned state is `waiting`, `blocked`, or `sealed_planning_docs_ready`, stop.
-2. If the returned state records a cross-stage route, reread the `Planning State Doc` and the minimum formal planning truth needed for that route, explicitly bind the target stage from `last_transition`, then go back to Step 2 in the same activation.
-Continue only in the same activation after state refresh.
+2. If the returned state records a cross-stage route, reread the `Planning State Doc` and the minimum formal planning truth needed for that route, explicitly bind the target stage from `last_transition`, then go back to Step 2 in the same activation after state refresh.
 3. If the returned state no longer exposes one legal stop point or one recoverable active stage, stop and surface the illegal planning state explicitly.
 
 ### Step 6: Loop Back

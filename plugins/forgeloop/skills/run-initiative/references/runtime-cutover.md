@@ -20,6 +20,7 @@ planning_cutover_scope: out_of_scope
 - Runtime object selection, runtime-only rebinding, and next-object hierarchy are out of scope here.
 - Those rules belong only to `runtime-object-selection.md`.
 - Do not encode closure-first wrapper law or persisted `frontier` behavior in this file.
+- This contract chooses the runtime default read path and the classes of legal fallback. It does not redefine selector legality or the search/read escalation order after a mode has been chosen. Those belong to `anchor-addressing.md` and `truth-location.md`.
 
 <!-- forgeloop:anchor supported-modes -->
 ## Supported Modes

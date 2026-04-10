@@ -80,10 +80,6 @@ When `code-loop` binds one runtime object kind, it must consume:
 
 `enter_review` remains supervisor-only transient state materialization for handoff entry and is not a legal reviewer output.
 
-`advance_frontier` means only this:
-
-- the current object may release control back to the runtime `Supervisor`
-- the `Supervisor` must then use the shared selection contract to choose the next runtime object
-- `advance_frontier` never authorizes persisting `frontier` as a runtime plane or object
+`advance_frontier` is a reviewer release signal only. It means the current object may release control back to the runtime `Supervisor`, and the `Supervisor` must then use the shared selection contract to choose the next runtime object. It does not authorize persisted `frontier` state, direct next-object binding inside this file, or planning re-entry.
 
 Do not create a second object-selection law here.
