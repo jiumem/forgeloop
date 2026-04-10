@@ -24,7 +24,7 @@ For the current stage, bind exactly one `stage_reference_ref` and one shared `ro
 
 Persist both refs only as repo-root-relative paths in the rolling doc contract snapshot. Materialize absolute paths only at dispatch time. Neither ref belongs in the `Planning State Doc`.
 
-Every planner or stage-reviewer packet in this activation must carry both bound refs explicitly. every planner and stage-reviewer packet must explicitly carry the bound `stage_reference_ref` and `rolling_doc_contract_ref`. They are fixed for the whole activation and must not be rediscovered from folder layout, session memory, or implicit stage inference. Later sections assume this law and do not restate it unless a true local exception exists.
+Every planner or stage-reviewer packet in this activation must explicitly carry the bound `stage_reference_ref` and `rolling_doc_contract_ref`. They are fixed for the whole activation and must not be rediscovered from folder layout, session memory, or implicit stage inference. Later sections assume this law and do not restate it unless a true local exception exists.
 
 <!-- forgeloop:anchor stage-reviewer-binding -->
 ## Stage Reviewer Binding
