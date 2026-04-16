@@ -2,97 +2,140 @@
 
 # Forgeloop
 
-Forgeloop is a Codex-only workflow layer built from composable skills. It turns Codex into a stricter engineering process: design first, plan second, implement in small verified steps, and review before moving on.
+Forgeloop is a Codex-native engineering workflow for teams that want planning, execution, review, and recovery to run from explicit formal state instead of chat memory.
 
-`1.0.0` ships as a repo-local Codex plugin package. It is not a Python package.
+`1.0.0` ships as a repo-local Codex plugin package under [`plugins/forgeloop/`](plugins/forgeloop/). It is not a Python package and it is not a generic prompt collection.
 
-## Origin
+## What 1.0 Is
 
-Forgeloop is built from a customized adaptation of [obra/superpowers](https://github.com/obra/superpowers). This repository keeps the core workflow idea, then narrows and rewires it for a Codex-only setup and this project's own engineering constraints.
+Forgeloop 1.0 is a small formal workflow kernel built around:
 
-## Workflow
+- one planning control spine: `Planning State Doc`
+- one runtime control spine: `Global State Doc`
+- one planning dispatcher: `run-planning`
+- one runtime dispatcher: `run-initiative`
+- one single-stage planning loop: `planning-loop`
+- one single-object runtime loop: `code-loop`
 
-1. `run-planning` is the planning entry: it binds the active Initiative's planning inputs plus minimum planning control plane, then routes into the confirmed planning stage.
-2. `planning-loop` is the internal single-stage planning closure skill used by `run-planning`.
-3. `run-initiative` is the runtime entry: it binds the active Initiative, runs planning admission, calls `using-git-worktrees` when needed, and resumes the correct closure loop.
-4. `code-loop` is the unified runtime object executor; it runs in `task`, `milestone`, or `initiative` mode.
-5. Historical wrapper names such as `task-loop`, `milestone-loop`, and `initiative-loop` are compatibility vocabulary only. The packaged runtime surface binds `task`, `milestone`, and `initiative` directly into `code-loop`.
-6. `rebuild-runtime` recovers the runtime control plane when state is missing, conflicting, or cannot be resumed directly.
+The workflow is strict by design:
 
-These skills are meant to be mandatory workflow constraints, not optional suggestions.
+- planning must seal before runtime may start
+- cross-stage planning continuation requires reread plus explicit rebind
+- runtime executes one bound object at a time
+- object release does not automatically bind the next object
+- recovery must come from formal docs, not from prior thread memory
 
-For repo-local Initiatives, the only legal planning and runtime control-plane root is an Initiative-local sibling `.forgeloop/` directory next to the Initiative documents.
+## Core Model
 
-The suite's custom agent manifests live in [`plugins/forgeloop/agents/`](plugins/forgeloop/agents). They cover the planning roles `planner`, `design_reviewer`, `gap_reviewer`, and `total_task_doc_reviewer`, plus the runtime workflow roles `coder`, `task_reviewer`, `milestone_reviewer`, and `initiative_reviewer`. In the current law, Design / Gap / Total Task planning stages each keep one reusable `planner` plus one reusable `reviewer` inside the current session, while formal truth keeps only `planner_slot`; Task / Milestone / Initiative runtime loops each keep one reusable `coder` plus one reusable `reviewer`, while formal truth keeps only `coder_slot`. Only one plane's reusable worker table may stay live at a time, so planning bindings must be closed before runtime bindings stay active, and vice versa. Those manifests are materialized into Codex global agent storage by default, or into a target project's `.codex/agents/` when you pass `--project-dir`.
+### Planning Plane
 
-## Installation
+- `run-planning` is the top entry.
+- `planning-loop` closes exactly one bound stage: `design`, optional `gap_analysis`, or `total_task_doc`.
+- `Planning State Doc` is the only planning-wide control spine.
+- planning rolling docs carry round, handoff, review, seal, and reopen history, but not dispatcher truth.
 
-Forgeloop installation has two separate steps:
+### Runtime Plane
 
-1. Install the plugin in Codex.
-2. Materialize the custom agents with the script below.
+- `run-initiative` is the only runtime dispatcher that may bind the current runtime object.
+- `code-loop` executes only the already bound object.
+- legal runtime object kinds are only `task`, `milestone`, and `initiative`.
+- `Global State Doc` is the only runtime-wide control spine.
+- runtime review rolling docs carry object-local coder/reviewer truth, not dispatcher truth.
 
-### 1. Install the plugin in Codex
+### Object Selection
 
-This first step is interactive. Use either:
+Runtime does not persist a `frontier` plane. When the current object releases control, the release is written as runtime history, then `run-initiative` rereads formal truth and uses the shared runtime selector to bind the next object.
 
-- the Codex desktop app Plugins directory, or
-- the Codex CLI plugin picker via `/plugins`
+That selector lives in [`plugins/forgeloop/skills/run-initiative/references/runtime-object-selection.md`](plugins/forgeloop/skills/run-initiative/references/runtime-object-selection.md).
 
-Use this flow:
+## Shipped Surface
 
-1. Restart Codex after pulling the latest repository state.
-2. Open the Plugins directory in Codex.
-3. Choose the repo marketplace `Forgeloop Local`.
-4. Install the `Forgeloop` plugin.
+### Skills
 
-### 2. Materialize the custom agents
+- `run-planning`: top-level planning dispatcher
+- `planning-loop`: single-stage planning closure
+- `run-initiative`: top-level runtime dispatcher
+- `code-loop`: unified runtime object executor
+- `rebuild-runtime`: runtime control-plane recovery
+- `using-git-worktrees`: workspace binding and execution readiness
 
-After the plugin is installed, run:
+### Agents
+
+Forgeloop ships a narrow custom role layer under [`plugins/forgeloop/agents/`](plugins/forgeloop/agents/):
+
+- planning: `planner`, `design_reviewer`, `gap_reviewer`, `total_task_doc_reviewer`
+- runtime: `coder`, `task_reviewer`, `milestone_reviewer`, `initiative_reviewer`
+
+Skills own dispatch policy and packet construction. Agent manifests own role behavior. Formal truth keeps only durable slot and state fields; session-local reusable worker bindings never become control-plane truth.
+
+## Repository Layout
+
+- [`plugins/forgeloop/skills/`](plugins/forgeloop/skills/) is the shipped workflow surface.
+- [`plugins/forgeloop/agents/`](plugins/forgeloop/agents/) is the shipped custom role layer.
+- [`plugins/forgeloop/scripts/`](plugins/forgeloop/scripts/) contains bundle, validation, and install helpers.
+- [`docs/forgeloop/`](docs/forgeloop/) contains install, agent, testing, and release-facing support docs.
+- [`tests/codex/`](tests/codex/) contains Codex-only release gates and benchmarks.
+
+For repo-local Initiatives, the only legal control-plane root is a sibling `.forgeloop/` directory next to the Initiative docs.
+
+## Install
+
+Forgeloop installation has two steps:
+
+1. install the plugin in Codex
+2. materialize the custom agents
+
+Install flow:
+
+1. Pull the latest repository state.
+2. Restart Codex so it reloads the repo marketplace.
+3. Open the Codex Plugins directory or CLI plugin picker.
+4. Choose the repo marketplace `Forgeloop Local`.
+5. Install the `Forgeloop` plugin.
+6. Materialize the shipped agents:
 
 ```bash
 bash plugins/forgeloop/scripts/materialize-agents.sh
 ```
 
-That installs the Forgeloop custom agents into Codex global agent storage.
-
-If you need a project-local override instead, run:
+For a project-local override:
 
 ```bash
 bash plugins/forgeloop/scripts/materialize-agents.sh --project-dir /path/to/project
 ```
 
-The script does not install the plugin itself. Plugin installation is still an interactive Codex step.
+More detail lives in [docs/forgeloop/install.md](docs/forgeloop/install.md) and [docs/forgeloop/agents.md](docs/forgeloop/agents.md).
 
-Detailed setup notes live in [docs/forgeloop/install.md](docs/forgeloop/install.md).
-The shipped custom agent set is documented in [docs/forgeloop/agents.md](docs/forgeloop/agents.md).
+## Release Validation
 
-## Included Skills
+The 1.0 release surface is guarded by Codex-only checks under [`tests/codex/`](tests/codex/). The minimum release gate is documented in [docs/forgeloop/testing.md](docs/forgeloop/testing.md) and currently includes:
 
-**Core Loop Skills**
-- `run-planning`
-- `planning-loop` (internal planning stage skill)
-- `run-initiative`
-- `code-loop`
-- `using-git-worktrees`
-- `rebuild-runtime`
+- `bash tests/codex/p0-validation.sh`
+- `bash tests/codex/plugin-smoke.sh`
+- `bash tests/codex/verify-codex-only.sh`
 
-## Verification
+Formal loop bundles are exported with:
 
-Codex-specific validation steps are documented in [docs/forgeloop/testing.md](docs/forgeloop/testing.md).
+```bash
+python3 plugins/forgeloop/scripts/export_formal_loops_bundle.py
+```
 
-## Release Notes
+## Who This Is For
+
+Forgeloop fits teams that want:
+
+- explicit planning before execution
+- durable control state instead of “just continue from chat”
+- runtime recovery from formal docs
+- object-local review and acceptance gates
+- a Codex-native workflow with narrow agent roles
+
+It is not aimed at lightweight prompt-only usage or ad hoc one-shot coding sessions.
+
+## Versioning
 
 Release history lives in [CHANGELOG.md](CHANGELOG.md).
 
-## Philosophy
-
-- Test first.
-- Prefer explicit plans over improvisation.
-- Use isolated agents when tasks are independent.
-- Review early so problems do not compound.
-- Verify behavior instead of trusting claims.
-
 ## License
 
-MIT License. See [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).

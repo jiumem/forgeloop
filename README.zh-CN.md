@@ -2,97 +2,139 @@
 
 # Forgeloop
 
-Forgeloop 是一个仅面向 Codex 的 workflow layer，由一组可组合 skills 构成。它把 Codex 约束成一套更严格的工程流程：先设计，再规划，再按小步验证实现，并在继续之前完成审查。
+Forgeloop 是一套面向 Codex 的正式工程工作流。它的目标不是“给模型多几段提示词”，而是把规划、执行、审查、恢复都压到显式 formal state 上，而不是依赖对话上下文记忆。
 
-`1.0.0` 现在以 repo-local Codex 插件包的方式发布，但仍然不是 Python 包。
+`1.0.0` 以 repo-local Codex 插件包的形式发布，根目录位于 [`plugins/forgeloop/`](plugins/forgeloop/)。它不是 Python 包，也不是一组松散 prompt。
 
-## 来源
+## 1.0 的核心形态
 
-Forgeloop 基于 [obra/superpowers](https://github.com/obra/superpowers) 的源码进行定制适配。这个仓库保留了其核心 workflow 思路，但把整体能力收束并重接成了更适合 Codex-only 场景和本项目工程约束的版本。
+Forgeloop 1.0 收敛成一个很小但闭合的 workflow kernel：
 
-## 工作流
+- 一个 planning control spine：`Planning State Doc`
+- 一个 runtime control spine：`Global State Doc`
+- 一个 planning dispatcher：`run-planning`
+- 一个 runtime dispatcher：`run-initiative`
+- 一个单阶段 planning loop：`planning-loop`
+- 一个单对象 runtime loop：`code-loop`
 
-1. `run-planning` 是规划总入口：它绑定当前 Initiative 的 planning 输入与最小控制面，然后路由到已确认的规划阶段。
-2. `planning-loop` 是 `run-planning` 内部使用的单阶段规划收口 skill。
-3. `run-initiative` 是 runtime 总入口：它绑定当前 Initiative，执行 planning admission，并在需要时调用 `using-git-worktrees` 后恢复到正确的收口 loop。
-4. `code-loop` 是统一 runtime object executor，通过 `task`、`milestone`、`initiative` 三种 mode 运行。
-5. `task-loop`、`milestone-loop`、`initiative-loop` 只是历史兼容称呼；当前打包发布的 runtime 表面是 `code-loop`，它直接绑定 `task`、`milestone`、`initiative` 三种 mode。
-6. `rebuild-runtime` 在运行态控制面缺失、冲突或无法直接恢复时负责重建最小控制面。
+这套模型有几条硬约束：
 
-这些 skills 不是可选建议，而是预期中的强约束工作流。
+- planning 未 sealed 前，runtime 不能合法启动
+- planning 跨 stage 继续时，必须先 reread formal truth，再 explicit rebind
+- runtime 任一时刻只执行一个已绑定 object
+- 当前 object 释放控制，不等于自动绑定下一个 object
+- 恢复必须来自 formal docs，而不是旧线程记忆
 
-对于 repo-local Initiative，planning 与 runtime 两套控制面文档唯一合法的根目录，就是专项文档旁边的 sibling `.forgeloop/`。
+## 控制模型
 
-套件自带的 custom agent manifest 位于 [`plugins/forgeloop/agents/`](plugins/forgeloop/agents)。当前覆盖规划角色 `planner`、`design_reviewer`、`gap_reviewer`、`total_task_doc_reviewer`，以及 runtime workflow 主角色 `coder`、`task_reviewer`、`milestone_reviewer`、`initiative_reviewer`。当前法律下，Design / Gap / Total Task 三个 planning stage 各自复用一对 `planner` / `reviewer`，但 formal truth 里仍只保留 `planner_slot`；Task / Milestone / Initiative 三层 runtime loop 各自复用一对 `coder` / `reviewer`，但 formal truth 里仍只保留 `coder_slot`。任一时刻只能保留一个 plane 的 reusable worker table，因此进入 runtime 前必须先回收 planning bindings，反过来也一样。这些 manifest 默认会落到 Codex 全局 agent 目录，只有显式传入 `--project-dir` 时才会落到目标项目的 `.codex/agents/`。
+### Planning Plane
+
+- `run-planning` 是 planning 总入口。
+- `planning-loop` 只闭合一个已绑定 stage：`design`、可选 `gap_analysis`、或 `total_task_doc`。
+- `Planning State Doc` 是唯一 planning-wide control spine。
+- planning rolling doc 只承载 round、handoff、review、seal、reopen 历史，不承载 dispatcher 真值。
+
+### Runtime Plane
+
+- `run-initiative` 是唯一可以绑定当前 runtime object 的 dispatcher。
+- `code-loop` 只执行已经绑定好的当前 object。
+- runtime 里合法的 object kind 只有 `task`、`milestone`、`initiative`。
+- `Global State Doc` 是唯一 runtime-wide control spine。
+- runtime rolling doc 只承载 object-local coder / reviewer truth，不承载 dispatcher 真值。
+
+### Object Selection
+
+runtime 不再持久化 `frontier` plane。当前 object 释放控制后，只会把 release fact 写入 formal runtime history；之后由 `run-initiative` 重读 formal truth，并通过共享 selector 绑定下一个 object。
+
+这个 selector 合同位于 [`plugins/forgeloop/skills/run-initiative/references/runtime-object-selection.md`](plugins/forgeloop/skills/run-initiative/references/runtime-object-selection.md)。
+
+## 打包发布面
+
+### Skills
+
+- `run-planning`：planning 顶层 dispatcher
+- `planning-loop`：单 stage planning closure
+- `run-initiative`：runtime 顶层 dispatcher
+- `code-loop`：统一 runtime object executor
+- `rebuild-runtime`：runtime control-plane recovery
+- `using-git-worktrees`：workspace 绑定与 execution readiness
+
+### Agents
+
+Forgeloop 在 [`plugins/forgeloop/agents/`](plugins/forgeloop/agents/) 下打包了一组窄角色 custom agents：
+
+- planning：`planner`、`design_reviewer`、`gap_reviewer`、`total_task_doc_reviewer`
+- runtime：`coder`、`task_reviewer`、`milestone_reviewer`、`initiative_reviewer`
+
+skill 决定 dispatch policy 与 packet construction；agent manifest 决定该角色如何思考与返回。formal truth 只保留 durable slot/state 字段，session-local reusable worker binding 不进入 control plane。
+
+## 仓库结构
+
+- [`plugins/forgeloop/skills/`](plugins/forgeloop/skills/)：正式发布的 workflow surface
+- [`plugins/forgeloop/agents/`](plugins/forgeloop/agents/)：正式发布的 custom role layer
+- [`plugins/forgeloop/scripts/`](plugins/forgeloop/scripts/)：bundle、validation、install 辅助脚本
+- [`docs/forgeloop/`](docs/forgeloop/)：安装、agents、测试与 release-facing 文档
+- [`tests/codex/`](tests/codex/)：Codex-only release gate 与 benchmark
+
+对于 repo-local Initiative，唯一合法的 control-plane root，是 Initiative 文档旁边的 sibling `.forgeloop/`。
 
 ## 安装
 
-Forgeloop 的安装分两步，不是一条脚本全装完：
+Forgeloop 的安装分两步：
 
-1. 先在 Codex 里安装插件。
-2. 再用脚本落 custom agents。
-
-### 1. 在 Codex 里安装插件
-
-第一步是交互式操作，可以通过：
-
-- Codex 桌面端的 Plugins 目录，或
-- Codex CLI 里的 `/plugins`
+1. 在 Codex 中安装插件
+2. materialize custom agents
 
 推荐流程：
 
-1. 拉取最新仓库内容后重启 Codex。
-2. 打开 Codex 的 Plugins 目录。
-3. 选择 repo marketplace `Forgeloop Local`。
-4. 安装 `Forgeloop` 插件。
-
-### 2. 落 custom agents
-
-插件装好后，再执行：
+1. 拉取最新仓库状态。
+2. 重启 Codex，使其重新加载 repo marketplace。
+3. 打开 Codex Plugins 目录或 CLI plugin picker。
+4. 选择 repo marketplace `Forgeloop Local`。
+5. 安装 `Forgeloop` 插件。
+6. 落地打包 agents：
 
 ```bash
 bash plugins/forgeloop/scripts/materialize-agents.sh
 ```
 
-这会把 Forgeloop custom agents 落到 Codex 全局 agent 目录里。
-
-如果你需要项目级覆盖，再执行：
+如果需要项目级覆盖：
 
 ```bash
 bash plugins/forgeloop/scripts/materialize-agents.sh --project-dir /path/to/project
 ```
 
-这个脚本不会替你安装插件本体；插件安装仍然是 Codex 内的交互步骤。
+安装细节见 [docs/forgeloop/install.md](docs/forgeloop/install.md)，agent 说明见 [docs/forgeloop/agents.md](docs/forgeloop/agents.md)。
 
-更详细的安装说明见 [docs/forgeloop/install.md](docs/forgeloop/install.md)。
-custom agent 清单见 [docs/forgeloop/agents.md](docs/forgeloop/agents.md)。
+## Release Validation
 
-## 内置 Skills
+1.0 的发布面由 [`tests/codex/`](tests/codex/) 下的 Codex-only gate 保护。最小 release gate 见 [docs/forgeloop/testing.md](docs/forgeloop/testing.md)，当前至少包括：
 
-**核心循环 Skills**
-- `run-planning`
-- `planning-loop`（内部 planning stage skill）
-- `run-initiative`
-- `code-loop`
-- `using-git-worktrees`
-- `rebuild-runtime`
+- `bash tests/codex/p0-validation.sh`
+- `bash tests/codex/plugin-smoke.sh`
+- `bash tests/codex/verify-codex-only.sh`
 
-## 验证
+formal loops bundle 导出命令：
 
-Codex 相关验证步骤见 [docs/forgeloop/testing.md](docs/forgeloop/testing.md)。
+```bash
+python3 plugins/forgeloop/scripts/export_formal_loops_bundle.py
+```
 
-## 发布说明
+## 适用场景
 
-版本变更记录见 [CHANGELOG.md](CHANGELOG.md)。
+Forgeloop 适合这类团队：
 
-## 方法论
+- 需要先规划、再执行、再正式收口
+- 希望 control state 可恢复，而不是“继续沿着聊天往下做”
+- 需要 object-local review 与 acceptance gate
+- 想要 Codex-native workflow，但不希望角色无限膨胀
 
-- 测试优先。
-- 显式计划优于临场 improvisation。
-- 任务相互独立时使用隔离 agent。
-- 尽早审查，避免问题层层累积。
-- 用证据验证行为，而不是相信口头声明。
+它不适合轻量 prompt 试验，也不适合即兴 one-shot 编码会话。
+
+## 版本记录
+
+版本历史见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 许可证
 
-MIT License。见 [LICENSE](LICENSE)。
+MIT。见 [LICENSE](LICENSE)。
