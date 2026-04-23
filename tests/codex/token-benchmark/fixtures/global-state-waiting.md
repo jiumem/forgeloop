@@ -8,6 +8,16 @@ created_at: 2026-03-31T10:30:00Z
 updated_at: 2026-03-31T10:30:00Z
 ```
 
+<!-- forgeloop:anchor workspace-binding -->
+```forgeloop
+kind: workspace_binding
+initiative_key: anchor-sliced-dispatch-optimization
+worktree_name: codex/anchor-sliced-dispatch-optimization
+branch_name: codex/anchor-sliced-dispatch-optimization/initiative
+active_worktree_path: /Users/example/.codex/worktrees/forgeloop/codex/anchor-sliced-dispatch-optimization
+updated_at: 2026-03-31T10:30:00Z
+```
+
 <!-- forgeloop:anchor current-snapshot -->
 ```forgeloop
 kind: current_snapshot

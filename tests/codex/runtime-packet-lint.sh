@@ -99,6 +99,18 @@ check_pattern \
 check_pattern \
   "plugins/forgeloop/skills/using-git-worktrees/SKILL.md" \
   'stop and surface the gap as `execution_ready`, not as a task/object blocker'
+check_pattern \
+  "plugins/forgeloop/skills/code-loop/SKILL.md" \
+  'When creating a coder or reviewer with `spawn_agent`, set `fork_context=false`.'
+check_pattern \
+  "plugins/forgeloop/skills/planning-loop/SKILL.md" \
+  'When creating a planner or stage reviewer with `spawn_agent`, set `fork_context=false`.'
+check_pattern \
+  "plugins/forgeloop/skills/run-initiative/SKILL.md" \
+  'not inherited supervisor conversation context'
+check_pattern \
+  "plugins/forgeloop/skills/run-planning/SKILL.md" \
+  'not inherited supervisor conversation context'
 
 python3 - <<'PY'
 import json

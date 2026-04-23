@@ -79,6 +79,17 @@ Hard boundaries:
 Obey the shared packet law in `../references/anchor-addressing.md`.
 Do not restate packet completeness, selector legality, or supervisor-doc exclusion here unless this file adds a true local exception.
 
+Planner and stage-reviewer agents must not inherit the planning `Supervisor` conversation context.
+The supervisor's context is routing state only; it is not an authoritative worker packet and must not be silently transferred to workers.
+
+When creating a planner or stage reviewer with `spawn_agent`, set `fork_context=false`.
+The created worker must receive only the explicit packet assembled for that role, including the bound refs, selectors, current round, active workspace, and role-specific instructions.
+
+When reusing a live worker with `send_input`, send a complete explicit continuation packet for the current decision point.
+Do not rely on the worker remembering prior hidden supervisor context, previous packet state, or informal narration.
+
+If the environment cannot create or reuse workers without inheriting supervisor context, stop and surface that as a delegation blocker instead of dispatching a contaminated worker.
+
 Local packet additions for planning workers:
 
 - planner packets must additionally carry active stage identity, `planning_state_doc_ref`, `artifact_ref`, `rolling_doc_ref`, current `round`, and the necessary sealed upstream refs

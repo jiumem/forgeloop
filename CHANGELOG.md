@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.1 - 2026-04-23
+
+- made Initiative worktree activation explicit so all repo-local reads, writes, setup, baseline checks, and worker dispatches continue from the bound `ACTIVE_WORKTREE_PATH`
+- added `workspace_binding` to the `Global State Doc` so runtime recovery can return to the same old Initiative worktree while still verifying the path against Git worktree facts
+- tightened `using-git-worktrees` recovery to prefer the persisted binding, repair it from registered Git worktrees when possible, and never create a replacement worktree while the old registered worktree is still valid
+- required planning and runtime worker delegation to isolate supervisor context by creating new subagents with `fork_context=false` and sending only explicit role packets
+- extended runtime packet lint and Global State fixtures to cover the new workspace binding and delegation isolation contracts
+
 ## 1.0.0 - 2026-04-10
 
 - closed the remaining planning/runtime contract gaps so `Planning State Doc` and `Global State Doc` now act as the only control spines with explicit dispatcher ownership and reread-plus-rebind rules

@@ -4,7 +4,7 @@
 
 Forgeloop is a Codex-native engineering workflow for teams that want planning, execution, review, and recovery to run from explicit formal state instead of chat memory.
 
-`1.0.0` ships as a repo-local Codex plugin package under [`plugins/forgeloop/`](plugins/forgeloop/). It is not a Python package and it is not a generic prompt collection.
+`1.0.1` ships as a repo-local Codex plugin package under [`plugins/forgeloop/`](plugins/forgeloop/). It is not a Python package and it is not a generic prompt collection.
 
 ## What 1.0 Is
 

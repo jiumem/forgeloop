@@ -2,7 +2,7 @@
 
 Run all checks from the repository root.
 
-For `1.0.0`, the release gate is the Codex workflow checks below. There is no Python package build, lint, or typecheck gate for this version.
+For `1.0.1`, the release gate is the Codex workflow checks below. There is no Python package build, lint, or typecheck gate for this version.
 
 ## 1. P0 validation closure
 

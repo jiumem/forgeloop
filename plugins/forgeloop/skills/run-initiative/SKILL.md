@@ -88,11 +88,12 @@ It only accepts or rejects the current `Design Doc`, optional `Gap Analysis Doc`
 
 Once the next step is confirmed, dispatch exactly one downstream skill for that decision point, or stop and ask the user. Sequential redispatch after a skill returns is allowed only after rereading formal runtime state; parallel dispatch and speculative skipped steps are forbidden.
 
-The `Global State Doc` carries only the minimum control-plane state: `current_snapshot`, `next_action`, and `last_transition`.
+The `Global State Doc` carries only the minimum control-plane state: `workspace_binding`, `current_snapshot`, `next_action`, and `last_transition`.
 Each update exists only to support the current next-step dispatch. Do not write coder / reviewer body content, do not keep process logs, do not persist session-local `agent_id` bindings, and do not create a second state model outside the formal runtime docs.
 
 ### Worker Binding Law
 
+- Any downstream worker dispatch must preserve supervisor/worker context isolation. New coder or reviewer agents must be created with `fork_context=false`; reused agents must receive complete explicit packets via `send_input`, not inherited supervisor conversation context.
 - `spawn_agent` is create-only. Use it only when the bound runtime loop layer has no usable `coder` / reviewer `agent_id`, or when the previously bound one is known closed, dead, or otherwise unrecoverable.
 - Reuse means dispatching the existing bound `agent_id` with `send_input`. Do not call `spawn_agent` again for a still-live Task / Milestone / Initiative worker just because the same loop continues into another round.
 - `task_name`, role name, object key, or kind name are not reuse handles. Only the current session's stored `agent_id` binding is a legal reuse handle.
@@ -212,7 +213,7 @@ Consume only the conclusion already resolved in Step 5.
    - Milestone -> bind the current Milestone's explicit review rolling doc ref from `3.4 Milestone Reference Assignment`
    - Initiative -> bind `initiative_review_rolling_doc_ref`
    Keep the authoritative `doc_ref + anchor_selector` bindings for the bound object available to `code-loop`.
-3. If work will continue, materialize the resolved `Global State Doc` first so that `current_snapshot`, `next_action`, and `last_transition` are already sufficient for later recovery.
+3. If work will continue, materialize the resolved `Global State Doc` first so that `workspace_binding`, `current_snapshot`, `next_action`, and `last_transition` are already sufficient for later recovery.
 4. Then dispatch exactly one downstream skill:
    - current-object continuation or runtime-only rebind -> skill: `code-loop`
    - control-plane recovery -> skill: `rebuild-runtime`

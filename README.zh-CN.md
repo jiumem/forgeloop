@@ -4,7 +4,7 @@
 
 Forgeloop 是一套面向 Codex 的正式工程工作流。它的目标不是“给模型多几段提示词”，而是把规划、执行、审查、恢复都压到显式 formal state 上，而不是依赖对话上下文记忆。
 
-`1.0.0` 以 repo-local Codex 插件包的形式发布，根目录位于 [`plugins/forgeloop/`](plugins/forgeloop/)。它不是 Python 包，也不是一组松散 prompt。
+`1.0.1` 以 repo-local Codex 插件包的形式发布，根目录位于 [`plugins/forgeloop/`](plugins/forgeloop/)。它不是 Python 包，也不是一组松散 prompt。
 
 ## 1.0 的核心形态
 

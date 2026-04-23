@@ -60,7 +60,7 @@ Sequential redispatch after `planning-loop` returns is allowed only after reread
 
 `run-planning` owns only Initiative binding, planning-state recovery, route selection, and `Planning State Doc` materialization. The canonical planning routing vocabulary and field legality live in `references/planning-state.md`; do not restate or extend them here.
 
-Session-local worker reuse remains planning-local. Reuse a live worker with `send_input`; create one with `spawn_agent` only when no usable binding exists or the old binding is known unrecoverable. Before runtime stays active, close any reusable planning bindings.
+Session-local worker reuse remains planning-local. Reuse a live worker with `send_input`; create one with `spawn_agent` only when no usable binding exists or the old binding is known unrecoverable. New planner or reviewer agents must be created with `fork_context=false`; reused agents must receive complete explicit packets via `send_input`, not inherited supervisor conversation context. Before runtime stays active, close any reusable planning bindings.
 The planning worker table must be closed first.
 Only the current session's stored `agent_id` binding is a legal reuse handle.
 

@@ -33,7 +33,7 @@ Hard boundaries:
 - do not attempt to recover any reviewer binding or session-local thread table as formal state
 - recover the current object-local `round`, never invent a new round
 - write to the `Global State Doc` only when necessary
-- the only updatable blocks are `runtime_state_header`, `current_snapshot`, `next_action`, and `last_transition`
+- the only updatable blocks are `runtime_state_header`, `workspace_binding`, `current_snapshot`, `next_action`, and `last_transition`
 - do not write any rolling doc body content
 - do not modify the static truth sources and do not create a second state model in JSON / notes / hidden memory
 
@@ -42,6 +42,7 @@ Hard boundaries:
 
 1. Bind the current Initiative and recover one legal current runtime object
 - First bind the active Initiative and prove that runtime admission is still legal.
+- If active worktree identity is missing, stale, or conflicted, call skill: `using-git-worktrees` in `bind_only` mode before rebuilding the rest of the runtime control plane.
 - If `Global State Doc` already binds one legal current object, recover that object first.
 - If the persisted control state is missing, stale, conflicting, or still exposes `frontier`, do not invent a second recovery hierarchy.
 - Use `plugins/forgeloop/skills/run-initiative/references/runtime-object-selection.md` as the only legal selector for recovering one current runtime object.
@@ -64,6 +65,7 @@ Hard boundaries:
 
 4. Rewrite the minimum control plane
 - If the `Global State Doc` does not exist, initialize `runtime_state_header` first according to the canonical contract.
+- Preserve, write, or repair `workspace_binding` from the verified active Initiative worktree binding before rewriting object-local control state.
 - Write `current_snapshot` as the uniquely recovered active object, `rolling_doc_ref`, `coder_slot`, and object-local `round`.
 - Write `next_action` as the uniquely recovered next step.
 - Write `last_transition` as a recovery transition explaining why the control plane was rebuilt, and classify the cause in `last_transition.reason` using the smallest fitting class.
@@ -90,6 +92,6 @@ Never:
 On correct completion, all of the following should be true:
 
 - the current active object, active `round`, and `coder_slot` can be recovered uniquely
-- the `Global State Doc` exists, and `current_snapshot`, `next_action`, and `last_transition` are self-consistent
+- the `Global State Doc` exists, and `workspace_binding`, `current_snapshot`, `next_action`, and `last_transition` are self-consistent
 - the upstream dispatcher can re-enter `run-initiative` and continue without hidden context
 - no second runtime truth source has been created outside the `Global State Doc` plus the object-local review rolling docs

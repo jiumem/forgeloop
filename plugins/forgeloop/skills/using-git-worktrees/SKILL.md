@@ -11,7 +11,7 @@ One Initiative uses one dedicated worktree.
 An explicit user location override wins.
 Without an explicit override, this skill decides whether to reuse the current Initiative worktree or create one new worktree.
 
-`bind_only` binds workspace and branch identity for runtime reads or recovery.
+`bind_only` binds workspace and branch identity for runtime reads or recovery, then materializes `workspace_binding` when the `Global State Doc` is writable.
 `execution_ready` first satisfies `bind_only`, then verifies repo setup and clean baseline.
 
 If the caller does not name a mode:
@@ -95,9 +95,49 @@ If the target branch is attached to another worktree, stop.
 If the target branch exists but is unattached, add the worktree on that branch.
 Otherwise create the worktree with a new branch.
 
+## Recovery Binding Law
+
+On resume, recovery, or any activation that starts outside the active Initiative worktree, read `workspace_binding` from the `Global State Doc` when it is available.
+Recover the active worktree from `workspace_binding`, durable identity, and Git facts.
+If the Initiative's target branch is already attached to a registered worktree, that existing worktree is the active Initiative worktree and work must continue there.
+
+Recovery order:
+
+- derive `WORKTREE_NAME` and `BRANCH_NAME` from the Naming Law
+- if `workspace_binding.active_worktree_path` exists, verify that path exists, is a Git worktree, and is attached to `BRANCH_NAME`
+- if `workspace_binding.active_worktree_path` is verified, bind it as `ACTIVE_WORKTREE_PATH` and continue from that old worktree
+- inspect registered worktrees with Git and find any worktree attached to `BRANCH_NAME`
+- if exactly one registered worktree is attached to `BRANCH_NAME`, verify its path exists, bind it as `ACTIVE_WORKTREE_PATH`, continue from that existing worktree, and repair `workspace_binding`
+- if no registered worktree is attached to `BRANCH_NAME` but the target branch exists unattached, create or add exactly one worktree using the Location Law
+- if no target branch exists, create exactly one worktree and branch using the Creation Law
+- if `workspace_binding` conflicts with Git facts and cannot be repaired uniquely, or Git facts cannot prove exactly one active worktree, stop and surface the conflict
+
+An explicit user location override may select the creation location when no target worktree is already attached.
+It must not create a second worktree for a branch that is already attached elsewhere.
+Never create a replacement worktree or switch back to the original caller workspace when the old registered Initiative worktree can be found and verified.
+
+## Activation Law
+
+After creating, reusing, or confirming the target Initiative worktree, bind `ACTIVE_WORKTREE_PATH` to the absolute path of that worktree.
+
+`ACTIVE_WORKTREE_PATH` is the only operational workspace for the remainder of the current activation.
+If the selected worktree is not the caller's original current workspace, the caller must switch operational context to `ACTIVE_WORKTREE_PATH` immediately.
+
+Switching operational context means all subsequent repo-local operations must use `ACTIVE_WORKTREE_PATH`, including:
+
+- runtime ref materialization
+- control-plane reads and writes
+- setup and baseline commands
+- coder and reviewer dispatch `cwd` / `cwds`
+- Git status, diff, branch, and worktree checks for this Initiative
+
+Do not continue repo-local reads, writes, setup, tests, or agent dispatch from the original workspace after an external worktree has been selected.
+Do not treat a worktree as bound until its absolute path and branch identity have both been verified.
+Once the `Global State Doc` is writable from `ACTIVE_WORKTREE_PATH`, write or repair its `workspace_binding` block with the verified `initiative_key`, `WORKTREE_NAME`, `BRANCH_NAME`, and `ACTIVE_WORKTREE_PATH`.
+
 ## Readiness Law
 
-`bind_only` stops once workspace and branch identity are correct.
+`bind_only` stops once `ACTIVE_WORKTREE_PATH` and branch identity are correct and the caller can continue from `ACTIVE_WORKTREE_PATH`.
 
 `execution_ready` additionally requires all of the following:
 
