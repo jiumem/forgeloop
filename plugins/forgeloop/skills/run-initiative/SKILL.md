@@ -71,6 +71,14 @@ CANCELLED
 
 Only `PASS` advances to the next Milestone. `CANCELLED` is skipped only when the user explicitly cancels that Milestone or the initiative. `PAUSED` does not complete an initiative.
 
+## Long-Running Autonomy Rule
+
+`run-initiative` is an autonomous, long-running coding loop. Once the user invokes this skill, continue through Coder implementation, Reviewer review, repair cycles, final validation, delivery notes, and completion archival until the whole Initiative is delivered.
+
+Do not stop after a Milestone to summarize, ask whether to continue, or request routine approval. Do not interrupt the user for choices the Scheduler can resolve with established engineering best practices, the existing PLAN, repository conventions, or conservative implementation judgment.
+
+Interrupt the user only for a major blocker that requires human decision, such as destructive data loss risk, missing credentials, conflicting product requirements, legal/security approval, an impossible PLAN, or unrelated dirty worktree changes that cannot be safely isolated. When interrupted, state the blocker and the smallest decision needed to proceed.
+
 ## Dirty Worktree Rule
 
 Before coding, inspect `git status`.
@@ -173,7 +181,8 @@ Do not reconstruct execution from chat memory.
 
 ## Quality Bar
 
-- Scheduler keeps working through Milestones until the initiative is complete, unless blocked or interrupted.
+- Scheduler keeps working through Milestones until the initiative is complete, unless a major blocker requires user decision or the user interrupts.
+- Scheduler must not pause for routine progress summaries, permission to continue, or non-blocking implementation choices.
 - Coder must read PLAN and listed reference inputs before implementation.
 - Coder should run relevant validation and record evidence.
 - For UI work, Coder and Reviewer should both perform screenshot-based confirmation when practical.
