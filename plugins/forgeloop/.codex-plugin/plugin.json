@@ -1,7 +1,7 @@
 {
   "name": "forgeloop",
-  "version": "1.0.1",
-  "description": "Structured engineering workflow for Codex.",
+  "version": "2.0.0",
+  "description": "Milestone-first engineering workflow for Codex.",
   "author": {
     "name": "Forgeloop",
     "url": "https://github.com/jiumem/forgeloop"
@@ -12,14 +12,14 @@
   "keywords": [
     "codex",
     "workflow",
-    "planning",
+    "milestone",
     "review"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Forgeloop",
-    "shortDescription": "Design-plan-implement-review workflow for Codex",
-    "longDescription": "A strict Codex workflow layer for planning, execution, runtime recovery, and staged review.",
+    "shortDescription": "Recommend, plan, and run milestone-based initiatives in Codex",
+    "longDescription": "A lightweight Codex workflow layer built around initiative recommendations, PLAN.md authoring, milestone execution, reviewer verdicts, Git evidence, and a minimal LEDGER.md recovery record.",
     "developerName": "Forgeloop",
     "category": "Productivity",
     "capabilities": [
@@ -28,9 +28,9 @@
     ],
     "websiteURL": "https://github.com/jiumem/forgeloop",
     "defaultPrompt": [
-      "Use Forgeloop to start planning for this initiative.",
-      "Use Forgeloop to resume initiative execution.",
-      "Use Forgeloop to rebuild runtime state."
+      "Use Forgeloop to recommend the next initiatives from this source baseline.",
+      "Use Forgeloop to write an executable PLAN.md for this initiative.",
+      "Use Forgeloop to run this initiative by milestone."
     ],
     "brandColor": "#0F766E"
   }
