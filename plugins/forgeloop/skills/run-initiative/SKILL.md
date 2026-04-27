@@ -11,7 +11,9 @@ Use this skill when the user asks to execute, continue, resume, or deliver an in
 
 ## Goal
 
-Run one initiative by Milestone. The Scheduler coordinates one reusable Coder and one reusable Reviewer through explicit task packets, records minimal recovery facts in `LEDGER.md`, and advances only when the Reviewer returns `PASS`.
+Run one initiative by Milestone. Codex in the current main thread is the Scheduler. Scheduler coordinates one reusable Coder subagent and one reusable Reviewer subagent through explicit task packets, records minimal recovery facts in `LEDGER.md`, and advances only when the Reviewer returns `PASS`.
+
+Invoking this skill is explicit user approval to delegate milestone implementation and review to subagents. Do not skip Coder or Reviewer subagent delegation merely to conserve user tokens. Use solo execution only when subagent tools are unavailable, fail, or the user explicitly forbids subagents.
 
 ## Read First
 
@@ -30,14 +32,17 @@ Completed initiatives are read-only by default. Prefer creating a follow-up init
 
 Use generic Codex subagents by task packet, not static custom agent manifests.
 
-- Scheduler: the main thread; coordinates, records, and packages work
+- Scheduler: Codex itself in the current main thread; not a subagent; coordinates, records, and packages work
 - Coder: usually a reusable `default` or `worker` subagent with high reasoning effort
 - Reviewer: usually a reusable `default` subagent with high reasoning effort
+
+The Scheduler must remain in the main thread. Do not spawn a Scheduler subagent.
 
 When delegating, send a self-contained packet and do not rely on parent conversation history. Request `fork_context=false` when the tool supports it.
 
 ## Subagent Reuse Rule
 
+- Treat a user request to run this skill as permission to spawn or reuse the Coder and Reviewer subagents required by the workflow.
 - At initiative start, create at most one Coder subagent and one Reviewer subagent.
 - Prefer stable task names when the tool supports them:
   - `coder_<initiative_slug_snake>`
@@ -48,7 +53,7 @@ When delegating, send a self-contained packet and do not rely on parent conversa
 - Do not spawn a fresh Reviewer for every Milestone by default.
 - Record unavailable subagent tools or replacements in `LEDGER.md` notes when they affect review provenance.
 
-If subagent tools are unavailable, continue only when the user asked to continue or the environment makes subagents impossible. Record the run as `explicit solo best-effort` in `LEDGER.md`. A solo best-effort review may produce a provisional `PASS` for packaging or archive delivery, but it must not be described as subagent review.
+If subagent tools are unavailable, fail, or are explicitly forbidden by the user, continue only when the user asked to continue or the environment makes subagents impossible. Record the run as `explicit solo best-effort` in `LEDGER.md`. A solo best-effort review may produce a provisional `PASS` for packaging or archive delivery, but it must not be described as subagent review.
 
 ## Milestone Status Values
 
@@ -120,10 +125,10 @@ Do not modify recommendation snapshots as part of execution.
 1. Confirm or create the working branch, normally `codex/<initiative-slug>`.
 2. Locate the active initiative root and read `PLAN.md` and `LEDGER.md`.
 3. Resume from the first Milestone whose status is not `PASS` and not `CANCELLED`.
-4. Send the Coder a self-contained packet using `references/coder-packet.md`.
+4. Spawn or reuse the Coder subagent, then send a self-contained packet using `references/coder-packet.md`.
 5. Coder reads required docs and source, implements the Milestone, runs validation, performs screenshots for UI work, commits, pushes when possible, and reports evidence.
 6. Scheduler updates `LEDGER.md` to `REVIEW` with commit range, validation, and evidence paths.
-7. Send the Reviewer a self-contained packet using `references/reviewer-packet.md`.
+7. Spawn or reuse the Reviewer subagent, then send a self-contained packet using `references/reviewer-packet.md`.
 8. Reviewer reads PLAN, references, Coder report, and actual diff; then reviews from product, test, and architecture perspectives.
 9. If Reviewer returns `REPAIR_REQUIRED`, send only the blocking issues back to Coder, record repair history, and repeat review.
 10. For repairs, Reviewer should inspect the repair diff and, when needed, the cumulative Milestone diff from the last accepted base to current HEAD. A fixup-only review may confirm a narrow blocker is fixed, but final `PASS` must remain compatible with the full Milestone diff.
