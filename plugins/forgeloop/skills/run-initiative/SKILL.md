@@ -1,3 +1,8 @@
+---
+name: run-initiative
+description: Use when the user asks to execute, continue, resume, repair, or deliver an Initiative from PLAN.md; coordinates Coder/Reviewer Milestone loops and advances only after Reviewer PASS.
+---
+
 # run-initiative
 
 ## Trigger

@@ -1,3 +1,8 @@
+---
+name: write-plan
+description: Use when the user selects an Initiative or gives a requirement and wants a runnable PLAN.md/LEDGER.md organized by Milestones for later run-initiative execution; do not use to code.
+---
+
 # write-plan
 
 ## Trigger

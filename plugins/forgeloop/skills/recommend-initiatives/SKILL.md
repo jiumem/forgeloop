@@ -1,3 +1,8 @@
+---
+name: recommend-initiatives
+description: Use when the user asks Codex to inspect the current repository and recommend the next 3-5 high-value development Initiatives before planning or coding; do not use for writing PLAN.md or executing work.
+---
+
 # recommend-initiatives
 
 ## Trigger
