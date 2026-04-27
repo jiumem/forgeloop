@@ -1,37 +1,95 @@
 # Forgeloop
 
-Forgeloop 是一个面向 Codex 的轻量级 Agent 编程工作流插件。它的目标不是替代工程师，也不是把项目管理工具搬进代码仓库，而是把一次软件专项从「下一步做什么」到「如何规划」再到「如何逐阶段交付」压缩成一套清晰、可复用、可审查的流程。
+Forgeloop 是一套 Codex 原生的 Agent 自动编程开发系统，用来把一个软件项目长期、稳定、高质量地向前推进。
 
-Forgeloop 2.0 的核心判断是：随着大模型的代码理解、规划和审查能力增强，工作流不应该再依赖冗长的提示词、复杂的文档 anchor、繁重的 gate 体系或多层运行态状态机。更有效的方式是保留少量硬边界：以 Initiative 作为用户入口，以 Milestone 作为交付单元，以 Git 作为证据锚点，以 Reviewer 裁决作为推进条件，以极简 `LEDGER.md` 作为恢复记录。
+它不是项目管理工具，也不是一组提示词模板。Forgeloop 关注的是 Agent 编程真正困难的部分：如何选择下一段最值得做的开发工作，如何把目标压成可执行计划，如何让 Coder 持续交付，如何让 Reviewer 严格把关，以及如何在多轮会话、长周期开发和中断恢复中保持方向不丢、质量不散、Token 消耗可控。
 
-## 为什么创建 Forgeloop
+Forgeloop 的核心工作流很短：
 
-在真实的 Agent 编程场景里，常见问题通常不是「模型不会写代码」，而是：
+```text
+推荐 Initiative -> 写 PLAN -> 按 Milestone 执行 -> Coder 交付 -> Reviewer 审查 -> PASS 后继续
+```
 
-- 用户不知道当前项目下一步最值得做什么；
-- 需求被直接丢给代码 Agent，缺少可执行的阶段计划；
-- 实现完成后没有稳定的审查协议，容易把 build 通过、commit、push 或截图打包误当成验收；
-- UI、Schema、测试、架构边界等问题经常在最后才暴露；
-- 会话中断后很难恢复到正确的执行位置；
-- 多 Agent 协作时，Coder、Reviewer、Scheduler 的职责边界容易混在一起。
+其中 Initiative 是通用开发单元，类似一个工程 Epic。它可以是一个新功能、一组架构改造、一次测试体系加固、一轮性能优化、一段 API/Schema 治理、一次文档和示例完善、一个迁移工程，或者任何需要拆成多个阶段持续推进的开发目标。
 
-Forgeloop 解决的是这些「执行收敛」问题。它让 Codex 在项目中按一个简单流程工作：先推荐专项，再写计划，最后按里程碑推进，每个里程碑都由 Coder 交付、Reviewer 审查，只有 Reviewer 明确 `PASS` 才进入下一阶段。
+## 价值和愿景
+
+大模型已经能写出越来越复杂的代码，但长期 Agent 自动编程仍然容易卡在几个问题上：
+
+- 下一步做什么不清楚，Agent 容易在低价值任务上消耗上下文；
+- 需求没有被压成阶段计划，Coder 一上来就进入局部实现；
+- 代码能跑不等于真的完成，缺少稳定的审查协议；
+- 测试、Schema、架构边界、第二路径和状态重复经常在最后才暴露；
+- 会话中断后，恢复依赖聊天记忆，容易跑偏；
+- 多 Agent 协作时，调度、实现、审查职责混在一起，Token 消耗不可控。
+
+Forgeloop 的目标是给 Codex 一个足够轻、足够硬的工程闭环：
+
+- 用 `recommend-initiatives` 找到接下来最值得做的开发单元；
+- 用 `write-plan` 把目标写成可执行的 `PLAN.md`；
+- 用 `run-initiative` 按 Milestone 长时间推进；
+- 用 Coder 负责实现和自测；
+- 用 Reviewer 从产品、测试、架构三个角度裁决；
+- 用 `LEDGER.md` 和 Git 留下可恢复、可审查、可回滚的证据。
+
+这套系统追求的是长期推送能力：不是让 Agent 完成一次演示，而是让它能在一个真实代码库里一段一段地做下去，每段都有验收、有审查、有恢复点，并且能在质量和 Token 成本之间保持稳定。
+
+## Codex 原生体验
+
+Forgeloop 为 Codex 的插件和技能系统设计。它默认把 Codex 当作调度者，由调度者读取计划、维护进度、分发任务包，并协调 Coder 和 Reviewer。
+
+实测中，一个很好用的组合是：
+
+- 调度者：GPT-5.5；
+- Coder：GPT-5.5 high；
+- Reviewer：GPT-5.5 high。
+
+这个组合在复杂开发任务里的指令遵循、修复循环和审查质量都比较稳定，最终 Token 消耗也较可控。
+
+如果你希望进一步降低 Token 消耗，可以尝试：
+
+- GPT-5.4 作为调度者或 Reviewer；
+- GPT-5.4 Codex 作为 Coder；
+- 对低风险 Milestone 使用较低 reasoning effort，对高风险 Milestone 保持 high。
+
+Forgeloop 不要求固定模型。它更重要的约束是职责分离：Scheduler 不直接把自己的上下文全部交给 Coder，Coder 不自我放行，Reviewer 只按真实 diff 和验收标准裁决。
 
 ## 核心模型
 
-### Initiative 是用户入口
+### Initiative 是通用开发单元
 
-Initiative 表示一次完整目标闭环，例如一个 UI 专项、一个组件库改造、一个 Schema 治理、一个测试加固专项。用户通常会说「按这个 PLAN 执行这个专项」或「看看这个项目接下来最该做哪些专项」。
+Initiative 是用户入口，也是 Forgeloop 的顶层开发单元。它类似一个 Epic，但更贴近 Agent 执行：必须能被写成 `PLAN.md`，必须能拆成多个 Milestone，必须有可验证的完成标准。
+
+典型 Initiative 可以是：
+
+- 实现一组产品能力；
+- 拆分过大的模块；
+- 迁移一套旧 API；
+- 整理数据模型和 Schema；
+- 补齐关键测试路径；
+- 做性能、稳定性或可观测性加固；
+- 改造构建、发布或插件结构；
+- 完成文档、示例和开发者体验升级。
+
+一个好的 Initiative 不只是“做一些事”，而是有明确业务或工程收益，并且能被分阶段交付。
 
 ### Milestone 是交付单元
 
-Forgeloop 2.0 不再默认以 Task 作为调度单元。Task 可以作为 Coder 的内部施工分解存在，但 Scheduler 只按 Milestone 推进。
+Milestone 是 `run-initiative` 的推进单位。每个 Milestone 都应该能形成一次可审查的交付，不只是任务列表。
 
-一个好的 Milestone 通常包含 3 到 5 个 Work Items，并且必须有明确的验收标准、验证方式和 Reviewer 关注点。一个 Initiative 通常建议 3 到 8 个 Milestone，不建议超过 10 个。对于重要或高风险业务能力，可以在功能 Milestone 后增加一个 Acceptance & Hardening Milestone，专门用于验收、测试补强、架构整理、大文件拆分和第二路径清理。
+一个好的 Milestone 通常包含：
+
+- 3 到 5 个 Work Items；
+- 明确的验收标准；
+- 必要的验证方式；
+- Reviewer 需要重点看的风险点；
+- 清楚的非目标，避免 Coder 扩大范围。
+
+一个 Initiative 通常建议 3 到 8 个 Milestone。对高风险能力，可以在功能 Milestone 后增加 Acceptance & Hardening Milestone，专门处理验收、测试补强、架构整理、大文件拆分和第二路径清理。
 
 ### Reviewer 是质量核心
 
-Forgeloop 不强制维护一套复杂 gate 系统。现代代码 Agent 通常已经会主动运行类型检查、测试、构建和截图确认。Forgeloop 真正强调的是 Reviewer 协议。
+Forgeloop 的核心不是让 Coder 多写几行自测说明，而是让 Reviewer 真正拥有放行权。
 
 Reviewer 必须从三个角度审查 Milestone：
 
@@ -46,7 +104,7 @@ PASS
 REPAIR_REQUIRED
 ```
 
-只有 `PASS` 才能推进下一个 Milestone。
+只有 `PASS` 才能进入下一个 Milestone。
 
 ### Git 是证据，不是放行
 
@@ -67,14 +125,14 @@ Forgeloop 只暴露三个核心技能。
 
 ### 1. `recommend-initiatives`
 
-基于当前源码基线，推荐后续最值得做的 3 到 5 个专项序列。
+基于当前源码基线，推荐后续最值得做的 3 到 5 个 Initiative。
 
-它会查看项目结构、文档、测试、关键源码区域和已有 initiative 记录，然后按产品价值、工程杠杆、风险降低和执行就绪度排序。它不会开始编码，也不会为每个候选专项写完整 PLAN。
+它会查看项目结构、文档、测试、关键源码区域和已有 Initiative 记录，然后按产品价值、工程杠杆、风险降低和执行就绪度排序。它不会开始编码，也不会为每个候选 Initiative 写完整 PLAN。
 
 常见用法：
 
 ```text
-请使用 Forgeloop 看一下当前项目源码基线，推荐接下来最值得做的 3-5 个专项。
+请使用 Forgeloop 看一下当前项目源码基线，推荐接下来最值得做的 3-5 个 Initiative。
 ```
 
 输出通常写入：
@@ -85,14 +143,14 @@ docs/initiatives/recommendations/<date>-<topic>.md
 
 ### 2. `write-plan`
 
-把用户选中的专项或需求写成可执行的 `PLAN.md`。
+把用户选中的 Initiative 或需求写成可执行的 `PLAN.md`。
 
-`PLAN.md` 是 `run-initiative` 消费的唯一规划契约。Design 文档、ADR、Gap 文档、审计文档和用户需求都只是参考输入，不是 Forgeloop 生命周期对象。
+`PLAN.md` 是 `run-initiative` 消费的唯一规划契约。需求说明、设计文档、ADR、审计文档和用户补充信息都可以作为输入，但最终执行以 `PLAN.md` 为准。
 
 常见用法：
 
 ```text
-请使用 Forgeloop 为这个专项写一份 PLAN.md，后续要按里程碑执行。
+请使用 Forgeloop 为这个 Initiative 写一份 PLAN.md，后续要按 Milestone 执行。
 ```
 
 输出通常写入：
@@ -109,7 +167,7 @@ docs/initiatives/active/<initiative-slug>/LEDGER.md
 常见用法：
 
 ```text
-请使用 Forgeloop 执行 docs/initiatives/active/<initiative-slug>/PLAN.md，一直推进到专项完成。
+请使用 Forgeloop 执行 docs/initiatives/active/<initiative-slug>/PLAN.md，一直推进到 Initiative 完成。
 ```
 
 推荐执行流：
@@ -119,7 +177,7 @@ docs/initiatives/active/<initiative-slug>/LEDGER.md
 确认或创建分支 codex/<initiative-slug>
 定位第一个非 PASS Milestone
 给 Coder 发送自包含任务包
-Coder 读文档、实现、验证、截图、commit、push
+Coder 读文档、实现、验证、截图或证据记录、commit、push
 Scheduler 更新 LEDGER.md 到 REVIEW
 给 Reviewer 发送自包含审查包
 Reviewer 从产品、测试、架构三视角审查真实 diff
@@ -218,38 +276,36 @@ plugins/forgeloop/
 └── README.md
 ```
 
-没有保留开发过程中的专项记录、封板 evidence、测试脚本、旧版 anchor 机制、旧版 custom agent manifests 或历史运行态控制面。
-
 ## 常见用法示例
 
-### 推荐后续专项
+### 推荐后续 Initiative
 
 ```text
-请使用 Forgeloop 基于当前源码基线推荐后续 3-5 个最值得做的专项序列。
+请使用 Forgeloop 基于当前源码基线推荐后续 3-5 个最值得做的 Initiative。
 ```
 
 适合在你刚接手一个项目、完成一个版本、或者想让 Agent 帮你判断下一步优先级时使用。
 
-### 为选中的专项写 PLAN
+### 为选中的 Initiative 写 PLAN
 
 ```text
-请使用 Forgeloop 为「组件库 Studio v1」写一份 PLAN.md。以 Milestone 为交付单元，每个 Milestone 3-5 个 Work Items，重要功能后加验收与加固 Milestone。
+请使用 Forgeloop 为「权限系统稳定性加固」写一份 PLAN.md。以 Milestone 为交付单元，每个 Milestone 3-5 个 Work Items，重要能力后加验收与加固 Milestone。
 ```
 
 适合在你已经知道要做什么，但还没有形成可执行结构时使用。
 
-### 按 PLAN 执行专项
+### 按 PLAN 执行 Initiative
 
 ```text
-请使用 Forgeloop 执行 docs/initiatives/active/component-studio-v1/PLAN.md。复用一个 Coder subagent 和一个 Reviewer subagent，不要把调度者上下文 fork 给 subagent。每个 Milestone 完成后 commit/push，Reviewer PASS 后继续下一个 Milestone。
+请使用 Forgeloop 执行 docs/initiatives/active/auth-hardening/PLAN.md。复用一个 Coder subagent 和一个 Reviewer subagent，不要把调度者上下文 fork 给 subagent。每个 Milestone 完成后 commit/push，Reviewer PASS 后继续下一个 Milestone。
 ```
 
 适合直接进入编码交付阶段。
 
-### 恢复中断的专项
+### 恢复中断的 Initiative
 
 ```text
-请使用 Forgeloop 恢复 docs/initiatives/active/component-studio-v1/ 的执行，从 LEDGER.md 里第一个非 PASS Milestone 继续。
+请使用 Forgeloop 恢复 docs/initiatives/active/auth-hardening/ 的执行，从 LEDGER.md 里第一个非 PASS Milestone 继续。
 ```
 
 Forgeloop 会读取 `PLAN.md`、`LEDGER.md`、`git status` 和最近提交，而不是依赖聊天记忆。
@@ -264,7 +320,7 @@ Forgeloop 会读取 `PLAN.md`、`LEDGER.md`、`git status` 和最近提交，而
 
 ## Subagent 使用方式
 
-Forgeloop 2.0 不内置 custom agent TOML。Coder 和 Reviewer 由 `run-initiative` 技能中的任务包定义：
+Forgeloop 不内置 custom agent TOML。Coder 和 Reviewer 由 `run-initiative` 技能中的任务包定义：
 
 ```text
 plugins/forgeloop/skills/run-initiative/references/coder-packet.md
@@ -277,7 +333,7 @@ plugins/forgeloop/skills/run-initiative/references/reviewer-packet.md
 - Reviewer：`default`，高 reasoning effort；
 - `fork_context=false`；
 - 每个 Initiative 尽量复用同一个 Coder 和同一个 Reviewer；
-- `task_name` 使用 snake-normalized 名称，例如 `saaskit-ui-v1` 对应 `coder_saaskit_ui_v1` 和 `reviewer_saaskit_ui_v1`。
+- `task_name` 使用 snake-normalized 名称，例如 `auth-hardening` 对应 `coder_auth_hardening` 和 `reviewer_auth_hardening`。
 
 如果当前环境没有 subagent 工具，Scheduler 可以在用户允许的情况下继续执行，但必须把 review provenance 明确记录为 `explicit solo best-effort`，不得伪称已经由 subagent Reviewer 放行。
 
@@ -285,11 +341,12 @@ plugins/forgeloop/skills/run-initiative/references/reviewer-packet.md
 
 适合：
 
-- UI 专项；
-- 组件库或设计系统改造；
-- 文档站、demo、studio 类项目；
-- Schema / registry / API 契约治理；
-- 测试真实性与架构加固；
+- 需要持续推进的新功能或产品能力；
+- 架构改造、模块拆分、依赖迁移；
+- API、Schema、权限、数据模型或插件协议治理；
+- 测试真实性、稳定性、性能和可观测性加固；
+- 构建、发布、CI、开发者体验改造；
+- 文档、示例、SDK、集成体验完善；
 - 已有需求，需要压成 PLAN 并持续交付的工程工作。
 
 不适合：
@@ -297,19 +354,20 @@ plugins/forgeloop/skills/run-initiative/references/reviewer-packet.md
 - 一次性脚本；
 - 极小 bug 修复；
 - 不需要计划、不需要审查的临时实验；
+- 需求还没有边界，且用户也不希望先做规划的问题；
 - 需要严格组织级合规流程但不允许 Agent 参与审查的项目。
 
 ## 设计原则
 
 Forgeloop 遵循几个原则：
 
-1. 入口少：只保留 `recommend-initiatives`、`write-plan`、`run-initiative`。
-2. 热路径短：默认不引入旧版文档 anchor、spec slice、复杂 gate 或多层运行态控制面。
+1. Codex 原生：围绕 Codex plugin、skill、subagent 和 Git 工作流设计。
+2. 入口少：只保留 `recommend-initiatives`、`write-plan`、`run-initiative`。
 3. 交付单元清楚：用户入口是 Initiative，执行推进靠 Milestone。
-4. 审查协议强：Reviewer 的三视角裁决比形式化 gate 更重要。
+4. 审查协议强：Reviewer 的三视角裁决比形式化状态更重要。
 5. 状态极简：恢复只依赖 `PLAN.md`、`LEDGER.md`、Git 和必要 evidence。
 6. Git 不冒充验收：commit / push 只是证据和恢复点，不是放行。
-7. 文档只保留执行价值：Design、ADR、Gap、Audit 是参考输入，不是生命周期对象。
+7. 长期可控：通过职责分离、任务包和 Reviewer 放行控制质量、上下文和 Token 成本。
 
 ## 许可证
 
