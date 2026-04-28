@@ -1,5 +1,7 @@
 # <Initiative Name> Delivery
 
+Language note: this template defines structure only. Write headings and prose in the primary language of the user's request, while preserving technical identifiers, paths, commands, and protocol tokens.
+
 ## Status
 
 - Completed / Pending:
@@ -44,6 +46,11 @@ Summarize final reviewer status and provenance. Do not treat validation, commit,
 ## Residual Risks
 
 - ...
+
+## Handoff
+
+- Handoff file: `docs/initiatives/handoff/<initiative-code>-<initiative-slug>.md`
+- Summary:
 
 ## Suggested PR Summary
 

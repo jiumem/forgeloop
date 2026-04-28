@@ -1,26 +1,30 @@
 # <Initiative Name> Ledger
 
+Language note: this template defines structure only. Write headings and prose in the primary language of the user's request, while preserving technical identifiers, paths, commands, and protocol tokens.
+
 ## Initiative
 
 - Initiative root: `<initiative-root>`
 - Plan: `./PLAN.md`
-- Branch: `codex/<initiative-slug>`
+- Branch: `codex/<initiative-code>-<initiative-slug>`
 - Base commit:
 - Delivery: `./DELIVERY.md` when complete
+- Handoff: `docs/initiatives/handoff/<initiative-code>-<initiative-slug>.md` when complete
 - PR: pending
 
 ## Run Policy
 
 - Execution unit: Milestone
-- Coder: generic subagent by task packet, high reasoning effort when available, no parent context dependency
-- Reviewer: generic subagent by task packet, high reasoning effort when available, no parent context dependency
-- Preferred Coder task name: `coder_<initiative_slug_snake>`
-- Preferred Reviewer task name: `reviewer_<initiative_slug_snake>`
-- Normalize subagent `task_name` by lowercasing and replacing non `[a-z0-9_]` characters with `_`.
+- Coder: generic subagent by task entrypoint and role protocol, high reasoning effort when available, no parent context dependency
+- Reviewer: generic subagent by task entrypoint and role protocol, high reasoning effort when available, no parent context dependency
+- Preferred Coder task name: `coder_<initiative-code>`
+- Preferred Reviewer task name: `reviewer_<initiative-code>`
+- Extract `<initiative-code>` from the initiative directory's three-digit prefix, for example `001-auth-hardening` uses `coder_001` and `reviewer_001`.
+- For older uncoded initiatives, fall back to slug-based names by lowercasing and replacing non `[a-z0-9_]` characters with `_`.
 - Scheduler owns `LEDGER.md` status and verdict updates.
 - Coder may write implementation and evidence but not Milestone status or reviewer verdict.
 - Reviewer returns a verdict report and does not edit code, PLAN, LEDGER, or evidence.
-- Commit / push are evidence and recovery points, not approval.
+- Commit / push are evidence and recovery points, not approval. Coder push before Reviewer `PASS` is only a review candidate.
 - Scheduler-owned recovery updates should be committed when Git is available.
 - Reviewer `PASS` is required before advancing to the next Milestone.
 
@@ -59,8 +63,9 @@ If final validation fails, keep the initiative in `active/`, record the blockers
 ## Completion
 
 - Status: active
-- Completed path: `docs/initiatives/completed/<initiative-slug>/` when complete
+- Completed path: `docs/initiatives/completed/<initiative-code>-<initiative-slug>/` when complete
 - Delivery artifact: `./DELIVERY.md` when complete
+- Handoff artifact: `docs/initiatives/handoff/<initiative-code>-<initiative-slug>.md` when complete
 - Completion rule: move from `active/` to `completed/` only after all Milestones are `PASS` and final validation is recorded.
 
 ## Residual Risks

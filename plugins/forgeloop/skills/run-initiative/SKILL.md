@@ -11,14 +11,14 @@ Use this skill when the user asks to execute, continue, resume, or deliver an in
 
 ## Goal
 
-Run one initiative by Milestone. Codex in the current main thread is the Scheduler. Scheduler coordinates one reusable Coder subagent and one reusable Reviewer subagent through explicit task packets, records minimal recovery facts in `LEDGER.md`, and advances only when the Reviewer returns `PASS`.
+Run one initiative by Milestone. Codex in the current main thread is the Scheduler. Scheduler coordinates one reusable Coder subagent and one reusable Reviewer subagent through explicit task entrypoints and role protocols, records minimal recovery facts in `LEDGER.md`, and advances only when the Reviewer returns `PASS`.
 
 Invoking this skill is explicit user approval to delegate milestone implementation and review to subagents. Do not skip Coder or Reviewer subagent delegation merely to conserve user tokens. Use solo execution only when subagent tools are unavailable, fail, or the user explicitly forbids subagents.
 
 ## Read First
 
 1. Locate the initiative root:
-   - active initiative: `docs/initiatives/active/<initiative-slug>/`
+   - active initiative: `docs/initiatives/active/<initiative-code>-<initiative-slug>/`
    - completed initiative: read-only unless the user explicitly reopens it or creates a follow-up
 2. `<initiative-root>/PLAN.md`
 3. `<initiative-root>/LEDGER.md`
@@ -26,11 +26,11 @@ Invoking this skill is explicit user approval to delegate milestone implementati
 5. recent `git log --oneline` for the working branch
 6. reference inputs listed in PLAN as needed
 
-Completed initiatives are read-only by default. Prefer creating a follow-up initiative with a new slug such as `<initiative-slug>-v2` or `<initiative-slug>-followup`. For a direct reopen, move the completed record back to `docs/initiatives/active/<initiative-slug>/`; do not keep the same slug in both `active/` and `completed/`.
+Completed initiatives are read-only by default. Prefer creating a follow-up initiative with a new coded slug such as `002-<initiative-slug>-v2` or `002-<initiative-slug>-followup`. For a direct reopen, move the completed record back to `docs/initiatives/active/<initiative-code>-<initiative-slug>/`; do not keep the same coded slug in both `active/` and `completed/`.
 
 ## Runtime Roles
 
-Use generic Codex subagents by task packet, not static custom agent manifests.
+Use generic Codex subagents by task entrypoint and role protocol, not static custom agent manifests.
 
 - Scheduler: Codex itself in the current main thread; not a subagent; coordinates, records, and packages work
 - Coder: usually a reusable `default` or `worker` subagent with high reasoning effort
@@ -38,16 +38,32 @@ Use generic Codex subagents by task packet, not static custom agent manifests.
 
 The Scheduler must remain in the main thread. Do not spawn a Scheduler subagent.
 
-When delegating, send a self-contained packet and do not rely on parent conversation history. Request `fork_context=false` when the tool supports it.
+When delegating, send a self-contained task-entry packet and do not rely on parent conversation history. Request `fork_context=false` when the tool supports it. "Self-contained" means the task entry includes complete paths, boundaries, diff ranges, and evidence pointers; it does not mean copying or rewriting the role protocol.
+
+## Delegation Packet Rule
+
+Scheduler packets are task entrypoints, not extracted role manuals.
+
+When delegating to Coder or Reviewer, the Scheduler must provide only:
+
+- role protocol path: `plugins/forgeloop/skills/run-initiative/references/coder-protocol.md` or `reviewer-protocol.md`
+- initiative root, `PLAN.md`, and `LEDGER.md`
+- current Milestone ID and intended scope boundary
+- branch, base commit, dirty baseline, and relevant evidence paths
+- for Reviewer: Coder report, diff range, repair diff when applicable, and preview targets or screenshots when relevant
+
+The Scheduler must not replace the role protocol with a rewritten summary of Coder or Reviewer responsibilities. The subagent must read its role protocol directly, then independently locate and read the source-of-truth repository documents needed for the task.
 
 ## Subagent Reuse Rule
 
 - Treat a user request to run this skill as permission to spawn or reuse the Coder and Reviewer subagents required by the workflow.
 - At initiative start, create at most one Coder subagent and one Reviewer subagent.
 - Prefer stable task names when the tool supports them:
-  - `coder_<initiative_slug_snake>`
-  - `reviewer_<initiative_slug_snake>`
-- Normalize `<initiative_slug_snake>` for `task_name`: lowercase; replace any character outside `[a-z0-9_]` with `_`; example `saaskit-ui-v1` becomes `saaskit_ui_v1`.
+  - `coder_<initiative-code>`
+  - `reviewer_<initiative-code>`
+- Extract `<initiative-code>` from the three-digit prefix in the initiative directory name, for example `001-auth-hardening` uses `coder_001` and `reviewer_001`.
+- If an older initiative has no three-digit prefix, fall back to `coder_<initiative_slug_snake>` and `reviewer_<initiative_slug_snake>`.
+- Normalize fallback `<initiative_slug_snake>` for `task_name`: lowercase; replace any character outside `[a-z0-9_]` with `_`; example `saaskit-ui-v1` becomes `saaskit_ui_v1`.
 - Reuse those subagents across Milestones with `send_input` when available.
 - Spawn a replacement only if the previous subagent is closed, unavailable, or no longer suitable.
 - Do not spawn a fresh Reviewer for every Milestone by default.
@@ -88,7 +104,7 @@ If unrelated dirty changes exist:
 - do not include them in Milestone commits
 - do not revert, overwrite, or “clean up” unrelated user changes
 - either ask the user, create a safe branch from the current state, or record the dirty baseline and restrict the diff range
-- make the Coder and Reviewer packets explicit about the intended diff range
+- make the Coder and Reviewer task-entry packets explicit about the intended diff range
 
 ## Write Ownership
 
@@ -123,21 +139,23 @@ Allowed writes when finalizing a completed initiative:
 
 ```text
 <initiative-root>/DELIVERY.md
-docs/initiatives/completed/<initiative-slug>/
+docs/initiatives/completed/<initiative-code>-<initiative-slug>/
+docs/initiatives/handoff/<initiative-code>-<initiative-slug>.md
+docs/initiatives/handoff/index.md
 ```
 
 Do not modify recommendation snapshots as part of execution.
 
 ## Workflow
 
-1. Confirm or create the working branch, normally `codex/<initiative-slug>`.
+1. Confirm or create the working branch, normally `codex/<initiative-code>-<initiative-slug>`.
 2. Locate the active initiative root and read `PLAN.md` and `LEDGER.md`.
 3. Resume from the first Milestone whose status is not `PASS` and not `CANCELLED`.
-4. Spawn or reuse the Coder subagent, then send a self-contained packet using `references/coder-packet.md`.
-5. Coder reads required docs and source, implements the Milestone, runs validation, performs screenshots for UI work, commits, pushes when possible, and reports evidence.
+4. Spawn or reuse the Coder subagent, then send a task-entry packet that points it to `references/coder-protocol.md`, the initiative root, the current Milestone, and execution boundaries.
+5. Coder reads its role protocol, independently locates source-of-truth docs, implements the Milestone, runs validation, performs screenshots for UI work, commits, pushes when possible as a review candidate, and reports evidence.
 6. Scheduler updates `LEDGER.md` to `REVIEW` with commit range, validation, and evidence paths.
-7. Spawn or reuse the Reviewer subagent, then send a self-contained packet using `references/reviewer-packet.md`.
-8. Reviewer reads PLAN, references, Coder report, and actual diff; then reviews from product, test, and architecture perspectives.
+7. Spawn or reuse the Reviewer subagent, then send a task-entry packet that points it to `references/reviewer-protocol.md`, the initiative root, Coder report, actual diff range, and review boundaries.
+8. Reviewer reads its role protocol, independently locates source-of-truth docs, inspects the Coder report and actual diff, then reviews from product, test, and architecture perspectives.
 9. If Reviewer returns `REPAIR_REQUIRED`, send only the blocking issues back to Coder, record repair history, and repeat review.
 10. For repairs, Reviewer should inspect the repair diff and, when needed, the cumulative Milestone diff from the last accepted base to current HEAD. A fixup-only review may confirm a narrow blocker is fixed, but final `PASS` must remain compatible with the full Milestone diff.
 11. If Reviewer returns `PASS`, Scheduler updates `LEDGER.md`, commits recovery-critical ledger/evidence updates when Git is available, and moves to the next Milestone.
@@ -150,8 +168,9 @@ Do not modify recommendation snapshots as part of execution.
     - send the final validation blockers to Coder
     - rerun Reviewer for the affected Milestone, the repair diff, and the cumulative diff when needed
     - do not write completed `DELIVERY.md` or move to `completed/`
-15. If final validation passes, write or update `DELIVERY.md` using `references/delivery-template.md`, prepare a PR summary, commit recovery-critical delivery/ledger updates when Git is available, and move the initiative directory from `docs/initiatives/active/<initiative-slug>/` to `docs/initiatives/completed/<initiative-slug>/`.
-16. Do not create a second status file for completion. `PLAN.md`, `LEDGER.md`, `DELIVERY.md`, and Git history are sufficient.
+15. If final validation passes, write or update `DELIVERY.md` using `references/delivery-template.md`, prepare a PR summary, and always write or update handoff using `references/handoff-template.md`. If there are no handoff findings, record `none` / `无` explicitly.
+16. Move the initiative directory from `docs/initiatives/active/<initiative-code>-<initiative-slug>/` to `docs/initiatives/completed/<initiative-code>-<initiative-slug>/`, update `docs/initiatives/handoff/index.md` using `references/handoff-index-template.md` when creating it, and commit recovery-critical delivery/ledger/handoff updates when Git is available.
+17. Do not create a second status file for completion. `PLAN.md`, `LEDGER.md`, `DELIVERY.md`, handoff, and Git history are sufficient.
 
 ## Reviewer Verdict Rule
 
@@ -170,7 +189,7 @@ Record verdict provenance in `LEDGER.md`: subagent reviewer, human reviewer, or 
 
 Recovery requires only:
 
-1. locate the initiative in `docs/initiatives/active/<slug>/` or `docs/initiatives/completed/<slug>/`
+1. locate the initiative in `docs/initiatives/active/<initiative-code>-<initiative-slug>/` or `docs/initiatives/completed/<initiative-code>-<initiative-slug>/`
 2. read `PLAN.md`
 3. read `LEDGER.md`
 4. inspect `git status`
@@ -179,15 +198,31 @@ Recovery requires only:
 
 Do not reconstruct execution from chat memory.
 
+## Language Rule
+
+- Write `LEDGER.md` updates, `DELIVERY.md`, handoff files, and user-facing completion summaries in the primary language of the user's request by default.
+- If the request mixes languages, follow the language used for the user's requirements and decisions.
+- Preserve technical identifiers, file paths, commands, code symbols, branch names, commit SHAs, status tokens, and tool names as written.
+- Keep protocol values such as `TODO`, `CODING`, `REVIEW`, `REPAIR`, `PASS`, `PAUSED`, `CANCELLED`, and `REPAIR_REQUIRED` unchanged.
+- Coder and Reviewer report headings from their role protocols must remain fixed for Scheduler parsing; their substantive report content should follow the requested output language when practical.
+- If the user explicitly requests a language, that instruction overrides the default.
+- Template headings and explanatory text are structural guidance; translate or adapt them to the output language when writing the final document.
+
 ## Quality Bar
 
 - Scheduler keeps working through Milestones until the initiative is complete, unless a major blocker requires user decision or the user interrupts.
 - Scheduler must not pause for routine progress summaries, permission to continue, or non-blocking implementation choices.
 - Coder must read PLAN and listed reference inputs before implementation.
+- Coder must independently locate source-of-truth docs instead of relying on Scheduler summaries.
 - Coder should run relevant validation and record evidence.
 - For UI work, Coder and Reviewer should both perform screenshot-based confirmation when practical.
 - Reviewer must inspect the actual diff range, not just the Coder report.
+- Reviewer must independently locate source-of-truth docs instead of relying on Scheduler or Coder summaries.
 - Reviewer must not edit code, PLAN, LEDGER, or repo-tracked evidence.
 - Commit and push are evidence and recovery checkpoints, not approval.
+- Coder push before Reviewer `PASS` is only a review candidate. Do not mark a Milestone accepted until Reviewer returns `PASS`.
 - Do not skip Reviewer because validation passed.
-- Completed initiatives belong in `docs/initiatives/completed/<slug>/` after final validation and delivery notes are recorded.
+- Completed initiatives belong in `docs/initiatives/completed/<initiative-code>-<initiative-slug>/` after final validation and delivery notes are recorded.
+- Scheduler writes handoff entries from Coder deferred notes, Reviewer non-blocking findings, final validation observations, and Scheduler judgment. Coder and Reviewer provide inputs but do not maintain handoff files.
+- Scheduler always writes a handoff file for completed initiatives. If there are no findings, record an explicit empty result instead of skipping the artifact.
+- Blocking issues must be fixed in the current initiative and must not be deferred to handoff.

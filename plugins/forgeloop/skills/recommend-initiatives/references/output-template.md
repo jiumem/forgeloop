@@ -1,5 +1,7 @@
 # Recommended Initiative Sequence
 
+Language note: this template defines structure only. Write headings and prose in the primary language of the user's request, while preserving technical identifiers, paths, commands, and protocol tokens.
+
 ## Baseline
 
 - Date:
@@ -8,9 +10,9 @@
 - Workspace:
 - Inputs inspected:
 
-## Existing Initiative Check
+## Existing Initiative And Handoff Check
 
-Summarize active, completed, archived, and prior recommendation entries that affected ranking. Note any duplicate candidates that were deferred or reframed as follow-up / v2 work.
+Summarize active, completed, archived, handoff, and prior recommendation entries that affected ranking. Note any duplicate candidates that were deferred or reframed as follow-up / v2 work.
 
 ## Baseline Summary
 
@@ -27,7 +29,10 @@ Use these ranking dimensions:
 
 ## Recommended Sequence
 
-### 1. `<initiative-slug>` — <Initiative Name>
+### 1. `<proposed-initiative-code>-<initiative-slug>` — <Initiative Name>
+
+Code note:
+- Proposed code only; final code is assigned by `write-plan` when creating `active/`.
 
 Why now:
 - ...
@@ -49,7 +54,7 @@ Read first:
 - ...
 
 Suggested PLAN path:
-- `docs/initiatives/active/<initiative-slug>/PLAN.md`
+- `docs/initiatives/active/<proposed-initiative-code>-<initiative-slug>/PLAN.md`
 
 Duplicate check:
 - Not already active/completed, or explicitly a follow-up/v2 because ...
@@ -57,7 +62,7 @@ Duplicate check:
 Why before the next initiative:
 - ...
 
-### 2. `<initiative-slug>` — <Initiative Name>
+### 2. `<proposed-initiative-code>-<initiative-slug>` — <Initiative Name>
 
 ...
 

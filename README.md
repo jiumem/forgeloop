@@ -36,7 +36,7 @@ Forgeloop 的目标是给 Codex 一个足够轻、足够硬的工程闭环：
 
 ## Codex 原生体验
 
-Forgeloop 为 Codex 的插件和技能系统设计。它默认把 Codex 当作调度者，由调度者读取计划、维护进度、分发任务包，并协调 Coder 和 Reviewer。
+Forgeloop 为 Codex 的插件和技能系统设计。它默认把 Codex 当作调度者，由调度者读取计划、维护进度、分发任务入口，并协调 Coder 和 Reviewer 按各自角色协议工作。
 
 实测中，一个很好用的组合是：
 
@@ -123,6 +123,8 @@ Forgeloop 的推进条件是 Reviewer `PASS`，不是：
 
 Forgeloop 只暴露三个核心技能。
 
+三个技能生成的交付文档默认跟随用户输入语言。文件路径、命令、代码标识、分支名、状态值和协议 token 保持原文，例如 `PASS`、`REPAIR_REQUIRED`、`TODO`、`CODING`。
+
 ### 1. `recommend-initiatives`
 
 基于当前源码基线，推荐后续最值得做的 3 到 5 个 Initiative。
@@ -156,8 +158,15 @@ docs/initiatives/recommendations/<date>-<topic>.md
 输出通常写入：
 
 ```text
-docs/initiatives/active/<initiative-slug>/PLAN.md
-docs/initiatives/active/<initiative-slug>/LEDGER.md
+docs/initiatives/active/<initiative-code>-<initiative-slug>/PLAN.md
+docs/initiatives/active/<initiative-code>-<initiative-slug>/LEDGER.md
+```
+
+新的 Initiative 目录名应带三位数编码前缀，例如：
+
+```text
+docs/initiatives/active/001-auth-hardening/PLAN.md
+docs/initiatives/active/001-auth-hardening/LEDGER.md
 ```
 
 ### 3. `run-initiative`
@@ -167,19 +176,19 @@ docs/initiatives/active/<initiative-slug>/LEDGER.md
 常见用法：
 
 ```text
-请使用 Forgeloop 执行 docs/initiatives/active/<initiative-slug>/PLAN.md，一直推进到 Initiative 完成。
+请使用 Forgeloop 执行 docs/initiatives/active/<initiative-code>-<initiative-slug>/PLAN.md，一直推进到 Initiative 完成。
 ```
 
 推荐执行流：
 
 ```text
 读取 PLAN.md 和 LEDGER.md
-确认或创建分支 codex/<initiative-slug>
+确认或创建分支 codex/<initiative-code>-<initiative-slug>
 定位第一个非 PASS Milestone
-给 Coder 发送自包含任务包
+给 Coder 发送任务入口并要求读取 Coder 角色协议
 Coder 读文档、实现、验证、截图或证据记录、commit、push
 Scheduler 更新 LEDGER.md 到 REVIEW
-给 Reviewer 发送自包含审查包
+给 Reviewer 发送任务入口并要求读取 Reviewer 角色协议
 Reviewer 从产品、测试、架构三视角审查真实 diff
 REPAIR_REQUIRED 则回到 Coder 修复
 PASS 则记录 verdict 并进入下一个 Milestone
@@ -203,27 +212,32 @@ plugins/forgeloop/
 docs/initiatives/
   recommendations/
     <date>-<topic>.md
+  handoff/
+    index.md
+    <initiative-code>-<initiative-slug>.md
   active/
-    <initiative-slug>/
+    <initiative-code>-<initiative-slug>/
       PLAN.md
       LEDGER.md
       evidence/
   completed/
-    <initiative-slug>/
+    <initiative-code>-<initiative-slug>/
       PLAN.md
       LEDGER.md
       DELIVERY.md
       evidence/
   archived/
-    <initiative-slug>/
+    <initiative-code>-<initiative-slug>/
 ```
 
 其中：
 
+- `<initiative-code>` 是三位数编码前缀，例如 `001`；
 - `PLAN.md` 是执行规划契约；
 - `LEDGER.md` 是极简恢复账本；
 - `evidence/` 存放可选截图、验证记录和审查证据；
 - `DELIVERY.md` 是完成后的交付摘要和 PR summary 基础；
+- `handoff/` 存放专项完成后的跨专项问题发现和后续机会，由 Scheduler 汇总维护；即使没有发现，也保留显式空记录；
 - recommendation 文件只是推荐快照，不是执行契约。
 
 ## 安装
@@ -297,7 +311,7 @@ plugins/forgeloop/
 ### 按 PLAN 执行 Initiative
 
 ```text
-请使用 Forgeloop 执行 docs/initiatives/active/auth-hardening/PLAN.md。复用一个 Coder subagent 和一个 Reviewer subagent，不要把调度者上下文 fork 给 subagent。每个 Milestone 完成后 commit/push，Reviewer PASS 后继续下一个 Milestone。
+请使用 Forgeloop 执行 docs/initiatives/active/001-auth-hardening/PLAN.md。复用一个 Coder subagent 和一个 Reviewer subagent，不要把调度者上下文 fork 给 subagent。每个 Milestone 完成后 commit/push，Reviewer PASS 后继续下一个 Milestone。
 ```
 
 适合直接进入编码交付阶段。
@@ -305,7 +319,7 @@ plugins/forgeloop/
 ### 恢复中断的 Initiative
 
 ```text
-请使用 Forgeloop 恢复 docs/initiatives/active/auth-hardening/ 的执行，从 LEDGER.md 里第一个非 PASS Milestone 继续。
+请使用 Forgeloop 恢复 docs/initiatives/active/001-auth-hardening/ 的执行，从 LEDGER.md 里第一个非 PASS Milestone 继续。
 ```
 
 Forgeloop 会读取 `PLAN.md`、`LEDGER.md`、`git status` 和最近提交，而不是依赖聊天记忆。
@@ -320,11 +334,13 @@ Forgeloop 会读取 `PLAN.md`、`LEDGER.md`、`git status` 和最近提交，而
 
 ## Subagent 使用方式
 
-Forgeloop 不内置 custom agent TOML。Coder 和 Reviewer 由 `run-initiative` 技能中的任务包定义：
+Forgeloop 不内置 custom agent TOML。Coder 和 Reviewer 由 `run-initiative` 技能中的角色协议定义；Scheduler 委派时只提供本次任务入口和边界，不替 Coder/Reviewer 提取或改写工作规范：
 
 ```text
-plugins/forgeloop/skills/run-initiative/references/coder-packet.md
-plugins/forgeloop/skills/run-initiative/references/reviewer-packet.md
+plugins/forgeloop/skills/run-initiative/references/coder-protocol.md
+plugins/forgeloop/skills/run-initiative/references/reviewer-protocol.md
+plugins/forgeloop/skills/run-initiative/references/handoff-template.md
+plugins/forgeloop/skills/run-initiative/references/handoff-index-template.md
 ```
 
 在支持 subagent 的 Codex 环境中，推荐使用通用 subagent：
@@ -333,7 +349,7 @@ plugins/forgeloop/skills/run-initiative/references/reviewer-packet.md
 - Reviewer：`default`，高 reasoning effort；
 - `fork_context=false`；
 - 每个 Initiative 尽量复用同一个 Coder 和同一个 Reviewer；
-- `task_name` 使用 snake-normalized 名称，例如 `auth-hardening` 对应 `coder_auth_hardening` 和 `reviewer_auth_hardening`。
+- `task_name` 优先使用三位数编码，例如 `001-auth-hardening` 对应 `coder_001` 和 `reviewer_001`；旧的无编码 Initiative 才退回到 snake-normalized 名称。
 
 如果当前环境没有 subagent 工具，Scheduler 可以在用户允许的情况下继续执行，但必须把 review provenance 明确记录为 `explicit solo best-effort`，不得伪称已经由 subagent Reviewer 放行。
 
@@ -366,8 +382,8 @@ Forgeloop 遵循几个原则：
 3. 交付单元清楚：用户入口是 Initiative，执行推进靠 Milestone。
 4. 审查协议强：Reviewer 的三视角裁决比形式化状态更重要。
 5. 状态极简：恢复只依赖 `PLAN.md`、`LEDGER.md`、Git 和必要 evidence。
-6. Git 不冒充验收：commit / push 只是证据和恢复点，不是放行。
-7. 长期可控：通过职责分离、任务包和 Reviewer 放行控制质量、上下文和 Token 成本。
+6. Git 不冒充验收：commit / push 只是证据和恢复点；Reviewer `PASS` 前的 push 只是 review candidate，不是放行。
+7. 长期可控：通过职责分离、任务入口、角色协议和 Reviewer 放行控制质量、上下文和 Token 成本。
 
 ## 许可证
 

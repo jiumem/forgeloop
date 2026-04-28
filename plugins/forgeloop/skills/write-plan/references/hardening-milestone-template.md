@@ -1,5 +1,7 @@
 ### MXX: Acceptance & Hardening
 
+Language note: this template defines structure only. Write headings and prose in the primary language of the user's request, while preserving technical identifiers, paths, commands, and protocol tokens.
+
 Purpose:
 - Consolidate the preceding business capability before expanding scope.
 

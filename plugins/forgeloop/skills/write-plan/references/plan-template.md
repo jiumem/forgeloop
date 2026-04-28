@@ -1,5 +1,7 @@
 # <Initiative Name> PLAN
 
+Language note: this template defines structure only. Write headings and prose in the primary language of the user's request, while preserving technical identifiers, paths, commands, and protocol tokens.
+
 ## Goal
 
 State the business or engineering outcome.

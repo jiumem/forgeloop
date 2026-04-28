@@ -20,7 +20,7 @@ Read only what is needed to understand the current baseline:
 1. `README.md` and repository entry docs
 2. package, workspace, build, or CI configuration files
 3. existing `docs/` content, especially `docs/initiatives/`
-4. existing `docs/initiatives/recommendations/`, `active/`, `completed/`, and `archived/` entries
+4. existing `docs/initiatives/recommendations/`, `handoff/`, `active/`, `completed/`, and `archived/` entries
 5. relevant source, test, component, schema, registry, or app directories
 6. `git status` and a short recent commit summary when available
 
@@ -38,21 +38,38 @@ Also update:
 docs/initiatives/recommendations/index.md
 ```
 
-Do not create an `active/<slug>/PLAN.md` unless the user explicitly selects an initiative or asks you to write a plan.
+Do not create an `active/<initiative-code>-<slug>/PLAN.md` unless the user explicitly selects an initiative or asks you to write a plan.
+
+## Initiative Naming
+
+- Recommended initiative slugs should include a provisional three-digit code prefix, such as `001-auth-hardening`.
+- Provisional recommendation codes are planning aids, not reservations. They do not permanently claim initiative numbers.
+- Determine provisional codes by scanning existing `docs/initiatives/handoff/`, `active/`, `completed/`, and `archived/` entries for used three-digit prefixes. Prior recommendation snapshots may inform naming, but must not reserve codes.
+- Assign recommendations in order using the next unused provisional codes, such as `001-...`, `002-...`, `003-...`.
+- Use the provisional coded slug in suggested PLAN paths so `write-plan` can preserve it when it is still available.
 
 ## Workflow
 
 1. Establish the baseline: branch, clean/dirty state, important docs, source areas, tests, and known constraints.
-2. Check existing recommendations, active initiatives, completed initiatives, and archived initiatives before ranking candidates.
+2. Check existing recommendations, handoff findings, active initiatives, completed initiatives, and archived initiatives before ranking candidates.
 3. Identify current strengths, gaps, risks, and product opportunities.
 4. Rank candidate initiatives by product impact, engineering leverage, risk reduction, and execution readiness.
 5. Recommend 3-5 initiatives only. Default to 3 when the project does not clearly need more.
 6. Present them as an ordered sequence, not a flat wishlist.
-7. Do not recommend duplicate active or completed initiatives unless the recommendation is explicitly a follow-up, v2, or replacement with a stated reason.
-8. Treat archived initiatives as reusable background only; recommend them again only with an explicit replacement or revival rationale.
-9. For each initiative, include expected outcome, suggested size, key risks, read-first files, and whether an acceptance and hardening Milestone is recommended.
-10. Include a short `Not Recommended Yet` section for tempting work that should wait.
-11. End with the best next action, usually to run `write-plan` for the top initiative.
+7. Use handoff findings as candidate input, but still rank by product impact, engineering leverage, risk reduction, and execution readiness.
+8. Do not recommend duplicate active or completed initiatives unless the recommendation is explicitly a follow-up, v2, or replacement with a stated reason.
+9. Treat archived initiatives as reusable background only; recommend them again only with an explicit replacement or revival rationale.
+10. For each initiative, include expected outcome, suggested size, key risks, read-first files, and whether an acceptance and hardening Milestone is recommended.
+11. Include a short `Not Recommended Yet` section for tempting work that should wait.
+12. End with the best next action, usually to run `write-plan` for the top initiative.
+
+## Language Rule
+
+- Write recommendation documents in the primary language of the user's request by default.
+- If the request mixes languages, follow the language used for the user's requirements and decisions.
+- Preserve technical identifiers, file paths, commands, code symbols, branch names, status tokens, and tool names as written.
+- If the user explicitly requests a language, that instruction overrides the default.
+- Template headings and explanatory text are structural guidance; translate or adapt them to the output language when writing the final document.
 
 ## Quality Bar
 

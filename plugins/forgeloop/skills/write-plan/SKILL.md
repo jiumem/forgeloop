@@ -20,17 +20,26 @@ Design docs, ADRs, gap notes, audits, user requests, and existing code are refer
 1. The user request and any selected recommendation file
 2. Existing design, ADR, gap, audit, or product docs referenced by the user
 3. Relevant source and test areas
-4. Existing `docs/initiatives/active/<slug>/PLAN.md` if updating an active initiative
-5. Existing `docs/initiatives/active/<slug>/LEDGER.md` if execution has already started
-6. Existing `docs/initiatives/completed/` and `docs/initiatives/archived/` entries when avoiding duplicate initiatives
+4. Existing `docs/initiatives/active/<initiative-code>-<slug>/PLAN.md` if updating an active initiative
+5. Existing `docs/initiatives/active/<initiative-code>-<slug>/LEDGER.md` if execution has already started
+6. Existing `docs/initiatives/handoff/` findings when the selected initiative is based on prior handoff
+7. Existing `docs/initiatives/completed/` and `docs/initiatives/archived/` entries when avoiding duplicate initiatives
 
 ## Write Target
 
 Default initiative directory:
 
 ```text
-docs/initiatives/active/<initiative-slug>/
+docs/initiatives/active/<initiative-code>-<initiative-slug>/
 ```
+
+Initiative naming rules:
+
+- Every new initiative directory name must start with a three-digit code prefix, such as `001-auth-hardening`.
+- Determine `<initiative-code>` by scanning existing `docs/initiatives/handoff/`, `active/`, `completed/`, and `archived/` entries and choosing the next unused three-digit code. Recommendation snapshot codes are provisional and do not reserve numbers.
+- Preserve an existing code when updating an active initiative.
+- When expanding a recommendation, preserve its proposed code only if that code is still unused by `handoff/`, `active/`, `completed/`, and `archived/`; otherwise assign the next unused code.
+- Use the same coded slug consistently in PLAN paths, LEDGER paths, branches, evidence paths, and completion paths.
 
 Required files:
 
@@ -57,6 +66,15 @@ evidence/                 # created by run-initiative as needed
 - Use “Work Items” instead of turning implementation notes into formal scheduling objects.
 - Do not generate document slices, old planning state, or old runtime state.
 - For an existing active initiative, preserve `LEDGER.md` execution facts. Do not reset `PASS`, `REVIEW`, `REPAIR`, `PAUSED`, or `CANCELLED` Milestones unless the user explicitly asks for a plan rewrite.
+
+## Language Rule
+
+- Write `PLAN.md`, `LEDGER.md`, and any planning-support documents in the primary language of the user's request by default.
+- If the request mixes languages, follow the language used for the user's requirements and decisions.
+- Preserve technical identifiers, file paths, commands, code symbols, branch names, status tokens, and tool names as written.
+- Keep protocol values such as `TODO`, `CODING`, `REVIEW`, `REPAIR`, `PASS`, `PAUSED`, `CANCELLED`, and `REPAIR_REQUIRED` unchanged.
+- If the user explicitly requests a language, that instruction overrides the default.
+- Template headings and explanatory text are structural guidance; translate or adapt them to the output language when writing the final document.
 
 ## Workflow
 
