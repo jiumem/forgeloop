@@ -75,6 +75,7 @@ If the diff range is unavailable, state what artifact you reviewed and treat mis
 5. Classify findings as blocking issues, non-blocking suggestions, residual risks, or handoff candidates.
 6. Return `REPAIR_REQUIRED` if any blocking issue remains.
 7. Return `PASS` only when the Milestone satisfies the acceptance criteria with adequate evidence and no blocking issues.
+8. Enforce the repair budget: if the same Milestone reaches its third `REPAIR_REQUIRED`, or the same blocking issue survives two repair attempts, classify it as a structural blocker and tell Scheduler to pause for human architectural decision instead of continuing patch-loop repair.
 
 ## Lens 1: Product Manager
 
@@ -123,6 +124,10 @@ Look for duplicate state, duplicate schema, duplicate renderers, duplicate fetch
 
 Check whether modules are placed in the right layer, dependencies flow in the right direction, and business logic is not leaking into UI glue or test helpers.
 
+## Repair Budget Rule
+
+Repeated repair failure is usually an architecture or scope problem, not a Coder diligence problem. When the same Milestone receives `REPAIR_REQUIRED` three times, or the same blocking issue survives two repair attempts, do not keep requesting another local patch. Mark the issue as a structural blocker, explain the architecture or scope decision needed, and return `REPAIR_REQUIRED` with an explicit pause recommendation for Scheduler.
+
 ## Verdict Consistency Rule
 
 - Use `REPAIR_REQUIRED` if Blocking Issues is non-empty.
@@ -138,7 +143,7 @@ Record how this review was performed:
 - human reviewer
 - explicit solo best-effort review
 
-Do not describe validation, commit, push, or zip packaging as reviewer approval.
+Do not describe validation, commit, push, or zip packaging as reviewer approval. If provenance is `explicit solo best-effort review`, the result is reduced review provenance and must not be described as formal independent Reviewer approval.
 
 ## Output Format
 

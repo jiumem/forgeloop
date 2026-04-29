@@ -69,7 +69,7 @@ The Scheduler must not replace the role protocol with a rewritten summary of Cod
 - Do not spawn a fresh Reviewer for every Milestone by default.
 - Record unavailable subagent tools or replacements in `LEDGER.md` notes when they affect review provenance.
 
-If subagent tools are unavailable, fail, or are explicitly forbidden by the user, continue only when the user asked to continue or the environment makes subagents impossible. Record the run as `explicit solo best-effort` in `LEDGER.md`. A solo best-effort review may produce a provisional `PASS` for packaging or archive delivery, but it must not be described as subagent review.
+If subagent tools are unavailable, fail, or are explicitly forbidden by the user, continue only when the user asked to continue or the environment makes subagents impossible. Record the run as `explicit solo best-effort` in `LEDGER.md`. Solo best-effort is reduced review provenance: it may prepare packaging and delivery notes, but it must not be described as formal independent Reviewer approval or subagent review. Completion records must make the reduced provenance explicit.
 
 ## Milestone Status Values
 
@@ -123,7 +123,7 @@ Coder must not mark Milestone status, reviewer verdict, or reviewer provenance i
 
 Reviewer must not modify code, `PLAN.md`, `LEDGER.md`, or repo-tracked evidence files. Reviewer returns a verdict report only. Reviewer may capture or inspect temporary screenshots for review; if those screenshots must be preserved, Scheduler records or copies them into `evidence/` after the verdict.
 
-Scheduler-owned `LEDGER.md`, `DELIVERY.md`, and evidence updates must be committed when Git is available. Prefer either a small Scheduler commit after each Milestone verdict or include the ledger/evidence updates in the Milestone commit range before push. Do not leave recovery-critical `LEDGER.md` updates only in the local worktree after a Milestone `PASS`.
+Scheduler-owned `LEDGER.md`, `DELIVERY.md`, and evidence updates must be committed when Git is available. Prefer one coherent Milestone implementation commit, plus optional repair fixup commits and optional Scheduler evidence/ledger commits. Do not split the primary implementation by Work Item by default. Do not leave recovery-critical `LEDGER.md` updates only in the local worktree after a Milestone `PASS`.
 
 ## Write Targets
 
@@ -152,25 +152,27 @@ Do not modify recommendation snapshots as part of execution.
 2. Locate the active initiative root and read `PLAN.md` and `LEDGER.md`.
 3. Resume from the first Milestone whose status is not `PASS` and not `CANCELLED`.
 4. Spawn or reuse the Coder subagent, then send a task-entry packet that points it to `references/coder-protocol.md`, the initiative root, the current Milestone, and execution boundaries.
-5. Coder reads its role protocol, independently locates source-of-truth docs, implements the Milestone, runs validation, performs screenshots for UI work, commits, pushes when possible as a review candidate, and reports evidence.
+5. Coder reads its role protocol, independently locates source-of-truth docs, implements the Milestone, runs validation, performs screenshots for UI work, creates a coherent Milestone-level commit, pushes when possible as a review candidate, and reports evidence.
 6. Scheduler updates `LEDGER.md` to `REVIEW` with commit range, validation, and evidence paths.
 7. Spawn or reuse the Reviewer subagent, then send a task-entry packet that points it to `references/reviewer-protocol.md`, the initiative root, Coder report, actual diff range, and review boundaries.
 8. Reviewer reads its role protocol, independently locates source-of-truth docs, inspects the Coder report and actual diff, then reviews from product, test, and architecture perspectives.
-9. If Reviewer returns `REPAIR_REQUIRED`, send only the blocking issues back to Coder, record repair history, and repeat review.
-10. For repairs, Reviewer should inspect the repair diff and, when needed, the cumulative Milestone diff from the last accepted base to current HEAD. A fixup-only review may confirm a narrow blocker is fixed, but final `PASS` must remain compatible with the full Milestone diff.
-11. If Reviewer returns `PASS`, Scheduler updates `LEDGER.md`, commits recovery-critical ledger/evidence updates when Git is available, and moves to the next Milestone.
-12. Continue directly to the next Milestone after `PASS`; do not stop for a summary unless the user interrupts, a blocking ambiguity or safety issue appears, or the initiative is complete.
-13. After all Milestones pass, run final validation.
-14. If final validation fails:
+9. If Reviewer returns `REPAIR_REQUIRED`, record repair history before any new coding.
+10. Apply the repair budget: if the same Milestone receives `REPAIR_REQUIRED` three times, or the same blocking issue survives two repair attempts, pause the initiative, set the Milestone to `PAUSED`, record the structural blocker in `LEDGER.md`, and ask for human architectural decision instead of continuing the loop.
+11. If the repair budget has not been exceeded, send only the blocking issues back to Coder and repeat review.
+12. For repairs, Reviewer should inspect the repair diff and, when needed, the cumulative Milestone diff from the last accepted base to current HEAD. A fixup-only review may confirm a narrow blocker is fixed, but final `PASS` must remain compatible with the full Milestone diff.
+13. If Reviewer returns `PASS`, Scheduler updates `LEDGER.md`, commits recovery-critical ledger/evidence updates when Git is available, and moves to the next Milestone.
+14. Continue directly to the next Milestone after `PASS`; do not stop for a summary unless the user interrupts, a blocking ambiguity or safety issue appears, or the initiative is complete.
+15. After all Milestones pass, run final validation.
+16. If final validation fails:
     - keep the initiative in `active/`
     - record the final validation failure in `LEDGER.md`
     - create or update a repair entry
     - send the final validation blockers to Coder
     - rerun Reviewer for the affected Milestone, the repair diff, and the cumulative diff when needed
     - do not write completed `DELIVERY.md` or move to `completed/`
-15. If final validation passes, write or update `DELIVERY.md` using `references/delivery-template.md`, prepare a PR summary, and always write or update handoff using `references/handoff-template.md`. If there are no handoff findings, record `none` / `无` explicitly.
-16. Move the initiative directory from `docs/initiatives/active/<initiative-code>-<initiative-slug>/` to `docs/initiatives/completed/<initiative-code>-<initiative-slug>/`, update `docs/initiatives/handoff/index.md` using `references/handoff-index-template.md` when creating it, and commit recovery-critical delivery/ledger/handoff updates when Git is available.
-17. Do not create a second status file for completion. `PLAN.md`, `LEDGER.md`, `DELIVERY.md`, handoff, and Git history are sufficient.
+17. If final validation passes, write or update `DELIVERY.md` using `references/delivery-template.md`, prepare a PR summary, and always write or update handoff using `references/handoff-template.md`. If there are no handoff findings, record `none` / `无` explicitly.
+18. Move the initiative directory from `docs/initiatives/active/<initiative-code>-<initiative-slug>/` to `docs/initiatives/completed/<initiative-code>-<initiative-slug>/`, update `docs/initiatives/handoff/index.md` using `references/handoff-index-template.md` when creating it, and commit recovery-critical delivery/ledger/handoff updates when Git is available.
+19. Do not create a second status file for completion. `PLAN.md`, `LEDGER.md`, `DELIVERY.md`, handoff, and Git history are sufficient.
 
 ## Reviewer Verdict Rule
 

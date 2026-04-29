@@ -17,7 +17,7 @@ Design docs, ADRs, gap notes, audits, user requests, and existing code are refer
 
 ## Read First
 
-1. The user request and any selected recommendation file
+1. The user request, any `grill-requirement` decision summary, and any selected recommendation file
 2. Existing design, ADR, gap, audit, or product docs referenced by the user
 3. Relevant source and test areas
 4. Existing `docs/initiatives/active/<initiative-code>-<slug>/PLAN.md` if updating an active initiative
@@ -78,7 +78,7 @@ evidence/                 # created by run-initiative as needed
 
 ## Workflow
 
-1. Clarify only blocking ambiguity in the initiative goal, scope, and non-goals. Otherwise make reasonable assumptions and record them in PLAN.md.
+1. Clarify only blocking ambiguity in the initiative goal, scope, and non-goals. If the requirement still has multiple blocking decision-tree branches, stop and recommend `grill-requirement` before writing PLAN.md. Otherwise make reasonable assumptions and record them in PLAN.md.
 2. Read enough repository context to avoid guessing about architecture, tests, and validation commands.
 3. Summarize execution-relevant design decisions and current gaps without copying entire reference docs.
 4. Group work into Milestones that each produce an inspectable state.
@@ -87,7 +87,7 @@ evidence/                 # created by run-initiative as needed
 7. Define validation commands or manual checks for each Milestone.
 8. Add structured visual / UX checks for UI changes, including preview target, viewports, required states, and screenshot evidence.
 9. Add reviewer focus for product, test, and architecture perspectives.
-10. For a new initiative, create a minimal `LEDGER.md` skeleton with all Milestones initially `TODO`.
+10. For a new initiative, create a minimal `LEDGER.md` skeleton using `references/ledger-template.md`, with all Milestones initially `TODO`.
 11. For an existing active initiative, preserve existing `LEDGER.md` execution facts and only append or adjust future Milestones unless the user explicitly requests a full rewrite.
 
 ## Quality Bar
@@ -105,4 +105,4 @@ A valid PLAN:
 
 ## Output Shape
 
-Use `references/plan-template.md` as the canonical PLAN shape and `references/hardening-milestone-template.md` when adding a hardening Milestone.
+Use `references/plan-template.md` as the canonical PLAN shape, `references/ledger-template.md` as the canonical LEDGER shape, and `references/hardening-milestone-template.md` when adding a hardening Milestone.

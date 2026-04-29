@@ -61,7 +61,7 @@ Do not create an `active/<initiative-code>-<slug>/PLAN.md` unless the user expli
 9. Treat archived initiatives as reusable background only; recommend them again only with an explicit replacement or revival rationale.
 10. For each initiative, include expected outcome, suggested size, key risks, read-first files, and whether an acceptance and hardening Milestone is recommended.
 11. Include a short `Not Recommended Yet` section for tempting work that should wait.
-12. End with the best next action, usually to run `write-plan` for the top initiative.
+12. End with the best next action: run `grill-requirement` first when the top candidate still has blocking requirement ambiguity; otherwise run `write-plan` for the top initiative.
 
 ## Language Rule
 
@@ -86,4 +86,4 @@ A valid recommendation:
 
 ## Output Shape
 
-Use the template in `references/output-template.md` when writing a recommendation file.
+Use the template in `references/output-template.md` when writing a recommendation file. Use `references/recommendations-index-template.md` when creating or refreshing `docs/initiatives/recommendations/index.md`.

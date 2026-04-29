@@ -57,7 +57,25 @@ If truth sources conflict or are missing, stop and report the gap unless a conse
 6. Run the required validation commands or explain why a command could not be run.
 7. For UI work, inspect the UI and capture screenshots for required states when practical.
 8. Check `git status` before committing and keep unrelated dirty changes out of the Milestone commit.
-9. Commit and push when Git and remote access are available. Commit / push are evidence and recovery points, not approval; any push before Reviewer `PASS` is only a review candidate.
+9. Create one coherent Milestone-level primary commit when Git is available. Do not split the primary implementation by Work Item by default. Reviewer-directed repairs may add fixup commits inside the same Milestone diff range.
+10. Push when remote access is available. Commit / push are evidence and recovery points, not approval; any push before Reviewer `PASS` is only a review candidate.
+
+## Git Evidence Rule
+
+Default commit granularity is one coherent primary commit per Milestone. Use this message shape when practical:
+
+```text
+<initiative-code> <milestone-id>: <concise summary>
+```
+
+Examples:
+
+```text
+001 M02: add ledger-driven resume flow
+001 M02 fixup: handle reviewer blocking issue
+```
+
+Work Items are not commit units by default. They help organize the Milestone internally, but the review target is the Milestone diff.
 
 ## Write Boundaries
 
