@@ -32,7 +32,7 @@ Use these ranking dimensions:
 ### 1. `<proposed-initiative-code>-<initiative-slug>` — <Initiative Name>
 
 Code note:
-- Proposed code only; final code is assigned by `write-plan` when creating `active/`.
+- Proposed code only; final code is assigned by `grill-initiative` or `plan-initiative` when creating `active/`.
 
 Why now:
 - ...
@@ -53,6 +53,9 @@ Primary risks:
 Read first:
 - ...
 
+Suggested DESIGN path:
+- `docs/initiatives/active/<proposed-initiative-code>-<initiative-slug>/DESIGN.md`
+
 Suggested PLAN path:
 - `docs/initiatives/active/<proposed-initiative-code>-<initiative-slug>/PLAN.md`
 
@@ -72,4 +75,4 @@ Why before the next initiative:
 
 ## Suggested Next Action
 
-Recommend the one initiative that should be expanded with `write-plan` next.
+Recommend the one initiative that should be expanded with `grill-initiative` or `plan-initiative` next.

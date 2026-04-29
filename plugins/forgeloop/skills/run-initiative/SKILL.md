@@ -20,11 +20,12 @@ Invoking this skill is explicit user approval to delegate milestone implementati
 1. Locate the initiative root:
    - active initiative: `docs/initiatives/active/<initiative-code>-<initiative-slug>/`
    - completed initiative: read-only unless the user explicitly reopens it or creates a follow-up
-2. `<initiative-root>/PLAN.md`
-3. `<initiative-root>/LEDGER.md`
-4. `git status`
-5. recent `git log --oneline` for the working branch
-6. reference inputs listed in PLAN as needed
+2. `<initiative-root>/DESIGN.md` when present
+3. `<initiative-root>/PLAN.md`
+4. `<initiative-root>/LEDGER.md`
+5. `git status`
+6. recent `git log --oneline` for the working branch
+7. reference inputs listed in PLAN as needed
 
 Completed initiatives are read-only by default. Prefer creating a follow-up initiative with a new coded slug such as `002-<initiative-slug>-v2` or `002-<initiative-slug>-followup`. For a direct reopen, move the completed record back to `docs/initiatives/active/<initiative-code>-<initiative-slug>/`; do not keep the same coded slug in both `active/` and `completed/`.
 
@@ -47,7 +48,7 @@ Scheduler packets are task entrypoints, not extracted role manuals.
 When delegating to Coder or Reviewer, the Scheduler must provide only:
 
 - role protocol path: `plugins/forgeloop/skills/run-initiative/references/coder-protocol.md` or `reviewer-protocol.md`
-- initiative root, `PLAN.md`, and `LEDGER.md`
+- initiative root, `DESIGN.md` when present, `PLAN.md`, and `LEDGER.md`
 - current Milestone ID and intended scope boundary
 - branch, base commit, dirty baseline, and relevant evidence paths
 - for Reviewer: Coder report, diff range, repair diff when applicable, and preview targets or screenshots when relevant
@@ -149,7 +150,7 @@ Do not modify recommendation snapshots as part of execution.
 ## Workflow
 
 1. Confirm or create the working branch, normally `codex/<initiative-code>-<initiative-slug>`.
-2. Locate the active initiative root and read `PLAN.md` and `LEDGER.md`.
+2. Locate the active initiative root and read `DESIGN.md` when present, `PLAN.md`, and `LEDGER.md`.
 3. Resume from the first Milestone whose status is not `PASS` and not `CANCELLED`.
 4. Spawn or reuse the Coder subagent, then send a task-entry packet that points it to `references/coder-protocol.md`, the initiative root, the current Milestone, and execution boundaries.
 5. Coder reads its role protocol, independently locates source-of-truth docs, implements the Milestone, runs validation, performs screenshots for UI work, creates a coherent Milestone-level commit, pushes when possible as a review candidate, and reports evidence.
@@ -192,11 +193,12 @@ Record verdict provenance in `LEDGER.md`: subagent reviewer, human reviewer, or 
 Recovery requires only:
 
 1. locate the initiative in `docs/initiatives/active/<initiative-code>-<initiative-slug>/` or `docs/initiatives/completed/<initiative-code>-<initiative-slug>/`
-2. read `PLAN.md`
-3. read `LEDGER.md`
-4. inspect `git status`
-5. inspect recent commits
-6. resume from the first non-`PASS`, non-`CANCELLED` Milestone when the initiative is still active
+2. read `DESIGN.md` when present
+3. read `PLAN.md`
+4. read `LEDGER.md`
+5. inspect `git status`
+6. inspect recent commits
+7. resume from the first non-`PASS`, non-`CANCELLED` Milestone when the initiative is still active
 
 Do not reconstruct execution from chat memory.
 
@@ -214,11 +216,11 @@ Do not reconstruct execution from chat memory.
 
 - Scheduler keeps working through Milestones until the initiative is complete, unless a major blocker requires user decision or the user interrupts.
 - Scheduler must not pause for routine progress summaries, permission to continue, or non-blocking implementation choices.
-- Coder must read PLAN and listed reference inputs before implementation.
+- Coder must read DESIGN when present, PLAN, and listed reference inputs before implementation.
 - Coder must independently locate source-of-truth docs instead of relying on Scheduler summaries.
 - Coder should run relevant validation and record evidence.
 - For UI work, Coder and Reviewer should both perform screenshot-based confirmation when practical.
-- Reviewer must inspect the actual diff range, not just the Coder report.
+- Reviewer must inspect DESIGN when present, PLAN, and the actual diff range, not just the Coder report.
 - Reviewer must independently locate source-of-truth docs instead of relying on Scheduler or Coder summaries.
 - Reviewer must not edit code, PLAN, LEDGER, or repo-tracked evidence.
 - Commit and push are evidence and recovery checkpoints, not approval.

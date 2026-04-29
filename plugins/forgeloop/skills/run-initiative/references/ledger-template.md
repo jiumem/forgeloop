@@ -5,6 +5,7 @@ Language note: this template defines structure only. Write headings and prose in
 ## Initiative
 
 - Initiative root: `<initiative-root>`
+- Design: `./DESIGN.md` when present
 - Plan: `./PLAN.md`
 - Branch: `codex/<initiative-code>-<initiative-slug>`
 - Base commit:

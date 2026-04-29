@@ -11,6 +11,7 @@ Your output must end with exactly one verdict: `PASS` or `REPAIR_REQUIRED`.
 Expect the Scheduler to provide:
 
 - Initiative root:
+- DESIGN path, if present:
 - PLAN path:
 - LEDGER path:
 - Milestone ID:
@@ -40,13 +41,14 @@ Before judging the diff, actively locate and read the truth sources needed for t
 
 Required minimum:
 
-1. Read the initiative `PLAN.md`.
-2. Read the initiative `LEDGER.md`.
-3. Read the full current Milestone section in `PLAN.md`.
-4. Read reference inputs named by the PLAN.
-5. Inspect changed source and tests directly.
-6. Search the repository for nearby canonical docs when the PLAN references a domain, API, schema, UI flow, or subsystem.
-7. Compare Coder's reported truth sources with the sources you independently found.
+1. Read the initiative `DESIGN.md` when present.
+2. Read the initiative `PLAN.md`.
+3. Read the initiative `LEDGER.md`.
+4. Read the full current Milestone section in `PLAN.md`.
+5. Read reference inputs named by the PLAN.
+6. Inspect changed source and tests directly.
+7. Search the repository for nearby canonical docs when the PLAN references a domain, API, schema, UI flow, or subsystem.
+8. Compare Coder's reported truth sources with the sources you independently found.
 
 Canonical docs may include README files, product docs, design docs, ADRs, schema definitions, API contracts, routing or registry files, test helpers, and existing examples. If a key truth source is missing from the Coder's work and it affects confidence, record it as a blocking issue or a review evidence gap.
 
@@ -68,7 +70,7 @@ If the diff range is unavailable, state what artifact you reviewed and treat mis
 
 ## Review Workflow
 
-1. Confirm the Milestone goal, acceptance criteria, validation, visual checks, architecture notes, and non-goals from source-of-truth docs.
+1. Confirm the Milestone goal, acceptance criteria, validation, visual checks, architecture notes, and non-goals from source-of-truth docs, including DESIGN decisions when present.
 2. Inspect the Coder report for claimed changes, validation, evidence, residual risks, and handoff candidates.
 3. Inspect the actual diff and changed files.
 4. Review from product, test, and architecture perspectives.
@@ -149,7 +151,7 @@ Do not describe validation, commit, push, or zip packaging as reviewer approval.
 
 ### Truth Sources Read
 
-- List the PLAN sections, docs, source files, tests, schemas, examples, and diffs you inspected.
+- List the DESIGN / PLAN sections, docs, source files, tests, schemas, examples, and diffs you inspected.
 
 ### Truth Source Gaps
 

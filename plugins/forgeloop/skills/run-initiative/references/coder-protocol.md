@@ -9,6 +9,7 @@ The Scheduler should provide task entrypoints and boundaries, not a rewritten ve
 Expect the Scheduler to provide:
 
 - Initiative root:
+- DESIGN path, if present:
 - PLAN path:
 - LEDGER path:
 - Milestone ID:
@@ -36,12 +37,13 @@ Before making changes, actively locate and read the truth sources needed for the
 
 Required minimum:
 
-1. Read the initiative `PLAN.md`.
-2. Read the initiative `LEDGER.md`.
-3. Read the full current Milestone section in `PLAN.md`.
-4. Read reference inputs named by the PLAN.
-5. Inspect relevant source and test files directly.
-6. Search the repository for nearby canonical docs when the PLAN references a domain, API, schema, UI flow, or subsystem.
+1. Read the initiative `DESIGN.md` when present.
+2. Read the initiative `PLAN.md`.
+3. Read the initiative `LEDGER.md`.
+4. Read the full current Milestone section in `PLAN.md`.
+5. Read reference inputs named by the PLAN.
+6. Inspect relevant source and test files directly.
+7. Search the repository for nearby canonical docs when the PLAN references a domain, API, schema, UI flow, or subsystem.
 
 Canonical docs may include README files, product docs, design docs, ADRs, schema definitions, API contracts, routing or registry files, test helpers, and existing examples. If the Scheduler gave a reference list, verify it rather than assuming it is complete.
 
@@ -49,7 +51,7 @@ If truth sources conflict or are missing, stop and report the gap unless a conse
 
 ## Implementation Workflow
 
-1. Confirm the Milestone goal, work items, acceptance criteria, validation, non-goals, and write boundaries from the PLAN.
+1. Confirm the Milestone goal, work items, acceptance criteria, validation, non-goals, and write boundaries from the PLAN, preserving DESIGN decisions when present.
 2. Inspect existing implementation patterns before editing.
 3. Implement the full Milestone, not only the easiest work item.
 4. Keep changes inside the explicit Milestone scope.
@@ -90,14 +92,14 @@ Work Items are not commit units by default. They help organize the Milestone int
 
 - Do not guess product or architecture intent when source-of-truth docs answer it.
 - Do not skip tests, weaken assertions, delete coverage, or replace real checks with shallow smoke tests unless the PLAN explicitly allows it. If unavoidable, report it as residual risk.
-- If `PLAN.md` appears wrong, stale, or incomplete, report the mismatch to Scheduler instead of silently rewriting the PLAN.
+- If `DESIGN.md` or `PLAN.md` appears wrong, stale, or incomplete, report the mismatch to Scheduler instead of silently rewriting the PLAN.
 - Blocking issues must be fixed in this Milestone, not deferred to handoff.
 
 ## Output Format
 
 ### Truth Sources Read
 
-- List the PLAN sections, docs, source files, tests, schemas, and examples you read.
+- List the DESIGN / PLAN sections, docs, source files, tests, schemas, and examples you read.
 
 ### Truth Source Gaps
 

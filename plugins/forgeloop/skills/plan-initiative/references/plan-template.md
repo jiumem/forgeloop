@@ -17,6 +17,7 @@ What this initiative explicitly does not cover.
 ## Reference Inputs
 
 - User request:
+- DESIGN.md:
 - Recommendation file:
 - Product / design docs:
 - ADR / gap / audit docs:
@@ -30,6 +31,7 @@ What this initiative explicitly does not cover.
 
 ## Current Context / Gap Summary
 
+- Design decision summary:
 - Current state:
 - Main gaps:
 - Constraints:

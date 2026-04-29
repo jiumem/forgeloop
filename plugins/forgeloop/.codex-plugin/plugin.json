@@ -1,6 +1,6 @@
 {
   "name": "forgeloop",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Initiative-first, milestone-gated engineering workflow for Codex.",
   "author": {
     "name": "Forgeloop",
@@ -13,7 +13,7 @@
     "codex",
     "workflow",
     "initiative",
-    "requirement",
+    "design",
     "sequence",
     "milestone",
     "review"
@@ -21,8 +21,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Forgeloop",
-    "shortDescription": "Grill requirements, recommend, plan, and run initiative-based engineering loops in Codex",
-    "longDescription": "A lightweight Codex workflow layer built around requirement grilling, initiative recommendations, PLAN.md authoring, milestone execution, active initiative sequences, reviewer verdicts, Git evidence, and a minimal LEDGER.md recovery record.",
+    "shortDescription": "Recommend, grill, plan, and run initiative-based engineering loops in Codex",
+    "longDescription": "A lightweight Codex workflow layer built around initiative recommendations, DESIGN.md decision records, PLAN.md authoring, milestone execution, active initiative sequences, reviewer verdicts, Git evidence, and a minimal LEDGER.md recovery record.",
     "developerName": "Forgeloop",
     "category": "Productivity",
     "capabilities": [
@@ -31,9 +31,9 @@
     ],
     "websiteURL": "https://github.com/jiumem/forgeloop",
     "defaultPrompt": [
-      "Use Forgeloop to grill this requirement before planning.",
       "Use Forgeloop to recommend the next initiatives from this source baseline.",
-      "Use Forgeloop to write an executable PLAN.md for this initiative.",
+      "Use Forgeloop to grill this candidate initiative into DESIGN.md before planning.",
+      "Use Forgeloop to plan this initiative into PLAN.md and LEDGER.md.",
       "Use Forgeloop to run this initiative by milestone.",
       "Use Forgeloop to run a sequence of active initiatives."
     ],

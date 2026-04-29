@@ -1,24 +1,24 @@
 ---
-name: write-plan
-description: Use when the user selects an Initiative or gives a requirement and wants a runnable PLAN.md/LEDGER.md organized by Milestones for later run-initiative execution; do not use to code.
+name: plan-initiative
+description: Use when the user selects an Initiative or DESIGN.md and wants a runnable PLAN.md/LEDGER.md organized by Milestones for later run-initiative execution; do not use to code.
 ---
 
-# write-plan
+# plan-initiative
 
 ## Trigger
 
-Use this skill when the user chooses an initiative, asks for a PLAN, asks to turn a requirement into an executable plan, or asks to prepare work that will later be run by `run-initiative`.
+Use this skill when the user chooses an initiative, asks for a PLAN, asks to turn `DESIGN.md` into an executable plan, or asks to prepare work that will later be run by `run-initiative`.
 
 ## Goal
 
-Write a concise `PLAN.md` that can be consumed directly by `run-initiative`. The PLAN is the only execution planning contract for a selected initiative.
+Write a concise `PLAN.md` that can be consumed directly by `run-initiative`, plus a minimal `LEDGER.md`. `DESIGN.md` is the design decision source of truth when present; `PLAN.md` is the execution contract.
 
-Design docs, ADRs, gap notes, audits, user requests, and existing code are reference inputs. They are not Forgeloop lifecycle objects.
+Do not re-litigate design decisions from `DESIGN.md` unless it is missing, stale, contradicted by repository facts, or explicitly superseded by the user.
 
 ## Read First
 
-1. The user request, any `grill-requirement` decision summary, and any selected recommendation file
-2. Existing design, ADR, gap, audit, or product docs referenced by the user
+1. The user request, selected recommendation file, and `<initiative-root>/DESIGN.md` when present
+2. Existing ADR, gap, audit, or product docs referenced by `DESIGN.md` or the user
 3. Relevant source and test areas
 4. Existing `docs/initiatives/active/<initiative-code>-<slug>/PLAN.md` if updating an active initiative
 5. Existing `docs/initiatives/active/<initiative-code>-<slug>/LEDGER.md` if execution has already started
@@ -51,7 +51,7 @@ LEDGER.md
 Optional files:
 
 ```text
-DESIGN.md                 # only when the user asks for a design article or the project needs one
+DESIGN.md                 # produced by grill-initiative when the initiative needed design decisions
 evidence/                 # created by run-initiative as needed
 ```
 
@@ -78,17 +78,18 @@ evidence/                 # created by run-initiative as needed
 
 ## Workflow
 
-1. Clarify only blocking ambiguity in the initiative goal, scope, and non-goals. If the requirement still has multiple blocking decision-tree branches, stop and recommend `grill-requirement` before writing PLAN.md. Otherwise make reasonable assumptions and record them in PLAN.md.
-2. Read enough repository context to avoid guessing about architecture, tests, and validation commands.
-3. Summarize execution-relevant design decisions and current gaps without copying entire reference docs.
-4. Group work into Milestones that each produce an inspectable state.
-5. Keep each Milestone to 3-5 work items.
-6. Define concrete acceptance criteria for each Milestone.
-7. Define validation commands or manual checks for each Milestone.
-8. Add structured visual / UX checks for UI changes, including preview target, viewports, required states, and screenshot evidence.
-9. Add reviewer focus for product, test, and architecture perspectives.
-10. For a new initiative, create a minimal `LEDGER.md` skeleton using `references/ledger-template.md`, with all Milestones initially `TODO`.
-11. For an existing active initiative, preserve existing `LEDGER.md` execution facts and only append or adjust future Milestones unless the user explicitly requests a full rewrite.
+1. If `DESIGN.md` exists, read it first and preserve its Decision Records, rejected alternatives, residual risks, and activation disposition.
+2. If there is no `DESIGN.md` and the initiative still has blocking design ambiguity, stop and recommend `grill-initiative` before writing `PLAN.md`.
+3. Read enough repository context to avoid guessing about architecture, tests, and validation commands.
+4. Summarize execution-relevant design decisions and current gaps without copying entire reference docs.
+5. Group work into Milestones that each produce an inspectable state.
+6. Keep each Milestone to 3-5 work items.
+7. Define concrete acceptance criteria for each Milestone.
+8. Define validation commands or manual checks for each Milestone.
+9. Add structured visual / UX checks for UI changes, including preview target, viewports, required states, and screenshot evidence.
+10. Add reviewer focus for product, test, and architecture perspectives.
+11. For a new initiative, create a minimal `LEDGER.md` skeleton using `references/ledger-template.md`, with all Milestones initially `TODO`.
+12. For an existing active initiative, preserve existing `LEDGER.md` execution facts and only append or adjust future Milestones unless the user explicitly requests a full rewrite.
 
 ## Quality Bar
 
@@ -97,7 +98,7 @@ A valid PLAN:
 - can be executed by a Scheduler without re-planning
 - tells Coder what to read, what to change, what not to change, and how to validate
 - tells Reviewer how to decide `PASS` vs `REPAIR_REQUIRED`
-- keeps Design / Gap / ADR documents as reference inputs, not copied truth sources
+- preserves `DESIGN.md` as design decision source of truth when present
 - includes a hardening Milestone when a risky capability needs quality consolidation
 - avoids vague acceptance like “works well”, “tests sufficient”, or “code clean”
 - avoids duplicating active or completed initiatives unless the new plan is explicitly a follow-up or v2

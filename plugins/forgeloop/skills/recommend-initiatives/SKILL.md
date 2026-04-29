@@ -1,6 +1,6 @@
 ---
 name: recommend-initiatives
-description: Use when the user asks Codex to inspect the current repository and recommend the next 3-5 high-value development Initiatives before planning or coding; do not use for writing PLAN.md or executing work.
+description: Use when the user asks Codex to inspect the current repository and recommend the next 3-5 high-value development Initiatives before grilling, planning, or coding; do not use for writing DESIGN.md, PLAN.md, or executing work.
 ---
 
 # recommend-initiatives
@@ -38,7 +38,7 @@ Also update:
 docs/initiatives/recommendations/index.md
 ```
 
-Do not create an `active/<initiative-code>-<slug>/PLAN.md` unless the user explicitly selects an initiative or asks you to write a plan.
+Do not create `active/<initiative-code>-<slug>/DESIGN.md` or `PLAN.md` unless the user explicitly selects an initiative and asks you to grill or plan it.
 
 ## Initiative Naming
 
@@ -46,7 +46,7 @@ Do not create an `active/<initiative-code>-<slug>/PLAN.md` unless the user expli
 - Provisional recommendation codes are planning aids, not reservations. They do not permanently claim initiative numbers.
 - Determine provisional codes by scanning existing `docs/initiatives/handoff/`, `active/`, `completed/`, and `archived/` entries for used three-digit prefixes. Prior recommendation snapshots may inform naming, but must not reserve codes.
 - Assign recommendations in order using the next unused provisional codes, such as `001-...`, `002-...`, `003-...`.
-- Use the provisional coded slug in suggested PLAN paths so `write-plan` can preserve it when it is still available.
+- Use the provisional coded slug in suggested DESIGN and PLAN paths so `grill-initiative` or `plan-initiative` can preserve it when it is still available.
 
 ## Workflow
 
@@ -61,7 +61,7 @@ Do not create an `active/<initiative-code>-<slug>/PLAN.md` unless the user expli
 9. Treat archived initiatives as reusable background only; recommend them again only with an explicit replacement or revival rationale.
 10. For each initiative, include expected outcome, suggested size, key risks, read-first files, and whether an acceptance and hardening Milestone is recommended.
 11. Include a short `Not Recommended Yet` section for tempting work that should wait.
-12. End with the best next action: run `grill-requirement` first when the top candidate still has blocking requirement ambiguity; otherwise run `write-plan` for the top initiative.
+12. End with the best next action: run `grill-initiative` first when the top candidate needs design pressure-testing; otherwise run `plan-initiative` for the top initiative.
 
 ## Language Rule
 
