@@ -29,6 +29,7 @@ Forgeloop 的目标是给 Codex 一个足够轻、足够硬的工程闭环：
 - 用 `recommend-initiatives` 找到接下来最值得做的开发单元；
 - 用 `write-plan` 把目标写成可执行的 `PLAN.md`；
 - 用 `run-initiative` 按 Milestone 长时间推进；
+- 用 `run-initiative-sequences` 串行推进 active 队列中的多个连续专项；
 - 用 Coder 负责实现和自测；
 - 用 Reviewer 从产品、测试、架构三个角度裁决；
 - 用 `LEDGER.md` 和 Git 留下可恢复、可审查、可回滚的证据。
@@ -122,11 +123,11 @@ Forgeloop 的推进条件是 Reviewer `PASS`，不是：
 - zip 已经打包；
 - Coder 自己说完成。
 
-## 四个技能入口
+## 五个技能入口
 
-Forgeloop 只暴露四个核心技能。
+Forgeloop 只暴露五个核心技能。
 
-四个技能生成的交付文档默认跟随用户输入语言。文件路径、命令、代码标识、分支名、状态值和协议 token 保持原文，例如 `PASS`、`REPAIR_REQUIRED`、`TODO`、`CODING`。
+五个技能生成的交付文档默认跟随用户输入语言。文件路径、命令、代码标识、分支名、状态值和协议 token 保持原文，例如 `PASS`、`REPAIR_REQUIRED`、`TODO`、`CODING`。
 
 ### 1. `grill-requirement`
 
@@ -222,6 +223,27 @@ PASS 则记录 verdict 并进入下一个 Milestone
 写 DELIVERY.md，准备 PR summary，移动到 completed/
 ```
 
+### 5. `run-initiative-sequences`
+
+串行运行 `docs/initiatives/active/` 下用户指定的连续多个 Initiative。
+
+它是 `run-initiative` 的薄调度壳：只负责枚举 active 队列、确认用户要跑的范围、逐个调用标准 `run-initiative` 工作流，并在全部完成后输出聚合 PR summary。它不复制 Milestone、Reviewer、repair 或 DELIVERY 规则。
+
+常见用法：
+
+```text
+请使用 Forgeloop run-initiative-sequences 跑 active 下 003 到 006 这几个专项。
+```
+
+如果用户没有指定范围，它应先反问是运行全部 active Initiative，还是运行一个指定范围。
+
+运行连续专项序列前，建议把 Codex TOML 配置中的 subagent 线程上限调大，例如：
+
+```toml
+[agents]
+max_threads = 100
+```
+
 ## 运行时存储结构
 
 Forgeloop 的插件代码和项目运行记录是分开的。
@@ -311,6 +333,7 @@ plugins/forgeloop/
 │       └── skills/
 │           ├── grill-requirement/
 │           ├── recommend-initiatives/
+│           ├── run-initiative-sequences/
 │           ├── write-plan/
 │           └── run-initiative/
 ├── LICENSE
@@ -351,6 +374,14 @@ plugins/forgeloop/
 
 适合直接进入编码交付阶段。
 
+### 串行执行多个 active Initiative
+
+```text
+请使用 Forgeloop run-initiative-sequences 跑 docs/initiatives/active 下 003 到 006 的连续专项。
+```
+
+适合多个已规划 Initiative 需要按编号顺序连续推进，但仍要求每个 Initiative 独立走完 `run-initiative` 审查闭环时使用。
+
 ### 恢复中断的 Initiative
 
 ```text
@@ -369,7 +400,7 @@ Forgeloop 会读取 `PLAN.md`、`LEDGER.md`、`git status` 和最近提交，而
 
 ## Subagent 使用方式
 
-Forgeloop 不内置 custom agent TOML。Coder 和 Reviewer 由 `run-initiative` 技能中的角色协议定义；Scheduler 委派时只提供本次任务入口和边界，不替 Coder/Reviewer 提取或改写工作规范：
+Forgeloop 不内置 custom agent TOML。Coder 和 Reviewer 由 `run-initiative` 技能中的角色协议定义；Scheduler 委派时只提供“角色协议 + 任务真值文件 + 本轮任务要求”，不把自己消化后的上下文转述成二手任务说明，也不替 Coder/Reviewer 提取或改写工作规范：
 
 ```text
 plugins/forgeloop/skills/run-initiative/references/coder-protocol.md
@@ -378,6 +409,8 @@ plugins/forgeloop/skills/run-initiative/references/handoff-template.md
 plugins/forgeloop/skills/run-initiative/references/handoff-index-template.md
 ```
 
+任务真值文件通常是当前 Initiative 的 `PLAN.md`、`LEDGER.md`、相关源码 / 测试 / 设计文档、Coder 报告、真实 diff range 和证据路径。Scheduler 可以说明本轮 Milestone、范围、分支、base commit、dirty baseline 和停止条件，但 Coder / Reviewer 必须自己读取协议和真值文件后执行或裁决。
+
 在支持 subagent 的 Codex 环境中，推荐使用通用 subagent：
 
 - Coder：`default` 或 `worker`，高 reasoning effort；
@@ -385,6 +418,8 @@ plugins/forgeloop/skills/run-initiative/references/handoff-index-template.md
 - `fork_context=false`；
 - 每个 Initiative 尽量复用同一个 Coder 和同一个 Reviewer；
 - `task_name` 优先使用三位数编码，例如 `001-auth-hardening` 对应 `coder_001` 和 `reviewer_001`；旧的无编码 Initiative 才退回到 snake-normalized 名称。
+
+运行 `run-initiative-sequences` 这类连续专项序列时，会按 Initiative 创建新的 Coder / Reviewer 组合；如果 Codex TOML 的 `[agents].max_threads` 太低，长序列可能被线程上限卡住。建议提前调到 `100`。
 
 如果当前环境没有 subagent 工具，Scheduler 可以在用户允许的情况下继续执行，但必须把 review provenance 明确记录为 `explicit solo best-effort`。这种路径只能作为降级执行证据，不得伪称为正式独立 Reviewer 放行；完成归档必须清楚记录 reduced review provenance。
 
@@ -413,7 +448,7 @@ plugins/forgeloop/skills/run-initiative/references/handoff-index-template.md
 Forgeloop 遵循几个原则：
 
 1. Codex 原生：围绕 Codex plugin、skill、subagent 和 Git 工作流设计。
-2. 入口少：只保留 `grill-requirement`、`recommend-initiatives`、`write-plan`、`run-initiative`。
+2. 入口少：只保留 `grill-requirement`、`recommend-initiatives`、`write-plan`、`run-initiative`、`run-initiative-sequences`。
 3. 交付单元清楚：用户入口是 Initiative，执行推进靠 Milestone。
 4. 审查协议强：Reviewer 的三视角裁决比形式化状态更重要。
 5. 状态极简：恢复只依赖 `PLAN.md`、`LEDGER.md`、Git 和必要 evidence。
