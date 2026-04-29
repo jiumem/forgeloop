@@ -27,6 +27,8 @@ Root Question
 
 Use compact directory-tree markdown. The tree should read like an expandable table of contents, not a form.
 
+The final tree in `DESIGN.md` must read as authored project content, not a copied template. Remove all angle-bracket placeholders from the final tree.
+
 Avoid repeating field labels such as:
 
 ```text
@@ -50,6 +52,8 @@ Always start with the candidate Initiative's central viability question:
 
 The root question is not asking whether code should be written. It asks whether the candidate has enough design significance, value, boundary, and risk to deserve a formal `DESIGN.md`.
 
+The final root question should be candidate-specific. Do not leave the root as a generic placeholder.
+
 ---
 
 ## 3. Mandatory Viability Axes
@@ -67,6 +71,22 @@ Every tree should consider these axes, but only keep the branches that matter to
 ```
 
 Do not mechanically expand all axes. Delete or collapse axes that do not create meaningful uncertainty.
+
+Mandatory axes are generation aids. Use them to discover candidate-specific parent nodes. Do not copy the axis names as final tree parent nodes unless the axis name itself is the actual decisive uncertainty for this candidate.
+
+Prefer final parent nodes that name the candidate's real design tension, for example:
+
+```text
+0. 009 是否应该从 Studies 页面补丁升级为事件研究闭环？
+├── 1. 009 的价值是否来自真实研究结果，而不是页面展示？
+├── 2. historical_backfill 是否能服务样本生成，而不滑向 trading backtest？
+├── 3. EventStudyRun 是否必须成为唯一研究真理源？
+├── 4. mock-seed / web fallback 是否会伪造 release readiness？
+├── 5. raw close downgrade 是否足以支撑初版研究可信度？
+└── 6. full-market runtime hardening 是否必须拆出后续 Initiative？
+```
+
+Do not copy this example unless it is the actual candidate under review.
 
 ---
 
@@ -294,21 +314,40 @@ If a node only affects Milestone order, Task detail, command choice, file name, 
 
 ---
 
-## 9. Rendering Rules
+## 9. Tree-to-Design Coverage Expectation
+
+Every high-value leaf in the Value Question Directory Tree must later land in one of:
+
+- a Decision Record
+- a Selected Design element
+- a Design Detail section
+- a Downstream Constraint
+- an Activation Blocker
+- a Design Follow-up
+- a Residual Risk
+- an explicit rejection or deferral
+
+This template only creates the question map. The later `DESIGN.md` must prove that important questions did not become decorative.
+
+---
+
+## 10. Rendering Rules
 
 - Use directory-tree markdown.
 - Parent nodes should be decisive uncertainties, not document section names.
+- Parent nodes should be candidate-specific when possible; do not mechanically copy mandatory axis names.
 - Child nodes should be design-risk questions, not implementation tasks.
 - Keep depth to 2-3 levels.
 - Avoid flat `Q001 / Q002 / Q003` lists as the main structure.
 - Do not decide inside the tree.
 - Do not include evidence bullets inside the tree.
 - Do not include Milestone, Task, PR sequence, command lists, or evidence filenames.
-- After the tree, perform focused investigation and write Decision Records.
+- Do not leave angle-bracket placeholders in the final tree.
+- After the tree, perform focused investigation, write Decision Records, and land accepted decisions in Selected Design / Design Details.
 
 ---
 
-## 10. Architecture Entropy Radar
+## 11. Architecture Entropy Radar
 
 Use this radar to decide whether an Architecture Entropy branch or risk lens should be expanded.
 
