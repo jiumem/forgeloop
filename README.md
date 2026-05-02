@@ -1,147 +1,172 @@
 # Forgeloop
 
-Forgeloop 是一套 Codex 原生的 Agent 自动编程开发系统，用来把一个软件项目长期、稳定、高质量地向前推进。
+[Chinese README](README.zh-CN.md)
 
-它不是项目管理工具，也不是一组提示词模板。Forgeloop 关注的是 Agent 编程真正困难的部分：如何选择下一段最值得做的开发工作，如何把目标压成可执行计划，如何让 Coder 持续交付，如何让 Reviewer 严格把关，以及如何在多轮会话、长周期开发和中断恢复中保持方向不丢、质量不散、Token 消耗可控。
+Forgeloop is a Codex-native agentic software engineering system for moving a software project forward over the long term with stability and quality.
 
-Forgeloop 的核心工作流很短：
+It is not a project management tool, and it is not a bundle of prompt templates. Forgeloop focuses on the hard parts of agentic coding: choosing the next piece of development work that is actually worth doing, compressing a goal into an executable plan, keeping Coder delivery moving, giving Reviewer real authority, and preserving direction, quality, and token discipline across multi-turn sessions, long-running development, and interrupted work.
+
+Forgeloop's core workflow is short:
 
 ```text
 Candidate -> DESIGN.md -> PLAN.md -> LEDGER.md -> DELIVERY.md
 ```
 
-其中 Initiative 是用户入口和顶层专项对象，可以粗略类比传统项目管理中的 Epic，但在 Forgeloop 中不是需求聚合标签，而是必须能被 `DESIGN.md` 裁决、被 `PLAN.md` 承载、被 Milestone 分段交付、被 Reviewer 审查并最终归档的工程闭环。它可以是一个新功能、一组架构改造、一次测试体系加固、一轮性能优化、一段 API/Schema 治理、一次文档和示例完善、一个迁移工程，或者任何需要拆成多个阶段持续推进的开发目标。
+An Initiative is the user entrypoint and the top-level unit of work. It can be roughly compared to an Epic in traditional project management, but in Forgeloop it is not a loose requirements label. It is an engineering loop that must be decided by `DESIGN.md`, carried by `PLAN.md`, delivered across Milestones, reviewed by Reviewer, and finally archived. An Initiative can be a new feature, an architectural refactor, test-system hardening, performance optimization, API / Schema governance, documentation and examples, a migration effort, or any development goal that needs sustained progress across multiple phases.
 
-## 价值和愿景
+## Value And Vision
 
-大模型已经能写出越来越复杂的代码，但长期 Agent 自动编程仍然容易卡在几个问题上：
+Large models can already write increasingly complex code, but long-running agentic coding still tends to fail in a few recurring ways:
 
-- 下一步做什么不清楚，Agent 容易在低价值任务上消耗上下文；
-- 需求没有被压成阶段计划，Coder 一上来就进入局部实现；
-- 代码能跑不等于真的完成，缺少稳定的审查协议；
-- 测试、Schema、架构边界、第二路径和状态重复经常在最后才暴露；
-- 会话中断后，恢复依赖聊天记忆，容易跑偏；
-- 多 Agent 协作时，调度、实现、审查职责混在一起，Token 消耗不可控。
+- The next best step is unclear, so the Agent burns context on low-value work.
+- Requirements are not compressed into a staged plan, so Coder jumps straight into local implementation.
+- Code that runs is not necessarily complete, and there is no stable review protocol.
+- Tests, Schema boundaries, architecture boundaries, second paths, and duplicate state often surface only at the end.
+- After an interrupted session, recovery depends on chat memory and drifts easily.
+- In multi-agent collaboration, scheduling, implementation, and review responsibilities blur together, and token usage becomes hard to control.
 
-Forgeloop 的目标是给 Codex 一个足够轻、足够硬的工程闭环：
+Forgeloop's goal is to give Codex a loop that is light enough to use and strict enough to hold:
 
-- 用 `recommend-initiatives` 找到接下来最值得做的开发单元；
-- 用 `grill-initiative` 把候选 Initiative 拷打、调研、裁决成 `DESIGN.md`；
-- 用 `plan-initiative` 把 `DESIGN.md` 压成可执行的 `PLAN.md` 和 `LEDGER.md`；
-- 用 `run-initiative` 按 Milestone 长时间推进；
-- 用 `run-initiative-sequences` 串行推进 active 队列中的多个连续专项；
-- 用 Coder 负责实现和自测；
-- 用 Reviewer 从产品、测试、架构三个角度裁决；
-- 用 `LEDGER.md` 和 Git 留下可恢复、可审查、可回滚的证据。
+- Use `recommend-initiatives` to find the next development units that are most worth doing.
+- Use `grill-initiative` to pressure-test, investigate, and decide a candidate Initiative into `DESIGN.md`.
+- Use `plan-initiative` to compress `DESIGN.md` into an executable `PLAN.md` and `LEDGER.md`.
+- Use `run-initiative` to make long-running progress by Milestone.
+- Use `run-initiative-sequences` to serially advance multiple consecutive Initiatives in the active queue.
+- Use Coder to implement, self-check, and produce evidence through the Construction Loop.
+- Use Reviewer to decide from product, test, and architecture perspectives.
+- Use `LEDGER.md` and Git to leave recoverable, reviewable, and revertible evidence.
 
-这套系统追求的是长期推送能力：不是让 Agent 完成一次演示，而是让它能在一个真实代码库里一段一段地做下去，每段都有验收、有审查、有恢复点，并且能在质量和 Token 成本之间保持稳定。
+This system is designed for durable forward motion: not to make an Agent complete a one-off demo, but to let it keep working in a real codebase one phase at a time, with acceptance, review, and recovery points in every phase, while keeping quality and token cost stable.
 
-## Codex 原生体验
+## Codex-native Experience
 
-Forgeloop 为 Codex 的插件和技能系统设计。它默认把 Codex 当作调度者，由调度者读取计划、维护进度、分发任务入口，并协调 Coder 和 Reviewer 按各自角色协议工作。
+Forgeloop is designed for Codex plugins and skills. It treats Codex as the Scheduler by default: Scheduler reads the plan, maintains progress, sends task entrypoints, and coordinates Coder and Reviewer according to their role protocols.
 
-实测中，一个很好用的组合是：
+In practice, one useful model setup is:
 
-- 调度者：GPT-5.5 medium；
-- Coder：GPT-5.5 high；
-- Reviewer：GPT-5.5 high。
+- Scheduler: GPT-5.5 medium
+- Coder: GPT-5.5 high
+- Reviewer: GPT-5.5 high
 
-这个组合在复杂开发任务里的指令遵循、修复循环和审查质量都比较稳定，最终 Token 消耗也较可控。
+This setup has been stable for instruction following, repair loops, and review quality on complex development tasks, while keeping final token usage reasonably controlled.
 
-如果你希望进一步降低 Token 消耗，可以尝试：
+If you want to reduce token usage further, you can try:
 
-- GPT-5.4 medium 作为调度者或 Reviewer；
-- GPT-5.3 Codex high 作为 Coder；
-- 对低风险 Milestone 使用较低 reasoning effort，对高风险 Milestone 保持 high。
+- GPT-5.4 medium as Scheduler or Reviewer
+- GPT-5.3 Codex high as Coder
+- Lower reasoning effort for low-risk Milestones, while keeping high reasoning effort for high-risk Milestones
 
-Forgeloop 不要求固定模型。它更重要的约束是职责分离：Scheduler 不直接把自己的上下文全部交给 Coder，Coder 不自我放行，Reviewer 只按真实 diff 和验收标准裁决。
+Forgeloop does not require a fixed model set. Its more important constraint is separation of responsibilities: Scheduler does not hand all of its context to Coder, Coder does not approve itself, and Reviewer decides only from the real diff and acceptance criteria.
 
-## 核心模型
+## Core Model
 
-### Initiative 是通用开发单元
+### Initiative Is The General Development Unit
 
-Initiative 是用户入口，也是 Forgeloop 的顶层开发单元。它可以帮助熟悉传统项目管理的人粗略理解为 Epic 级工作，但在 Forgeloop 里拥有更强的执行法位：高风险或模糊专项必须先被写成 `DESIGN.md`，再被压成 `PLAN.md`，必须能拆成多个 Milestone，必须有可验证的完成标准，并且最终必须通过交付归档收口。
+Initiative is the user entrypoint and the top-level development unit in Forgeloop. It can help people familiar with traditional project management think of it as Epic-sized work, but in Forgeloop it has a stronger execution position: a high-risk or ambiguous effort must first become `DESIGN.md`, then be compressed into `PLAN.md`, split into Milestones, given verifiable completion standards, and finally closed through delivery archival.
 
-典型 Initiative 可以是：
+Typical Initiatives include:
 
-- 实现一组产品能力；
-- 拆分过大的模块；
-- 迁移一套旧 API；
-- 整理数据模型和 Schema；
-- 补齐关键测试路径；
-- 做性能、稳定性或可观测性加固；
-- 改造构建、发布或插件结构；
-- 完成文档、示例和开发者体验升级。
+- Implementing a group of product capabilities
+- Splitting an oversized module
+- Migrating an old API
+- Cleaning up a data model or Schema
+- Completing critical test paths
+- Hardening performance, stability, or observability
+- Refactoring build, release, or plugin structure
+- Improving documentation, examples, and developer experience
 
-一个好的 Initiative 不只是“做一些事”，而是有明确业务或工程收益，并且能被分阶段交付。
+A good Initiative is not just "doing some things". It has clear product or engineering value and can be delivered in phases.
 
-### Milestone 是交付单元
+### Milestone Is The Delivery Unit
 
-Milestone 是 `run-initiative` 的推进单位。每个 Milestone 都应该能形成一次可审查的交付，不只是任务列表。
+Milestone is the progress unit consumed by `run-initiative`. Each Milestone should produce a reviewable delivery, not just a task list.
 
-Forgeloop 2.1 继续以 Milestone 作为推进、提交和审查单元，而不是把小 Task 变成默认调度对象。强模型已经能独立完成相当复杂的阶段性交付，过细的任务颗粒度会浪费上下文、增加复查成本，并把 Reviewer 的注意力从阶段闭环拖回零件清单。Work Items 只服务于 Milestone 内部执行检查，不成为正式生命周期对象。
+Forgeloop continues to use Milestone as the unit of progress, commit, and review instead of making small Tasks the default scheduling object. Strong models can already deliver fairly complex phase-level work. Overly fine task granularity wastes context, increases review cost, and drags Reviewer attention from phase closure back into component checklists. Work Items only serve execution checks inside a Milestone; they are not formal lifecycle objects.
 
-一个好的 Milestone 通常包含：
+Milestones should prefer vertical slices: a reviewable phase state becomes true across the necessary layers, rather than being split into horizontal construction batches such as schema-only, API-only, UI-only, tests-only, or docs-only. A horizontal Milestone is appropriate only when the Initiative is explicitly scoped as horizontal governance, documentation cleanup, or mechanical migration.
 
-- 3 到 5 个 Work Items；
-- 明确的验收标准；
-- 必要的验证方式；
-- Reviewer 需要重点看的风险点；
-- 清楚的非目标，避免 Coder 扩大范围。
+A good Milestone usually includes:
 
-一个 Initiative 通常建议 3 到 8 个 Milestone。对高风险能力，可以在功能 Milestone 后增加 Acceptance & Hardening Milestone，专门处理验收、测试补强、架构整理、大文件拆分和第二路径清理。
+- 3 to 5 Work Items
+- One clear Expected Inspectable State
+- Clear acceptance criteria
+- Necessary validation methods
+- Risks that Reviewer should focus on
+- Clear non-goals so Coder does not expand scope
 
-### Reviewer 是质量核心
+An Initiative usually works best with 3 to 8 Milestones. For high-risk capabilities, add an Acceptance & Hardening Milestone after feature Milestones to handle acceptance, test hardening, architecture cleanup, large-file splitting, and second-path cleanup.
 
-Forgeloop 的核心不是让 Coder 多写几行自测说明，而是让 Reviewer 真正拥有放行权。
+### Coder Is Responsible For Implementation
 
-Reviewer 必须从三个角度审查 Milestone：
+Coder is not a code generator that mechanically translates PLAN, and it is not the formal Reviewer. Coder is responsible for delivering a correct, convergent, verifiable implementation within existing boundaries, and for completing a lightweight self-check before commit.
 
-1. 产品经理角度：功能是否真的可用，用户路径是否成立，关键状态是否覆盖；
-2. 测试工程师角度：测试和验证是否真实覆盖验收标准，有没有浅层 smoke test、弱断言、跳过测试或伪验证；
-3. 架构师角度：核心 Schema 变更是否合理，大文件是否需要拆分，是否出现第二路径、重复状态、重复 schema、影子逻辑或错误的模块边界。
+Coder's Construction Loop includes:
 
-Reviewer 最终只能给出：
+```text
+Repository Orientation
+Behavior Intent Snapshot
+Public Seam Selection
+Behavior-First Red-Green Loop
+Contract And Source-of-Truth Delta Control
+Completeness And Edge Surface
+Validation And Evidence Ladder
+Self-Diff Hygiene Gate
+Repair And Risk Discipline
+```
+
+This loop does not turn TDD into a separate entrypoint, and it does not force every task to be test-first. It requires Coder to translate the Milestone into observable behavior first, prefer public seams that prove real behavior, implement in thin behavior slices, protect contracts and sources of truth, check edges and re-entry, report validation evidence that Scheduler / Reviewer can reuse, and inspect its own diff before committing.
+
+### Reviewer Is The Quality Core
+
+Forgeloop's core is not letting Coder approve itself. It is having Coder complete implementation self-checks first, then giving Reviewer real release authority.
+
+Reviewer must review each Milestone from three perspectives:
+
+1. Product Manager: whether the feature is actually usable, whether the user path holds, and whether key states are covered.
+2. Test Engineer: whether tests and validation genuinely cover the acceptance criteria, and whether there are shallow smoke tests, weak assertions, skipped tests, or fake validation.
+3. Architect: whether core Schema changes are sound, whether large files need splitting, and whether there are second paths, duplicate state, duplicate schema, shadow logic, or wrong module boundaries.
+
+Reviewer can end with only:
 
 ```text
 PASS
 REPAIR_REQUIRED
 ```
 
-只有 `PASS` 才能进入下一个 Milestone。
+Only `PASS` advances to the next Milestone.
 
-### Git 是证据，不是放行
+### Git Is Evidence, Not Approval
 
-Commit 和 push 用于记录差异、形成恢复点、支持审查和回滚。它们不是完成证明，也不是阶段放行信号。Forgeloop 默认采用 Milestone 粒度提交：一个 Milestone 形成一个可审查的主实现 commit；Reviewer 驱动的修复可以形成 fixup commit，但最终审查仍然看该 Milestone 的累计 diff。
+Commit and push record diffs, create recovery points, and support review and rollback. They are not proof of completion, and they are not phase approval. Forgeloop defaults to Milestone-granularity commits: one Milestone forms one reviewable primary implementation commit; Reviewer-driven repairs may form fixup commits, but final review still considers the cumulative Milestone diff.
 
-Forgeloop 的推进条件是 Reviewer `PASS`，不是：
+Forgeloop advances on Reviewer `PASS`, not on:
 
-- 代码已经 commit；
-- 分支已经 push；
-- build 通过；
-- 测试通过；
-- zip 已经打包；
-- Coder 自己说完成。
+- Code committed
+- Branch pushed
+- Build passing
+- Tests passing
+- Zip packaging
+- Coder saying it is done
 
-## 五个技能入口
+## Five Skill Entrypoints
 
-Forgeloop 只暴露五个核心技能。
+Forgeloop exposes only five core skills.
 
-五个技能生成的交付文档默认跟随用户输入语言。文件路径、命令、代码标识、分支名、状态值和协议 token 保持原文，例如 `PASS`、`REPAIR_REQUIRED`、`TODO`、`CODING`。
+The documents produced by these five skills default to the language of the user's request. File paths, commands, code identifiers, branch names, status values, and protocol tokens remain unchanged, such as `PASS`, `REPAIR_REQUIRED`, `TODO`, and `CODING`.
 
 ### 1. `recommend-initiatives`
 
-基于当前源码基线，推荐后续最值得做的 3 到 5 个 Initiative。
+Recommend the next 3 to 5 Initiatives that are most worth doing from the current source baseline.
 
-它会查看项目结构、文档、测试、关键源码区域和已有 Initiative 记录，然后按产品价值、工程杠杆、风险降低和执行就绪度排序。它不会开始编码，也不会为每个候选 Initiative 写 `DESIGN.md` 或完整 PLAN。
+It inspects project structure, docs, tests, key source areas, and existing Initiative records, then ranks candidates by product value, engineering leverage, risk reduction, and execution readiness. It does not start coding, and it does not write `DESIGN.md` or a full PLAN for every candidate.
 
-常见用法：
+Common usage:
 
 ```text
-请使用 Forgeloop 看一下当前项目源码基线，推荐接下来最值得做的 3-5 个 Initiative。
+Use Forgeloop to inspect the current project baseline and recommend the next 3-5 Initiatives that are most worth doing.
 ```
 
-输出通常写入：
+Output is usually written to:
 
 ```text
 docs/initiatives/recommendations/<date>-<topic>.md
@@ -149,35 +174,36 @@ docs/initiatives/recommendations/<date>-<topic>.md
 
 ### 2. `grill-initiative`
 
-在候选 Initiative、模糊需求、重构想法、迁移计划或架构方向进入 PLAN 前，先用阶段性可见方式拷打它，产出 `DESIGN.md` 所需的价值问题目录树、证据发现和正式 Decision Records。
+Before a candidate Initiative, ambiguous requirement, refactor idea, migration plan, or architecture direction enters PLAN, use this skill to pressure-test it into a document-first `DESIGN.md` draft.
 
-它不会写代码、issue、`PLAN.md` 或 `LEDGER.md`。没有明确 initiative root 时，它先在会话中输出阶段性设计裁决产物，最后询问是否激活该专项并落地为：
+`DESIGN.md` is the only working artifact for design body content; chat is used only for short progress updates, decision batches, blockers, and sealing confirmation. `grill-initiative` does not write code, issues, `PLAN.md`, or `LEDGER.md`. It creates or updates:
 
 ```text
 docs/initiatives/active/<initiative-code>-<initiative-slug>/DESIGN.md
 ```
 
-默认输出节奏：
+A new `DESIGN.md` defaults to:
 
 ```text
-Coarse Context Scan
-Value Question Directory Tree
-Focused Context Findings
-Decision Records
-Remaining Blockers
-Final Activation Question / Disposition
+Status: Draft
 ```
 
-常见用法：
+The Draft includes a Value Question Directory Tree, stable `Lxxx` Leaf IDs, Focused Context Findings, Leaf Resolution Matrix, Decision Records, Scope / Non-Goals, Selected Design, Design Details, Activation Blockers, Follow-ups, and Residual Risks.
+
+Every retained leaf must be closed exactly once in the Leaf Resolution Matrix. Questions that can be answered from code, tests, configuration, or existing docs are answered from the repository first; the user is asked only for product intent, business priority, external constraints, irreversible trade-offs, or missing authority. Terminology conflicts that affect implementation, validation, review, or downstream planning must be explicitly found, decided, blocked, or listed as open questions in `DESIGN.md`.
+
+When there are no Activation Blockers, `grill-initiative` asks whether to seal the draft. Sealing may only change `Status: Draft` to `Status: Sealed` and update sealing metadata. It must not rewrite the body, reorder sections, renumber IDs, or invent new decisions.
+
+Common usage:
 
 ```text
-请使用 Forgeloop grill-initiative 拷打这个候选专项：我想把认证模块重构掉。
+Use Forgeloop grill-initiative to pressure-test this candidate: I want to refactor the auth module.
 ```
 
-可能的 disposition 包括：
+Possible dispositions include:
 
 ```text
-Ready for activation
+Ready for sealing
 Keep as draft
 Split required
 Defer to research
@@ -187,24 +213,28 @@ Superseded
 
 ### 3. `plan-initiative`
 
-把用户选中的 Initiative 或 `DESIGN.md` 写成可执行的 `PLAN.md` 和初始 `LEDGER.md`。如果还存在阻塞设计分歧，应先使用 `grill-initiative`。
+Write the selected Initiative or `DESIGN.md` into an executable `PLAN.md` and initial `LEDGER.md`. If blocking design disagreement remains, use `grill-initiative` first.
 
-`DESIGN.md` 是设计裁决法源，`PLAN.md` 是 `run-initiative` 消费的执行契约。`plan-initiative` 不重新裁决 `DESIGN.md` 中已经有证据和标准支撑的设计方向，除非它缺失、过期或被仓库事实推翻。
+Only `DESIGN.md` with `Status: Sealed` is a formal design source that `plan-initiative` may consume. `Status: Draft`, `Status: Superseded`, missing status, unknown status, or conflicting status markers are hard stops; return to `grill-initiative` first to repair, restore, or seal the design.
 
-常见用法：
+`plan-initiative` also runs a read-only intake gate: Activation Blockers, Leaf Resolution Matrix, Decision Records, Design Impact, Downstream Constraint, remaining placeholders, and core terminology consistency. If intake fails, it does not write `PLAN.md` / `LEDGER.md`, and it does not repair `DESIGN.md` during planning.
+
+`PLAN.md` is the execution contract consumed by `run-initiative`. `plan-initiative` does not re-decide evidence-backed design directions from a sealed `DESIGN.md`. Instead, it compresses Downstream Constraints, terminology constraints, scope, acceptance criteria, and validation methods into executable Milestones. Milestones are preferably organized as vertical slices that form independently reviewable Expected Inspectable States.
+
+Common usage:
 
 ```text
-请使用 Forgeloop 为这个 Initiative 写一份 PLAN.md，后续要按 Milestone 执行。
+Use Forgeloop to write a PLAN.md for this Initiative so it can later be executed by Milestone.
 ```
 
-输出通常写入：
+Output is usually written to:
 
 ```text
 docs/initiatives/active/<initiative-code>-<initiative-slug>/PLAN.md
 docs/initiatives/active/<initiative-code>-<initiative-slug>/LEDGER.md
 ```
 
-新的 Initiative 目录名应带三位数编码前缀，例如：
+New Initiative directory names should start with a three-digit code prefix, for example:
 
 ```text
 docs/initiatives/active/001-auth-hardening/PLAN.md
@@ -213,63 +243,63 @@ docs/initiatives/active/001-auth-hardening/LEDGER.md
 
 ### 4. `run-initiative`
 
-按 `PLAN.md` 执行一个 Initiative。执行过程以 Milestone 为单位，每个 Milestone 都经过 Coder 交付和 Reviewer 审查。
+Execute an Initiative from `PLAN.md`. Execution proceeds by Milestone. Each Milestone goes through Coder delivery and Reviewer review.
 
-常见用法：
+Common usage:
 
 ```text
-请使用 Forgeloop 执行 docs/initiatives/active/<initiative-code>-<initiative-slug>/PLAN.md，一直推进到 Initiative 完成。
+Use Forgeloop to execute docs/initiatives/active/<initiative-code>-<initiative-slug>/PLAN.md until the Initiative is complete.
 ```
 
-推荐执行流：
+Recommended execution flow:
 
 ```text
-读取 DESIGN.md（如有）、PLAN.md 和 LEDGER.md
-确认或创建分支 codex/<initiative-code>-<initiative-slug>
-定位第一个非 PASS Milestone
-给 Coder 发送任务入口并要求读取 Coder 角色协议
-Coder 读文档、实现、验证、截图或证据记录、按 Milestone 粒度 commit、push
-Scheduler 更新 LEDGER.md 到 REVIEW
-给 Reviewer 发送任务入口并要求读取 Reviewer 角色协议
-Reviewer 从产品、测试、架构三视角审查真实 diff
-REPAIR_REQUIRED 则回到 Coder 修复
-PASS 则记录 verdict 并进入下一个 Milestone
-全部 Milestone PASS 后跑最终验证
-写 DELIVERY.md，准备 PR summary，移动到 completed/
+Read DESIGN.md when present, PLAN.md, and LEDGER.md
+Confirm or create branch codex/<initiative-code>-<initiative-slug>
+Locate the first non-PASS Milestone
+Send Coder a task entrypoint and require it to read the Coder role protocol
+Coder reads docs, follows the Construction Loop, implements, validates, records screenshots or evidence, commits and pushes at Milestone granularity
+Scheduler updates LEDGER.md to REVIEW
+Send Reviewer a task entrypoint and require it to read the Reviewer role protocol
+Reviewer reviews the real diff from product, test, and architecture perspectives
+REPAIR_REQUIRED returns to Coder for repair
+PASS records the verdict and advances to the next Milestone
+Run final validation after all Milestones pass
+Write DELIVERY.md, prepare PR summary, and move the Initiative to completed/
 ```
 
 ### 5. `run-initiative-sequences`
 
-串行运行 `docs/initiatives/active/` 下用户指定的连续多个 Initiative。
+Serially run user-specified consecutive Initiatives under `docs/initiatives/active/`.
 
-它是 `run-initiative` 的薄调度壳：只负责枚举 active 队列、确认用户要跑的范围、逐个调用标准 `run-initiative` 工作流，并在全部完成后输出聚合 PR summary。它不复制 Milestone、Reviewer、repair 或 DELIVERY 规则。
+It is a thin scheduling wrapper around `run-initiative`: it enumerates the active queue, confirms the requested range, calls the standard `run-initiative` workflow for each Initiative, and outputs an aggregated PR summary after all work is complete. It does not duplicate Milestone, Reviewer, repair, or DELIVERY rules.
 
-常见用法：
+Common usage:
 
 ```text
-请使用 Forgeloop run-initiative-sequences 跑 active 下 003 到 006 这几个专项。
+Use Forgeloop run-initiative-sequences to run active Initiatives 003 through 006.
 ```
 
-如果用户没有指定范围，它应先反问是运行全部 active Initiative，还是运行一个指定范围。
+If the user does not specify a range, it should first ask whether to run all active Initiatives or a specific range.
 
-运行连续专项序列前，建议把 Codex TOML 配置中的 subagent 线程上限调大，例如：
+Before running a long Initiative sequence, consider increasing the subagent thread limit in Codex TOML, for example:
 
 ```toml
 [agents]
 max_threads = 100
 ```
 
-## 运行时存储结构
+## Runtime Storage Structure
 
-Forgeloop 的插件代码和项目运行记录是分开的。
+Forgeloop separates plugin code from project execution records.
 
-插件代码位于：
+Plugin code lives in:
 
 ```text
 plugins/forgeloop/
 ```
 
-项目实例数据由技能在目标仓库中按需创建：
+Project instance data is created by skills in the target repository as needed:
 
 ```text
 docs/initiatives/
@@ -295,25 +325,25 @@ docs/initiatives/
     <initiative-code>-<initiative-slug>/
 ```
 
-其中：
+Where:
 
-- `<initiative-code>` 是三位数编码前缀，例如 `001`；
-- `DESIGN.md` 是设计裁决法源；
-- `PLAN.md` 是执行规划契约；
-- `LEDGER.md` 是极简恢复账本；
-- `evidence/` 存放可选截图、验证记录和审查证据；
-- `DELIVERY.md` 是完成后的交付摘要和 PR summary 基础；
-- `handoff/` 存放专项完成后的跨专项问题发现和后续机会，由 Scheduler 汇总维护；即使没有发现，也保留显式空记录；
-- recommendation 文件只是推荐快照，不是执行契约。
+- `<initiative-code>` is a three-digit code prefix, such as `001`.
+- `DESIGN.md` is the design decision source; only DESIGN with `Status: Sealed` can be formally consumed by `plan-initiative`.
+- `PLAN.md` is the execution planning contract.
+- `LEDGER.md` is the minimal recovery ledger.
+- `evidence/` stores optional screenshots, validation records, and review evidence.
+- `DELIVERY.md` is the final delivery summary and PR summary basis.
+- `handoff/` stores cross-Initiative findings and future opportunities after Initiative completion, maintained by Scheduler; even when there are no findings, an explicit empty record is kept.
+- Recommendation files are snapshots, not execution contracts.
 
-## 安装
+## Installation
 
-Forgeloop 是 repo-local Codex plugin，不是 Python 包，也不需要 npm/pnpm 安装。
+Forgeloop is a repo-local Codex plugin. It is not a Python package and does not need npm / pnpm installation.
 
-### 方式一：直接使用本仓库
+### Option 1: Use This Repository Directly
 
-1. 将本仓库 clone 或下载到本地。
-2. 确认仓库根目录包含：
+1. Clone or download this repository locally.
+2. Confirm that the repository root contains:
 
 ```text
 .agents/plugins/marketplace.json
@@ -321,23 +351,23 @@ plugins/forgeloop/.codex-plugin/plugin.json
 plugins/forgeloop/skills/
 ```
 
-3. 重启 Codex，让 Codex 重新读取 repo-local marketplace。
-4. 在 Codex 的插件界面中安装 `Forgeloop Local` / `forgeloop`。
+3. Restart Codex so it reloads the repo-local marketplace.
+4. Install `Forgeloop Local` / `forgeloop` from the Codex plugin UI.
 
-### 方式二：复制到已有项目
+### Option 2: Copy Into An Existing Project
 
-如果你想把 Forgeloop 作为某个项目的本地插件，可以复制以下内容到项目根目录：
+If you want to use Forgeloop as a local plugin for another project, copy the following into that project's root:
 
 ```text
 .agents/plugins/marketplace.json
 plugins/forgeloop/
 ```
 
-然后重启 Codex 并安装该 repo-local plugin。
+Then restart Codex and install the repo-local plugin.
 
-## 目录结构
+## Repository Structure
 
-本仓库刻意保持极简，只保留插件核心和 README：
+This repository intentionally stays minimal and keeps only the core plugin and README files:
 
 ```text
 .
@@ -355,70 +385,71 @@ plugins/forgeloop/
 │           ├── run-initiative/
 │           └── run-initiative-sequences/
 ├── LICENSE
-└── README.md
+├── README.md
+└── README.zh-CN.md
 ```
 
-## 常见用法示例
+## Common Usage Examples
 
-### 审问一个模糊需求
+### Grill An Ambiguous Request
 
 ```text
-请使用 Forgeloop grill-initiative 拷打这个候选专项：我想把认证模块重构掉，但不确定范围。
+Use Forgeloop grill-initiative to pressure-test this candidate: I want to refactor the auth module, but I am not sure about the scope.
 ```
 
-适合在需求还没有边界、重构目标可能过大、或者你希望 Agent 在写 PLAN 前先输出价值问题目录树和证据化裁决记录时使用。
+Use this when the requirement does not yet have clear boundaries, the refactor may be too large, or you want the Agent to produce a document-first Draft DESIGN, Leaf Resolution Matrix, and evidence-backed Decision Records before writing PLAN.
 
-### 推荐后续 Initiative
+### Recommend Future Initiatives
 
 ```text
-请使用 Forgeloop 基于当前源码基线推荐后续 3-5 个最值得做的 Initiative。
+Use Forgeloop to recommend the next 3-5 Initiatives that are most worth doing from the current source baseline.
 ```
 
-适合在你刚接手一个项目、完成一个版本、或者想让 Agent 帮你判断下一步优先级时使用。
+Use this when you have just taken over a project, completed a version, or want the Agent to help decide what should come next.
 
-### 为选中的 Initiative 写 PLAN
+### Write PLAN For A Selected Initiative
 
 ```text
-请使用 Forgeloop plan-initiative 基于 docs/initiatives/active/001-auth-hardening/DESIGN.md 写 PLAN.md 和 LEDGER.md。以 Milestone 为交付单元，每个 Milestone 3-5 个 Work Items，重要能力后加验收与加固 Milestone。
+Use Forgeloop plan-initiative based on docs/initiatives/active/001-auth-hardening/DESIGN.md to write PLAN.md and LEDGER.md. This DESIGN.md is already Status: Sealed. Use Milestone as the delivery unit, keep each Milestone to 3-5 Work Items, prefer vertical-slice Milestones with reviewable Expected Inspectable State, and add an Acceptance & Hardening Milestone after important capabilities.
 ```
 
-适合在你已经知道要做什么，但还没有形成可执行结构时使用。
+Use this when you already have a sealed DESIGN or clear Initiative but do not yet have an executable structure. If DESIGN is still Draft, has blockers, has an incomplete Leaf Resolution Matrix, or has core terminology conflicts, `plan-initiative` stops and requires repair through `grill-initiative`.
 
-### 按 PLAN 执行 Initiative
+### Execute An Initiative From PLAN
 
 ```text
-请使用 Forgeloop 执行 docs/initiatives/active/001-auth-hardening/PLAN.md。复用一个 Coder subagent 和一个 Reviewer subagent，不要把调度者上下文 fork 给 subagent。每个 Milestone 形成 Milestone 粒度 commit/push，Reviewer PASS 后继续下一个 Milestone。
+Use Forgeloop to execute docs/initiatives/active/001-auth-hardening/PLAN.md. Reuse one Coder subagent and one Reviewer subagent, do not fork Scheduler context to subagents, use Milestone-granularity commit/push, and continue after Reviewer PASS.
 ```
 
-适合直接进入编码交付阶段。
+Use this when you are ready to enter implementation delivery. Coder reads its role protocol and follows the Construction Loop; Scheduler provides only task entrypoints and boundaries, not a second-hand implementation summary rewritten from PLAN / DESIGN.
 
-### 串行执行多个 active Initiative
+### Serially Execute Multiple Active Initiatives
 
 ```text
-请使用 Forgeloop run-initiative-sequences 跑 docs/initiatives/active 下 003 到 006 的连续专项。
+Use Forgeloop run-initiative-sequences to run Initiatives 003 through 006 under docs/initiatives/active.
 ```
 
-适合多个已规划 Initiative 需要按编号顺序连续推进，但仍要求每个 Initiative 独立走完 `run-initiative` 审查闭环时使用。
+Use this when multiple planned Initiatives need to be advanced in code order while each Initiative still completes its own `run-initiative` review loop independently.
 
-### 恢复中断的 Initiative
+### Resume An Interrupted Initiative
 
 ```text
-请使用 Forgeloop 恢复 docs/initiatives/active/001-auth-hardening/ 的执行，从 LEDGER.md 里第一个非 PASS Milestone 继续。
+Use Forgeloop to resume docs/initiatives/active/001-auth-hardening/ from the first non-PASS Milestone in LEDGER.md.
 ```
 
-Forgeloop 会读取 `DESIGN.md`（如有）、`PLAN.md`、`LEDGER.md`、`git status` 和最近提交，而不是依赖聊天记忆。
+Forgeloop reads `DESIGN.md` when present, `PLAN.md`, `LEDGER.md`, `git status`, and recent commits instead of relying on chat memory.
 
-### 只做审查导向的修复循环
+### Continue A Review-driven Repair Loop
 
 ```text
-请使用 Forgeloop 继续当前 Initiative。上一轮 Reviewer 给了 REPAIR_REQUIRED，只修复 blocking issues，修复后重新 review。
+Use Forgeloop to continue the current Initiative. The last Reviewer verdict was REPAIR_REQUIRED. Fix only blocking issues, then review again.
 ```
 
-适合在 Milestone 审查未通过时继续推进。
+Use this when a Milestone did not pass review and needs continued progress.
 
-## Subagent 使用方式
+## Subagent Usage
 
-Forgeloop 不内置 custom agent TOML。Coder 和 Reviewer 由 `run-initiative` 技能中的角色协议定义；Scheduler 委派时只提供“角色协议 + 任务真值文件 + 本轮任务要求”，不把自己消化后的上下文转述成二手任务说明，也不替 Coder/Reviewer 提取或改写工作规范：
+Forgeloop does not include custom agent TOML. Coder and Reviewer are defined by role protocols under the `run-initiative` skill. When delegating, Scheduler provides only "role protocol + task truth files + this Milestone's task entrypoint"; it does not rewrite its own digested context into a second-hand task description, and it does not extract or rewrite Coder / Reviewer working rules:
 
 ```text
 plugins/forgeloop/skills/run-initiative/references/coder-protocol.md
@@ -427,52 +458,56 @@ plugins/forgeloop/skills/run-initiative/references/handoff-template.md
 plugins/forgeloop/skills/run-initiative/references/handoff-index-template.md
 ```
 
-任务真值文件通常是当前 Initiative 的 `DESIGN.md`、`PLAN.md`、`LEDGER.md`、相关源码 / 测试 / 设计文档、Coder 报告、真实 diff range 和证据路径。Scheduler 可以说明本轮 Milestone、范围、分支、base commit、dirty baseline 和停止条件，但 Coder / Reviewer 必须自己读取协议和真值文件后执行或裁决。
+Task truth files are usually the current Initiative's `DESIGN.md`, `PLAN.md`, `LEDGER.md`, relevant source / test / design docs, Coder report, real diff range, and evidence paths. Scheduler may state the current Milestone, scope, branch, base commit, dirty baseline, and stopping conditions, but Coder / Reviewer must read their protocols and truth files themselves before implementing or deciding.
 
-在支持 subagent 的 Codex 环境中，推荐使用通用 subagent：
+Coder's role protocol requires it to establish repository orientation and behavior intent, choose public seams, build through behavior slices, control contract and source-of-truth deltas, check completeness / edge / re-entry, report through a validation evidence ladder, and complete self-diff hygiene before commit. Reviewer's role protocol remains responsible for the formal three-perspective verdict. Coder self-checks cannot replace Reviewer `PASS`.
 
-- Coder：`default` 或 `worker`，高 reasoning effort；
-- Reviewer：`default`，高 reasoning effort；
-- `fork_context=false`；
-- 每个 Initiative 尽量复用同一个 Coder 和同一个 Reviewer；
-- `task_name` 优先使用三位数编码，例如 `001-auth-hardening` 对应 `coder_001` 和 `reviewer_001`；旧的无编码 Initiative 才退回到 snake-normalized 名称。
+In Codex environments that support subagents, use generic subagents:
 
-运行 `run-initiative-sequences` 这类连续专项序列时，会按 Initiative 创建新的 Coder / Reviewer 组合；如果 Codex TOML 的 `[agents].max_threads` 太低，长序列可能被线程上限卡住。建议提前调到 `100`。
+- Coder: `default` or `worker`, high reasoning effort
+- Reviewer: `default`, high reasoning effort
+- `fork_context=false`
+- Reuse one Coder and one Reviewer per Initiative whenever possible
+- Prefer a three-digit coded `task_name`; for example, `001-auth-hardening` maps to `coder_001` and `reviewer_001`. Older uncoded Initiatives fall back to snake-normalized names.
 
-如果当前环境没有 subagent 工具，Scheduler 可以在用户允许的情况下继续执行，但必须把 review provenance 明确记录为 `explicit solo best-effort`。这种路径只能作为降级执行证据，不得伪称为正式独立 Reviewer 放行；完成归档必须清楚记录 reduced review provenance。
+When running long `run-initiative-sequences` flows, each Initiative creates its own Coder / Reviewer pair. If Codex TOML `[agents].max_threads` is too low, long sequences may hit the thread limit. Consider raising it to `100` in advance.
 
-## 适合与不适合的场景
+If the current environment has no subagent tools, Scheduler may continue when the user allows it, but it must record review provenance as `explicit solo best-effort`. This path is only reduced-provenance execution evidence and must not be described as formal independent Reviewer approval. Completion archival must clearly record the reduced review provenance.
 
-适合：
+## Suitable And Unsuitable Use Cases
 
-- 需要持续推进的新功能或产品能力；
-- 架构改造、模块拆分、依赖迁移；
-- API、Schema、权限、数据模型或插件协议治理；
-- 测试真实性、稳定性、性能和可观测性加固；
-- 构建、发布、CI、开发者体验改造；
-- 文档、示例、SDK、集成体验完善；
-- 已有需求，需要压成 PLAN 并持续交付的工程工作。
+Suitable:
 
-不适合：
+- Product capabilities or features that require sustained delivery
+- Architecture refactors, module splitting, dependency migration
+- API, Schema, permission, data model, or plugin protocol governance
+- Test reality, stability, performance, and observability hardening
+- Build, release, CI, and developer-experience work
+- Documentation, examples, SDKs, and integration experience
+- Existing requirements that need to be compressed into PLAN and delivered continuously
 
-- 一次性脚本；
-- 极小 bug 修复；
-- 不需要计划、不需要审查的临时实验；
-- 候选专项还没有边界，且用户也不希望先用 `grill-initiative` 做前置设计裁决的问题；
-- 需要严格组织级合规流程但不允许 Agent 参与审查的项目。
+Unsuitable:
 
-## 设计原则
+- One-off scripts
+- Very small bug fixes
+- Temporary experiments that do not need planning or review
+- Candidate efforts without boundaries when the user also does not want to use `grill-initiative` for upfront design decisions
+- Projects that require strict organizational compliance flows but do not allow Agent participation in review
 
-Forgeloop 遵循几个原则：
+## Design Principles
 
-1. Codex 原生：围绕 Codex plugin、skill、subagent 和 Git 工作流设计。
-2. 入口少：只保留 `recommend-initiatives`、`grill-initiative`、`plan-initiative`、`run-initiative`、`run-initiative-sequences`。
-3. 交付单元清楚：用户入口是 Initiative，执行推进靠 Milestone。
-4. 审查协议强：Reviewer 的三视角裁决比形式化状态更重要。
-5. 状态极简：恢复只依赖 `DESIGN.md`、`PLAN.md`、`LEDGER.md`、Git 和必要 evidence。
-6. Git 不冒充验收：commit / push 只是证据和恢复点；Reviewer `PASS` 前的 push 只是 review candidate，不是放行。
-7. 长期可控：通过职责分离、任务入口、角色协议和 Reviewer 放行控制质量、上下文和 Token 成本。
+Forgeloop follows a few principles:
 
-## 许可证
+1. Codex-native: designed around Codex plugins, skills, subagents, and Git workflow.
+2. Few entrypoints: keep only `recommend-initiatives`, `grill-initiative`, `plan-initiative`, `run-initiative`, and `run-initiative-sequences`.
+3. Clear delivery unit: user entrypoint is Initiative; execution advances by Milestone.
+4. Clear design authority: only sealed `DESIGN.md` enters planning; Draft cannot be consumed by `plan-initiative`.
+5. Strong construction loop: Coder self-checks behavior, seams, contracts, truth sources, edges, validation, and diff hygiene before commit.
+6. Strong review protocol: Reviewer's three-perspective verdict matters more than formal status; Coder self-checks cannot replace Reviewer approval.
+7. Minimal state: recovery depends only on `DESIGN.md`, `PLAN.md`, `LEDGER.md`, Git, and necessary evidence.
+8. Git is not acceptance: commit / push are evidence and recovery points; a push before Reviewer `PASS` is only a review candidate, not approval.
+9. Long-term control: separation of responsibilities, task entrypoints, role protocols, and Reviewer approval control quality, context, and token cost.
+
+## License
 
 MIT. See [LICENSE](LICENSE).

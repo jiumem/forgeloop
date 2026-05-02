@@ -82,6 +82,8 @@ Summarize only source-backed findings that affect leaf resolution, Decision Reco
 
 For absence claims, include the command/search basis or mark confidence lower. Do not write “not found” or “does not exist” as a high-confidence fact without the search basis that supports it.
 
+Record terminology conflicts here when conflicting names or meanings for core objects, statuses, lifecycle states, commands, files, APIs, or roles can affect implementation, validation, review, handoff, or downstream planning.
+
 ```text
 F001｜<Finding Title>
 Fact: <observed fact>
@@ -379,6 +381,7 @@ Before asking the user to seal, verify:
 | Every Finding has `Affects: ...` | <pass/fail> |
 | Accepted decisions land in Selected Design or Design Details | <pass/fail> |
 | Scope and Non-Goals are explicit | <pass/fail> |
+| Terminology conflicts that affect implementation, validation, review, handoff, or downstream planning are resolved, blocked, or explicit open questions | <pass/fail> |
 | No template placeholders remain | <pass/fail> |
 | No Milestones / Tasks / PR sequence / execution order / `LEDGER.md` state appears | <pass/fail> |
 | Activation Blockers are resolved or explicitly listed | <pass/fail> |

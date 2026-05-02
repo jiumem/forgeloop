@@ -153,7 +153,7 @@ Do not modify recommendation snapshots as part of execution.
 2. Locate the active initiative root and read `DESIGN.md` when present, `PLAN.md`, and `LEDGER.md`.
 3. Resume from the first Milestone whose status is not `PASS` and not `CANCELLED`.
 4. Spawn or reuse the Coder subagent, then send a task-entry packet that points it to `references/coder-protocol.md`, the initiative root, the current Milestone, and execution boundaries.
-5. Coder reads its role protocol, independently locates source-of-truth docs, implements the Milestone, runs validation, performs screenshots for UI work, creates a coherent Milestone-level commit, pushes when possible as a review candidate, and reports evidence.
+5. Coder reads its role protocol, independently locates source-of-truth docs, follows the Coder Construction Loop, implements the Milestone, runs validation, performs screenshots for UI work, creates a coherent Milestone-level commit, pushes when possible as a review candidate, and reports evidence.
 6. Scheduler updates `LEDGER.md` to `REVIEW` with commit range, validation, and evidence paths.
 7. Spawn or reuse the Reviewer subagent, then send a task-entry packet that points it to `references/reviewer-protocol.md`, the initiative root, Coder report, actual diff range, and review boundaries.
 8. Reviewer reads its role protocol, independently locates source-of-truth docs, inspects the Coder report and actual diff, then reviews from product, test, and architecture perspectives.
@@ -218,6 +218,7 @@ Do not reconstruct execution from chat memory.
 - Scheduler must not pause for routine progress summaries, permission to continue, or non-blocking implementation choices.
 - Coder must read DESIGN when present, PLAN, and listed reference inputs before implementation.
 - Coder must independently locate source-of-truth docs instead of relying on Scheduler summaries.
+- Coder must follow `coder-protocol.md` as its implementation discipline, including behavior intent, public seam selection, contract / truth-source delta control, validation evidence, self-diff hygiene, and repair discipline.
 - Coder should run relevant validation and record evidence.
 - For UI work, Coder and Reviewer should both perform screenshot-based confirmation when practical.
 - Reviewer must inspect DESIGN when present, PLAN, and the actual diff range, not just the Coder report.

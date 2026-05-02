@@ -46,10 +46,13 @@ Required intake checks:
 - Every accepted Decision Record has non-empty `Design Impact`.
 - Every accepted Decision Record has non-empty `Downstream Constraint`.
 - Rejected alternatives, design follow-ups, and residual risks are preserved when present.
+- Core terminology used for objects, statuses, lifecycle states, commands, files, APIs, and roles is internally consistent enough to plan without inventing new names.
 
 If the DESIGN uses a legacy `Coverage Check` section instead of `Leaf Resolution Matrix`, treat it as insufficient for new planning unless the user explicitly asks for legacy handling. Prefer sending it back through `grill-initiative` to produce a sealed matrix-backed DESIGN.
 
 When intake passes, carry all `Downstream Constraint` content into `PLAN.md` as planning constraints, acceptance criteria, validation checks, or reviewer focus. Do not silently drop downstream constraints because they are not convenient Milestone work items.
+
+If core terminology in the selected sources conflicts with sealed `DESIGN.md` and the conflict can affect implementation, validation, review, handoff, or downstream planning, stop and send the design back through `grill-initiative` instead of resolving the terminology inside `PLAN.md`.
 
 ## Read First
 
@@ -94,6 +97,9 @@ evidence/                 # created by run-initiative as needed
 ## Planning Rules
 
 - Milestone is the explicit delivery unit.
+- Prefer vertical-slice Milestones that make one inspectable state true across the necessary layers.
+- Do not split Milestones by horizontal construction layers such as schema-only, API-only, UI-only, tests-only, or docs-only unless the Initiative is explicitly scoped that way.
+- A Milestone should be independently reviewable and validate a meaningful user, system, workflow, or contract state.
 - Each Milestone should contain 3-5 work items.
 - A normal initiative should contain 3-8 Milestones.
 - Avoid more than 10 Milestones. Split the initiative if more are needed.
@@ -101,6 +107,7 @@ evidence/                 # created by run-initiative as needed
 - Every Milestone must include acceptance criteria and reviewer focus.
 - Use “Work Items” instead of turning implementation notes into formal scheduling objects.
 - Do not generate document slices, old planning state, or old runtime state.
+- Preserve sealed DESIGN terminology for core objects, statuses, lifecycle states, commands, files, APIs, and roles. Do not rename or reinterpret them during planning.
 - For an existing active initiative, preserve `LEDGER.md` execution facts. Do not reset `PASS`, `REVIEW`, `REPAIR`, `PAUSED`, or `CANCELLED` Milestones unless the user explicitly asks for a plan rewrite.
 
 ## Language Rule
@@ -157,5 +164,6 @@ Stop and report a blocker if:
 - `DESIGN.md` exists and does not contain exactly one effective `Status: Sealed` marker
 - `DESIGN.md` exists with `Status: Draft`, `Status: Superseded`, missing status, unknown status, or conflicting status markers
 - `DESIGN.md` exists but fails the `DESIGN.md Intake Gate`
+- core terminology conflicts with sealed `DESIGN.md` and the conflict can affect implementation, validation, review, handoff, or downstream planning
 - the user asks `plan-initiative` to seal, rewrite, or normalize `DESIGN.md`
 - there is no `DESIGN.md` and blocking design ambiguity remains

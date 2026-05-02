@@ -35,12 +35,13 @@ What this initiative explicitly does not cover.
 - Current state:
 - Main gaps:
 - Downstream constraints from sealed DESIGN:
+- Terminology / naming constraints from sealed DESIGN:
 - Other constraints:
 - Known risks:
 
 ## Milestone Overview
 
-| Milestone | Name | Purpose | Risk | Expected Outcome |
+| Milestone | Name | Purpose | Risk | Expected Inspectable State |
 |---|---|---|---|---|
 | M01 |  |  |  |  |
 
@@ -49,6 +50,9 @@ What this initiative explicitly does not cover.
 ### M01: <Name>
 
 Purpose:
+- ...
+
+Expected Inspectable State:
 - ...
 
 Work Items:

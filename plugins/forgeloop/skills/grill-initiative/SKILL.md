@@ -72,6 +72,30 @@ Do not infer any required format from memory. If a required template or referenc
 
 ---
 
+## Codebase-first Question Rule
+
+Before asking the user a question, first check whether repository source can answer it.
+
+Use code, tests, schemas, config, existing docs, prior Initiatives, and command/search results for source-answerable questions.
+
+Ask the user only for product intent, business priority, external constraints, irreversible trade-offs, or missing authority that the repository cannot provide.
+
+Do not use the user as a search engine for facts that should be discoverable in the repository.
+
+---
+
+## Terminology Conflict Check
+
+Treat core terminology as part of the design boundary, not as prose polish.
+
+During investigation, look for conflicting names or meanings for Initiative-critical objects, statuses, states, roles, files, commands, APIs, or lifecycle terms across code, tests, docs, prior Initiative records, and the candidate request.
+
+If a terminology conflict can affect implementation, validation, review, handoff, or downstream planning, record it as a Focused Context Finding and close the related leaf through the Leaf Resolution Matrix.
+
+Formal terminology decisions belong in `DESIGN.md` Decision Records, Selected Design, Scope / Non-Goals, or Open Questions. Do not leave them for Coder to resolve during implementation.
+
+---
+
 ## Write Target
 
 The durable output is:
@@ -221,6 +245,8 @@ Investigate the retained leaves from the tree.
 
 Read source files, docs, tests, schemas, examples, prior Initiative records, command outputs, and other project artifacts only when they can affect a leaf resolution, decision record, blocker, follow-up, or residual risk.
 
+Apply the Codebase-first Question Rule before asking user-facing questions, and apply the Terminology Conflict Check before sealing.
+
 For absence claims, include the command/search basis or mark confidence lower. Do not write “not found” or “does not exist” as a high-confidence fact without the search basis that supports it.
 
 Write findings into `DESIGN.md` as `Fxxx` records.
@@ -354,6 +380,7 @@ Before asking the user to seal, verify inside the document:
 - every Finding has `Affects: ...`
 - accepted decisions have Selected Design or Design Detail landing
 - Scope and Non-Goals are explicit
+- terminology conflicts that affect implementation, validation, review, handoff, or downstream planning are resolved, blocked, or recorded as explicit open questions
 - no angle-bracket placeholders remain
 - no Milestones, Tasks, PR sequence, execution order, exact test file names, function-level implementation steps, or `LEDGER.md` states were introduced
 - Activation Blockers are either `none` or explicitly listed
@@ -436,6 +463,8 @@ A successful run must:
 - include only design-detail sections activated by the candidate's risk lenses and decisions
 - preserve truth-source, state, interface, migration, test-feedback, runtime, and policy boundaries when relevant
 - record blockers, follow-ups, residual risks, and open questions separately
+- use repository sources before asking user questions when the answer is codebase-discoverable
+- surface terminology conflicts before sealing when they can affect implementation, validation, review, handoff, or downstream planning
 - never write `PLAN.md`, `LEDGER.md`, Milestones, Tasks, PR sequence, execution order, or run state
 - never write Design Details from memory; read `references/design-detail-lens-blocks.md` before using lens blocks
 
