@@ -34,7 +34,8 @@ What this initiative explicitly does not cover.
 - Design decision summary:
 - Current state:
 - Main gaps:
-- Constraints:
+- Downstream constraints from sealed DESIGN:
+- Other constraints:
 - Known risks:
 
 ## Milestone Overview
@@ -57,6 +58,7 @@ Work Items:
 
 Acceptance Criteria:
 - ...
+- Preserves sealed DESIGN downstream constraints:
 
 Validation:
 - ...
@@ -76,6 +78,7 @@ Reviewer Focus:
 - Product:
 - Test:
 - Architecture:
+- Downstream constraints:
 
 Non-Goals:
 - ...

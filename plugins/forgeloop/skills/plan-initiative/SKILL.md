@@ -15,6 +15,42 @@ Write a concise `PLAN.md` that can be consumed directly by `run-initiative`, plu
 
 Do not re-litigate design decisions from `DESIGN.md` unless it is missing, stale, contradicted by repository facts, or explicitly superseded by the user.
 
+## DESIGN.md Status Gate
+
+When an Initiative has `DESIGN.md`, `plan-initiative` may consume it only when the document contains:
+
+```text
+Status: Sealed
+```
+
+`Status: Draft`, `Status: Superseded`, missing `Status`, unknown status, or conflicting status markers are hard blockers for planning.
+
+If the user asks to plan from a non-`Sealed` `DESIGN.md`, stop without writing or updating `PLAN.md` / `LEDGER.md`. Tell the user to return to `grill-initiative` to revise, restore, supersede, or seal the design first.
+
+Do not convert `Draft` to `Sealed` inside `plan-initiative`. Sealing belongs only to `grill-initiative` after explicit user confirmation.
+
+## DESIGN.md Intake Gate
+
+After the status gate passes, run structural intake QA before writing or updating `PLAN.md` / `LEDGER.md`.
+
+This gate is read-only for `DESIGN.md`. Do not repair, normalize, seal, rewrite, renumber, or reinterpret the design inside `plan-initiative`. If intake fails, stop and tell the user which DESIGN sections must be repaired in `grill-initiative`.
+
+Required intake checks:
+
+- `DESIGN.md` has no remaining angle-bracket template placeholders such as `<...>`.
+- `Activation Blockers` exists and is `none`.
+- `Leaf Resolution Matrix` exists.
+- Every retained `Lxxx` leaf in the Value Question Directory Tree appears exactly once in the Leaf Resolution Matrix.
+- `Decision Records` exists and contains accepted decisions when the matrix has any `Decided` leaf.
+- Every accepted Decision Record has `Covers: Lxxx`.
+- Every accepted Decision Record has non-empty `Design Impact`.
+- Every accepted Decision Record has non-empty `Downstream Constraint`.
+- Rejected alternatives, design follow-ups, and residual risks are preserved when present.
+
+If the DESIGN uses a legacy `Coverage Check` section instead of `Leaf Resolution Matrix`, treat it as insufficient for new planning unless the user explicitly asks for legacy handling. Prefer sending it back through `grill-initiative` to produce a sealed matrix-backed DESIGN.
+
+When intake passes, carry all `Downstream Constraint` content into `PLAN.md` as planning constraints, acceptance criteria, validation checks, or reviewer focus. Do not silently drop downstream constraints because they are not convenient Milestone work items.
+
 ## Read First
 
 1. The user request, selected recommendation file, and `<initiative-root>/DESIGN.md` when present
@@ -51,7 +87,7 @@ LEDGER.md
 Optional files:
 
 ```text
-DESIGN.md                 # produced by grill-initiative when the initiative needed design decisions
+DESIGN.md                 # optional, but when present must be Status: Sealed
 evidence/                 # created by run-initiative as needed
 ```
 
@@ -78,18 +114,21 @@ evidence/                 # created by run-initiative as needed
 
 ## Workflow
 
-1. If `DESIGN.md` exists, read it first and preserve its Decision Records, rejected alternatives, residual risks, and activation disposition.
-2. If there is no `DESIGN.md` and the initiative still has blocking design ambiguity, stop and recommend `grill-initiative` before writing `PLAN.md`.
-3. Read enough repository context to avoid guessing about architecture, tests, and validation commands.
-4. Summarize execution-relevant design decisions and current gaps without copying entire reference docs.
-5. Group work into Milestones that each produce an inspectable state.
-6. Keep each Milestone to 3-5 work items.
-7. Define concrete acceptance criteria for each Milestone.
-8. Define validation commands or manual checks for each Milestone.
-9. Add structured visual / UX checks for UI changes, including preview target, viewports, required states, and screenshot evidence.
-10. Add reviewer focus for product, test, and architecture perspectives.
-11. For a new initiative, create a minimal `LEDGER.md` skeleton using `references/ledger-template.md`, with all Milestones initially `TODO`.
-12. For an existing active initiative, preserve existing `LEDGER.md` execution facts and only append or adjust future Milestones unless the user explicitly requests a full rewrite.
+1. If `DESIGN.md` exists, read it first and verify it contains exactly one effective `Status: Sealed` marker before using it as a planning source.
+2. If `DESIGN.md` exists but is not `Status: Sealed`, stop without writing `PLAN.md` or `LEDGER.md` and recommend `grill-initiative` sealing or revision.
+3. Run the `DESIGN.md Intake Gate`. If intake fails, stop without writing `PLAN.md` or `LEDGER.md`.
+4. Preserve sealed Decision Records, rejected alternatives, downstream constraints, design follow-ups, residual risks, and disposition.
+5. If there is no `DESIGN.md` and the initiative still has blocking design ambiguity, stop and recommend `grill-initiative` before writing `PLAN.md`.
+6. Read enough repository context to avoid guessing about architecture, tests, and validation commands.
+7. Summarize execution-relevant design decisions, downstream constraints, and current gaps without copying entire reference docs.
+8. Group work into Milestones that each produce an inspectable state.
+9. Keep each Milestone to 3-5 work items.
+10. Define concrete acceptance criteria for each Milestone.
+11. Define validation commands or manual checks for each Milestone.
+12. Add structured visual / UX checks for UI changes, including preview target, viewports, required states, and screenshot evidence.
+13. Add reviewer focus for product, test, and architecture perspectives.
+14. For a new initiative, create a minimal `LEDGER.md` skeleton using `references/ledger-template.md`, with all Milestones initially `TODO`.
+15. For an existing active initiative, preserve existing `LEDGER.md` execution facts and only append or adjust future Milestones unless the user explicitly requests a full rewrite.
 
 ## Quality Bar
 
@@ -98,7 +137,10 @@ A valid PLAN:
 - can be executed by a Scheduler without re-planning
 - tells Coder what to read, what to change, what not to change, and how to validate
 - tells Reviewer how to decide `PASS` vs `REPAIR_REQUIRED`
-- preserves `DESIGN.md` as design decision source of truth when present
+- consumes `DESIGN.md` only when it is `Status: Sealed`
+- refuses sealed-but-incomplete `DESIGN.md` when structural intake QA fails
+- preserves sealed `DESIGN.md` as design decision source of truth when present
+- carries sealed DESIGN downstream constraints into scope, acceptance, validation, or reviewer focus
 - includes a hardening Milestone when a risky capability needs quality consolidation
 - avoids vague acceptance like “works well”, “tests sufficient”, or “code clean”
 - avoids duplicating active or completed initiatives unless the new plan is explicitly a follow-up or v2
@@ -107,3 +149,13 @@ A valid PLAN:
 ## Output Shape
 
 Use `references/plan-template.md` as the canonical PLAN shape, `references/ledger-template.md` as the canonical LEDGER shape, and `references/hardening-milestone-template.md` when adding a hardening Milestone.
+
+## Hard Stops
+
+Stop and report a blocker if:
+
+- `DESIGN.md` exists and does not contain exactly one effective `Status: Sealed` marker
+- `DESIGN.md` exists with `Status: Draft`, `Status: Superseded`, missing status, unknown status, or conflicting status markers
+- `DESIGN.md` exists but fails the `DESIGN.md Intake Gate`
+- the user asks `plan-initiative` to seal, rewrite, or normalize `DESIGN.md`
+- there is no `DESIGN.md` and blocking design ambiguity remains
