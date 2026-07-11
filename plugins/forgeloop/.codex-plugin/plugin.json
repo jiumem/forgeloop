@@ -1,7 +1,7 @@
 {
   "name": "forgeloop",
-  "version": "3.0.0-dev.0",
-  "description": "Initiative-first, milestone-gated engineering workflow for Codex.",
+  "version": "3.0.0",
+  "description": "Tracker-driven engineering workflows with Specs, Tickets, dual review, repair, integration, and acceptance gates.",
   "author": {
     "name": "Forgeloop",
     "url": "https://github.com/jiumem/forgeloop"
@@ -12,17 +12,17 @@
   "keywords": [
     "codex",
     "workflow",
-    "initiative",
-    "design",
-    "sequence",
-    "milestone",
+    "tracker",
+    "spec",
+    "tickets",
+    "tdd",
     "review"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Forgeloop",
-    "shortDescription": "Recommend, grill, plan, and run initiative-based engineering loops in Codex",
-    "longDescription": "A lightweight Codex workflow layer built around initiative recommendations, DESIGN.md decision records, PLAN.md authoring, milestone execution, active initiative sequences, reviewer verdicts, Git evidence, and a minimal LEDGER.md recovery record.",
+    "shortDescription": "Design and deliver Tracker work through independent review and acceptance gates",
+    "longDescription": "A Tracker-driven Codex workflow suite for repository setup, design discovery, Spec and Ticket publication, serial Initiative execution, independent Spec and Standards review, bounded repair, integration, recovery, and final acceptance.",
     "developerName": "Forgeloop",
     "category": "Productivity",
     "capabilities": [
@@ -31,11 +31,9 @@
     ],
     "websiteURL": "https://github.com/jiumem/forgeloop",
     "defaultPrompt": [
-      "Use Forgeloop to recommend the next initiatives from this source baseline.",
-      "Use Forgeloop to grill this candidate initiative into DESIGN.md before planning.",
-      "Use Forgeloop to plan this initiative into PLAN.md and LEDGER.md.",
-      "Use Forgeloop to run this initiative by milestone.",
-      "Use Forgeloop to run a sequence of active initiatives."
+      "使用 Forgeloop 配置当前仓库的 Tracker、领域文档与集成策略。",
+      "使用 Forgeloop 将当前讨论发布为 Spec，并拆成可独立验证的 Tickets。",
+      "使用 Forgeloop 从正式 Spec 运行 Coder、双 Reviewer 与最终验收闭环。"
     ],
     "brandColor": "#0F766E"
   }

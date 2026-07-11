@@ -207,3 +207,32 @@ Fixtures: `blocking-graph`、`concurrent-claim`、`crash-recovery`、`empty-fron
 Result: PASS
 Errors: 原生事实冲突返回 `RECOVERY_CONFLICT`；不用短 TTL。
 Out of scope: Initiative 内不主动并行 Frontier。
+
+### M3 集成验收与版本封板
+
+Task: T3.1
+Entry: `validate_fixtures.py` 对 M1/M2 矩阵执行结构、禁止写入与平台等价检查。
+Changed: 9 项入口 Fixture 与 19 项 Runtime Fixture，覆盖方案要求的 17 类场景及三平台主路径。
+Commands: `python3 plugins/forgeloop/scripts/validate_fixtures.py ...`。
+Fixtures: Happy Path、Blocking Graph、多 Spec、两轴修复、预算、合约、人工合并、共享分支、两层最终验收失败、空 Frontier、权限、Reviewer、并发与崩溃恢复。
+Result: PASS
+Errors: 每项均声明初始状态、入口、预期/禁止写入、终态和失败诊断。
+Out of scope: 不调用真实远端写 API；平台行为由配置契约与等价 Fixture 验证。
+
+Task: T3.2
+Entry: `plugins/forgeloop/.codex-plugin/plugin.json` 版本 `3.0.0`。
+Changed: 活动目录恰好 20 Skills；更新 Manifest、双 README 和中文迁移指南。
+Commands: 发布模式套件校验、旧名与旧存储引用审计。
+Fixtures: 2.5.0 Commit 恢复、历史只读、两条活动迁移路径与回退。
+Result: PASS
+Errors: 活动旧 Skills、别名和旧 Manifest 定位均已移除。
+Out of scope: 未推送、未创建 PR、未打 Tag、未发布 Release。
+
+Task: T3.3
+Entry: Skill Creator、套件校验器与 Plugin Creator。
+Changed: 最终 SemVer、20 份 Skill/UI 契约和最多三个默认 Prompt。
+Commands: 20 次 `quick_validate.py`、`validate_suite.py --mode release`、`validate_plugin.py`、上游/元数据/运行协议校验。
+Fixtures: TODO、Claude Invocation、失效引用、Policy、Prompt、版本和路径反例由校验器覆盖。
+Result: PASS
+Errors: None。
+Out of scope: 尚未安装或发布。
