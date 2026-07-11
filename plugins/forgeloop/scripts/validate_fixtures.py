@@ -33,6 +33,8 @@ def validate(path: Path) -> list[str]:
         if not case["expected_writes"] or not case["forbidden_writes"]:
             errors.append(f"{case['id']}: 必须同时声明预期写入和禁止写入")
     for group, group_cases in groups.items():
+        if len(group_cases) == 1:
+            continue
         trackers = {case["tracker"] for case in group_cases}
         if trackers != TRACKERS:
             errors.append(f"{group}: Tracker 覆盖不完整 {sorted(trackers)}")

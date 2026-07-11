@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "happy-local", "group": "happy-path", "tracker": "local",
+      "initial_state": "单 Spec、单 Open/Unblocked/Unclaimed Ticket、auto-merge、干净工作区。", "entry_prompt": "使用 $run-initiative 运行正式 Spec。",
+      "expected_writes": ["原子 Claim", "Coder Result", "两个独立 PASS", "Integration Result", "Ticket 与 Spec 最后关闭"],
+      "forbidden_writes": ["PLAN.md", "LEDGER.md", "Scheduler 重跑完整测试"], "terminal_state": "COMPLETED",
+      "failure_diagnostic": "配置、引用、锁或 Reviewer 失败时保持 Open。", "domain_state": {"claimed": 1, "ticket_complete": true, "spec_acceptance": "PASS"}
+    },
+    {
+      "id": "happy-github", "group": "happy-path", "tracker": "github",
+      "initial_state": "单 Spec、单 Open/Unblocked/Unclaimed Issue、auto-merge、gh 有权限。", "entry_prompt": "使用 $run-initiative 运行正式 Spec。",
+      "expected_writes": ["最早 Claim Comment", "Coder Result", "两个独立 PASS", "PR Integration Result", "Issue 与 Spec 最后关闭"],
+      "forbidden_writes": ["PLAN.md", "LEDGER.md", "认证失败回退 Local"], "terminal_state": "COMPLETED",
+      "failure_diagnostic": "Protection、Checks 或权限失败时保持 Open。", "domain_state": {"claimed": 1, "ticket_complete": true, "spec_acceptance": "PASS"}
+    },
+    {
+      "id": "happy-gitlab", "group": "happy-path", "tracker": "gitlab",
+      "initial_state": "单 Spec、单 Open/Unblocked/Unclaimed Issue、auto-merge、glab 有权限。", "entry_prompt": "使用 $run-initiative 运行正式 Spec。",
+      "expected_writes": ["最早 Claim Note", "Coder Result", "两个独立 PASS", "MR Integration Result", "Issue 与 Spec 最后关闭"],
+      "forbidden_writes": ["PLAN.md", "LEDGER.md", "认证失败回退 Local"], "terminal_state": "COMPLETED",
+      "failure_diagnostic": "Protected Branch 或权限失败时保持 Open。", "domain_state": {"claimed": 1, "ticket_complete": true, "spec_acceptance": "PASS"}
+    },
+    {
+      "id": "blocking-graph", "group": "blocking-graph", "tracker": "local",
+      "initial_state": "单 Spec 三 Tickets；03 被 01/02 阻塞。", "entry_prompt": "运行 Spec 直到无 Frontier。",
+      "expected_writes": ["每轮重查 Frontier", "严格串行 Claim 01、02、03"], "forbidden_writes": ["同时活动两张 Ticket", "复用旧 Frontier"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "依赖环或坏引用返回 RECOVERY_CONFLICT。", "domain_state": {"tickets_complete": 3, "serial": true}
+    },
+    {
+      "id": "multi-spec", "group": "multi-spec", "tracker": "local",
+      "initial_state": "两个正式 Specs，尚无父 Initiative。", "entry_prompt": "运行这两份 Specs。",
+      "expected_writes": ["确认后创建父 Item", "成员 Specs 独立完成", "全新 Initiative Acceptance PASS"], "forbidden_writes": ["单 Spec 多余父对象", "未确认增删成员"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "跨 Spec 验收失败创建正式修复工作。", "domain_state": {"specs_complete": 2, "initiative_acceptance": "PASS"}
+    },
+    {
+      "id": "spec-repair", "group": "spec-repair", "tracker": "local",
+      "initial_state": "Spec Reviewer 首轮返回一个稳定 Finding。", "entry_prompt": "继续当前 Run。",
+      "expected_writes": ["返回原 Coder", "Spec 轴升级", "两轴对新 Head 重审"], "forbidden_writes": ["只重审失败轴", "改写旧 Verdict"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "重复两次同 Finding 时 PAUSED。", "domain_state": {"repair_axis": "SPEC", "both_reissued": true}
+    },
+    {
+      "id": "standards-repair", "group": "standards-repair", "tracker": "local",
+      "initial_state": "Standards Reviewer 首轮返回一个稳定 Finding。", "entry_prompt": "继续当前 Run。",
+      "expected_writes": ["返回原 Coder", "Standards 轴升级", "两轴对新 Head 重审"], "forbidden_writes": ["只重审失败轴", "改写旧 Verdict"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "重复两次同 Finding 时 PAUSED。", "domain_state": {"repair_axis": "STANDARDS", "both_reissued": true}
+    },
+    {
+      "id": "dual-repair", "group": "dual-repair", "tracker": "local",
+      "initial_state": "两个 Reviewer 同时 REPAIR_REQUIRED。", "entry_prompt": "继续当前 Run。",
+      "expected_writes": ["Coder 同时收到两轴 Findings", "两轴独立升级和重审"], "forbidden_writes": ["合并重排 Findings", "丢失任一轴"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "两轴要求冲突转 CONTRACT_BLOCKER。", "domain_state": {"repair_axes": 2, "independent": true}
+    },
+    {
+      "id": "repair-exhausted", "group": "repair-exhausted", "tracker": "local",
+      "initial_state": "同一 Finding 两次修复仍存在。", "entry_prompt": "继续当前 Run。",
+      "expected_writes": ["RUN_PAUSED", "最高模型能力与未解决证据"], "forbidden_writes": ["第四次普通修复", "伪造 PASS"],
+      "terminal_state": "PAUSED", "failure_diagnostic": "明确预算耗尽与用户可选动作。", "domain_state": {"paused": true, "reason": "REPAIR_BUDGET"}
+    },
+    {
+      "id": "contract-blocker", "group": "contract-blocker", "tracker": "local",
+      "initial_state": "两轴要求冲突且需修改 Spec。", "entry_prompt": "继续当前 Run。",
+      "expected_writes": ["CONTRACT_BLOCKER", "冲突证据与所需裁决"], "forbidden_writes": ["消耗普通修复预算", "Coder 修改 Spec"],
+      "terminal_state": "CONTRACT_BLOCKER", "failure_diagnostic": "保持 Ticket/Spec Open。", "domain_state": {"contract_blocker": true, "repair_budget_used": false}
+    },
+    {
+      "id": "human-merge", "group": "human-merge", "tracker": "github",
+      "initial_state": "双 PASS，策略 human-merge，PR 尚未合并。", "entry_prompt": "继续并等待人工合并后恢复。",
+      "expected_writes": ["READY_FOR_HUMAN_MERGE", "沿原 Run ID 恢复", "合并后 Integration Result"], "forbidden_writes": ["合并前关闭 Ticket", "新 Run ID"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "PR 关闭未合并保持 Open。", "domain_state": {"paused_then_resumed": true, "merged": true}
+    },
+    {
+      "id": "shared-integration", "group": "shared-integration", "tracker": "local",
+      "initial_state": "Ticket Graph 预声明共享 Integration Branch 与 integrate-and-verify。", "entry_prompt": "运行 Wide Refactor Spec。",
+      "expected_writes": ["Tickets 进入共享分支", "最终 integrate-and-verify 双审与集成"], "forbidden_writes": ["Coder 临时切换模式", "缺少最终验证 Ticket"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "缺少声明或验证 Ticket 时预检失败。", "domain_state": {"shared_branch": true, "final_verify": true}
+    },
+    {
+      "id": "spec-acceptance-fail", "group": "spec-acceptance-fail", "tracker": "local",
+      "initial_state": "多 Ticket 已完成，全新 Spec Acceptance 失败。", "entry_prompt": "完成 Spec 验收。",
+      "expected_writes": ["Spec 保持 Open", "创建正式修复 Ticket"], "forbidden_writes": ["改写已关闭 Ticket Verdict", "关闭 Spec"],
+      "terminal_state": "PAUSED", "failure_diagnostic": "列出失败行为与修复入口。", "domain_state": {"spec_open": true, "repair_work": true}
+    },
+    {
+      "id": "initiative-acceptance-fail", "group": "initiative-acceptance-fail", "tracker": "local",
+      "initial_state": "成员 Specs 完成，跨 Spec Acceptance 失败。", "entry_prompt": "完成多 Spec Initiative 验收。",
+      "expected_writes": ["父 Item 保持 Open", "创建跨 Spec 修复工作"], "forbidden_writes": ["伪造 COMPLETED", "改写成员历史"],
+      "terminal_state": "PAUSED", "failure_diagnostic": "列出失败约束与修复入口。", "domain_state": {"initiative_open": true, "repair_work": true}
+    },
+    {
+      "id": "empty-frontier", "group": "empty-frontier", "tracker": "local",
+      "initial_state": "没有 Open/Unblocked/Unclaimed Ticket，但仍有 Blocked 项。", "entry_prompt": "继续当前 Run。",
+      "expected_writes": ["报告 Completed/Blocked/Claimed/Invalid 桶"], "forbidden_writes": ["创建 Coder", "宣称完成"],
+      "terminal_state": "PAUSED", "failure_diagnostic": "明确阻塞 Ticket 与 blocker。", "domain_state": {"coder_created": false, "blocked_reported": true}
+    },
+    {
+      "id": "auth-permission", "group": "auth-permission", "tracker": "github",
+      "initial_state": "gh 未认证或缺 Issue/PR 权限。", "entry_prompt": "运行正式 Spec。",
+      "expected_writes": ["无"], "forbidden_writes": ["回退 Local", "Claim", "Coder"],
+      "terminal_state": "FAILED_PRECONDITION", "failure_diagnostic": "指出失败命令、身份和所需权限。", "domain_state": {"writes": 0, "explicit_error": true}
+    },
+    {
+      "id": "reviewer-unavailable", "group": "reviewer-unavailable", "tracker": "local",
+      "initial_state": "Coder READY，但无法创建两个独立 Reviewer。", "entry_prompt": "继续当前 Run。",
+      "expected_writes": ["RUN_PAUSED reason REVIEW_BLOCKED"], "forbidden_writes": ["单 Reviewer 代替双轴", "伪造 Verdict"],
+      "terminal_state": "PAUSED", "failure_diagnostic": "记录能力不可用和恢复条件。", "domain_state": {"review_blocked": true, "verdict_forged": false}
+    },
+    {
+      "id": "crash-recovery", "group": "crash-recovery", "tracker": "local",
+      "initial_state": "Claim 与 Coder Result 已写，进程在 Review 前崩溃；存在重复幂等请求。", "entry_prompt": "恢复当前 Run。",
+      "expected_writes": ["RUN_RESUMED", "复用原 Run ID", "不重复已有 Event"], "forbidden_writes": ["新 Claim", "重复 CODER_RESULT", "短 TTL 接管"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "原生事实冲突时 RECOVERY_CONFLICT。", "domain_state": {"same_run_id": true, "duplicate_events": 0}
+    },
+    {
+      "id": "concurrent-claim", "group": "concurrent-claim", "tracker": "github",
+      "initial_state": "两个 Scheduler 同时对同一 Initiative Claim。", "entry_prompt": "竞争并运行 Frontier。",
+      "expected_writes": ["服务端最早 Claim 唯一获胜"], "forbidden_writes": ["失败者创建 Coder", "两个活动 Ticket"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "报告胜者 Run ID 与失败者停止。", "domain_state": {"claim_winners": 1, "coders": 1}
+    }
+  ]
+}

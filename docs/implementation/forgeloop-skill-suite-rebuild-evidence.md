@@ -133,3 +133,77 @@ Fixtures: 11 个显式调用 Policy、9 个模型调用 Policy、20 个包含 `$
 Result: PASS
 Errors: 未发布入口与旧 Skill 引用被移除。
 Out of scope: M1 不替换旧 `run-initiative`，只保留到 M2 闭环通过。
+
+### M2 `run-initiative` 执行内核
+
+Task: T2.1
+Entry: `$run-initiative <local-spec-ref>`。
+Changed: 使用 `init_skill.py` 重建入口与八份一层协议，完成 Local 单 Ticket 主循环。
+Commands: `quick_validate.py`、运行协议校验、Fixture 校验。
+Fixtures: `happy-local`、空 Frontier、坏引用、脏工作区、Reviewer 不可用。
+Result: PASS
+Errors: 所有预检失败均在 Claim/Coder 前停止。
+Out of scope: 不写 `PLAN.md`、`LEDGER.md` 或执行状态标签。
+
+Task: T2.2
+Entry: `$run-initiative <github-spec-ref>`。
+Changed: `gh` Frontier、Claim Comment、Events、PR/Commit、关闭与两种集成策略。
+Commands: Runtime 契约校验、`happy-github` Fixture。
+Fixtures: Happy Path、权限/认证、Branch Protection、Required Checks、human-merge。
+Result: PASS
+Errors: 远端失败保持 Open，禁止回退 Local。
+Out of scope: 不额外触发完整 CI。
+
+Task: T2.3
+Entry: `$run-initiative <gitlab-spec-ref>`。
+Changed: `glab` Frontier、Claim Note、Events、MR/Commit、Free/Premium Blocking 与关闭。
+Commands: Runtime 契约校验、`happy-gitlab` Fixture。
+Fixtures: Happy Path、认证/权限、Protected Branch、能力回退。
+Result: PASS
+Errors: 平台失败可定位且不回退 Tracker。
+Out of scope: 不承诺 Other Tracker。
+
+Task: T2.4
+Entry: 任一 Reviewer `REPAIR_REQUIRED`。
+Changed: 原 Coder/Reviewer 复用、双轴独立重审、稳定 Finding、模型升级与修复预算。
+Commands: 运行协议校验；Spec、Standards、双轴、预算、合约 Fixture。
+Fixtures: `spec-repair`、`standards-repair`、`dual-repair`、`repair-exhausted`、`contract-blocker`。
+Result: PASS
+Errors: 同 Finding 两次或 Ticket 三次失败暂停；合约路径不耗普通预算。
+Out of scope: 用户不能覆盖 Reviewer PASS 门禁。
+
+Task: T2.5
+Entry: 双 PASS 后按 Integration Policy 集成。
+Changed: 独立/共享 Branch、integrate-and-verify、human-merge 恢复、冲突重审。
+Commands: `human-merge`、`shared-integration` Fixture。
+Fixtures: 人工合并暂停/恢复、共享分支、PR/MR 关闭未合并、Base/Head 变化。
+Result: PASS
+Errors: 冲突改变代码或 Base/Head 变化使 Verdict 失效。
+Out of scope: 自动集成不含部署、发布或迁移执行。
+
+Task: T2.6
+Entry: 当前 Spec 所有 Tickets 通过。
+Changed: 简单单 Ticket Reviewer 复用与全新 Spec Acceptance 分流。
+Commands: Acceptance 协议校验、Spec 失败 Fixture。
+Fixtures: `happy-local`、`spec-acceptance-fail`。
+Result: PASS
+Errors: 验收失败保持 Spec Open 并创建正式修复工作。
+Out of scope: 不改写已关闭 Ticket 的历史 Verdict。
+
+Task: T2.7
+Entry: `$run-initiative <spec-ref...>` 或父 Initiative 引用。
+Changed: 多 Spec 预览、持久化父 Item、成员变更确认与全新跨 Spec Acceptance。
+Commands: `multi-spec`、Initiative 失败 Fixture。
+Fixtures: `multi-spec`、`initiative-acceptance-fail`。
+Result: PASS
+Errors: 跨 Spec 失败保持父 Item Open 并创建修复工作。
+Out of scope: 单 Spec 不创建多余父对象。
+
+Task: T2.8
+Entry: 新运行、并发 Claim 或沿原 Run ID 恢复。
+Changed: 严格串行、重新查询 Frontier、Event Schema、幂等、Supersede 与恢复冲突。
+Commands: Event 协议校验、并发与崩溃恢复 Fixture。
+Fixtures: `blocking-graph`、`concurrent-claim`、`crash-recovery`、`empty-frontier`。
+Result: PASS
+Errors: 原生事实冲突返回 `RECOVERY_CONFLICT`；不用短 TTL。
+Out of scope: Initiative 内不主动并行 Frontier。
