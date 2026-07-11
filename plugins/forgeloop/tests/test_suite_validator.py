@@ -77,6 +77,24 @@ class SuiteValidatorTests(unittest.TestCase):
         errors, _ = MODULE.validate_tree(self.root, "release", self.config)
         self.assertTrue(any("重复 Skill 名称" in error for error in errors))
 
+    def test_installed_cachebuster_is_accepted(self) -> None:
+        self.add_skill()
+        manifest_path = self.root / ".codex-plugin" / "plugin.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["version"] = "3.0.0+codex.local-20260712"
+        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+        errors, _ = MODULE.validate_tree(self.root, "installed", self.config)
+        self.assertEqual(errors, [])
+
+    def test_installed_stacked_cachebuster_is_rejected(self) -> None:
+        self.add_skill()
+        manifest_path = self.root / ".codex-plugin" / "plugin.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["version"] = "3.0.0+codex.one+codex.two"
+        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+        errors, _ = MODULE.validate_tree(self.root, "installed", self.config)
+        self.assertTrue(any("单一 Codex Cachebuster" in error for error in errors))
+
 
 if __name__ == "__main__":
     unittest.main()

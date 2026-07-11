@@ -113,7 +113,15 @@ def validate_tree(plugin_root: Path, mode: str, config: dict) -> tuple[list[str]
     if manifest.get("skills") != "./skills/":
         errors.append("Manifest 必须发现标准 ./skills/ 目录")
     expected_version = config[mode]["version"] if mode in ("baseline", "development", "release") else None
-    if expected_version and manifest.get("version") != expected_version:
+    if mode == "installed":
+        release_version = re.escape(config["release"]["version"])
+        installed_version = str(manifest.get("version", ""))
+        if not re.fullmatch(rf"{release_version}\+codex\.[0-9A-Za-z.-]+", installed_version):
+            errors.append(
+                "installed 模式只接受单一 Codex Cachebuster："
+                f"{config['release']['version']}+codex.<token>；实际为 {installed_version}"
+            )
+    elif expected_version and manifest.get("version") != expected_version:
         errors.append(f"{mode} 模式 Manifest 版本应为 {expected_version}，实际为 {manifest.get('version')}")
 
     final_names = set(config["release"]["skills"])
@@ -130,7 +138,7 @@ def validate_tree(plugin_root: Path, mode: str, config: dict) -> tuple[list[str]
             notices.append(f"尚未完成：{', '.join(missing)}")
         if unexpected:
             errors.append(f"开发目录存在未声明 Skill：{', '.join(unexpected)}")
-    elif mode == "release":
+    elif mode in ("release", "installed"):
         if set(directories) != final_names or len(directories) != len(final_names):
             errors.append(
                 f"发布模式必须恰好 {len(final_names)} 个正式 Skills；"
@@ -162,7 +170,7 @@ def export_baseline(commit: str, destination: Path) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--mode", choices=("baseline", "development", "release"), required=True)
+    parser.add_argument("--mode", choices=("baseline", "development", "release", "installed"), required=True)
     parser.add_argument("--plugin-root", type=Path, default=PLUGIN_ROOT)
     args = parser.parse_args()
     config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
