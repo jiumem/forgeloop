@@ -1,0 +1,6 @@
+interface:
+  display_name: "询问 Forgeloop"
+  short_description: "Route requests to the right Forgeloop workflow"
+  default_prompt: "使用 $ask-forgeloop 为当前工程场景推荐正确的工作流入口。"
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,102 @@
+{
+  "ask-forgeloop": {
+    "display_name": "询问 Forgeloop",
+    "short_description": "Route requests to the right Forgeloop workflow",
+    "default_prompt": "使用 $ask-forgeloop 为当前工程场景推荐正确的工作流入口。"
+  },
+  "codebase-design": {
+    "display_name": "代码库设计",
+    "short_description": "Design deep modules with clear testable seams",
+    "default_prompt": "使用 $codebase-design 设计具有清晰 Seam 的 Deep Module。"
+  },
+  "diagnosing-bugs": {
+    "display_name": "诊断缺陷",
+    "short_description": "Build a tight feedback loop and diagnose root causes",
+    "default_prompt": "使用 $diagnosing-bugs 建立反馈环并定位这个缺陷的根因。"
+  },
+  "domain-modeling": {
+    "display_name": "领域建模",
+    "short_description": "Sharpen domain language and durable decisions",
+    "default_prompt": "使用 $domain-modeling 澄清领域术语并记录长期决定。"
+  },
+  "grill-with-docs": {
+    "display_name": "带文档深挖设计",
+    "short_description": "Grill a design while maintaining domain documents",
+    "default_prompt": "使用 $grill-with-docs 逐项深挖这个设计并维护领域文档。"
+  },
+  "grilling": {
+    "display_name": "逐项深挖",
+    "short_description": "Ask one high impact design question at a time",
+    "default_prompt": "使用 $grilling 每次只问一个高影响设计问题。"
+  },
+  "handoff": {
+    "display_name": "会话交接",
+    "short_description": "Create a compact temporary handoff for a fresh session",
+    "default_prompt": "使用 $handoff 为下一次新会话生成精简的临时交接文档。"
+  },
+  "improve-codebase-architecture": {
+    "display_name": "改进代码库架构",
+    "short_description": "Find evidence backed deepening opportunities",
+    "default_prompt": "使用 $improve-codebase-architecture 扫描真实的 Deepening Opportunity。"
+  },
+  "primary-source-research": {
+    "display_name": "一手来源研究",
+    "short_description": "Research questions using cited primary sources",
+    "default_prompt": "使用 $primary-source-research 基于一手来源研究这个问题并逐项引用。"
+  },
+  "prototype": {
+    "display_name": "可抛弃原型",
+    "short_description": "Build a throwaway prototype to answer one design question",
+    "default_prompt": "使用 $prototype 构建可抛弃原型来回答这个设计问题。"
+  },
+  "recommend-initiatives": {
+    "display_name": "推荐工程 Initiative",
+    "short_description": "Recommend evidence backed high value engineering initiatives",
+    "default_prompt": "使用 $recommend-initiatives 从当前仓库推荐下一批高价值工程 Initiative。"
+  },
+  "resolving-merge-conflicts": {
+    "display_name": "解决合并冲突",
+    "short_description": "Resolve compatible merge intents and expose blockers",
+    "default_prompt": "使用 $resolving-merge-conflicts 恢复双方意图并安全处理当前冲突。"
+  },
+  "review-change": {
+    "display_name": "双轴审查变更",
+    "short_description": "Review a fixed diff on independent Spec and Standards axes",
+    "default_prompt": "使用 $review-change 从固定点独立审查 Spec 与 Standards 两个轴。"
+  },
+  "run-initiative": {
+    "display_name": "运行 Initiative",
+    "short_description": "Run Tracker tickets through coder and dual reviewer gates",
+    "default_prompt": "使用 $run-initiative 从正式 Spec 运行完整的 Tracker 驱动交付闭环。"
+  },
+  "setup-forgeloop": {
+    "display_name": "配置 Forgeloop",
+    "short_description": "Configure Tracker integration and domain documentation",
+    "default_prompt": "使用 $setup-forgeloop 为当前仓库配置 Tracker、集成策略与领域文档。"
+  },
+  "tdd": {
+    "display_name": "测试驱动开发",
+    "short_description": "Drive vertical behavior slices through red and green",
+    "default_prompt": "使用 $tdd 通过公共 Seam 完成一个 Red-Green 垂直切片。"
+  },
+  "to-spec": {
+    "display_name": "发布 Spec",
+    "short_description": "Synthesize approved context into a Tracker Spec",
+    "default_prompt": "使用 $to-spec 将已充分讨论的上下文发布为 Tracker Spec。"
+  },
+  "to-tickets": {
+    "display_name": "拆分 Tickets",
+    "short_description": "Split an approved Spec into blocked vertical slices",
+    "default_prompt": "使用 $to-tickets 将已批准的 Spec 拆成带依赖的垂直 Tickets。"
+  },
+  "triage": {
+    "display_name": "请求分流",
+    "short_description": "Triage incoming requests with explicit user approval",
+    "default_prompt": "使用 $triage 发现并分类需要维护者处理的外部请求。"
+  },
+  "wayfinder": {
+    "display_name": "大型探索地图",
+    "short_description": "Map and resolve one investigation ticket at a time",
+    "default_prompt": "使用 $wayfinder 将大型模糊问题拆成一次一张的探索 Ticket。"
+  }
+}

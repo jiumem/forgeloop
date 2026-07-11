@@ -1,0 +1,6 @@
+interface:
+  display_name: "会话交接"
+  short_description: "Create a compact temporary handoff for a fresh session"
+  default_prompt: "使用 $handoff 为下一次新会话生成精简的临时交接文档。"
+policy:
+  allow_implicit_invocation: false

@@ -32,3 +32,104 @@ Fixtures: 正确 Commit、错误 Commit、正文篡改、重复写入。
 Result: PASS
 Errors: 错误 Commit 在任何写入前退出；篡改文件返回具体路径。
 Out of scope: `recommend-initiatives` 与 `run-initiative` 不受导入器管理。
+
+### M1 上游能力与用户入口
+
+Task: T1.1
+Entry: `$setup-forgeloop`。
+Changed: GitHub/GitLab/Local 模板、Integration Policy、认证/权限停止、旧历史只读检测。
+Commands: 上游漂移校验、三个 Setup Fixture、`quick_validate.py`。
+Fixtures: `setup-github`、`setup-gitlab`、`setup-local`。
+Result: PASS
+Errors: 认证或权限失败禁止回退与部分配置；缺少指令文件请求用户选择。
+Out of scope: 不自动迁移 `docs/initiatives/**`。
+
+Task: T1.2
+Entry: `$grilling`、`$domain-modeling`、`$grill-with-docs`。
+Changed: 继承逐问、事实调查与领域文档契约，补充不创建 Spec/Ticket/代码门禁。
+Commands: 三 Skill `quick_validate.py`、上游漂移校验。
+Fixtures: 高影响单问正例；未决问题与无术语变化边界。
+Result: PASS
+Errors: 未决问题保持未完成；无长期变化不写领域文档。
+Out of scope: 不执行设计。
+
+Task: T1.3
+Entry: `$primary-source-research`、`$prototype`、`$wayfinder`。
+Changed: 继承一手来源、可抛弃原型与 Map/Frontier 契约。
+Commands: 三 Skill `quick_validate.py`、三 Tracker Wayfinder Fixture。
+Fixtures: `wayfinder-github`、`wayfinder-gitlab`、`wayfinder-local`。
+Result: PASS
+Errors: 坏依赖或能力缺失明确回退/停止；一次只 Claim 一张。
+Out of scope: 不把单会话问题膨胀为 Map。
+
+Task: T1.4
+Entry: `$to-spec`、`$to-tickets`。
+Changed: 继承 Spec 模板、垂直切片、Wide Refactor 与批准门禁；映射执行入口。
+Commands: 两 Skill `quick_validate.py`、三 Tracker Publish Fixture。
+Fixtures: `publish-github`、`publish-gitlab`、`publish-local`。
+Result: PASS
+Errors: `CONTEXT_INSUFFICIENT` 与发布权限失败均保持未发布。
+Out of scope: 不创建 `PLAN.md` 或 `LEDGER.md`。
+
+Task: T1.5
+Entry: `$triage`。
+Changed: 继承发现桶、推荐后等待、状态机与 Out-of-Scope 区分。
+Commands: `quick_validate.py`、引用校验。
+Fixtures: 未分类/等待信息新回复正例；状态冲突与权限失败边界。
+Result: PASS
+Errors: 状态冲突先请求方向；写入前确认避免静默部分成功。
+Out of scope: 不自动应用推荐。
+
+Task: T1.6
+Entry: `$tdd`、`$codebase-design`。
+Changed: 原样继承 Red-Green、公共 Seam、Deep Module 统一词汇。
+Commands: 两 Skill `quick_validate.py`、上游漂移校验。
+Fixtures: 公共行为测试正例；实现细节耦合与 Scope 扩大反例。
+Result: PASS
+Errors: 未确认 Seam 时停止写测试。
+Out of scope: Primitive 不自行扩大 Ticket。
+
+Task: T1.7
+Entry: `$diagnosing-bugs`、`$resolving-merge-conflicts`。
+Changed: 继承诊断反馈环并增加只诊断授权；冲突 Skill 使用封板安全 Overlay。
+Commands: 两 Skill `quick_validate.py`、Overlay 漂移校验。
+Fixtures: 可复现诊断正例；意图不兼容 `CONTRACT_BLOCKER`。
+Result: PASS
+Errors: 无反馈环、破坏性操作或结构冲突均明确停止。
+Out of scope: 只诊断请求不修复代码。
+
+Task: T1.8
+Entry: `$review-change <fixed-point>`。
+Changed: 继承独立 Spec/Standards 双轴并补充固定点、空 Diff 与只读门禁。
+Commands: `quick_validate.py`、上游漂移校验。
+Fixtures: 双轴报告正例；坏引用、空 Diff、无 Spec 边界。
+Result: PASS
+Errors: 无 Spec 返回 `SPEC: NOT_AVAILABLE`，不伪造 Verdict。
+Out of scope: 不修改代码或 Tracker。
+
+Task: T1.9
+Entry: `$recommend-initiatives`、`$improve-codebase-architecture`。
+Changed: 使用 `init_skill.py` 重建只读推荐器；架构扫描增加证据与临时目录边界。
+Commands: 两 Skill `quick_validate.py`、空结果/部分来源门禁检查。
+Fixtures: 3–5 个跨类别候选；缺少目标、无 Deepening Opportunity、Tracker 不可访问边界。
+Result: PASS
+Errors: 空结果与部分来源显式输出，不虚构路线图。
+Out of scope: 不写 Recommendations、Spec、Ticket 或生产代码。
+
+Task: T1.10
+Entry: `$handoff`。
+Changed: 原样继承 OS 临时目录、正式产物引用与敏感信息清理。
+Commands: `quick_validate.py`、上游漂移校验。
+Fixtures: 新会话续接正例；凭据与重复 Tracker 状态反例。
+Result: PASS
+Errors: 必需上下文不足时明确列出缺口。
+Out of scope: 不建立第二真理源。
+
+Task: T1.11
+Entry: `$ask-forgeloop` 与 20 份 `agents/openai.yaml`。
+Changed: Router 仅覆盖正式入口；元数据由 Skill Creator 生成器和声明式清单刷新。
+Commands: `refresh_skill_metadata.py --check`、19 次 `quick_validate.py`、套件开发态校验。
+Fixtures: 11 个显式调用 Policy、9 个模型调用 Policy、20 个包含 `$skill-name` 的 Prompt。
+Result: PASS
+Errors: 未发布入口与旧 Skill 引用被移除。
+Out of scope: M1 不替换旧 `run-initiative`，只保留到 M2 闭环通过。

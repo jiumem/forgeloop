@@ -1,0 +1,6 @@
+interface:
+  display_name: "运行 Initiative"
+  short_description: "Run Tracker tickets through coder and dual reviewer gates"
+  default_prompt: "使用 $run-initiative 从正式 Spec 运行完整的 Tracker 驱动交付闭环。"
+policy:
+  allow_implicit_invocation: false

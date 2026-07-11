@@ -2,19 +2,28 @@
   "upstream_commit": "391a2701dd948f94f56a39f7533f8eea9a859c87",
   "upstream_root": "references/mattpocock-skills",
   "mappings": [
-    {"source": "skills/engineering/ask-matt", "target": "ask-forgeloop"},
-    {"source": "skills/engineering/code-review", "target": "review-change"},
+    {"source": "skills/engineering/ask-matt", "target": "ask-forgeloop", "overlay": "config/overlays/ask-forgeloop.md"},
+    {"source": "skills/engineering/code-review", "target": "review-change", "appends": {"SKILL.md": "config/overlays/review-change-append.md"}},
     {"source": "skills/engineering/codebase-design", "target": "codebase-design"},
-    {"source": "skills/engineering/diagnosing-bugs", "target": "diagnosing-bugs"},
+    {"source": "skills/engineering/diagnosing-bugs", "target": "diagnosing-bugs", "appends": {"SKILL.md": "config/overlays/diagnosing-bugs-append.md"}},
     {"source": "skills/engineering/domain-modeling", "target": "domain-modeling"},
-    {"source": "skills/engineering/grill-with-docs", "target": "grill-with-docs"},
-    {"source": "skills/engineering/improve-codebase-architecture", "target": "improve-codebase-architecture"},
+    {"source": "skills/engineering/grill-with-docs", "target": "grill-with-docs", "appends": {"SKILL.md": "config/overlays/grill-with-docs-append.md"}},
+    {"source": "skills/engineering/improve-codebase-architecture", "target": "improve-codebase-architecture", "appends": {"SKILL.md": "config/overlays/improve-codebase-architecture-append.md"}},
     {"source": "skills/engineering/prototype", "target": "prototype"},
     {"source": "skills/engineering/research", "target": "primary-source-research"},
     {"source": "skills/engineering/resolving-merge-conflicts", "target": "resolving-merge-conflicts", "overlay": "config/overlays/resolving-merge-conflicts.md"},
-    {"source": "skills/engineering/setup-matt-pocock-skills", "target": "setup-forgeloop"},
+    {
+      "source": "skills/engineering/setup-matt-pocock-skills",
+      "target": "setup-forgeloop",
+      "appends": {
+        "SKILL.md": "config/overlays/setup-forgeloop-append.md",
+        "issue-tracker-github.md": "config/overlays/tracker-runtime-github-append.md",
+        "issue-tracker-gitlab.md": "config/overlays/tracker-runtime-gitlab-append.md",
+        "issue-tracker-local.md": "config/overlays/tracker-runtime-local-append.md"
+      }
+    },
     {"source": "skills/engineering/tdd", "target": "tdd"},
-    {"source": "skills/engineering/to-spec", "target": "to-spec"},
+    {"source": "skills/engineering/to-spec", "target": "to-spec", "appends": {"SKILL.md": "config/overlays/to-spec-append.md"}},
     {"source": "skills/engineering/to-tickets", "target": "to-tickets"},
     {"source": "skills/engineering/triage", "target": "triage"},
     {"source": "skills/engineering/wayfinder", "target": "wayfinder"},
@@ -30,6 +39,8 @@
     ["ask-matt", "ask-forgeloop"],
     ["Ask Matt", "Ask Forgeloop"],
     ["code-review", "review-change"],
-    ["/research", "/primary-source-research"]
+    ["/research", "/primary-source-research"],
+    ["/implement", "/run-initiative"],
+    ["`qa`", "`review-change`"]
   ]
 }

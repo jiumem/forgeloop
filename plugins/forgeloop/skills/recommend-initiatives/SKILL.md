@@ -1,89 +1,55 @@
 ---
 name: recommend-initiatives
-description: Use when the user asks Codex to inspect the current repository and recommend the next 3-5 high-value development Initiatives before grilling, planning, or coding; do not use for writing DESIGN.md, PLAN.md, or executing work.
+description: 只读扫描代码、测试、CI、Tracker、ADR 与用户已声明目标，推荐 3–5 个有证据的高价值工程 Initiative。仅在用户明确要求寻找下一步工作、工程改进机会或 Initiative 候选时使用；不创建 Spec、Ticket 或代码改动。
 ---
 
-# recommend-initiatives
+# 推荐工程 Initiative
 
-## Trigger
+在对话中返回少量可验证候选，帮助用户选择下一项值得设计的工作。保持只读，不创建仓库文件、Tracker Item、Spec、Ticket 或实现分支。
 
-Use this skill when the user asks what the project should do next, asks for a roadmap from the current source baseline, or asks for the next best initiatives before selecting one to plan.
+## 调查
 
-## Goal
+1. 读取仓库指令、`CONTEXT.md`、相关 ADR 与用户已声明目标。
+2. 调查代码、测试、CI 配置、近期变更和已有 Tracker 请求。Tracker 已配置时按 `docs/agents/issue-tracker.md` 只读查询；认证、权限或网络失败必须明确报告，不得伪装为“没有请求”。
+3. 收集可定位证据：文件与行号、失败输出、重复模式、开放请求、ADR 约束或缺失的公共 Seam。
+4. 跨类别寻找候选，至少考虑产品价值、可靠性、架构深度、测试/开发体验和运维风险。没有证据的类别不要凑数。
 
-Inspect the current repository baseline and recommend a ranked sequence of 3-5 initiatives. The output is a recommendation snapshot, not an execution contract and not a PLAN.
+## 筛选
 
-## Read First
+只保留满足以下条件的 3–5 项：
 
-Read only what is needed to understand the current baseline:
+- 解决真实用户或维护目标，而非泛化清理；
+- 需要多步协调，足以成为 Initiative，而不是一张可直接完成的小 Ticket；
+- 有至少两项独立仓库证据，或一项仓库证据加一项已声明用户目标；
+- 不复制已有开放 Initiative，且不违反 ADR；
+- 可以说明成功信号、主要风险和下一步入口。
 
-1. `README.md` and repository entry docs
-2. package, workspace, build, or CI configuration files
-3. existing `docs/` content, especially `docs/initiatives/`
-4. existing `docs/initiatives/recommendations/`, `handoff/`, `active/`, `completed/`, and `archived/` entries
-5. relevant source, test, component, schema, registry, or app directories
-6. `git status` and a short recent commit summary when available
+单一会话即可安全完成的小改动放入“未推荐：适合作为直接任务”，不要膨胀为 Initiative。缺少产品目标时仍可报告工程候选，但把“产品价值”置信度降为低，并说明依据仅来自仓库健康度；不得虚构路线图、用户需求或业务优先级。
 
-## Write Target
+## 输出
 
-Default write target:
-
-```text
-docs/initiatives/recommendations/<yyyy-mm-dd>-<topic>.md
-```
-
-Also update:
+先报告调查覆盖范围与不可访问来源，再按推荐顺序给出每项候选：
 
 ```text
-docs/initiatives/recommendations/index.md
+候选：<面向结果的名称>
+类别：<产品价值 | 可靠性 | 架构 | 测试/开发体验 | 运维>
+问题：<当前可观察问题>
+证据：<至少两项可复查引用>
+价值：<对用户或维护者的结果>
+边界：<明确不包含什么>
+成功信号：<可执行或可观察指标>
+风险：<最高风险与未知项>
+置信度：高 | 中 | 低（原因）
+建议入口：$grill-with-docs | $wayfinder
 ```
 
-Do not create `active/<initiative-code>-<slug>/DESIGN.md` or `PLAN.md` unless the user explicitly selects an initiative and asks you to grill or plan it.
+最后给出首选项及选择理由，但只推荐入口，不自动启动另一个仅用户调用的 Workflow。
 
-## Initiative Naming
+## 终态
 
-- Recommended initiative slugs should include a provisional three-digit code prefix, such as `001-auth-hardening`.
-- Provisional recommendation codes are planning aids, not reservations. They do not permanently claim initiative numbers.
-- Determine provisional codes by scanning existing `docs/initiatives/handoff/`, `active/`, `completed/`, and `archived/` entries for used three-digit prefixes. Prior recommendation snapshots may inform naming, but must not reserve codes.
-- Assign recommendations in order using the next unused provisional codes, such as `001-...`, `002-...`, `003-...`.
-- Use the provisional coded slug in suggested DESIGN and PLAN paths so `grill-initiative` or `plan-initiative` can preserve it when it is still available.
+- `COMPLETE`：返回 3–5 个证据充分的候选。
+- `EMPTY`：证据不足以形成候选；列出已检查来源与最小补充信息，不编造建议。
+- `PARTIAL`：某个来源因认证、权限、配置或网络不可用；保留可验证候选并标明置信度影响。
+- `CANCELLED`：用户取消时立即停止，不写入任何产物。
 
-## Workflow
-
-1. Establish the baseline: branch, clean/dirty state, important docs, source areas, tests, and known constraints.
-2. Check existing recommendations, handoff findings, active initiatives, completed initiatives, and archived initiatives before ranking candidates.
-3. Identify current strengths, gaps, risks, and product opportunities.
-4. Rank candidate initiatives by product impact, engineering leverage, risk reduction, and execution readiness.
-5. Recommend 3-5 initiatives only. Default to 3 when the project does not clearly need more.
-6. Present them as an ordered sequence, not a flat wishlist.
-7. Use handoff findings as candidate input, but still rank by product impact, engineering leverage, risk reduction, and execution readiness.
-8. Do not recommend duplicate active or completed initiatives unless the recommendation is explicitly a follow-up, v2, or replacement with a stated reason.
-9. Treat archived initiatives as reusable background only; recommend them again only with an explicit replacement or revival rationale.
-10. For each initiative, include expected outcome, suggested size, key risks, read-first files, and whether an acceptance and hardening Milestone is recommended.
-11. Include a short `Not Recommended Yet` section for tempting work that should wait.
-12. End with the best next action: run `grill-initiative` first when the top candidate needs design pressure-testing; otherwise run `plan-initiative` for the top initiative.
-
-## Language Rule
-
-- Write recommendation documents in the primary language of the user's request by default.
-- If the request mixes languages, follow the language used for the user's requirements and decisions.
-- Preserve technical identifiers, file paths, commands, code symbols, branch names, status tokens, and tool names as written.
-- If the user explicitly requests a language, that instruction overrides the default.
-- Template headings and explanatory text are structural guidance; translate or adapt them to the output language when writing the final document.
-
-## Quality Bar
-
-A valid recommendation:
-
-- is grounded in actual repository files and project state
-- recommends 3-5 initiatives, never a long backlog
-- explains ordering and dependencies
-- avoids duplicating existing active or completed initiatives
-- avoids generic items like “improve tests” unless tied to concrete source areas and risks
-- does not start coding
-- does not write a full PLAN for every candidate
-- does not create formal document slices or old runtime state
-
-## Output Shape
-
-Use the template in `references/output-template.md` when writing a recommendation file. Use `references/recommendations-index-template.md` when creating or refreshing `docs/initiatives/recommendations/index.md`.
+始终禁止写入 `docs/initiatives/recommendations/**`，禁止创建 Spec/Ticket，禁止修改生产代码。

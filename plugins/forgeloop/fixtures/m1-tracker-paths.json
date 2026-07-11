@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "setup-github",
+      "group": "setup",
+      "tracker": "github",
+      "initial_state": "GitHub Remote、有效 gh 认证、根目录已有 AGENTS.md、尚无 docs/agents 配置。",
+      "entry_prompt": "使用 $setup-forgeloop 配置仓库。",
+      "expected_writes": ["更新 AGENTS.md 的唯一 Agent skills 块", "写入 GitHub issue-tracker、domain、triage labels 与 Integration Policy"],
+      "forbidden_writes": ["重复 Agent skills 块", "回退到 Local", "迁移 docs/initiatives"],
+      "terminal_state": "CONFIGURED",
+      "failure_diagnostic": "gh 认证或权限失败时停止且不产生部分配置。",
+      "domain_state": {"tracker_configured": true, "integration_policy_recorded": true, "idempotent": true}
+    },
+    {
+      "id": "setup-gitlab",
+      "group": "setup",
+      "tracker": "gitlab",
+      "initial_state": "GitLab Remote、有效 glab 认证、根目录已有 AGENTS.md、尚无 docs/agents 配置。",
+      "entry_prompt": "使用 $setup-forgeloop 配置仓库。",
+      "expected_writes": ["更新 AGENTS.md 的唯一 Agent skills 块", "写入 GitLab issue-tracker、domain、triage labels 与 Integration Policy"],
+      "forbidden_writes": ["重复 Agent skills 块", "回退到 Local", "迁移 docs/initiatives"],
+      "terminal_state": "CONFIGURED",
+      "failure_diagnostic": "glab 认证或权限失败时停止且不产生部分配置。",
+      "domain_state": {"tracker_configured": true, "integration_policy_recorded": true, "idempotent": true}
+    },
+    {
+      "id": "setup-local",
+      "group": "setup",
+      "tracker": "local",
+      "initial_state": "无 Remote、根目录已有 AGENTS.md、用户选择 Local Markdown。",
+      "entry_prompt": "使用 $setup-forgeloop 配置仓库。",
+      "expected_writes": ["更新 AGENTS.md 的唯一 Agent skills 块", "写入 Local issue-tracker、domain、triage labels 与 Integration Policy"],
+      "forbidden_writes": ["重复 Agent skills 块", "假装存在远端认证", "迁移 docs/initiatives"],
+      "terminal_state": "CONFIGURED",
+      "failure_diagnostic": "缺少 AGENTS.md/CLAUDE.md 时请求用户选择，不擅自创建。",
+      "domain_state": {"tracker_configured": true, "integration_policy_recorded": true, "idempotent": true}
+    },
+    {
+      "id": "wayfinder-github",
+      "group": "wayfinder",
+      "tracker": "github",
+      "initial_state": "已配置 GitHub；大型模糊目标需要三张有 Blocking 的探索 Ticket。",
+      "entry_prompt": "使用 $wayfinder 为目标建立 Map，并只解决当前 Frontier 的第一张 Ticket。",
+      "expected_writes": ["Map Issue", "Child Issues 与 Blocking", "Claim 与单 Ticket Answer"],
+      "forbidden_writes": ["同时 Claim 多张 Ticket", "创建生产实现", "把单会话问题膨胀为 Map"],
+      "terminal_state": "ONE_TICKET_RESOLVED",
+      "failure_diagnostic": "Sub-issues/Dependencies 不可用时使用已声明正文关系回退。",
+      "domain_state": {"map_created": true, "one_ticket_claimed": true, "one_ticket_resolved": true}
+    },
+    {
+      "id": "wayfinder-gitlab",
+      "group": "wayfinder",
+      "tracker": "gitlab",
+      "initial_state": "已配置 GitLab；大型模糊目标需要三张有 Blocking 的探索 Ticket。",
+      "entry_prompt": "使用 $wayfinder 为目标建立 Map，并只解决当前 Frontier 的第一张 Ticket。",
+      "expected_writes": ["Map Issue", "Child Issues 与 Blocking", "Claim 与单 Ticket Answer"],
+      "forbidden_writes": ["同时 Claim 多张 Ticket", "创建生产实现", "把单会话问题膨胀为 Map"],
+      "terminal_state": "ONE_TICKET_RESOLVED",
+      "failure_diagnostic": "Native Blocking 不可用时使用已声明正文关系回退。",
+      "domain_state": {"map_created": true, "one_ticket_claimed": true, "one_ticket_resolved": true}
+    },
+    {
+      "id": "wayfinder-local",
+      "group": "wayfinder",
+      "tracker": "local",
+      "initial_state": "已配置 Local；大型模糊目标需要三张有 Blocking 的探索 Ticket。",
+      "entry_prompt": "使用 $wayfinder 为目标建立 Map，并只解决当前 Frontier 的第一张 Ticket。",
+      "expected_writes": ["map.md", "Child Markdown 与 Blocked by", "Claim 与单 Ticket Answer"],
+      "forbidden_writes": ["同时 Claim 多张 Ticket", "创建生产实现", "把单会话问题膨胀为 Map"],
+      "terminal_state": "ONE_TICKET_RESOLVED",
+      "failure_diagnostic": "坏 Blocked by 引用必须停止并指出文件。",
+      "domain_state": {"map_created": true, "one_ticket_claimed": true, "one_ticket_resolved": true}
+    },
+    {
+      "id": "publish-github",
+      "group": "publish",
+      "tracker": "github",
+      "initial_state": "对话已批准一份 Spec 与三张垂直 Ticket，其中第三张被前两张阻塞。",
+      "entry_prompt": "依次使用 $to-spec 与 $to-tickets 发布已批准内容。",
+      "expected_writes": ["Parent Spec Issue", "三张 Child Ticket", "Blocking Dependencies 与 ready-for-agent"],
+      "forbidden_writes": ["PLAN.md", "LEDGER.md", "未批准前发布"],
+      "terminal_state": "SPEC_AND_TICKETS_PUBLISHED",
+      "failure_diagnostic": "上下文不足或权限失败时停止，不发明决定。",
+      "domain_state": {"spec_published": true, "vertical_tickets": 3, "blocking_graph": true}
+    },
+    {
+      "id": "publish-gitlab",
+      "group": "publish",
+      "tracker": "gitlab",
+      "initial_state": "对话已批准一份 Spec 与三张垂直 Ticket，其中第三张被前两张阻塞。",
+      "entry_prompt": "依次使用 $to-spec 与 $to-tickets 发布已批准内容。",
+      "expected_writes": ["Parent Spec Issue", "三张 Child Ticket", "Blocking Links 与 ready-for-agent"],
+      "forbidden_writes": ["PLAN.md", "LEDGER.md", "未批准前发布"],
+      "terminal_state": "SPEC_AND_TICKETS_PUBLISHED",
+      "failure_diagnostic": "上下文不足或权限失败时停止，不发明决定。",
+      "domain_state": {"spec_published": true, "vertical_tickets": 3, "blocking_graph": true}
+    },
+    {
+      "id": "publish-local",
+      "group": "publish",
+      "tracker": "local",
+      "initial_state": "对话已批准一份 Spec 与三张垂直 Ticket，其中第三张被前两张阻塞。",
+      "entry_prompt": "依次使用 $to-spec 与 $to-tickets 发布已批准内容。",
+      "expected_writes": ["spec.md", "三张 Child Markdown", "Blocked by 与 ready-for-agent Status"],
+      "forbidden_writes": ["PLAN.md", "LEDGER.md", "未批准前发布"],
+      "terminal_state": "SPEC_AND_TICKETS_PUBLISHED",
+      "failure_diagnostic": "上下文不足或文件冲突时停止，不覆盖已有状态。",
+      "domain_state": {"spec_published": true, "vertical_tickets": 3, "blocking_graph": true}
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+interface:
+  display_name: "请求分流"
+  short_description: "Triage incoming requests with explicit user approval"
+  default_prompt: "使用 $triage 发现并分类需要维护者处理的外部请求。"
+policy:
+  allow_implicit_invocation: false

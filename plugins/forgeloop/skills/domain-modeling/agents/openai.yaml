@@ -1,0 +1,6 @@
+interface:
+  display_name: "领域建模"
+  short_description: "Sharpen domain language and durable decisions"
+  default_prompt: "使用 $domain-modeling 澄清领域术语并记录长期决定。"
+policy:
+  allow_implicit_invocation: true

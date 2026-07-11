@@ -1,0 +1,6 @@
+interface:
+  display_name: "一手来源研究"
+  short_description: "Research questions using cited primary sources"
+  default_prompt: "使用 $primary-source-research 基于一手来源研究这个问题并逐项引用。"
+policy:
+  allow_implicit_invocation: true

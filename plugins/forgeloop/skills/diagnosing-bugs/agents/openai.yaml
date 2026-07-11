@@ -1,0 +1,6 @@
+interface:
+  display_name: "诊断缺陷"
+  short_description: "Build a tight feedback loop and diagnose root causes"
+  default_prompt: "使用 $diagnosing-bugs 建立反馈环并定位这个缺陷的根因。"
+policy:
+  allow_implicit_invocation: true

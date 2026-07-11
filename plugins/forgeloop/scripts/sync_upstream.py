@@ -68,6 +68,11 @@ def expected_files(config: dict, mapping: dict) -> dict[Path, bytes]:
     overlay = mapping.get("overlay")
     if overlay:
         expected[Path("SKILL.md")] = (PLUGIN_ROOT / overlay).read_bytes()
+    for relative_name, append_path in mapping.get("appends", {}).items():
+        relative = Path(relative_name)
+        if relative not in expected:
+            raise RuntimeError(f"追加目标不在上游映射中：{mapping['target']}/{relative}")
+        expected[relative] = expected[relative].rstrip() + b"\n\n" + (PLUGIN_ROOT / append_path).read_bytes().lstrip()
     return expected
 
 
@@ -118,13 +123,22 @@ def main() -> int:
         return 2
 
     print(f"上游 Commit：{actual_commit}")
-    print("允许转换：删除 Claude invocation 字段；固定品牌、Skill 名称、路径引用；仅冲突 Skill 使用封板 Overlay。")
+    print("允许转换：删除 Claude invocation 字段；固定品牌、Skill 名称、路径引用；Router 选集适配；封板边界与 Tracker Runtime 声明式扩展。")
     all_errors: list[str] = []
     for mapping in config["mappings"]:
         source = mapping["source"]
         target = PLUGIN_ROOT / "skills" / mapping["target"]
         changes = [f"{old}→{new}" for old, new in config["replacements"] if old in (REPO_ROOT / config["upstream_root"] / source / "SKILL.md").read_text(encoding="utf-8")]
-        print(f"{source} -> skills/{mapping['target']}；替换：{', '.join(changes) or '仅 Frontmatter 清理'}")
+        adaptations = []
+        if mapping.get("overlay"):
+            adaptations.append(f"Overlay={mapping['overlay']}")
+        if mapping.get("appends"):
+            adaptations.append(f"Appends={','.join(mapping['appends'])}")
+        print(
+            f"{source} -> skills/{mapping['target']}；"
+            f"替换：{', '.join(changes) or '仅 Frontmatter 清理'}；"
+            f"适配：{'; '.join(adaptations) or '无'}"
+        )
         expected = expected_files(config, mapping)
         if args.dry_run:
             continue
