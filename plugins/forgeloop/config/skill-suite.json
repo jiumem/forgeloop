@@ -1,0 +1,70 @@
+{
+  "baseline": {
+    "version": "2.5.0",
+    "commit": "a32f7a5d1eceace7215321dd7168dc7d07dac249",
+    "skills": [
+      "grill-initiative",
+      "plan-initiative",
+      "recommend-initiatives",
+      "run-initiative",
+      "run-initiative-sequences"
+    ]
+  },
+  "development": {
+    "version": "3.0.0-dev.0"
+  },
+  "release": {
+    "version": "3.0.0",
+    "skills": [
+      "ask-forgeloop",
+      "codebase-design",
+      "diagnosing-bugs",
+      "domain-modeling",
+      "grill-with-docs",
+      "grilling",
+      "handoff",
+      "improve-codebase-architecture",
+      "primary-source-research",
+      "prototype",
+      "recommend-initiatives",
+      "resolving-merge-conflicts",
+      "review-change",
+      "run-initiative",
+      "setup-forgeloop",
+      "tdd",
+      "to-spec",
+      "to-tickets",
+      "triage",
+      "wayfinder"
+    ],
+    "explicit_only": [
+      "ask-forgeloop",
+      "grill-with-docs",
+      "handoff",
+      "improve-codebase-architecture",
+      "recommend-initiatives",
+      "run-initiative",
+      "setup-forgeloop",
+      "to-spec",
+      "to-tickets",
+      "triage",
+      "wayfinder"
+    ],
+    "model_callable": [
+      "codebase-design",
+      "diagnosing-bugs",
+      "domain-modeling",
+      "grilling",
+      "primary-source-research",
+      "prototype",
+      "resolving-merge-conflicts",
+      "review-change",
+      "tdd"
+    ]
+  },
+  "removed": [
+    "grill-initiative",
+    "plan-initiative",
+    "run-initiative-sequences"
+  ]
+}

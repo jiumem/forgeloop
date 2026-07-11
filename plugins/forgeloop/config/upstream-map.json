@@ -1,0 +1,35 @@
+{
+  "upstream_commit": "391a2701dd948f94f56a39f7533f8eea9a859c87",
+  "upstream_root": "references/mattpocock-skills",
+  "mappings": [
+    {"source": "skills/engineering/ask-matt", "target": "ask-forgeloop"},
+    {"source": "skills/engineering/code-review", "target": "review-change"},
+    {"source": "skills/engineering/codebase-design", "target": "codebase-design"},
+    {"source": "skills/engineering/diagnosing-bugs", "target": "diagnosing-bugs"},
+    {"source": "skills/engineering/domain-modeling", "target": "domain-modeling"},
+    {"source": "skills/engineering/grill-with-docs", "target": "grill-with-docs"},
+    {"source": "skills/engineering/improve-codebase-architecture", "target": "improve-codebase-architecture"},
+    {"source": "skills/engineering/prototype", "target": "prototype"},
+    {"source": "skills/engineering/research", "target": "primary-source-research"},
+    {"source": "skills/engineering/resolving-merge-conflicts", "target": "resolving-merge-conflicts", "overlay": "config/overlays/resolving-merge-conflicts.md"},
+    {"source": "skills/engineering/setup-matt-pocock-skills", "target": "setup-forgeloop"},
+    {"source": "skills/engineering/tdd", "target": "tdd"},
+    {"source": "skills/engineering/to-spec", "target": "to-spec"},
+    {"source": "skills/engineering/to-tickets", "target": "to-tickets"},
+    {"source": "skills/engineering/triage", "target": "triage"},
+    {"source": "skills/engineering/wayfinder", "target": "wayfinder"},
+    {"source": "skills/productivity/grilling", "target": "grilling"},
+    {"source": "skills/productivity/handoff", "target": "handoff"}
+  ],
+  "replacements": [
+    ["setup-matt-pocock-skills", "setup-forgeloop"],
+    ["Setup Matt Pocock's Skills", "Setup Forgeloop"],
+    ["Matt Pocock's Skills", "Forgeloop"],
+    ["Matt Pocock Skills", "Forgeloop"],
+    ["mattpocock/skills", "Forgeloop"],
+    ["ask-matt", "ask-forgeloop"],
+    ["Ask Matt", "Ask Forgeloop"],
+    ["code-review", "review-change"],
+    ["/research", "/primary-source-research"]
+  ]
+}

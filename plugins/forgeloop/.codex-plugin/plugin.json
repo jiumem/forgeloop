@@ -1,6 +1,6 @@
 {
   "name": "forgeloop",
-  "version": "2.5.0",
+  "version": "3.0.0-dev.0",
   "description": "Initiative-first, milestone-gated engineering workflow for Codex.",
   "author": {
     "name": "Forgeloop",
