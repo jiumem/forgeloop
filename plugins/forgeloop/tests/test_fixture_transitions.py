@@ -72,6 +72,45 @@ class FixtureTransitionTests(unittest.TestCase):
 
         self.assertTrue(any("COMPLETED 必须包含 ACCEPTANCE_RESULT PASS" in error for error in errors))
 
+    def test_pass_substrings_do_not_satisfy_review_or_acceptance(self) -> None:
+        fixture = {
+            "schema_version": 1,
+            "kind": "run-initiative-runtime",
+            "cases": [
+                {
+                    "id": "false-pass",
+                    "group": "false-pass",
+                    "tracker": "local",
+                    "initial_state": "正式 Spec。",
+                    "entry_prompt": "运行。",
+                    "expected_writes": ["失败 Verdict"],
+                    "forbidden_writes": ["错误完成"],
+                    "terminal_state": "COMPLETED",
+                    "failure_diagnostic": "包含 PASS 字样不等于通过。",
+                    "domain_state": {"tickets_complete": 1},
+                    "event_trace": [
+                        "RUN_CLAIMED",
+                        "REVIEW_RESULT:NOT_PASS",
+                        "INTEGRATION_RESULT:T01",
+                        "ACCEPTANCE_RESULT:NOT_PASS",
+                    ],
+                    "final_native_state": {
+                        "root_open": False,
+                        "claim_active": False,
+                    },
+                }
+            ],
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "fixture.json"
+            path.write_text(json.dumps(fixture), encoding="utf-8")
+            errors = MODULE.validate(path)
+
+        self.assertTrue(
+            any("COMPLETED 必须包含 ACCEPTANCE_RESULT PASS" in error for error in errors)
+        )
+        self.assertTrue(any("每个 Integration Result 前" in error for error in errors))
+
     def test_cancelled_with_live_claim_is_rejected(self) -> None:
         fixture = {
             "schema_version": 1,

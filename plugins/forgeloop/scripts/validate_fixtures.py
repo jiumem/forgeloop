@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -25,6 +26,13 @@ RUNTIME_EVENTS = {
     "RUN_RESUMED",
     "EVENT_SUPERSEDED",
 }
+REVIEW_PASS = re.compile(r"^(?:[A-Z0-9]+_)*DUAL_PASS$")
+ACCEPTANCE_PASS = re.compile(r"^(?:SPEC_PASS(?:_[A-Z0-9]+)*|INITIATIVE_PASS)$")
+
+
+def event_payload(event: str, event_name: str) -> str | None:
+    prefix = f"{event_name}:"
+    return event[len(prefix):] if event.startswith(prefix) else None
 
 
 def validate(path: Path) -> list[str]:
@@ -85,8 +93,12 @@ def validate_runtime_case(case: dict) -> list[str]:
     terminal = case["terminal_state"]
     if terminal == "COMPLETED":
         acceptance_passes = [
-            event for event in trace
-            if event.startswith("ACCEPTANCE_RESULT:") and "PASS" in event
+            event
+            for event in trace
+            if (
+                (payload := event_payload(event, "ACCEPTANCE_RESULT")) is not None
+                and ACCEPTANCE_PASS.fullmatch(payload)
+            )
         ]
         if not acceptance_passes:
             errors.append(f"{case_id}: COMPLETED 必须包含 ACCEPTANCE_RESULT PASS")
@@ -98,7 +110,9 @@ def validate_runtime_case(case: dict) -> list[str]:
         if integration_count == 0:
             errors.append(f"{case_id}: COMPLETED 必须包含 INTEGRATION_RESULT")
         dual_pass_count = sum(
-            event.startswith("REVIEW_RESULT:") and "PASS" in event for event in trace
+            (payload := event_payload(event, "REVIEW_RESULT")) is not None
+            and REVIEW_PASS.fullmatch(payload) is not None
+            for event in trace
         )
         if dual_pass_count < integration_count:
             errors.append(f"{case_id}: 每个 Integration Result 前必须有一个合并后的双轴 PASS")

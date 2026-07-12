@@ -106,6 +106,21 @@ class SyncUpstreamTests(unittest.TestCase):
         self.assertIn("`owning_spec_ref`", text)
         self.assertIn("does not resume `$run-initiative`", text)
 
+    def test_explicit_workflows_do_not_invoke_setup_or_fallback_tracker(self) -> None:
+        config = MODULE.load_config()
+        for target in ("to-tickets", "triage", "wayfinder"):
+            mapping = next(
+                item for item in config["mappings"] if item["target"] == target
+            )
+            text = MODULE.expected_files(config, mapping)[Path("SKILL.md")].decode()
+            self.assertIn("FAILED_PRECONDITION", text, target)
+            self.assertIn("invoke `$setup-forgeloop` explicitly", text, target)
+            self.assertNotIn("run `/setup-forgeloop`", text, target)
+        self.assertIn("formal Tracker Spec", MODULE.expected_files(
+            config,
+            next(item for item in config["mappings"] if item["target"] == "to-tickets"),
+        )[Path("SKILL.md")].decode())
+
     def test_to_tickets_reconciles_only_open_tickets_after_a_spec_revision(self) -> None:
         config = MODULE.load_config()
         mapping = next(
