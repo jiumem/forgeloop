@@ -1,37 +1,37 @@
 ---
 name: ask-forgeloop
-description: 根据当前工程场景推荐最合适的 Forgeloop Skill 或工作流入口。仅在用户明确询问“该用哪个 Skill”、下一步流程或如何使用 Forgeloop 时使用；只推荐，不自动启动其他仅用户调用的 Workflow。
+description: Load when the user explicitly asks which Forgeloop skill or workflow fits their current engineering situation.
 ---
 
-# 询问 Forgeloop
+# Ask Forgeloop
 
-先识别用户当前所处阶段，再推荐一个主入口和至多一个备选入口。解释选择依据与预期产物，但不得代替用户启动另一个仅用户调用的 Workflow。
+First identify the user's current stage, then recommend one primary entry point and at most one alternative. Explain the rationale and expected output, but do not start another user-only Workflow on the user's behalf.
 
-## 用户入口
+## User Entry Points
 
-- 首次配置 Tracker、集成策略和领域文档：`$setup-forgeloop`。
-- 从仓库证据寻找 3–5 个下一步候选：`$recommend-initiatives`。
-- 在一个会话内逐项澄清设计并维护领域文档：`$grill-with-docs`。
-- 面对跨会话的大型模糊问题，先建立探索 Map：`$wayfinder`。
-- 将已充分讨论的上下文发布为 Spec：`$to-spec`。
-- 将已批准的 Spec 拆成可独立验证的垂直 Tickets：`$to-tickets`。
-- 从正式 Spec 或持久化 Initiative 执行 Tracker 驱动交付：`$run-initiative`。
-- 分流外部 Issue、PR 或 MR：`$triage`。
-- 专项扫描真实的 Deepening Opportunity：`$improve-codebase-architecture`。
-- 把续接必需的临时上下文交给新会话：`$handoff`。
+- Configure the Tracker, integration policy, and domain documentation for the first time: `$setup-forgeloop`.
+- Find 1–3 candidates for what to tackle next from repository evidence: `$recommend-initiatives`.
+- Clarify a design one item at a time within a single session while maintaining domain documentation: `$grill-with-docs`.
+- For a large ambiguous problem spanning multiple sessions, first create an exploration Map: `$wayfinder`.
+- Publish sufficiently discussed context as a Spec: `$to-spec`.
+- Split an approved Spec into independently verifiable vertical Tickets: `$to-tickets`.
+- Execute Tracker-driven delivery from a formal Spec or persisted Initiative: `$run-initiative`.
+- Route external Issues, PRs, or MRs: `$triage`.
+- Perform a focused scan for genuine Deepening Opportunities: `$improve-codebase-architecture`.
+- Hand the temporary context required for continuation to a new session: `$handoff`.
 
-`$ask-forgeloop` 本身也是用户入口，但只承担路由。
+`$ask-forgeloop` is itself a user entry point, but it only performs routing.
 
-## 模型级能力
+## Model-Level Capabilities
 
-用户直接要求审查固定 Diff 时推荐 `$review-change`；直接要求诊断困难缺陷时推荐 `$diagnosing-bugs`。其他 Primitive（`$grilling`、`$domain-modeling`、`$primary-source-research`、`$prototype`、`$tdd`、`$codebase-design`、`$resolving-merge-conflicts`）通常由上述工作流在原授权边界内调用，也可以在用户明确请求对应能力时使用。
+Recommend `$review-change` when the user directly asks to review a fixed Diff, and recommend `$diagnosing-bugs` when the user directly asks to diagnose a difficult defect. Other Primitives (`$grilling`, `$domain-modeling`, `$primary-source-research`, `$prototype`, `$tdd`, `$codebase-design`, and `$resolving-merge-conflicts`) are normally invoked by the workflows above within their existing authorization boundaries, but may also be used when the user explicitly requests the corresponding capability.
 
-## 路由规则
+## Routing Rules
 
-1. 没有正式 Spec 引用时，不推荐直接运行 `$run-initiative`；先补足设计、Spec 或 Tickets。
-2. 单会话可看清的问题不要膨胀成 `$wayfinder` Map。
-3. 用户只要求只读调查、诊断或审查时，不推荐写入型入口。
-4. 配置缺失时优先推荐 `$setup-forgeloop`，不得假设 Tracker 或 Integration Policy。
-5. 如果没有适配入口，明确说明边界，不虚构未发布 Skill。
+1. When there is no formal Spec reference, do not recommend running `$run-initiative` directly; complete the design, Spec, or Tickets first.
+2. Do not expand a problem that can be understood in a single session into a `$wayfinder` Map.
+3. When the user requests only a read-only investigation, diagnosis, or review, do not recommend a write-oriented entry point.
+4. When configuration is missing, recommend `$setup-forgeloop` first; do not assume a Tracker or Integration Policy.
+5. If no entry point fits, state the boundary clearly and do not invent an unpublished Skill.
 
-输出 `RECOMMENDED`、`ALTERNATIVE`、`WHY`、`REQUIRED_INPUT`。若信息不足，只问一个会改变路由结果的高影响问题。
+Output `RECOMMENDED`, `ALTERNATIVE`, `WHY`, and `REQUIRED_INPUT`. If information is insufficient, ask only one high-impact question whose answer would change the routing result.

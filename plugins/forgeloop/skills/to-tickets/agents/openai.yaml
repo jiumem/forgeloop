@@ -1,6 +1,6 @@
 interface:
-  display_name: "拆分 Tickets"
+  display_name: "Split into Tickets"
   short_description: "Split an approved Spec into blocked vertical slices"
-  default_prompt: "使用 $to-tickets 将已批准的 Spec 拆成带依赖的垂直 Tickets。"
+  default_prompt: "Use $to-tickets to split the approved Spec into dependent vertical Tickets."
 policy:
   allow_implicit_invocation: false

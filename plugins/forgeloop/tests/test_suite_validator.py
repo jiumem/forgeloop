@@ -39,7 +39,7 @@ class SuiteValidatorTests(unittest.TestCase):
         root = self.root / "skills" / directory
         root.mkdir(parents=True)
         (root / "SKILL.md").write_text(
-            f"---\nname: {name}\ndescription: 完整能力说明与明确触发条件。\n---\n\n# Test\n", encoding="utf-8"
+            f"---\nname: {name}\ndescription: Load when the user asks for the alpha capability.\n---\n\n# Test\n", encoding="utf-8"
         )
         if yaml:
             (root / "agents").mkdir()
@@ -70,6 +70,27 @@ class SuiteValidatorTests(unittest.TestCase):
         yaml_path.write_text(yaml_path.read_text(encoding="utf-8").replace("false", "true"), encoding="utf-8")
         errors, _ = MODULE.validate_tree(self.root, "release", self.config)
         self.assertTrue(any("allow_implicit_invocation" in error for error in errors))
+
+    def test_description_without_load_when_is_reported(self) -> None:
+        root = self.add_skill()
+        skill_path = root / "SKILL.md"
+        skill_path.write_text(
+            skill_path.read_text(encoding="utf-8").replace(
+                "Load when the user asks for the alpha capability.",
+                "Runs an internal alpha workflow and writes its result.",
+            ),
+            encoding="utf-8",
+        )
+        errors, _ = MODULE.validate_tree(self.root, "release", self.config)
+        self.assertTrue(any("description 必须以 Load when 开头" in error for error in errors))
+
+    def test_non_english_skill_content_is_reported(self) -> None:
+        root = self.add_skill()
+        (root / "reference.md").write_text("这里仍然是中文。", encoding="utf-8")
+
+        errors, _ = MODULE.validate_tree(self.root, "release", self.config)
+
+        self.assertTrue(any("Skill 内容必须全部使用英文" in error for error in errors))
 
     def test_duplicate_name_is_reported(self) -> None:
         self.add_skill()

@@ -1,0 +1,45 @@
+{
+  "cases": [
+    {
+      "id": "one-candidate-complete",
+      "candidate_count": 1,
+      "product_goal": "present",
+      "tracker": "available",
+      "expected_terminal": "COMPLETE",
+      "expected_dedup": "VERIFIED"
+    },
+    {
+      "id": "three-candidates-complete",
+      "candidate_count": 3,
+      "product_goal": "present",
+      "tracker": "available",
+      "expected_terminal": "COMPLETE",
+      "expected_dedup": "VERIFIED"
+    },
+    {
+      "id": "missing-product-goal",
+      "candidate_count": 2,
+      "product_goal": "missing",
+      "tracker": "available",
+      "expected_terminal": "COMPLETE",
+      "expected_product_value_confidence": "LOW"
+    },
+    {
+      "id": "tracker-unavailable",
+      "candidate_count": 1,
+      "product_goal": "present",
+      "tracker": "unavailable",
+      "expected_terminal": "PARTIAL",
+      "expected_dedup": "UNVERIFIED",
+      "requires_recheck_before_next_workflow": true,
+      "required_error_fields": [
+        "source",
+        "error_kind",
+        "diagnostic",
+        "completed_scope",
+        "recovery_action",
+        "safe_retry_point"
+      ]
+    }
+  ]
+}

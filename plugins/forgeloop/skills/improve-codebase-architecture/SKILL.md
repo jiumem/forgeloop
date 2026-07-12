@@ -1,6 +1,6 @@
 ---
 name: improve-codebase-architecture
-description: Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.
+description: Load when the user explicitly asks to inspect a codebase for architectural deepening opportunities or misplaced module boundaries.
 ---
 
 # Improve Codebase Architecture
@@ -12,13 +12,17 @@ This command is _informed_ by the project's domain model and built on a shared d
 - Run the `/codebase-design` skill for the architecture vocabulary (**module**, **interface**, **depth**, **seam**, **adapter**, **leverage**, **locality**) and its principles (the deletion test, "the interface is the test surface", "one adapter = hypothetical seam, two = real"). Use these terms exactly in every suggestion — don't drift into "component," "service," "API," or "boundary."
 - The domain language in `CONTEXT.md` gives names to good seams; ADRs in `docs/adr/` record decisions this command should not re-litigate.
 
+## Forgeloop Scope
+
+The Explore and Report phases remain read-only. Outside the project, this run may only generate its HTML in an OS temporary directory. Do not create a Spec, Ticket, or Initiative, and do not modify production code. After the user selects a candidate, Phase 3 writes to domain documentation require a separate authorization seam. That authorization covers only adjudicated `CONTEXT.md` terms or an ADR confirmed by the user and does not extend to other project files.
+
 ## Process
 
 ### 1. Explore
 
 Read the project's domain glossary (`CONTEXT.md`) and any ADRs in the area you're touching first.
 
-Then use the Agent tool with `subagent_type=Explore` to walk the codebase. Don't follow rigid heuristics — explore organically and note where you experience friction:
+Then delegate the read-only scan to an isolated child Agent with a self-contained brief. Don't follow rigid heuristics — explore organically and note where you experience friction:
 
 - Where does understanding one concept require bouncing between many small modules?
 - Where are modules **shallow** — interface nearly as complex as the implementation?
@@ -28,9 +32,11 @@ Then use the Agent tool with `subagent_type=Explore` to walk the codebase. Don't
 
 Apply the **deletion test** to anything you suspect is shallow: would deleting it concentrate complexity, or just move it? A "yes, concentrates" is the signal you want.
 
+If the scan finds no genuine Deepening Opportunity caused by a shallow module, misplaced Seam, duplicate source of truth, or cross-module coupling, immediately return an empty result, the inspected scope, and evidence for excluding the candidates. Do not generate HTML, produce a Top recommendation, or enter Grilling.
+
 ### 2. Present candidates as an HTML report
 
-Write a self-contained HTML file to the OS temp directory so nothing lands in the repo. Resolve the temp dir from `$TMPDIR`, falling back to `/tmp` (or `%TEMP%` on Windows), and write to `<tmpdir>/architecture-review-<timestamp>.html` so each run gets a fresh file. Open it for the user — `xdg-open <path>` on Linux, `open <path>` on macOS, `start <path>` on Windows — and tell them the absolute path.
+Write a self-contained HTML file to the OS temp directory so nothing lands in the repo. Resolve the temp dir from `$TMPDIR`, falling back to `/tmp` (or `%TEMP%` on Windows), and write to `<tmpdir>/architecture-review-<timestamp>.html` so each run gets a fresh file. If generation fails, report that no artifact was produced, the failed path, and a locatable error, then stop; do not enter candidate selection. After successful generation, try to open it with `xdg-open <path>`, `open <path>`, or `start <path>`. If opening fails, preserve the generated file and return its absolute path, the failed command, and manual opening instructions; do not regenerate a duplicate report. When the user cancels or retries, clean up only temporary files from this run that are confirmed to be unused, and do not touch existing artifacts.
 
 The report uses **Tailwind via CDN** for layout and styling, and **Mermaid via CDN** for diagrams where a graph/flow/sequence reliably communicates the structure. Mix Mermaid with hand-crafted CSS/SVG visuals — use Mermaid when relationships are graph-shaped (call graphs, dependencies, sequences), and hand-built divs/SVG when you want something more editorial (mass diagrams, cross-sections, collapse animations). Each candidate gets a **before/after visualisation**. Be visual.
 
@@ -57,13 +63,9 @@ Do NOT propose interfaces yet. After the file is written, ask the user: "Which o
 
 Once the user picks a candidate, run the `/grilling` skill to walk the design tree with them — constraints, dependencies, the shape of the deepened module, what sits behind the seam, what tests survive.
 
-Side effects happen inline as decisions crystallize — run the `/domain-modeling` skill to keep the domain model current as you go:
+Writing domain documentation is a separate authorization seam. Before the first write, list the target files and the adjudicated terms or durable decisions to be recorded, and obtain explicit user authorization. Without authorization, return only the proposed text in the conversation, do not modify the project, and do not invoke `$domain-modeling` to perform writes. Invoke `$domain-modeling` only after authorization is granted, while continuing to follow its `CONTEXT.md` and ADR rules:
 
 - **Naming a deepened module after a concept not in `CONTEXT.md`?** Add the term to `CONTEXT.md`. Create the file lazily if it doesn't exist.
 - **Sharpening a fuzzy term during the conversation?** Update `CONTEXT.md` right there.
 - **User rejects the candidate with a load-bearing reason?** Offer an ADR, framed as: _"Want me to record this as an ADR so future architecture reviews don't re-suggest it?"_ Only offer when the reason would actually be needed by a future explorer to avoid re-suggesting the same thing — skip ephemeral reasons ("not worth it right now") and self-evident ones.
 - **Want to explore alternative interfaces for the deepened module?** Run the `/codebase-design` skill and use its design-it-twice parallel sub-agent pattern.
-
-## Forgeloop 边界
-
-保持只读调查；仅允许把可视化写入 OS 临时目录。不得创建 Spec、Ticket、Initiative 或修改生产代码。只有仓库证据证明浅模块、错误 Seam、重复真理源或跨模块耦合造成真实摩擦时才报告候选；没有真实 Deepening Opportunity 时返回空结果和已检查范围。

@@ -1,11 +1,11 @@
 ---
 name: to-spec
-description: Turn the current conversation into a spec and publish it to the project issue tracker — no interview, just synthesis of what you've already discussed.
+description: Load when the user explicitly wants already-discussed and sufficiently resolved context published as a formal Tracker Spec.
 ---
 
 This skill takes the current conversation context and codebase understanding and produces a spec (you may know this document as a PRD). Do NOT interview the user — just synthesize what you already know.
 
-The issue tracker and triage label vocabulary should have been provided to you — run `/setup-forgeloop` if not.
+A configured Issue Tracker must already exist before publication. If `docs/agents/issue-tracker.md` is missing, do not run `$setup-forgeloop` automatically. Return `FAILED_PRECONDITION`, identify the missing configuration, and instruct the user to invoke `$setup-forgeloop` explicitly. Do not write any Spec or Tracker state.
 
 ## Process
 
@@ -15,7 +15,13 @@ The issue tracker and triage label vocabulary should have been provided to you �
 
 Check with the user that these seams match their expectations.
 
-3. Write the spec using the template below, then publish it to the project issue tracker. Apply the `ready-for-agent` triage label - no need for additional triage.
+3. Before writing or publishing, enforce the Forgeloop publication gates:
+
+   - No interview does not mean inventing decisions. If the current context still lacks the Problem, Actor, target behavior, key failure states, user or role permission model, Scope, public Seam, or irreversible constraints, return `CONTEXT_INSUFFICIENT` and list each gap. Do not generate or publish a draft, and do not fill in decisions on the user's behalf.
+   - Confirm that the user approved the test Seam from step 2.
+   - Read the configured Tracker Operations and, before the first write, verify authentication, Tracker publication permission, and target conflicts. On failure, return `FAILED_PRECONDITION`, leave the Spec unpublished, and do not fall back to another Tracker.
+
+   After all gates pass, write the Spec using the template below and publish it exactly once to the configured project Issue Tracker. Following the upstream publication rule, add `ready-for-agent` to the parent Spec. On the parent item, this label means the Spec is sufficiently defined to proceed to ticket decomposition or execution orchestration; it does not make the parent Spec part of the Ticket Frontier. Execution state for child Tickets remains the responsibility of `$to-tickets`. If the publication result is ambiguous, first query candidates by the expected title and verify their bodies. Retry only after confirming that an identical Spec does not exist, to avoid creating a duplicate parent Spec.
 
 <spec-template>
 
@@ -72,7 +78,3 @@ A description of the things that are out of scope for this spec.
 Any further notes about the feature.
 
 </spec-template>
-
-## Forgeloop 发布门禁
-
-“不采访”不等于发明决定。若当前上下文仍缺少 Problem、Actor、目标行为、关键失败状态、权限、Scope、公共 Seam 或不可逆约束，返回 `CONTEXT_INSUFFICIENT` 并逐项列出缺口；不要发布草稿、不要替用户补写决定。只有用户已确认测试 Seam 且上下文足以完整填写模板时才发布。认证、权限或 Tracker 冲突失败时保持未发布状态并报告可定位诊断，不回退到另一 Tracker。

@@ -14,10 +14,15 @@ from pathlib import Path
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = PLUGIN_ROOT.parents[1]
 CONFIG_PATH = PLUGIN_ROOT / "config" / "upstream-map.json"
+METADATA_PATH = PLUGIN_ROOT / "config" / "skill-metadata.json"
 
 
 def load_config() -> dict:
     return json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+
+
+def load_metadata() -> dict:
+    return json.loads(METADATA_PATH.read_text(encoding="utf-8"))
 
 
 def upstream_head(root: Path) -> str:
@@ -48,6 +53,30 @@ def transform_text(text: str, target: str, replacements: list[list[str]]) -> str
     return text
 
 
+def apply_required_replacements(
+    text: str, replacements: list[list[str]], context: str
+) -> str:
+    for old, new in replacements:
+        if old not in text:
+            raise RuntimeError(f"局部替换目标不存在：{context}：{old}")
+        text = text.replace(old, new)
+    return text
+
+
+def replace_trigger_description(text: str, description: str, context: str) -> str:
+    if not description.startswith("Load when "):
+        raise RuntimeError(f"触发描述必须以 Load when 开头：{context}")
+    result, count = re.subn(
+        r"(?m)^description: [^\n]+$",
+        f"description: {description}",
+        text,
+        count=1,
+    )
+    if count != 1:
+        raise RuntimeError(f"无法替换触发描述：{context}")
+    return result
+
+
 def expected_files(config: dict, mapping: dict) -> dict[Path, bytes]:
     upstream = REPO_ROOT / config["upstream_root"] / mapping["source"]
     if not upstream.is_dir():
@@ -59,8 +88,16 @@ def expected_files(config: dict, mapping: dict) -> dict[Path, bytes]:
         relative = source.relative_to(upstream)
         data = source.read_bytes()
         try:
-            transformed = transform_text(
+            transformed_text = transform_text(
                 data.decode("utf-8"), mapping["target"], config["replacements"]
+            )
+            file_replacements = mapping.get("file_replacements", {}).get(
+                relative.as_posix(), []
+            )
+            transformed = apply_required_replacements(
+                transformed_text,
+                file_replacements,
+                f"{mapping['target']}/{relative.as_posix()}",
             ).encode("utf-8")
         except UnicodeDecodeError:
             transformed = data
@@ -73,6 +110,17 @@ def expected_files(config: dict, mapping: dict) -> dict[Path, bytes]:
         if relative not in expected:
             raise RuntimeError(f"追加目标不在上游映射中：{mapping['target']}/{relative}")
         expected[relative] = expected[relative].rstrip() + b"\n\n" + (PLUGIN_ROOT / append_path).read_bytes().lstrip()
+    metadata = load_metadata()
+    target_metadata = metadata.get(mapping["target"], {})
+    description = target_metadata.get("description")
+    if not description:
+        raise RuntimeError(f"缺失集中触发描述：{mapping['target']}")
+    skill_path = Path("SKILL.md")
+    expected[skill_path] = replace_trigger_description(
+        expected[skill_path].decode("utf-8"),
+        description,
+        f"{mapping['target']}/SKILL.md",
+    ).encode("utf-8")
     return expected
 
 
@@ -123,7 +171,7 @@ def main() -> int:
         return 2
 
     print(f"上游 Commit：{actual_commit}")
-    print("允许转换：删除 Claude invocation 字段；固定品牌、Skill 名称、路径引用；Router 选集适配；封板边界与 Tracker Runtime 声明式扩展。")
+    print("允许转换：删除 Claude invocation 字段；固定品牌、Skill 名称、路径引用；集中覆盖 Load when 触发描述；Router 选集适配；封板边界与 Tracker Runtime 声明式扩展。")
     all_errors: list[str] = []
     for mapping in config["mappings"]:
         source = mapping["source"]
@@ -134,6 +182,11 @@ def main() -> int:
             adaptations.append(f"Overlay={mapping['overlay']}")
         if mapping.get("appends"):
             adaptations.append(f"Appends={','.join(mapping['appends'])}")
+        if mapping.get("file_replacements"):
+            adaptations.append(
+                f"FileReplacements={','.join(mapping['file_replacements'])}"
+            )
+        adaptations.append("TriggerDescription=config/skill-metadata.json")
         print(
             f"{source} -> skills/{mapping['target']}；"
             f"替换：{', '.join(changes) or '仅 Frontmatter 清理'}；"

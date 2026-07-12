@@ -1,6 +1,6 @@
 ---
 name: triage
-description: Move issues and external PRs through a state machine of triage roles — categorise, verify, grill if needed, and write agent-ready briefs.
+description: Load when the user explicitly wants incoming issues, pull requests, or merge requests classified and routed.
 ---
 
 # Triage

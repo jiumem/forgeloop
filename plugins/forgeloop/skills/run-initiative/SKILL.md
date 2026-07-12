@@ -1,62 +1,59 @@
 ---
 name: run-initiative
-description: 从正式 Tracker Spec 或持久化多 Spec Initiative 串行运行 Tickets，编排独立 Coder、Spec Reviewer 与 Standards Reviewer，执行修复、集成、恢复和最终验收门禁。仅在用户明确要求执行、继续、恢复或取消正式 Initiative 时使用；没有正式引用或只有旧 PLAN.md 时停止。
+description: Load when the user explicitly wants to execute, resume, recover, or cancel delivery from a formal Tracker Spec or persisted Initiative.
 ---
 
-# 运行 Initiative
+# Run an Initiative
 
-把配置的 Issue Tracker 作为 Spec、Ticket、依赖和运行状态的唯一真理源。当前主上下文是 Scheduler；每张 Ticket 创建一个新 Coder 和两个相互隔离的 Reviewer，同一 Ticket 的修复轮次复用三者，完成后结束三者。
+Treat the configured Tracker as the sole source of truth for Specs, Tickets, dependencies, Claims, and live delivery state. Use the primary context as a thin Scheduler. Run one Ticket at a time. For each Ticket, use a fresh Coder and two isolated, read-only Reviewers; continue those same three child threads through repair rounds for that Ticket, and never reuse them for another Ticket.
 
-## 读取协议
+## Load Protocol Just in Time
 
-开始前读取全部一层 References：
+Do not preload every Reference.
 
-- [domain-and-state.md](references/domain-and-state.md)：领域模型、真理源和状态不变量。
-- [scheduler.md](references/scheduler.md)：入口、Frontier、Claim、串行调度和 Agent 生命周期。
-- [coder.md](references/coder.md)：Coder 输入、权限、四种结果和证据。
-- [reviewers.md](references/reviewers.md)：双轴隔离、结构化 Verdict 与模型路由。
-- [events-and-recovery.md](references/events-and-recovery.md)：追加式 Event、幂等、冲突与崩溃恢复。
-- [repair-and-integration.md](references/repair-and-integration.md)：修复预算、Branch、冲突和 Integration Policy。
-- [acceptance.md](references/acceptance.md)：Ticket、Spec、Initiative 完成门禁与 Spec 修订。
-- [tracker-operations.md](references/tracker-operations.md)：GitHub、GitLab、Local Runtime 路由和失败边界。
+1. At entry, read [scheduler.md](references/scheduler.md), [events-and-recovery.md](references/events-and-recovery.md), and the configured runtime through [tracker-operations.md](references/tracker-operations.md).
+2. Before creating a Coder, read [coder.md](references/coder.md).
+3. Before creating Ticket Reviewers, read [reviewers.md](references/reviewers.md).
+4. When repair, integration, or a merge conflict becomes relevant, read [repair-and-integration.md](references/repair-and-integration.md).
+5. When a Spec becomes eligible for final acceptance, read [acceptance.md](references/acceptance.md).
+6. For a multi-Spec run or a state conflict, also read [domain-and-state.md](references/domain-and-state.md).
 
-不得只读主文件后自行补全协议。
+Follow the selected Reference completely. Do not invent unloaded protocol details.
 
-## 入口门禁
+## Entry Gate
 
-接受：
+Accept only:
 
-- `run-initiative <spec-ref>`：单 Spec，Spec 本身是运行根；
-- `run-initiative <initiative-ref>`：恢复持久化多 Spec Initiative；
-- `run-initiative <spec-ref...>`：多 Spec，先预览成员、跨 Spec 约束与目标分支，用户确认后创建父 Item。
+- `run-initiative <spec-ref>` for one formal Spec;
+- `run-initiative <initiative-ref>` for one persisted multi-Spec Initiative;
+- `run-initiative <spec-ref...>` to preview a multi-Spec Initiative and idempotently create or reuse its parent Tracker Item only after explicit user confirmation.
 
-开始任何写入前：
+Before the first write, read repository instructions, `docs/agents/issue-tracker.md`, relevant `CONTEXT.md` files and ADRs, the complete formal Tracker items, and current Git facts. Verify the Tracker runtime, authentication, permissions, Integration Policy, revisions, dependencies, target branch, and worktree. Refuse to start a new Ticket from an unowned dirty worktree; never absorb unrelated user changes into a candidate Commit.
 
-1. 读取仓库指令、`docs/agents/issue-tracker.md`、Domain 配置、相关 `CONTEXT.md`/ADR。
-2. 确认 Tracker 类型、认证、权限、Integration Policy、正式引用、Spec Revision、目标分支与仓库状态。
-3. 缺少正式 Spec、配置、策略、权限或 Reviewer 能力时停止并给出可恢复诊断；不得回退到另一 Tracker。
-4. 输入旧 `PLAN.md`/`LEDGER.md` 时只提供迁移或固定 `2.5.0` 的选择，不按新语义解释。
-5. 脏工作区与候选 Branch 冲突时停止；不覆盖用户改动。
+Return `FAILED_PRECONDITION` without publishing a Claim or creating a child when a required input, permission, or runtime capability is missing. For legacy `PLAN.md` or `LEDGER.md`, offer migration or pinning to `2.5.0`; do not interpret either under the new semantics.
 
-## 主循环
+## Serial Scheduler Loop
 
-1. 创建或恢复唯一 Scheduler Run，校验原生 Tracker 事实与追加 Events 一致。
-2. 重新查询 Frontier。空 Frontier 时区分：全部完成、仍被阻塞、已被领取、坏依赖或状态冲突。
-3. 以 Tracker 的确定性 Claim 规则领取一张 Ticket。Claim 失败不得创建 Coder。
-4. 创建新 Coder，提供封板输入；Coder 负责实现、相关验证和候选 Commit。
-5. `IMPLEMENTATION_BLOCKED` 直接暂停；`CONTRACT_BLOCKER` 进入合约路径；其余结果创建相互独立的 Spec 与 Standards Reviewer。
-6. 两名 Reviewer 针对同一 Base/Head 独立签发 Verdict。Scheduler 只校验绑定关系，不重复运行测试或额外触发完整 CI。
-7. 任一 `REPAIR_REQUIRED` 按修复协议返回原 Coder；代码变化使两份旧 Verdict 同时失效，并让两轴对新累计 Diff 重审。
-8. 双 `PASS` 且 Head/Base 未变化后按 Integration Policy 集成；`human-merge` 进入可恢复等待态。
-9. 通过 Ticket 门禁后记录结果并关闭 Ticket；随后重新查询 Frontier，不复用旧快照。
-10. 所有 Tickets 完成后执行 Spec 最终验收；多 Spec 再执行全新 Initiative Acceptance。
+1. Create or recover the single valid root Scheduler Run and win its deterministic Claim.
+2. Requery the Frontier from native Tracker facts. Never keep a stale Frontier snapshot.
+3. Claim exactly one Ticket through the configured native mechanism. Do not start another Ticket until this one completes, pauses, or is cancelled.
+4. Refresh the declared target or Integration Branch, freeze the Ticket Base from its current Head, and prepare the Ticket Branch. Create a fresh isolated Coder with a self-contained Role Task Pack. The Coder implements, validates, and creates the candidate Commit.
+5. Validate the Coder result before persisting it: the reported Head must equal the Ticket Branch Head, every Ticket change must be committed, and no unrelated worktree change may enter the candidate. Pause on `IMPLEMENTATION_BLOCKED`; route `CONTRACT_BLOCKER` to user adjudication. For `READY_FOR_REVIEW` or `NO_CHANGE_REQUIRED`, freeze the candidate Base/Head.
+6. Create fresh isolated Spec and Standards Reviewers. They may run concurrently inside the active Ticket, but both remain read-only and review the same fixed Commit range.
+7. Collect both Verdicts privately. Do not publish either result where the other Reviewer could read it. After both finish, validate their bindings and persist one combined `REVIEW_RESULT`. If either returns `REVIEW_BLOCKED`, continue only that Reviewer when access to identical frozen input is restored; if any shared input changes, invalidate both results and continue both original Reviewers. Otherwise pause without consuming a repair round.
+8. On `REPAIR_REQUIRED`, continue the original Coder with both axes' Findings, then continue each original Reviewer with only its own axis history. Any changed Head invalidates both previous Verdicts.
+9. After two `PASS` Verdicts for the unchanged Base/Head, integrate through the configured policy. The Scheduler owns remote publication, PR/MR handling, Required Checks, merge, and Tracker closure; it does not modify the implementation.
+10. Record the Integration Result, close the Ticket, release its native Claim according to the configured runtime, stop dispatching to its child threads, and requery the Frontier.
+11. For one Spec, start fresh Spec Acceptance after all its Tickets integrate and close it only on `PASS`. For multiple Specs, wait until every Initiative Ticket integrates, freeze one final target Commit, then run each fresh Spec Acceptance sequentially against that same Commit while keeping every member Spec Open.
+12. After all member Spec Verdicts have `PASS`, run fresh Initiative Acceptance. Only on Initiative `PASS`, close the member Specs and then the Initiative parent last. After root closure, release the root Scheduler Claim according to the configured runtime.
 
-## 可观察终态
+## Terminal States
 
-- `COMPLETED`：所有对应层级 Acceptance 均 PASS，最终 Commit 已集成并最后关闭根 Item。
-- `PAUSED`：修复预算耗尽、人工合并、Reviewer 不可用、状态冲突或外部阻塞；根 Item 保持 Open，可沿原 Run ID 恢复。
-- `CONTRACT_BLOCKER`：Spec/ADR/Scope 冲突，需要用户裁决，不消耗普通修复预算。
-- `CANCELLED`：记录取消 Event，与完成严格区分；不关闭为成功。
-- `FAILED_PRECONDITION`：入口、配置、认证、权限、引用或工作区失败，任何候选 Agent 均未启动。
+- `COMPLETED`: every applicable Acceptance level has `PASS`, final Git integration is verified, and the root Item is closed last.
+- `PAUSED`: ordinary repair is exhausted, human merge is pending, a required child cannot be created, Review or Acceptance input is blocked, required checks are externally blocked, or recovery facts conflict. Keep the root Item Open and preserve the Claim for the original Run.
+- `CONTRACT_BLOCKER`: the contract, Scope, Spec, or ADR requires user adjudication. Persist it as a paused Run without consuming ordinary repair rounds.
+- `PAUSED_FOR_ACCEPTANCE_REPAIR`: final acceptance found work that needs a formal Ticket. Persist the Findings and repair key, keep the root Open, and tell the user to invoke `$to-tickets` explicitly. Do not create or invoke it yourself.
+- `CANCELLED`: record cancellation, stop dispatching and best-effort interrupt currently running child threads, release only this Run's Claims, and preserve candidate Git evidence.
+- `FAILED_PRECONDITION`: fail before any Claim or child starts.
 
-不得创建或更新 `PLAN.md`、`LEDGER.md`、互斥执行状态标签；禁止让 Coder 自批、自合并、自关闭；禁止把 Reviewer PASS 或关闭但未合并的 PR/MR 当作完成。
+Do not create or update `PLAN.md`, `LEDGER.md`, or execution-state labels. Do not add host-specific child configuration to Role Task Packs. Do not let the Coder approve, publish, merge, or close its own work. Do not treat Reviewer `PASS`, an unmerged PR/MR, or a completed child thread as delivery completion.

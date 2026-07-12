@@ -31,9 +31,9 @@
     ],
     "websiteURL": "https://github.com/jiumem/forgeloop",
     "defaultPrompt": [
-      "使用 Forgeloop 配置当前仓库的 Tracker、领域文档与集成策略。",
-      "使用 Forgeloop 将当前讨论发布为 Spec，并拆成可独立验证的 Tickets。",
-      "使用 Forgeloop 从正式 Spec 运行 Coder、双 Reviewer 与最终验收闭环。"
+      "\u4f7f\u7528 Forgeloop \u914d\u7f6e\u5f53\u524d\u4ed3\u5e93\u7684 Tracker\u3001\u9886\u57df\u6587\u6863\u4e0e\u96c6\u6210\u7b56\u7565\u3002",
+      "\u4f7f\u7528 Forgeloop \u5c06\u5f53\u524d\u8ba8\u8bba\u53d1\u5e03\u4e3a Spec\uff0c\u5e76\u62c6\u6210\u53ef\u72ec\u7acb\u9a8c\u8bc1\u7684 Tickets\u3002",
+      "\u4f7f\u7528 Forgeloop \u4ece\u6b63\u5f0f Spec \u8fd0\u884c Coder\u3001\u53cc Reviewer \u4e0e\u6700\u7ec8\u9a8c\u6536\u95ed\u73af\u3002"
     ],
     "brandColor": "#0F766E"
   }

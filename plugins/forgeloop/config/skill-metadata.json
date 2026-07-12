@@ -1,102 +1,122 @@
 {
   "ask-forgeloop": {
-    "display_name": "询问 Forgeloop",
+    "description": "Load when the user explicitly asks which Forgeloop skill or workflow fits their current engineering situation.",
+    "display_name": "Ask Forgeloop",
     "short_description": "Route requests to the right Forgeloop workflow",
-    "default_prompt": "使用 $ask-forgeloop 为当前工程场景推荐正确的工作流入口。"
+    "default_prompt": "Use $ask-forgeloop to recommend the right workflow for this engineering situation."
   },
   "codebase-design": {
-    "display_name": "代码库设计",
+    "description": "Load when module boundaries, interfaces, seams, or dependency direction need to be designed or reshaped for easier change.",
+    "display_name": "Codebase Design",
     "short_description": "Design deep modules with clear testable seams",
-    "default_prompt": "使用 $codebase-design 设计具有清晰 Seam 的 Deep Module。"
+    "default_prompt": "Use $codebase-design to design a deep module with a clear seam."
   },
   "diagnosing-bugs": {
-    "display_name": "诊断缺陷",
+    "description": "Load when something is broken, failing, throwing, unexpectedly slow, or the user asks to diagnose a bug or regression.",
+    "display_name": "Diagnose Bugs",
     "short_description": "Build a tight feedback loop and diagnose root causes",
-    "default_prompt": "使用 $diagnosing-bugs 建立反馈环并定位这个缺陷的根因。"
+    "default_prompt": "Use $diagnosing-bugs to build a feedback loop and identify the root cause."
   },
   "domain-modeling": {
-    "display_name": "领域建模",
+    "description": "Load when domain terms, bounded concepts, invariants, or durable architectural decisions need to be clarified.",
+    "display_name": "Domain Modeling",
     "short_description": "Sharpen domain language and durable decisions",
-    "default_prompt": "使用 $domain-modeling 澄清领域术语并记录长期决定。"
+    "default_prompt": "Use $domain-modeling to clarify domain terms and durable decisions."
   },
   "grill-with-docs": {
-    "display_name": "带文档深挖设计",
+    "description": "Load when the user explicitly wants sustained design clarification that also preserves confirmed domain terms and decisions.",
+    "display_name": "Grill with Docs",
     "short_description": "Grill a design while maintaining domain documents",
-    "default_prompt": "使用 $grill-with-docs 逐项深挖这个设计并维护领域文档。"
+    "default_prompt": "Use $grill-with-docs to clarify this design and maintain its domain documents."
   },
   "grilling": {
-    "display_name": "逐项深挖",
+    "description": "Load when a plan or design needs focused adversarial questioning without the document-maintenance workflow.",
+    "display_name": "Grilling",
     "short_description": "Ask one high impact design question at a time",
-    "default_prompt": "使用 $grilling 每次只问一个高影响设计问题。"
+    "default_prompt": "Use $grilling to ask one high-impact design question at a time."
   },
   "handoff": {
-    "display_name": "会话交接",
+    "description": "Load when the user explicitly wants another session or agent to continue unfinished work without replaying the full conversation.",
+    "display_name": "Session Handoff",
     "short_description": "Create a compact temporary handoff for a fresh session",
-    "default_prompt": "使用 $handoff 为下一次新会话生成精简的临时交接文档。"
+    "default_prompt": "Use $handoff to prepare a compact temporary handoff for a fresh session."
   },
   "improve-codebase-architecture": {
-    "display_name": "改进代码库架构",
+    "description": "Load when the user explicitly asks to inspect a codebase for architectural deepening opportunities or misplaced module boundaries.",
+    "display_name": "Improve Codebase Architecture",
     "short_description": "Find evidence backed deepening opportunities",
-    "default_prompt": "使用 $improve-codebase-architecture 扫描真实的 Deepening Opportunity。"
+    "default_prompt": "Use $improve-codebase-architecture to find evidence-backed deepening opportunities."
   },
   "primary-source-research": {
-    "display_name": "一手来源研究",
+    "description": "Load when an engineering question requires current authoritative primary sources rather than memory or secondary summaries.",
+    "display_name": "Primary Source Research",
     "short_description": "Research questions using cited primary sources",
-    "default_prompt": "使用 $primary-source-research 基于一手来源研究这个问题并逐项引用。"
+    "default_prompt": "Use $primary-source-research to investigate this question using cited primary sources."
   },
   "prototype": {
-    "display_name": "可抛弃原型",
+    "description": "Load when a design uncertainty is best resolved with a disposable experiment, interaction mockup, or state-model probe.",
+    "display_name": "Throwaway Prototype",
     "short_description": "Build a throwaway prototype to answer one design question",
-    "default_prompt": "使用 $prototype 构建可抛弃原型来回答这个设计问题。"
+    "default_prompt": "Use $prototype to build a disposable experiment for this design question."
   },
   "recommend-initiatives": {
-    "display_name": "推荐工程 Initiative",
+    "description": "Load when the user explicitly asks what evidence-backed engineering initiative the repository should tackle next.",
+    "display_name": "Recommend Initiatives",
     "short_description": "Recommend evidence backed high value engineering initiatives",
-    "default_prompt": "使用 $recommend-initiatives 从当前仓库推荐下一批高价值工程 Initiative。"
+    "default_prompt": "Use $recommend-initiatives to identify the next high-value engineering initiatives."
   },
   "resolving-merge-conflicts": {
-    "display_name": "解决合并冲突",
+    "description": "Load when a Git merge or rebase has conflicts and both sides' intended behavior must be recovered before resolution.",
+    "display_name": "Resolve Merge Conflicts",
     "short_description": "Resolve compatible merge intents and expose blockers",
-    "default_prompt": "使用 $resolving-merge-conflicts 恢复双方意图并安全处理当前冲突。"
+    "default_prompt": "Use $resolving-merge-conflicts to recover both sides' intent and resolve the conflict safely."
   },
   "review-change": {
-    "display_name": "双轴审查变更",
+    "description": "Load when the user asks to review changes relative to a commit, branch, tag, merge base, pull request, or worktree baseline.",
+    "display_name": "Review Change",
     "short_description": "Review a fixed diff on independent Spec and Standards axes",
-    "default_prompt": "使用 $review-change 从固定点独立审查 Spec 与 Standards 两个轴。"
+    "default_prompt": "Use $review-change to review this fixed diff on the Spec and Standards axes."
   },
   "run-initiative": {
-    "display_name": "运行 Initiative",
+    "description": "Load when the user explicitly wants to execute, resume, recover, or cancel delivery from a formal Tracker Spec or persisted Initiative.",
+    "display_name": "Run Initiative",
     "short_description": "Run Tracker tickets through coder and dual reviewer gates",
-    "default_prompt": "使用 $run-initiative 从正式 Spec 运行完整的 Tracker 驱动交付闭环。"
+    "default_prompt": "Use $run-initiative to run the Tracker-driven delivery loop from this formal Spec."
   },
   "setup-forgeloop": {
-    "display_name": "配置 Forgeloop",
+    "description": "Load when the user explicitly wants to configure or update Forgeloop Tracker integration and repository setup.",
+    "display_name": "Set Up Forgeloop",
     "short_description": "Configure Tracker integration and domain documentation",
-    "default_prompt": "使用 $setup-forgeloop 为当前仓库配置 Tracker、集成策略与领域文档。"
+    "default_prompt": "Use $setup-forgeloop to configure Tracker integration and domain documentation for this repository."
   },
   "tdd": {
-    "display_name": "测试驱动开发",
+    "description": "Load when implementing a feature or fixing a bug test-first, especially through a reliable public behavior seam.",
+    "display_name": "Test-Driven Development",
     "short_description": "Drive vertical behavior slices through red and green",
-    "default_prompt": "使用 $tdd 通过公共 Seam 完成一个 Red-Green 垂直切片。"
+    "default_prompt": "Use $tdd to complete a red-green vertical slice through a public seam."
   },
   "to-spec": {
-    "display_name": "发布 Spec",
+    "description": "Load when the user explicitly wants already-discussed and sufficiently resolved context published as a formal Tracker Spec.",
+    "display_name": "Publish Spec",
     "short_description": "Synthesize approved context into a Tracker Spec",
-    "default_prompt": "使用 $to-spec 将已充分讨论的上下文发布为 Tracker Spec。"
+    "default_prompt": "Use $to-spec to publish the resolved context as a formal Tracker Spec."
   },
   "to-tickets": {
-    "display_name": "拆分 Tickets",
+    "description": "Load when the user explicitly wants an approved Spec split into implementation-ready vertical Tickets.",
+    "display_name": "Split into Tickets",
     "short_description": "Split an approved Spec into blocked vertical slices",
-    "default_prompt": "使用 $to-tickets 将已批准的 Spec 拆成带依赖的垂直 Tickets。"
+    "default_prompt": "Use $to-tickets to split the approved Spec into dependent vertical Tickets."
   },
   "triage": {
-    "display_name": "请求分流",
+    "description": "Load when the user explicitly wants incoming issues, pull requests, or merge requests classified and routed.",
+    "display_name": "Triage Requests",
     "short_description": "Triage incoming requests with explicit user approval",
-    "default_prompt": "使用 $triage 发现并分类需要维护者处理的外部请求。"
+    "default_prompt": "Use $triage to discover and classify incoming requests for maintainer action."
   },
   "wayfinder": {
-    "display_name": "大型探索地图",
+    "description": "Load when the user explicitly wants to explore a large ambiguous objective that requires multiple investigation sessions before implementation planning.",
+    "display_name": "Wayfinder",
     "short_description": "Map and resolve one investigation ticket at a time",
-    "default_prompt": "使用 $wayfinder 将大型模糊问题拆成一次一张的探索 Ticket。"
+    "default_prompt": "Use $wayfinder to map this large ambiguous objective into investigation Tickets."
   }
 }

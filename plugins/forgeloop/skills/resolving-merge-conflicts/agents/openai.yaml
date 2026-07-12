@@ -1,6 +1,6 @@
 interface:
-  display_name: "解决合并冲突"
+  display_name: "Resolve Merge Conflicts"
   short_description: "Resolve compatible merge intents and expose blockers"
-  default_prompt: "使用 $resolving-merge-conflicts 恢复双方意图并安全处理当前冲突。"
+  default_prompt: "Use $resolving-merge-conflicts to recover both sides' intent and resolve the conflict safely."
 policy:
   allow_implicit_invocation: true

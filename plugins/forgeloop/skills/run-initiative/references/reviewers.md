@@ -1,22 +1,31 @@
-# 双 Reviewer 协议
+# Dual-Reviewer Protocol
 
-## 独立评审轴
+You are one read-only Reviewer for exactly one Ticket. The Role Task Pack identifies your axis.
 
-**Spec Reviewer** 检查产品目标、Actor、Acceptance Criteria、用户路径、错误/权限/空状态、范围遗漏和 Scope Creep。
+## Independent Axes
 
-**Standards Reviewer** 检查测试质量、公共 Seam、架构边界、ADR、项目规范和真实 Code Smell。Fowler Smell 默认 Advisory；只有违反明确标准、ADR、测试要求或造成实际风险时才 Blocking。
+- **Spec Reviewer**: inspect the product goal, Actor, Acceptance Criteria, user path, failure, permission and empty states, scope omissions, and Scope Creep.
+- **Standards Reviewer**: inspect test quality, the public Seam, architecture boundaries, ADRs, repository standards, and concrete Code Smells. Treat a Fowler Smell as Advisory unless it violates an explicit standard, ADR, or test requirement, or creates a demonstrated risk.
 
-两轴不得共享上下文、读取对方结论、合并 Findings 或跨轴排序。
+Do not read the other Reviewer's conclusion, coordinate conclusions, merge or rank Findings across axes, or inspect Agent Run comments published after the frozen task pack. The Scheduler must withhold both results from Tracker publication until both axes finish.
 
-## 输入绑定
+## Read-Only Boundary
 
-每轴读取同一固定 Base、Head、累计 Diff、Commit 列表、Ticket、Spec Revision 和 Coder 证据。输入不可读时返回 `REVIEW_BLOCKED`，不得虚假 PASS。空 Diff 或坏固定点在创建 Reviewer 前由 Scheduler 拒绝。
+Do not modify files, create commits, repair Findings, write Tracker state, publish a Verdict directly, or change Base/Head. Inspect Commit objects and the supplied `Base...Head` range, not ambient worktree appearance. Run only focused read-only or verification commands needed to confirm a finding.
+
+## Fixed Input
+
+Require the same frozen Base, Head, cumulative Diff, Commit list, Ticket, Spec revision, and Coder evidence for both axes. Return `REVIEW_BLOCKED` when any required input cannot be read. Never issue a false `PASS`.
+
+`NO_CHANGE_REQUIRED` is the only valid empty Diff. It requires `Base == Head`; review the current tree, existing observable behavior, and Coder evidence. Reject an empty Diff for `READY_FOR_REVIEW`.
 
 ## Verdict
 
+Return this compact block:
+
 ```yaml
 axis: SPEC | STANDARDS
-verdict: PASS | REPAIR_REQUIRED
+verdict: PASS | REPAIR_REQUIRED | REVIEW_BLOCKED
 base_commit: <sha>
 head_commit: <sha>
 spec_revision: <revision>
@@ -30,10 +39,4 @@ findings:
     repair_check: <observable check>
 ```
 
-任一 Blocking Finding 必须 `REPAIR_REQUIRED`；无 Blocking 时 `PASS`，可以保留 Advisory。修复轮次沿用稳定 `finding_id`，检查完整累计 Diff、修复 Diff 与最新证据。
-
-## 模型路由
-
-Spec 默认强通用推理、`medium`；涉及权限、资金、隐私、安全、多角色、跨 Spec 或解释空间时升级。Standards 默认强代码推理、`medium`；涉及 Schema/迁移、公共接口、并发、基础设施、Wide Refactor、共享分支或弱 Seam 时升级。
-
-首次失败提升相关轴推理强度；同一问题重复失败升至最高等级。不支持显式路由时用最强可用模型创建两个独立 Reviewer，并在 Event 记录降级。
+Return `REPAIR_REQUIRED` for any Blocking Finding and `PASS` when none exists. Preserve stable `finding_id` values across repair rounds. On every changed Head, inspect the complete cumulative Diff, the repair Diff, and the latest evidence. Return `REVIEW_BLOCKED` only for unreadable or invalid fixed inputs, with a Finding that identifies the missing fact.

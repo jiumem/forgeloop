@@ -1,6 +1,6 @@
 ---
 name: setup-forgeloop
-description: Configure this repo for the engineering skills — set up its issue tracker, triage label vocabulary, and domain doc layout. Run once before first use of the other engineering skills.
+description: Load when the user explicitly wants to configure or update Forgeloop Tracker integration and repository setup.
 ---
 
 # Setup Forgeloop
@@ -114,12 +114,12 @@ For "other" issue trackers, write `docs/agents/issue-tracker.md` from scratch us
 
 Tell the user the setup is complete and which engineering skills will now read from these files. Mention they can edit `docs/agents/*.md` directly later — re-running this skill is only necessary if they want to switch issue trackers or restart from scratch.
 
-## Forgeloop 扩展配置
+## Extended Forgeloop Configuration
 
-在 Section A 后一次只询问一个额外问题：仓库 Integration Policy。推荐遵循仓库现有保护策略；让用户选择 `auto-merge` 或 `human-merge`，并把结果写入 `docs/agents/issue-tracker.md`。缺失策略时 `$run-initiative` 不得自动集成；认证、权限或平台能力检查失败时明确停止，不得回退到另一 Tracker。
+After Section A, ask only one additional question at a time: the repository Integration Policy. Recommend following the repository's existing protection policy; ask the user to choose `auto-merge` or `human-merge`, and write the result to `docs/agents/issue-tracker.md`. When the policy is missing, `$run-initiative` must not integrate automatically. Stop explicitly when authentication, permission, or platform-capability checks fail; do not fall back to another Tracker.
 
-重跑时只更新既有 `## Agent skills` 块和 `docs/agents/*.md` 配置，不重复追加。写入前验证所选 CLI 可用且身份/仓库可读；只在用户确认草稿后写入，避免权限失败产生部分配置。
+On rerun, update only the existing `## Agent skills` block and `docs/agents/*.md` configuration; do not append duplicates. Before writing, verify that the selected CLI is available and that the identity and repository are readable. Write only after the user confirms the draft, avoiding partial configuration caused by permission failures.
 
-若发现 `docs/initiatives/**`，只报告旧历史入口并链接迁移说明，不读取其内容作为新运行状态，不移动、不删除、不自动转换。完成、归档、Handoff 和 Recommendations 保持只读；活动 Initiative 必须由用户选择固定 `2.5.0` 完成，或预览后重新生成正式 Spec/Tickets。
+If `docs/initiatives/**` is found, only report the legacy historical entry point and link to migration instructions. Do not read its contents as new runtime state, and do not move, delete, or automatically convert it. Completed, archived, Handoff, and Recommendations content remains read-only. For an active Initiative, the user must choose either to finish it pinned to `2.5.0` or to regenerate formal Specs/Tickets after a preview.
 
-生成 `docs/agents/issue-tracker.md` 时，把所选模板的 `Tracker Runtime Operations` 与 Integration Policy 一并保留。
+When generating `docs/agents/issue-tracker.md`, preserve both the selected template's `Tracker Runtime Operations` and its Integration Policy.

@@ -15,6 +15,150 @@ SPEC.loader.exec_module(MODULE)
 
 
 class SyncUpstreamTests(unittest.TestCase):
+    def test_generated_skill_uses_central_trigger_description(self) -> None:
+        config = MODULE.load_config()
+        metadata = MODULE.load_metadata()
+        mapping = next(
+            item for item in config["mappings"] if item["target"] == "codebase-design"
+        )
+
+        text = MODULE.expected_files(config, mapping)[Path("SKILL.md")].decode()
+
+        self.assertIn(f"description: {metadata['codebase-design']['description']}", text)
+        self.assertTrue(metadata["codebase-design"]["description"].startswith("Load when "))
+
+    def test_grill_with_docs_routes_domain_facts_and_closes_each_exit(self) -> None:
+        config = MODULE.load_config()
+        mapping = next(
+            item for item in config["mappings"] if item["target"] == "grill-with-docs"
+        )
+        text = MODULE.expected_files(config, mapping)[Path("SKILL.md")].decode()
+
+        self.assertIn("settled domain terminology only to `CONTEXT.md`", text)
+        self.assertIn("satisfies all three ADR thresholds", text)
+        self.assertIn("same fact to both `CONTEXT.md` and an ADR", text)
+        self.assertIn("If the user cancels or stops", text)
+        self.assertIn("state clearly that the design is incomplete", text)
+        self.assertIn("only after the user confirms that shared understanding has been reached", text)
+        self.assertIn("Do not automatically start `$to-spec`, `$to-tickets`, or `$run-initiative`", text)
+        self.assertIn("Do not create a Spec, Ticket, or implementation code", text)
+
+    def test_improve_architecture_contract_handles_side_effects_and_empty_results(self) -> None:
+        config = MODULE.load_config()
+        mapping = next(
+            item
+            for item in config["mappings"]
+            if item["target"] == "improve-codebase-architecture"
+        )
+        text = MODULE.expected_files(config, mapping)[Path("SKILL.md")].decode()
+
+        self.assertIn("Explore and Report phases remain read-only", text)
+        self.assertIn("no genuine Deepening Opportunity caused by a shallow module", text)
+        self.assertIn("Do not generate HTML, produce a Top recommendation, or enter Grilling", text)
+        self.assertIn("If generation fails, report that no artifact was produced", text)
+        self.assertIn("If opening fails, preserve the generated file", text)
+        self.assertIn("Writing domain documentation is a separate authorization seam", text)
+        self.assertIn("Without authorization, return only the proposed text", text)
+        self.assertIn("Do not create a Spec, Ticket, or Initiative, and do not modify production code", text)
+        self.assertIn("delegate the read-only scan to an isolated child Agent", text)
+        self.assertNotIn("subagent_type=Explore", text)
+        self.assertNotIn("Only write the visualization to an OS temporary directory", text)
+
+    def test_review_change_uses_generic_child_roles(self) -> None:
+        config = MODULE.load_config()
+        mapping = next(
+            item for item in config["mappings"] if item["target"] == "review-change"
+        )
+        text = MODULE.expected_files(config, mapping)[Path("SKILL.md")].decode()
+
+        self.assertIn("two independent child Agents from self-contained prompts", text)
+        self.assertNotIn("general-purpose` subagent", text)
+
+    def test_to_spec_contract_gates_publishing(self) -> None:
+        config = MODULE.load_config()
+        mapping = next(
+            item for item in config["mappings"] if item["target"] == "to-spec"
+        )
+        text = MODULE.expected_files(config, mapping)[Path("SKILL.md")].decode()
+
+        self.assertIn("do not run `$setup-forgeloop` automatically", text)
+        self.assertIn("CONTEXT_INSUFFICIENT", text)
+        self.assertIn("FAILED_PRECONDITION", text)
+        self.assertIn("user or role permission model", text)
+        self.assertIn("Tracker publication permission", text)
+        self.assertIn("add `ready-for-agent` to the parent Spec", text)
+        self.assertIn("does not make the parent Spec part of the Ticket Frontier", text)
+        self.assertIn("If the publication result is ambiguous, first query candidates", text)
+        self.assertNotIn("No interview does not mean inventing decisions", text[text.index("</spec-template>") :])
+
+    def test_to_tickets_accepts_idempotent_acceptance_repairs(self) -> None:
+        config = MODULE.load_config()
+        mapping = next(
+            item for item in config["mappings"] if item["target"] == "to-tickets"
+        )
+        text = MODULE.expected_files(config, mapping)[Path("SKILL.md")].decode()
+
+        self.assertIn("## Forgeloop Acceptance Repair Mode", text)
+        self.assertIn("one stable `repair_key` per Finding", text)
+        self.assertIn("Reuse the unique valid Open repair Ticket", text)
+        self.assertIn("Do not decompose the whole Spec again", text)
+        self.assertIn("Never create a repair Ticket directly under the Initiative", text)
+        self.assertIn("`owning_spec_ref`", text)
+        self.assertIn("does not resume `$run-initiative`", text)
+
+    def test_to_tickets_reconciles_only_open_tickets_after_a_spec_revision(self) -> None:
+        config = MODULE.load_config()
+        mapping = next(
+            item for item in config["mappings"] if item["target"] == "to-tickets"
+        )
+        text = MODULE.expected_files(config, mapping)[Path("SKILL.md")].decode()
+
+        self.assertIn("## Forgeloop Spec Revision Reconciliation Mode", text)
+        self.assertIn("Preserve every Completed or Closed Ticket", text)
+        self.assertIn("Compare the revised contract only with Open Tickets", text)
+        self.assertIn("`retain`, `update`, `supersede`, and `create`", text)
+        self.assertIn("does not resume `$run-initiative`", text)
+
+    def test_diagnosing_bugs_contract_covers_every_write_seam(self) -> None:
+        config = MODULE.load_config()
+        mapping = next(
+            item
+            for item in config["mappings"]
+            if item["target"] == "diagnosing-bugs"
+        )
+        text = MODULE.expected_files(config, mapping)[Path("SKILL.md")].decode()
+
+        self.assertLess(text.index("## Forgeloop Authorization Mode"), text.index("## Phase 1"))
+        for required in (
+            "default mode is diagnostic-only",
+            "diagnostic-write authorization does not grant repair authorization",
+            "OS temporary directory",
+            "report that diagnosis is blocked",
+            "workspace instrumentation require write authorization",
+            "Ticket Scope",
+            "Every exit path",
+            "does not authorize creating or updating a Commit, PR, or MR",
+            "do not start `$improve-codebase-architecture` automatically",
+        ):
+            self.assertIn(required, text)
+        self.assertNotIn("Diagnostic-only mode may create a minimal reproduction in the workspace", text)
+
+    def test_required_replacements_are_applied(self) -> None:
+        result = MODULE.apply_required_replacements(
+            "run setup automatically",
+            [["run setup automatically", "ask the user to run setup"]],
+            "review-change/SKILL.md",
+        )
+        self.assertEqual(result, "ask the user to run setup")
+
+    def test_missing_required_replacement_is_rejected(self) -> None:
+        with self.assertRaisesRegex(RuntimeError, "局部替换目标不存在"):
+            MODULE.apply_required_replacements(
+                "upstream text changed",
+                [["run setup automatically", "ask the user to run setup"]],
+                "review-change/SKILL.md",
+            )
+
     def test_wrong_commit_is_rejected(self) -> None:
         expected = "391a2701dd948f94f56a39f7533f8eea9a859c87"
         actual = "0" * 40

@@ -1,6 +1,6 @@
 ---
 name: diagnosing-bugs
-description: Diagnosis loop for hard bugs and performance regressions. Use when the user says "diagnose"/"debug this", or reports something broken/throwing/failing/slow.
+description: Load when something is broken, failing, throwing, unexpectedly slow, or the user asks to diagnose a bug or regression.
 ---
 
 # Diagnosing Bugs
@@ -8,6 +8,10 @@ description: Diagnosis loop for hard bugs and performance regressions. Use when 
 A discipline for hard bugs. Skip phases only when explicitly justified.
 
 When exploring the codebase, read `CONTEXT.md` (if it exists) to get a clear mental model of the relevant modules, and check ADRs in the area you're touching.
+
+## Forgeloop Authorization Mode
+
+Before Phase 1, determine the scope the caller has already authorized. The default mode is diagnostic-only: investigate, reproduce, and report without modifying the workspace, production environment, Tracker, Spec, Commit, or PR/MR. Any workspace write or production instrumentation requires separate, explicit, minimally scoped diagnostic-write authorization, and diagnostic-write authorization does not grant repair authorization. Diagnose-and-fix mode applies only when the user explicitly authorizes a fix or a `$run-initiative` Coder supplies a writable Ticket Scope. Do not ask again for authorization the caller has already granted, but this Skill must not expand that Scope. Repair authorization covers only code and tests within Scope; it does not automatically include permission to create or update Commits, PRs/MRs, Tracker state, Specs, the target branch, or integration state.
 
 ## Phase 1 — Build a feedback loop
 
@@ -27,6 +31,8 @@ Spend disproportionate effort here. **Be aggressive. Be creative. Refuse to give
 8. **Bisection harness.** If the bug appeared between two known states (commit, dataset, version), automate "boot at state X, check, repeat" so you can `git bisect run` it.
 9. **Differential loop.** Run the same input through old-version vs new-version (or two configs) and diff outputs.
 10. **HITL bash script.** Last resort. If a human must click, drive _them_ with `scripts/hitl-loop.template.sh` so the loop is still structured. Captured output feeds back to you.
+
+In diagnostic-only mode, the feedback loop may only reuse existing repository entry points or create a disposable Reproducer in an OS temporary directory. Do not add or modify tests, scripts, Fixtures, Harnesses, configuration, or source code in the workspace. If the feedback loop cannot be established without workspace-write authorization, stop and clearly report that diagnosis is blocked, which permission is missing, and what recoverable input is required; do not substitute guesses.
 
 Build the right feedback loop, and the bug is 90% fixed.
 
@@ -101,11 +107,15 @@ Tool preference:
 2. **Targeted logs** at the boundaries that distinguish hypotheses.
 3. Never "log everything and grep".
 
+In diagnostic-only mode, prefer observational tools that do not modify the workspace, such as a Debugger, REPL, or Profiler. Targeted logs, source-level timing, and any other workspace instrumentation require write authorization. Instrumentation must carry a unique marker, and every file created or modified during the run must be recorded for cleanup on exit.
+
 **Tag every debug log** with a unique prefix, e.g. `[DEBUG-a4f2]`. Cleanup at the end becomes a single grep. Untagged logs survive; tagged logs die.
 
 **Perf branch.** For performance regressions, logs are usually wrong. Instead: establish a baseline measurement (timing harness, `performance.now()`, profiler, query plan), then bisect. Measure first, fix second.
 
 ## Phase 5 — Fix + regression test
+
+Enter this phase only in diagnose-and-fix mode. When invoked by a `$run-initiative` Coder, the existing writable Ticket Scope constitutes repair authorization and must not be requested again. All tests, instrumentation, and repairs remain limited to that Scope, and the Spec, Tracker, and target branch must not be modified.
 
 Write the regression test **before the fix** — but only if there is a **correct seam** for it.
 
@@ -123,16 +133,18 @@ If a correct seam exists:
 
 ## Phase 6 — Cleanup + post-mortem
 
-Required before declaring done:
+Every exit path must complete cleanup first, whether the final outcome is diagnostic-only, repair completed, unable to reproduce, insufficient permission, or an environment blocker:
+
+- [ ] All `[DEBUG-...]` instrumentation removed (`grep` the prefix)
+- [ ] Throwaway scripts, reproducers and prototypes deleted from the workspace; OS temporary artifacts are either removed or reported
+- [ ] Changes that existed before this run remain unchanged
+- [ ] The final report records the root cause and current evidence, or why diagnosis is blocked and which recoverable inputs are required
+- [ ] Any residue that cannot be cleaned up safely, its cause, and the recovery steps are clearly reported
+
+Only a completed repair additionally requires:
 
 - [ ] Original repro no longer reproduces (re-run the Phase 1 loop)
 - [ ] Regression test passes (or absence of seam is documented)
-- [ ] All `[DEBUG-...]` instrumentation removed (`grep` the prefix)
-- [ ] Throwaway prototypes deleted (or moved to a clearly-marked debug location)
-- [ ] The hypothesis that turned out correct is stated in the commit / PR message — so the next debugger learns
+- [ ] Synchronize the root cause into a Commit or PR message only when the user or caller separately authorizes Commit/PR writes; this requirement does not authorize creating or updating a Commit, PR, or MR
 
-**Then ask: what would have prevented this bug?** If the answer involves architectural change (no good test seam, tangled callers, hidden coupling) hand off to the `/improve-codebase-architecture` skill with the specifics. Make the recommendation **after** the fix is in, not before — you have more information now than when you started.
-
-## Forgeloop 授权边界
-
-先判断用户授权是“只诊断”还是“诊断并修复”。只诊断时可以构造最小复现、执行只读检查和临时插桩，但不得修改生产代码、提交修复或改变 Tracker 状态；以根因、证据、复现命令和建议修复结束。只有用户明确授权修复时才进入 Phase 5 的实现步骤。
+**Then ask: what would have prevented this bug?** Offer architectural recommendations only after diagnosis is complete, or after the repair when repair authorization was granted. If the answer involves a missing test Seam, tangled callers, or hidden coupling, recommend that the user explicitly invoke `$improve-codebase-architecture`; do not start `$improve-codebase-architecture` automatically. Include the evidence from this diagnosis, but do not substitute for that Workflow.

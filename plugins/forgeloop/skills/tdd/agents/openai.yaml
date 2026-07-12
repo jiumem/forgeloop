@@ -1,6 +1,6 @@
 interface:
-  display_name: "测试驱动开发"
+  display_name: "Test-Driven Development"
   short_description: "Drive vertical behavior slices through red and green"
-  default_prompt: "使用 $tdd 通过公共 Seam 完成一个 Red-Green 垂直切片。"
+  default_prompt: "Use $tdd to complete a red-green vertical slice through a public seam."
 policy:
   allow_implicit_invocation: true

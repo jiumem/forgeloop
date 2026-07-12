@@ -111,7 +111,7 @@ Task: T1.9
 Entry: `$recommend-initiatives`、`$improve-codebase-architecture`。
 Changed: 使用 `init_skill.py` 重建只读推荐器；架构扫描增加证据与临时目录边界。
 Commands: 两 Skill `quick_validate.py`、空结果/部分来源门禁检查。
-Fixtures: 3–5 个跨类别候选；缺少目标、无 Deepening Opportunity、Tracker 不可访问边界。
+Fixtures: 1–3 个跨类别候选；缺少目标、无 Deepening Opportunity、Tracker 不可访问边界。
 Result: PASS
 Errors: 空结果与部分来源显式输出，不虚构路线图。
 Out of scope: 不写 Recommendations、Spec、Ticket 或生产代码。
@@ -127,11 +127,11 @@ Out of scope: 不建立第二真理源。
 
 Task: T1.11
 Entry: `$ask-forgeloop` 与 20 份 `agents/openai.yaml`。
-Changed: Router 仅覆盖正式入口；元数据由 Skill Creator 生成器和声明式清单刷新。
-Commands: `refresh_skill_metadata.py --check`、19 次 `quick_validate.py`、套件开发态校验。
-Fixtures: 11 个显式调用 Policy、9 个模型调用 Policy、20 个包含 `$skill-name` 的 Prompt。
+Changed: Router 仅覆盖正式入口；20 个 Skill 的正文、References、Tracker 模板与 UI 元数据统一为英文；20 条 Frontmatter `description` 重构为 `Load when` 触发句，并与 UI 元数据一起由 `config/skill-metadata.json` 集中维护；上游同步器在导入后重新应用英文 Overlay、替换文本与触发描述。
+Commands: `refresh_skill_metadata.py --check`、20 次 `quick_validate.py`、套件开发态校验、上游同步漂移校验。
+Fixtures: 11 个显式调用 Policy、9 个模型调用 Policy、20 个包含 `$skill-name` 的 Prompt；三组无预期答案的相邻 Skill 路由 Forward Test；英文正文分别冒烟零 Diff Initiative、Tracker 不可用推荐与只读诊断授权边界。
 Result: PASS
-Errors: 未发布入口与旧 Skill 引用被移除。
+Errors: Skill Markdown/YAML 中存在中文、非 `Load when`、集中描述漂移、重复描述、未发布入口与旧 Skill 引用均由校验器拒绝。
 Out of scope: M1 不替换旧 `run-initiative`，只保留到 M2 闭环通过。
 
 ### M2 `run-initiative` 执行内核
@@ -165,11 +165,11 @@ Out of scope: 不承诺 Other Tracker。
 
 Task: T2.4
 Entry: 任一 Reviewer `REPAIR_REQUIRED`。
-Changed: 原 Coder/Reviewer 复用、双轴独立重审、稳定 Finding、模型升级与修复预算。
+Changed: 原 Coder/Reviewer thread 复用、双轴独立重审、Blocked 非 Repair 路由、稳定 Finding，以及覆盖候选代码 Check 失败的两轮普通修复预算。
 Commands: 运行协议校验；Spec、Standards、双轴、预算、合约 Fixture。
 Fixtures: `spec-repair`、`standards-repair`、`dual-repair`、`repair-exhausted`、`contract-blocker`。
 Result: PASS
-Errors: 同 Finding 两次或 Ticket 三次失败暂停；合约路径不耗普通预算。
+Errors: 第二轮普通修复后仍有 Blocking Finding 时暂停；合约路径不耗普通预算。
 Out of scope: 用户不能覆盖 Reviewer PASS 门禁。
 
 Task: T2.5
@@ -183,25 +183,25 @@ Out of scope: 自动集成不含部署、发布或迁移执行。
 
 Task: T2.6
 Entry: 当前 Spec 所有 Tickets 通过。
-Changed: 简单单 Ticket Reviewer 复用与全新 Spec Acceptance 分流。
+Changed: 所有 Spec 在集成后都使用 fresh、隔离、只读的 Acceptance Reviewer；多 Spec Acceptance 绑定同一最终 Commit并保持成员 Open；失败生成 `repair_key`，由 `$to-tickets` 显式路由到 owning Spec 并幂等创建或复用修复 Ticket。
 Commands: Acceptance 协议校验、Spec 失败 Fixture。
 Fixtures: `happy-local`、`spec-acceptance-fail`。
 Result: PASS
-Errors: 验收失败保持 Spec Open 并创建正式修复工作。
+Errors: 验收失败保持 Spec Open 并要求显式调用 `$to-tickets`；重复恢复复用已有修复工作，超出 Scope 转 `CONTRACT_BLOCKER`。
 Out of scope: 不改写已关闭 Ticket 的历史 Verdict。
 
 Task: T2.7
 Entry: `$run-initiative <spec-ref...>` 或父 Initiative 引用。
-Changed: 多 Spec 预览、持久化父 Item、成员变更确认与全新跨 Spec Acceptance。
+Changed: 多 Spec 预览、按 `initiative_revision` 幂等创建或复用父 Item、原生确认引用、所有 Spec 同 Commit 验收并延迟关闭，以及 fresh 跨 Spec Acceptance。
 Commands: `multi-spec`、Initiative 失败 Fixture。
 Fixtures: `multi-spec`、`initiative-acceptance-fail`。
 Result: PASS
-Errors: 跨 Spec 失败保持父 Item Open 并创建修复工作。
+Errors: 跨 Spec 失败保持父 Item和成员 Specs Open；repair key 必须路由到现有 owning Spec，无合法归属时 `CONTRACT_BLOCKER`。
 Out of scope: 单 Spec 不创建多余父对象。
 
 Task: T2.8
 Entry: 新运行、并发 Claim 或沿原 Run ID 恢复。
-Changed: 严格串行、重新查询 Frontier、Event Schema、幂等、Supersede 与恢复冲突。
+Changed: 严格串行、每 Ticket 刷新 Base、最小 Checkpoint、幂等、Supersede、暂停保留 Claim、成功或取消按 Run ID 释放，以及不依赖旧 child 的恢复。
 Commands: Event 协议校验、并发与崩溃恢复 Fixture。
 Fixtures: `blocking-graph`、`concurrent-claim`、`crash-recovery`、`empty-frontier`。
 Result: PASS
@@ -212,11 +212,12 @@ Out of scope: Initiative 内不主动并行 Frontier。
 
 Task: T3.1
 Entry: `validate_fixtures.py` 对 M1/M2 矩阵执行结构、禁止写入与平台等价检查。
-Changed: 9 项入口 Fixture 与 19 项 Runtime Fixture，覆盖方案要求的 17 类场景及三平台主路径。
+Changed: 9 项入口 Fixture、32 项 Runtime Fixture 与 4 项 Recommend Initiatives Fixture，覆盖方案要求的关键场景及三平台主路径；Runtime Fixture 增加 Event Trace 与最终原生状态不变量。
 Commands: `python3 plugins/forgeloop/scripts/validate_fixtures.py ...`。
-Fixtures: Happy Path、Blocking Graph、多 Spec、两轴修复、预算、合约、人工合并、共享分支、两层最终验收失败、空 Frontier、权限、Reviewer、并发与崩溃恢复。
+Fixtures: Happy Path、Blocking Graph、多 Spec、两轴修复、预算、合约、人工合并、共享分支、两层最终验收失败、空 Frontier、权限、Reviewer、并发、崩溃恢复、零 Diff、取消释放、Spec 变化边界、修复幂等与 Initiative Revision 漂移。
 Result: PASS
-Errors: 每项均声明初始状态、入口、预期/禁止写入、终态和失败诊断。
+Errors: 每项均声明初始状态、入口、预期/禁止写入、Event Trace、最终原生状态、终态和失败诊断；完成、暂停、取消与预检失败接受状态不变量校验。
+Forward Tests: 三个无预期答案的新鲜上下文分别验证 `NO_CHANGE_REQUIRED`、Local 取消释放与多 Spec Revision 漂移；均未修改项目或调用远端写 API。Revision 漂移正确停止于 `RECOVERY_CONFLICT`，不追加 `RUN_RESUMED`。
 Out of scope: 不调用真实远端写 API；平台行为由配置契约与等价 Fixture 验证。
 
 Task: T3.2

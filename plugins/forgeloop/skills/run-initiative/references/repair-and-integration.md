@@ -1,27 +1,33 @@
-# 修复、Branch 与集成协议
+# Repair, Branch, and Integration Protocol
 
-## 修复循环
+## Repair Loop
 
-任一轴 `REPAIR_REQUIRED` 都返回原 Coder，并同时传递两轴 Findings。两个旧 Verdict 在代码变化后失效；两名原 Reviewer 对新 Head 的完整累计 Diff 重新签发。
+When either axis returns `REPAIR_REQUIRED`, wait for the other axis, then continue the original Coder with both complete Finding sets. Do not merge, reorder, or reinterpret Findings. Continue each original Reviewer with the new fixed Head and only that Reviewer's own axis history.
 
-- 首次失败提升相关轴推理强度；重复失败升至最高能力。
-- 同一 Finding 经两次修复仍存在，追加 `RUN_PAUSED`。
-- 同一 Ticket 累计三次评审失败，追加 `RUN_PAUSED`。
-- 两轴要求冲突、合约不可实现、Scope 不足或需要改 Spec/ADR 时转 `CONTRACT_BLOCKER`，不消耗普通修复预算。
-- 用户可修改合约或记录正式例外，但不能把 `REPAIR_REQUIRED` 改写为 PASS。
+Allow at most two ordinary repair rounds per Ticket. Count every post-review return to the Coder for candidate code changes against the same budget, whether caused by Reviewer Findings, a candidate-caused Required Check failure, or merge-conflict resolution. If any Blocking Finding or candidate-caused failure remains after the second repair round, persist `RUN_PAUSED` with reason=`REPAIR_BUDGET`. A contract conflict, insufficient Scope, incompatible axes, required Spec/ADR change, or external infrastructure failure does not consume an ordinary repair round. Never rewrite `REPAIR_REQUIRED` as `PASS`.
 
-## Branch 策略
+Any code change, rebase, Base update, or conflict resolution invalidates both prior Verdicts. Require the Coder to validate the new Head and both Reviewers to issue fresh Verdicts for the complete cumulative Diff.
 
-默认每 Ticket 独立 Branch。只有 Ticket Graph 预先声明 Wide Refactor、不可独立绿色迁移或原子交付时共享 Spec Integration Branch；共享模式必须有最终 `integrate-and-verify` Ticket。Coder 不得临时切换。
+## Branch Ownership
+
+Use one independent Branch per Ticket by default. Use a shared Spec Integration Branch only when `$to-tickets` already declared a Wide Refactor, an independently non-green migration, or required atomic delivery, together with a final `integrate-and-verify` Ticket. Neither the Scheduler nor Coder may switch modes ad hoc.
+
+The Scheduler prepares the Branch and Base. The Coder edits, validates, and commits only Ticket Scope. Reviewers inspect fixed Commit objects. The Scheduler owns push, PR/MR creation or reuse, Required Checks, merge, and closure. Let the configured Tracker Runtime decide when remote publication occurs; do not impose an extra Draft-PR phase.
 
 ## Integration Policy
 
-- `auto-merge`：双 PASS、Base/Head 未变、现有 Required Checks、保护规则和权限满足后集成。自动集成不包含部署、发布、数据迁移执行或其他不可逆外部动作。
-- `human-merge`：追加 `READY_FOR_HUMAN_MERGE` 等待 Event，保留 Branch/PR/MR 和 Ticket Open；刷新 Git/平台事实后继续。PR/MR 关闭但未合并不得关闭 Ticket。
-- 配置缺失时禁止自动合并。单次覆盖需用户明确确认并记录 Event。
+- `auto-merge`: integrate only after both Verdicts have `PASS`, Base/Head and revision remain unchanged, and existing Required Checks, protection rules, and permissions pass.
+- `human-merge`: persist `RUN_PAUSED` with reason=`READY_FOR_HUMAN_MERGE`, preserve the Branch and PR/MR, keep the Ticket Open, and refresh native facts after user action.
+- Missing policy prohibits automatic merge. A one-run override requires explicit user confirmation recorded in the Tracker.
+- Automatic integration does not authorize deployment, release, data migration execution, or any other irreversible external action.
+- A closed but unmerged PR/MR is not integrated.
 
-共享分支下 Ticket 集成到 Integration Branch 后可以完成，最终目标分支由 `integrate-and-verify` 负责。
+When a Required Check fails, inspect its existing evidence before acting. If the failure is caused by the candidate and remains inside Ticket Scope, continue the original Coder with the check evidence, consume one ordinary repair round, invalidate both Verdicts after any code change, and repeat Coder validation and dual review. If the failure is caused by permissions, infrastructure, an unrelated target-branch failure, or evidence that cannot be attributed safely, persist `RUN_PAUSED` with reason=`CHECKS_BLOCKED`. Do not trigger an extra full CI run merely to classify the failure.
 
-## 合并冲突
+For `NO_CHANGE_REQUIRED`, verify `Base == Head` and both Reviewer Verdicts, then record `INTEGRATION_RESULT` with result=`ALREADY_PRESENT`; do not create an empty Commit or meaningless PR/MR.
 
-调用 `$resolving-merge-conflicts` 恢复双方意图。意图不兼容返回结构性 Blocker，不自行选边，不执行破坏性 reset、丢弃或 abort。冲突解决、rebase、Base 更新或任何代码变化都使旧 Verdict 失效，重新进入 Coder 验证与双 Reviewer。
+In shared-branch mode, a Ticket completes after its Commit enters the declared Integration Branch. The final `integrate-and-verify` Ticket owns delivery to the target branch.
+
+## Merge Conflicts
+
+Return merge-conflict work to the current Coder and instruct it to invoke `$resolving-merge-conflicts` within Ticket Scope. Pause for incompatible product, Schema, or architecture intent. Do not let the Scheduler choose a side or perform destructive reset, discard, or abort operations. After a resolved conflict changes code or Base, return through Coder validation and both Reviewer gates.

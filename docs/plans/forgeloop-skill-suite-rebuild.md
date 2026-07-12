@@ -75,7 +75,8 @@ plugins/forgeloop/
 约束：
 
 - `SKILL.md` Frontmatter 只包含 `name` 与 `description`；
-- `description` 同时写明能力与触发条件；
+- `skills/**` 下的正文、References、Tracker 模板和 UI 元数据全部使用英文；项目设计、实施与迁移文档继续使用中文；
+- `description` 以 `Load when` 开头，只描述适用请求和必要的相邻边界，不复述内部流程、输出或规范；
 - 仅用户调用的 11 个 Skills 在 `agents/openai.yaml` 设置 `policy.allow_implicit_invocation: false`；
 - `default_prompt` 必须显式包含 `$<skill-name>`；
 - `SKILL.md` 目标少于 500 行；
@@ -227,7 +228,7 @@ M0 校验与导入基础
 
 **依赖**：T1.1、T1.2。
 
-**范围**：`to-spec`、`to-tickets`，正文直接继承上游。
+**范围**：`to-spec`、`to-tickets`，主体直接继承上游；`to-tickets` 仅追加 Forgeloop Acceptance Repair 与 Spec Revision Reconciliation 适配。
 
 **验收标准**：
 
@@ -237,6 +238,8 @@ M0 校验与导入基础
 - Wide Refactor 使用上游 expand–contract 规则；
 - Parent、Blocking 与 `ready-for-agent` 按 Tracker 能力表达；
 - 用户未批准拆分前不发布 Tickets；
+- 用户显式请求 Acceptance Repair 时按每个 Finding 的 `repair_key` 查询复用，只为未匹配 Findings 创建最小修复 Tickets，不重新拆解完整 Spec；
+- 用户显式请求 material Spec Revision 对账时保留 Completed 历史，只对受影响 Open Tickets 提出 `retain`、`update`、`supersede`、`create` 动作；
 - 三套 Tracker 的单 Spec、多 Ticket、阻塞图 Fixture 均通过；
 - 不创建 `PLAN.md` 或 `LEDGER.md`。
 
@@ -306,7 +309,7 @@ M0 校验与导入基础
 
 **验收标准**：
 
-- Recommend 只读返回 3–5 个有仓库证据的跨类别候选；
+- Recommend 只读返回 1–3 个有仓库证据的跨类别候选；
 - 缺少产品目标时降低产品价值置信度，不虚构路线图；
 - 不写 `docs/initiatives/recommendations/**`；
 - Architecture 只报告真实 Deepening Opportunity；
@@ -337,6 +340,8 @@ M0 校验与导入基础
 
 - Router 覆盖全部正式用户入口，不引用已删除 Skill；
 - Router 只推荐，不自动启动其他用户调用 Workflow；
+- 20 条 Frontmatter `description` 由 `config/skill-metadata.json` 集中维护，以 `Load when` 开头并能区分相邻 Skill；
+- 20 个 Skill 目录中的 Markdown 与 YAML 不含中文内容，生成源同步保持英文；
 - 11 个用户调用 Skills 的 `allow_implicit_invocation` 为 `false`；
 - 9 个模型可调用 Skills 为 `true` 或使用默认值；
 - 每个 `display_name`、`short_description`、`default_prompt` 与实际 Skill 一致；
@@ -363,7 +368,7 @@ M0 校验与导入基础
 **范围**：
 
 - 初始化 `run-initiative`；
-- 将 Scheduler、Coder、Reviewer、Event、完成门禁和模型路由拆入一层 References；
+- 将 Scheduler、Coder、Reviewer、Checkpoint、完成门禁和 Role Task Pack 拆入一层 References；
 - 扩展 Local Tracker Runtime Operations；
 - 实现单 Spec、单 Ticket、无修复的完整 Fixture。
 
@@ -374,7 +379,7 @@ M0 校验与导入基础
 - 双 Reviewer 对同一 Base/Head 返回结构化 Verdict；
 - Coder 验证、Reviewer 审查，Scheduler 不重复运行测试；
 - 双 `PASS` 后按 Integration Policy 集成并关闭 Ticket；
-- 简单单 Ticket Spec 可以同时取得 `SPEC_ACCEPTANCE: PASS`；
+- Ticket 集成后由 fresh Spec Acceptance Reviewer 取得最终 Acceptance PASS；
 - 缺失配置、空 Frontier、坏 Spec 引用、脏工作区冲突和 Reviewer 不可用均明确停止；
 - 不写 `PLAN.md`、`LEDGER.md` 或执行状态标签。
 
@@ -402,7 +407,7 @@ M0 校验与导入基础
 - 认证、权限和 Protected Branch 失败可定位；
 - 与 Local/GitHub Happy Path 产生等价领域状态。
 
-### T2.4 增加双 Reviewer 修复循环与模型升级
+### T2.4 增加双 Reviewer 修复循环与角色连续性
 
 **依赖**：T2.1–T2.3。
 
@@ -413,8 +418,8 @@ M0 校验与导入基础
 - 代码变化使两个旧 Verdict 失效；
 - 两个 Reviewer 对新累计 Diff 重新签发 Verdict；
 - `finding_id` 在修复轮次稳定；
-- 首次失败提升相关轴，重复失败升至最高等级；
-- 同一 Finding 两次未解决或 Ticket 三次失败时 `RUN_PAUSED`；
+- 修复继续同一 Ticket 的原 Coder 与两名原 Reviewer thread；
+- 每张 Ticket 最多两轮普通修复，第二轮后仍有 Blocking Finding 时 `RUN_PAUSED`；
 - 合约问题进入 `CONTRACT_BLOCKER`，不消耗普通修复预算。
 
 ### T2.5 增加 Branch、Integration 与冲突路径
@@ -438,10 +443,11 @@ M0 校验与导入基础
 
 **验收标准**：
 
-- 简单单 Ticket Spec 仅在封板条件全部满足时复用 Spec Reviewer；
-- 多 Ticket、高风险、发生修复或集成模式创建全新 Acceptance Reviewer；
+- 每个 Spec 集成后始终创建 fresh、隔离、只读的 Acceptance Reviewer；
+- Ticket Reviewer 不跨 Ticket Agent Run 复用；
 - Acceptance Verdict 绑定 Spec Revision 和最终 Commit；
-- 失败时 Spec 保持打开并创建正式修复工作；
+- `ACCEPTANCE_BLOCKED` 只修复 Scheduler 输入或暂停，不生成 repair key；
+- 失败时 Spec 保持打开并生成稳定 `repair_key`；只复用 `$to-tickets` 已显式创建的正式修复工作，不自行创建或隐式调用；
 - 已关闭 Ticket 的历史 Verdict 不被改写；
 - 所有修复工作完成前 Spec 不能关闭。
 
@@ -452,13 +458,14 @@ M0 校验与导入基础
 **验收标准**：
 
 - 单 Spec 不创建多余父对象；
-- 多 Spec 输入先预览并创建持久化 Initiative Tracker Item；
-- 增删成员 Spec 必须有用户确认 Event；
-- 成员 Specs 可独立完成；
-- 全部 Specs 完成后创建全新 Initiative Acceptance Reviewer；
+- 多 Spec 输入先预览，并按 `initiative_revision` 幂等创建或复用持久化 Initiative Tracker Item；
+- 增删成员 Spec 必须有 Tracker 原生用户确认，Event 记录确认引用与派生 `initiative_revision`，不得复制成员关系；
+- 全部 Initiative Tickets 集成后冻结同一最终 Commit，依次完成成员 Spec Acceptance；
+- 成员 Specs 在 Initiative Acceptance 前保持 Open；所有成员对同一最终 Commit PASS 后创建 fresh Initiative Acceptance Reviewer；
+- Initiative PASS 后先关闭成员 Specs，最后关闭父 Item；Initiative Repair 路由到现有 owning Spec，不创建 Initiative 直属 Ticket或 reopen 状态；
 - 跨 Spec `PASS` 前父 Item 保持打开；
 - `CANCELLED`、`PAUSED`、`COMPLETED` 可区分；
-- 跨 Spec 验收失败进入正式修复工作，不伪造完成。
+- 跨 Spec 验收失败暂停并要求用户显式调用 `$to-tickets`，不伪造完成。
 
 ### T2.8 增加串行调度、幂等与恢复
 
@@ -470,11 +477,15 @@ M0 校验与导入基础
 - 每次完成后重新查询 Frontier；
 - 并发 Scheduler Claim 以确定性规则产生一个胜者；
 - 失败者不创建 Coder；
-- Event 带 Schema Version、Run ID、序号和幂等键；
+- Checkpoint 带 Run ID、事件特定幂等键和恢复所需的最小字段；
 - 重复恢复不创建重复 Event；
 - `EVENT_SUPERSEDED` 可以纠正错误而不改历史；
 - Tracker 原生事实与 Events 冲突时停止并报告；
 - 崩溃后可以沿原 Run ID 恢复；
+- `PAUSED` 保留 Claim，`RUN_CANCELLED` 停止派发、尽力中断当前 child，并只释放当前 Run ID 的 Claim；
+- Ticket 成功关闭后释放其 Claim，根 Item 完成关闭后释放根 Scheduler Claim；
+- 跨 Scheduler 任务恢复不依赖旧 child thread，从 Tracker 与 Git 创建 fresh child；
+- Spec 实质变化使用 `RUN_PAUSED` reason=`SPEC_CHANGE`，仅在用户显式调用 `$to-tickets` 对账后恢复；
 - 不使用短 TTL 误判长任务死亡。
 
 ### M2 Gate
@@ -510,6 +521,19 @@ M0 校验与导入基础
 15. Reviewer 不可用；
 16. 崩溃恢复与重复 Event；
 17. GitHub、GitLab、Local 三平台等价主路径。
+18. `NO_CHANGE_REQUIRED` 零 Diff 双 Reviewer；
+19. 取消时按 Run ID 释放 Claim 且保留候选证据；
+20. Spec 实质变化暂停并显式转交 `$to-tickets`；
+21. Acceptance 修复工作按 `repair_key` 幂等复用；
+22. 多 Spec `initiative_revision` 漂移时停止恢复。
+23. `REVIEW_BLOCKED` 与 `ACCEPTANCE_BLOCKED` 的非 Repair 路由；
+24. 候选代码 Check 失败回到原 Coder，外部 Check 失败暂停；
+25. Local 成功路径释放 Ticket lock 与 `scheduler.lock`；
+26. 多 Spec 所有 Acceptance 绑定同一最终 Commit；
+27. 多 Spec 父 Item 创建响应不确定时按 Revision 查询复用。
+28. Shared Reviewer 输入变化时两轴重审；
+29. Spec Revision 只对账 Open Tickets并保留 Completed 历史；
+30. Initiative Repair 路由 owning Specs、重新执行所有 Spec Acceptance，且不 reopen。
 
 **验收标准**：每个 Fixture 都包含初始状态、入口 Prompt、预期写入、禁止写入、终态和失败诊断；行为输出由新鲜上下文验证，不把预期答案泄漏给执行 Agent。
 

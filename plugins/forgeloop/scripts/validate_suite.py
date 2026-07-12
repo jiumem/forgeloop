@@ -13,6 +13,7 @@ from pathlib import Path
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 CONFIG_PATH = PLUGIN_ROOT / "config" / "skill-suite.json"
+METADATA_PATH = PLUGIN_ROOT / "config" / "skill-metadata.json"
 
 
 @dataclass(frozen=True)
@@ -79,7 +80,12 @@ def validate_openai_yaml(skill: Skill, explicit_only: set[str], final_names: set
     return errors
 
 
-def validate_tree(plugin_root: Path, mode: str, config: dict) -> tuple[list[str], list[str]]:
+def validate_tree(
+    plugin_root: Path,
+    mode: str,
+    config: dict,
+    descriptions: dict[str, str] | None = None,
+) -> tuple[list[str], list[str]]:
     errors: list[str] = []
     notices: list[str] = []
     skills_root = plugin_root / "skills"
@@ -99,6 +105,10 @@ def validate_tree(plugin_root: Path, mode: str, config: dict) -> tuple[list[str]
             errors.append(f"{skill.directory}: Frontmatter 只允许 name、description")
         if not skill.description:
             errors.append(f"{skill.directory}: description 为空")
+        elif not skill.description.startswith("Load when "):
+            errors.append(f"{skill.directory}: description 必须以 Load when 开头并只描述触发条件")
+        elif descriptions is not None and skill.description != descriptions.get(skill.name):
+            errors.append(f"{skill.directory}: description 与 config/skill-metadata.json 不一致")
         if len((skill.path / "SKILL.md").read_text(encoding="utf-8").splitlines()) >= 500:
             errors.append(f"{skill.directory}: SKILL.md 必须少于 500 行")
         body = (skill.path / "SKILL.md").read_text(encoding="utf-8")
@@ -108,6 +118,13 @@ def validate_tree(plugin_root: Path, mode: str, config: dict) -> tuple[list[str]
             clean = link.split("#", 1)[0]
             if not (skill.path / clean).resolve().is_file():
                 errors.append(f"{skill.directory}: 失效 Markdown 引用 {link}")
+        for text_path in sorted(skill.path.rglob("*")):
+            if not text_path.is_file() or text_path.suffix not in {".md", ".yaml", ".yml", ".json", ".sh", ".py", ".txt"}:
+                continue
+            text = text_path.read_text(encoding="utf-8")
+            if re.search(r"[\u3400-\u4dbf\u4e00-\u9fff]", text):
+                relative = text_path.relative_to(skill.path)
+                errors.append(f"{skill.directory}/{relative}: Skill 内容必须全部使用英文")
 
     manifest = json.loads((plugin_root / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
     if manifest.get("skills") != "./skills/":
@@ -174,8 +191,12 @@ def main() -> int:
     parser.add_argument("--plugin-root", type=Path, default=PLUGIN_ROOT)
     args = parser.parse_args()
     config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+    metadata = json.loads(METADATA_PATH.read_text(encoding="utf-8"))
+    descriptions = {
+        name: values.get("description", "") for name, values in metadata.items()
+    }
     plugin_root = args.plugin_root.resolve()
-    errors, notices = validate_tree(plugin_root, args.mode, config)
+    errors, notices = validate_tree(plugin_root, args.mode, config, descriptions)
     for notice in notices:
         print(notice)
     if errors:

@@ -1,6 +1,6 @@
 ---
 name: review-change
-description: Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes — Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/PRD asked for?). Runs both reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to "review since X".
+description: Load when the user asks to review changes relative to a commit, branch, tag, merge base, pull request, or worktree baseline.
 ---
 
 Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
@@ -10,7 +10,7 @@ Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
 
 Both axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.
 
-The issue tracker should have been provided to you — run `/setup-forgeloop` if `docs/agents/issue-tracker.md` is missing.
+Issue tracker configuration is only required when the review must fetch its Spec from the configured tracker. If `docs/agents/issue-tracker.md` is missing, do not run `$setup-forgeloop` automatically: use any Spec or PRD the user supplied, otherwise continue to step 2 without starting another Workflow.
 
 ## Process
 
@@ -29,7 +29,7 @@ Look for the originating spec, in this order:
 1. Issue references in the commit messages (`#123`, `Closes #45`, GitLab `!67`, etc.) — fetch via the workflow in `docs/agents/issue-tracker.md`.
 2. A path the user passed as an argument.
 3. A PRD/spec file under `docs/`, `specs/`, or `.scratch/` matching the branch name or feature.
-4. If nothing is found, ask the user where the spec is. If they say there isn't one, the **Spec** sub-agent will skip and report "no spec available".
+4. If nothing is found, ask the user where the spec is. If they say there isn't one, skip the **Spec** sub-agent and report `SPEC: NOT_AVAILABLE`.
 
 ### 3. Identify the standards sources
 
@@ -57,7 +57,7 @@ Each smell reads *what it is* → *how to fix*; match it against the diff:
 
 ### 4. Spawn both sub-agents in parallel
 
-Send a single message with two `Agent` tool calls. Use the `general-purpose` subagent for both.
+Create two independent child Agents from self-contained prompts and let them run in parallel without inheriting the current conversation.
 
 **Standards sub-agent prompt** — include:
 
@@ -88,6 +88,6 @@ A change can pass one axis and fail the other:
 
 Reporting them separately stops one axis from masking the other.
 
-## Forgeloop 授权边界
+## Forgeloop Authorization Boundaries
 
-默认只读。不得修改代码、Commit、Branch、Spec、Ticket、PR/MR 或 Tracker 状态。固定点无效或累计 Diff 为空时，在创建两个 Reviewer 前失败；找不到 Spec 时保留 Standards 轴并明确报告 `SPEC: NOT_AVAILABLE`，不得伪造 Spec Verdict。
+Read-only by default. Do not modify code, Commits, Branches, Specs, Tickets, PRs/MRs, or Tracker state.

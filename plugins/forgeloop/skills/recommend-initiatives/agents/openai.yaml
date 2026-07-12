@@ -1,6 +1,6 @@
 interface:
-  display_name: "推荐工程 Initiative"
+  display_name: "Recommend Initiatives"
   short_description: "Recommend evidence backed high value engineering initiatives"
-  default_prompt: "使用 $recommend-initiatives 从当前仓库推荐下一批高价值工程 Initiative。"
+  default_prompt: "Use $recommend-initiatives to identify the next high-value engineering initiatives."
 policy:
   allow_implicit_invocation: false

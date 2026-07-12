@@ -1,55 +1,58 @@
 ---
 name: recommend-initiatives
-description: 只读扫描代码、测试、CI、Tracker、ADR 与用户已声明目标，推荐 3–5 个有证据的高价值工程 Initiative。仅在用户明确要求寻找下一步工作、工程改进机会或 Initiative 候选时使用；不创建 Spec、Ticket 或代码改动。
+description: Load when the user explicitly asks what evidence-backed engineering initiative the repository should tackle next.
 ---
 
-# 推荐工程 Initiative
+# Recommend Engineering Initiatives
 
-在对话中返回少量可验证候选，帮助用户选择下一项值得设计的工作。保持只读，不创建仓库文件、Tracker Item、Spec、Ticket 或实现分支。
+Return a small set of verifiable candidates in the conversation so the user can choose the next piece of work worth designing. Remain read-only. Do not create repository files, Tracker Items, Specs, Tickets, or implementation branches.
 
-## 调查
+## Investigate
 
-1. 读取仓库指令、`CONTEXT.md`、相关 ADR 与用户已声明目标。
-2. 调查代码、测试、CI 配置、近期变更和已有 Tracker 请求。Tracker 已配置时按 `docs/agents/issue-tracker.md` 只读查询；认证、权限或网络失败必须明确报告，不得伪装为“没有请求”。
-3. 收集可定位证据：文件与行号、失败输出、重复模式、开放请求、ADR 约束或缺失的公共 Seam。
-4. 跨类别寻找候选，至少考虑产品价值、可靠性、架构深度、测试/开发体验和运维风险。没有证据的类别不要凑数。
+1. Read the repository instructions, `CONTEXT.md`, relevant ADRs, and user-stated goals.
+2. Investigate the code, tests, CI configuration, recent changes, and existing Tracker requests. When a Tracker is configured, query it read-only according to `docs/agents/issue-tracker.md`. Report authentication, permission, or network failures explicitly; never present them as "no requests found."
+3. Collect locatable evidence: files and line numbers, failure output, repeated patterns, open requests, ADR constraints, or a missing public seam.
+4. Search across categories, considering at least product value, reliability, architectural depth, testing/developer experience, and operational risk. Cross-category means considering every category, not forcing category quotas; the final candidates may cluster in the category with the strongest evidence.
 
-## 筛选
+## Filter
 
-只保留满足以下条件的 3–5 项：
+Keep only 1–3 candidates that satisfy all of the following:
 
-- 解决真实用户或维护目标，而非泛化清理；
-- 需要多步协调，足以成为 Initiative，而不是一张可直接完成的小 Ticket；
-- 有至少两项独立仓库证据，或一项仓库证据加一项已声明用户目标；
-- 不复制已有开放 Initiative，且不违反 ADR；
-- 可以说明成功信号、主要风险和下一步入口。
+- Address a real user or maintenance goal rather than generic cleanup.
+- Require enough coordinated steps to justify an Initiative rather than one directly actionable Ticket.
+- Have at least two independent pieces of repository evidence, or one repository fact plus one stated user goal.
+- Do not duplicate an open Initiative or violate an ADR.
+- Support a clear success signal, primary risk, and next entry point.
 
-单一会话即可安全完成的小改动放入“未推荐：适合作为直接任务”，不要膨胀为 Initiative。缺少产品目标时仍可报告工程候选，但把“产品价值”置信度降为低，并说明依据仅来自仓库健康度；不得虚构路线图、用户需求或业务优先级。
+Put small changes that can be completed safely in one session under "Not recommended: suitable as a direct task" instead of inflating them into Initiatives. When product goals are missing, engineering candidates may still be reported, but set product-value confidence to low and state that the evidence comes only from repository health. Never invent a roadmap, user demand, or business priority.
 
-## 输出
+## Output
 
-先报告调查覆盖范围与不可访问来源，再按推荐顺序给出每项候选：
+Report the investigation coverage and inaccessible sources first, then list each candidate in recommendation order:
 
 ```text
-候选：<面向结果的名称>
-类别：<产品价值 | 可靠性 | 架构 | 测试/开发体验 | 运维>
-问题：<当前可观察问题>
-证据：<至少两项可复查引用>
-价值：<对用户或维护者的结果>
-边界：<明确不包含什么>
-成功信号：<可执行或可观察指标>
-风险：<最高风险与未知项>
-置信度：高 | 中 | 低（原因）
-建议入口：$grill-with-docs | $wayfinder
+Candidate: <outcome-oriented name>
+Category: <product value | reliability | architecture | testing/developer experience | operations>
+Problem: <currently observable problem>
+Evidence: <at least two reviewable references>
+Value: <result for users or maintainers>
+Boundary: <what is explicitly excluded>
+Success signal: <executable or observable measure>
+Risk: <highest risk and unknowns>
+Deduplication: VERIFIED | UNVERIFIED (<reason>)
+Confidence: HIGH | MEDIUM | LOW (<reason>)
+Suggested entry: $grill-with-docs | $wayfinder
 ```
 
-最后给出首选项及选择理由，但只推荐入口，不自动启动另一个仅用户调用的 Workflow。
+When the Tracker is unavailable, mark every candidate's deduplication as `UNVERIFIED` and lower its confidence. Restore read-only Tracker access and deduplicate again before entering a later Workflow.
 
-## 终态
+End with the preferred candidate and the reason for choosing it. Recommend the next entry point only; do not automatically start another user-only Workflow.
 
-- `COMPLETE`：返回 3–5 个证据充分的候选。
-- `EMPTY`：证据不足以形成候选；列出已检查来源与最小补充信息，不编造建议。
-- `PARTIAL`：某个来源因认证、权限、配置或网络不可用；保留可验证候选并标明置信度影响。
-- `CANCELLED`：用户取消时立即停止，不写入任何产物。
+## Terminal states
 
-始终禁止写入 `docs/initiatives/recommendations/**`，禁止创建 Spec/Ticket，禁止修改生产代码。
+- `COMPLETE`: Return 1–3 well-supported candidates.
+- `EMPTY`: Evidence is insufficient to form a candidate. List the sources checked and the minimum additional information needed without inventing recommendations.
+- `PARTIAL`: A source is unavailable because of missing configuration, failed authentication, insufficient permission, or a network error. Keep verifiable candidates and report the failed source, error kind, original diagnostic, completed scope, recovery action, and safe retry point. When the Tracker is unavailable, use `UNVERIFIED` deduplication and reduced confidence; restore access and recheck before entering a later Workflow.
+- `CANCELLED`: Stop immediately when the user cancels and write no artifacts.
+
+Never write to `docs/initiatives/recommendations/**`, create a Spec or Ticket, or modify production code.

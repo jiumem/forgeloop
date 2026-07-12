@@ -1,12 +1,12 @@
 ## Integration Policy
 
-`Integration policy: <auto-merge|human-merge>`。缺失时禁止自动集成。Protected Branch、流水线要求和权限优先；不得把认证或权限失败回退为 Local。
+`Integration policy: <auto-merge|human-merge>`. Automatic integration is prohibited when it is missing. Protected Branch, pipeline requirements, and permissions take precedence; do not fall back to Local when authentication or permission checks fail.
 
 ## Tracker Runtime Operations
 
-- **Frontier**：查询 Spec 的 Open 子 Issues，排除仍有 Open blocker、已有有效 Claim 或不在授权 Scope 的项；Premium/Ultimate 优先原生 Blocking，Free/不可用时读取正文回退关系。
-- **Claim**：先发布带 `run_id` 与幂等键的 `RUN_CLAIMED` Note；服务端最早有效 Claim 获胜，失败者不得创建 Coder。
-- **Events**：用结构化 Issue Note 追加事件；发布后不修改，纠错追加 `EVENT_SUPERSEDED`。
-- **候选实现**：关联 Ticket Branch、Commit 与 MR；MR 关闭但未合并不等于完成。
-- **集成**：`auto-merge` 仅在双 PASS、Head 未变、流水线与权限满足时执行；`human-merge` 写入 `READY_FOR_HUMAN_MERGE` 并等待刷新。
-- **关闭**：验证原生合并事实后记录 `INTEGRATION_RESULT`，最后关闭 Ticket。认证、权限或 Protected Branch 失败必须保留 Open 并给出可恢复诊断。
+- **Frontier**: Query the Spec's Open child Issues, excluding items that still have an Open blocker, already have a valid Claim, or fall outside the authorized Scope; Premium/Ultimate prefers native Blocking, while Free or unavailable capabilities read fallback relationships from the body.
+- **Claim**: Publish `RUN_CLAIMED` on the Spec or Initiative root; the earliest valid server-side root Claim wins. Only the winner may claim one current Ticket through its native assignee state. Do not duplicate the Ticket Claim as an Event.
+- **Checkpoints**: Append minimal idempotent checkpoints through Issue Notes. Collect both Ticket Verdicts independently and write one combined `REVIEW_RESULT`; do not modify published records, and append `EVENT_SUPERSEDED` to correct an error.
+- **Candidate implementation**: Associate the Ticket Branch, Commit, and MR; a closed but unmerged MR is not complete.
+- **Integration**: Let the Scheduler own push, MR handling, pipelines, and merge. Execute `auto-merge` only when both Verdicts are PASS, Head is unchanged, and pipeline and permission requirements are satisfied. Return a candidate-caused pipeline failure to the original Coder under the shared repair budget; pause on permissions, infrastructure, or unrelated failures. For `human-merge`, write `READY_FOR_HUMAN_MERGE` and wait for a refresh.
+- **Closure**: After verifying native merge facts, record `INTEGRATION_RESULT`, close the Ticket, and treat its assignee Claim as inactive. In a multi-Spec Run, keep member Specs Open through Initiative Acceptance; on Initiative PASS, close member Specs first and the parent last. Treat the closed root's historical Claim as inactive and do not delete Claim Notes. Authentication, permission, Protected Branch, or externally blocked pipeline failures must leave Items Open and provide a recoverable diagnostic.

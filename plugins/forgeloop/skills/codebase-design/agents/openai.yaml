@@ -1,6 +1,6 @@
 interface:
-  display_name: "代码库设计"
+  display_name: "Codebase Design"
   short_description: "Design deep modules with clear testable seams"
-  default_prompt: "使用 $codebase-design 设计具有清晰 Seam 的 Deep Module。"
+  default_prompt: "Use $codebase-design to design a deep module with a clear seam."
 policy:
   allow_implicit_invocation: true
