@@ -1,0 +1,6 @@
+interface:
+  display_name: "Test-Driven Development"
+  short_description: "Drive vertical behavior slices through red and green"
+  default_prompt: "Use $tdd to complete a red-green vertical slice through a public seam."
+policy:
+  allow_implicit_invocation: true

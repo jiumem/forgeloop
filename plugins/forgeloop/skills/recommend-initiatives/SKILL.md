@@ -1,89 +1,58 @@
 ---
 name: recommend-initiatives
-description: Use when the user asks Codex to inspect the current repository and recommend the next 3-5 high-value development Initiatives before grilling, planning, or coding; do not use for writing DESIGN.md, PLAN.md, or executing work.
+description: Load when the user explicitly asks what evidence-backed engineering initiative the repository should tackle next.
 ---
 
-# recommend-initiatives
+# Recommend Engineering Initiatives
 
-## Trigger
+Return a small set of verifiable candidates in the conversation so the user can choose the next piece of work worth designing. Remain read-only. Do not create repository files, Tracker Items, Specs, Tickets, or implementation branches.
 
-Use this skill when the user asks what the project should do next, asks for a roadmap from the current source baseline, or asks for the next best initiatives before selecting one to plan.
+## Investigate
 
-## Goal
+1. Read the repository instructions, `CONTEXT.md`, relevant ADRs, and user-stated goals.
+2. Investigate the code, tests, CI configuration, recent changes, and existing Tracker requests. When a Tracker is configured, query it read-only according to `docs/agents/issue-tracker.md`. Report authentication, permission, or network failures explicitly; never present them as "no requests found."
+3. Collect locatable evidence: files and line numbers, failure output, repeated patterns, open requests, ADR constraints, or a missing public seam.
+4. Search across categories, considering at least product value, reliability, architectural depth, testing/developer experience, and operational risk. Cross-category means considering every category, not forcing category quotas; the final candidates may cluster in the category with the strongest evidence.
 
-Inspect the current repository baseline and recommend a ranked sequence of 3-5 initiatives. The output is a recommendation snapshot, not an execution contract and not a PLAN.
+## Filter
 
-## Read First
+Keep only 1–3 candidates that satisfy all of the following:
 
-Read only what is needed to understand the current baseline:
+- Address a real user or maintenance goal rather than generic cleanup.
+- Require enough coordinated steps to justify an Initiative rather than one directly actionable Ticket.
+- Have at least two independent pieces of repository evidence, or one repository fact plus one stated user goal.
+- Do not duplicate an open Initiative or violate an ADR.
+- Support a clear success signal, primary risk, and next entry point.
 
-1. `README.md` and repository entry docs
-2. package, workspace, build, or CI configuration files
-3. existing `docs/` content, especially `docs/initiatives/`
-4. existing `docs/initiatives/recommendations/`, `handoff/`, `active/`, `completed/`, and `archived/` entries
-5. relevant source, test, component, schema, registry, or app directories
-6. `git status` and a short recent commit summary when available
+Put small changes that can be completed safely in one session under "Not recommended: suitable as a direct task" instead of inflating them into Initiatives. When product goals are missing, engineering candidates may still be reported, but set product-value confidence to low and state that the evidence comes only from repository health. Never invent a roadmap, user demand, or business priority.
 
-## Write Target
+## Output
 
-Default write target:
-
-```text
-docs/initiatives/recommendations/<yyyy-mm-dd>-<topic>.md
-```
-
-Also update:
+Report the investigation coverage and inaccessible sources first, then list each candidate in recommendation order:
 
 ```text
-docs/initiatives/recommendations/index.md
+Candidate: <outcome-oriented name>
+Category: <product value | reliability | architecture | testing/developer experience | operations>
+Problem: <currently observable problem>
+Evidence: <at least two reviewable references>
+Value: <result for users or maintainers>
+Boundary: <what is explicitly excluded>
+Success signal: <executable or observable measure>
+Risk: <highest risk and unknowns>
+Deduplication: VERIFIED | UNVERIFIED (<reason>)
+Confidence: HIGH | MEDIUM | LOW (<reason>)
+Suggested entry: $grill-with-docs | $wayfinder
 ```
 
-Do not create `active/<initiative-code>-<slug>/DESIGN.md` or `PLAN.md` unless the user explicitly selects an initiative and asks you to grill or plan it.
+When the Tracker is unavailable, mark every candidate's deduplication as `UNVERIFIED` and lower its confidence. Restore read-only Tracker access and deduplicate again before entering a later Workflow.
 
-## Initiative Naming
+End with the preferred candidate and the reason for choosing it. Recommend the next entry point only; do not automatically start another user-only Workflow.
 
-- Recommended initiative slugs should include a provisional three-digit code prefix, such as `001-auth-hardening`.
-- Provisional recommendation codes are planning aids, not reservations. They do not permanently claim initiative numbers.
-- Determine provisional codes by scanning existing `docs/initiatives/handoff/`, `active/`, `completed/`, and `archived/` entries for used three-digit prefixes. Prior recommendation snapshots may inform naming, but must not reserve codes.
-- Assign recommendations in order using the next unused provisional codes, such as `001-...`, `002-...`, `003-...`.
-- Use the provisional coded slug in suggested DESIGN and PLAN paths so `grill-initiative` or `plan-initiative` can preserve it when it is still available.
+## Terminal states
 
-## Workflow
+- `COMPLETE`: Return 1–3 well-supported candidates.
+- `EMPTY`: Evidence is insufficient to form a candidate. List the sources checked and the minimum additional information needed without inventing recommendations.
+- `PARTIAL`: A source is unavailable because of missing configuration, failed authentication, insufficient permission, or a network error. Keep verifiable candidates and report the failed source, error kind, original diagnostic, completed scope, recovery action, and safe retry point. When the Tracker is unavailable, use `UNVERIFIED` deduplication and reduced confidence; restore access and recheck before entering a later Workflow.
+- `CANCELLED`: Stop immediately when the user cancels and write no artifacts.
 
-1. Establish the baseline: branch, clean/dirty state, important docs, source areas, tests, and known constraints.
-2. Check existing recommendations, handoff findings, active initiatives, completed initiatives, and archived initiatives before ranking candidates.
-3. Identify current strengths, gaps, risks, and product opportunities.
-4. Rank candidate initiatives by product impact, engineering leverage, risk reduction, and execution readiness.
-5. Recommend 3-5 initiatives only. Default to 3 when the project does not clearly need more.
-6. Present them as an ordered sequence, not a flat wishlist.
-7. Use handoff findings as candidate input, but still rank by product impact, engineering leverage, risk reduction, and execution readiness.
-8. Do not recommend duplicate active or completed initiatives unless the recommendation is explicitly a follow-up, v2, or replacement with a stated reason.
-9. Treat archived initiatives as reusable background only; recommend them again only with an explicit replacement or revival rationale.
-10. For each initiative, include expected outcome, suggested size, key risks, read-first files, and whether an acceptance and hardening Milestone is recommended.
-11. Include a short `Not Recommended Yet` section for tempting work that should wait.
-12. End with the best next action: run `grill-initiative` first when the top candidate needs design pressure-testing; otherwise run `plan-initiative` for the top initiative.
-
-## Language Rule
-
-- Write recommendation documents in the primary language of the user's request by default.
-- If the request mixes languages, follow the language used for the user's requirements and decisions.
-- Preserve technical identifiers, file paths, commands, code symbols, branch names, status tokens, and tool names as written.
-- If the user explicitly requests a language, that instruction overrides the default.
-- Template headings and explanatory text are structural guidance; translate or adapt them to the output language when writing the final document.
-
-## Quality Bar
-
-A valid recommendation:
-
-- is grounded in actual repository files and project state
-- recommends 3-5 initiatives, never a long backlog
-- explains ordering and dependencies
-- avoids duplicating existing active or completed initiatives
-- avoids generic items like “improve tests” unless tied to concrete source areas and risks
-- does not start coding
-- does not write a full PLAN for every candidate
-- does not create formal document slices or old runtime state
-
-## Output Shape
-
-Use the template in `references/output-template.md` when writing a recommendation file. Use `references/recommendations-index-template.md` when creating or refreshing `docs/initiatives/recommendations/index.md`.
+Never write to `docs/initiatives/recommendations/**`, create a Spec or Ticket, or modify production code.

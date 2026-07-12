@@ -1,0 +1,6 @@
+interface:
+  display_name: "Codebase Design"
+  short_description: "Design deep modules with clear testable seams"
+  default_prompt: "Use $codebase-design to design a deep module with a clear seam."
+policy:
+  allow_implicit_invocation: true

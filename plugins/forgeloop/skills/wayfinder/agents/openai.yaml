@@ -1,0 +1,6 @@
+interface:
+  display_name: "Wayfinder"
+  short_description: "Map and resolve one investigation ticket at a time"
+  default_prompt: "Use $wayfinder to map this large ambiguous objective into investigation Tickets."
+policy:
+  allow_implicit_invocation: false

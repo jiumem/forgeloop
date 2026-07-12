@@ -1,0 +1,6 @@
+interface:
+  display_name: "Triage Requests"
+  short_description: "Triage incoming requests with explicit user approval"
+  default_prompt: "Use $triage to discover and classify incoming requests for maintainer action."
+policy:
+  allow_implicit_invocation: false

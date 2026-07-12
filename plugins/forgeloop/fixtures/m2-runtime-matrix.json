@@ -1,0 +1,233 @@
+{
+  "schema_version": 1,
+  "kind": "run-initiative-runtime",
+  "cases": [
+    {
+      "id": "happy-local", "group": "happy-path", "tracker": "local",
+      "initial_state": "单 Spec、单 Open/Unblocked/Unclaimed Ticket、auto-merge、干净工作区。", "entry_prompt": "使用 $run-initiative 运行正式 Spec。",
+      "expected_writes": ["原子 Claim", "Coder Result", "两个独立 PASS", "Integration Result", "Ticket 与 Spec 最后关闭", "释放 Ticket lock 与 scheduler.lock"],
+      "forbidden_writes": ["PLAN.md", "LEDGER.md", "Scheduler 重跑完整测试"], "terminal_state": "COMPLETED",
+      "failure_diagnostic": "配置、引用、锁或 Reviewer 失败时保持 Open。", "domain_state": {"claimed": 1, "ticket_complete": true, "spec_acceptance": "PASS"},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false, "ticket_claim_active": false, "root_claim_active": false}
+    },
+    {
+      "id": "happy-github", "group": "happy-path", "tracker": "github",
+      "initial_state": "单 Spec、单 Open/Unblocked/Unclaimed Issue、auto-merge、gh 有权限。", "entry_prompt": "使用 $run-initiative 运行正式 Spec。",
+      "expected_writes": ["最早 Claim Comment", "Coder Result", "两个独立 PASS", "PR Integration Result", "Issue 与 Spec 最后关闭"],
+      "forbidden_writes": ["PLAN.md", "LEDGER.md", "认证失败回退 Local"], "terminal_state": "COMPLETED",
+      "failure_diagnostic": "Protection、Checks 或权限失败时保持 Open。", "domain_state": {"claimed": 1, "ticket_complete": true, "spec_acceptance": "PASS"},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "happy-gitlab", "group": "happy-path", "tracker": "gitlab",
+      "initial_state": "单 Spec、单 Open/Unblocked/Unclaimed Issue、auto-merge、glab 有权限。", "entry_prompt": "使用 $run-initiative 运行正式 Spec。",
+      "expected_writes": ["最早 Claim Note", "Coder Result", "两个独立 PASS", "MR Integration Result", "Issue 与 Spec 最后关闭"],
+      "forbidden_writes": ["PLAN.md", "LEDGER.md", "认证失败回退 Local"], "terminal_state": "COMPLETED",
+      "failure_diagnostic": "Protected Branch 或权限失败时保持 Open。", "domain_state": {"claimed": 1, "ticket_complete": true, "spec_acceptance": "PASS"},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "blocking-graph", "group": "blocking-graph", "tracker": "local",
+      "initial_state": "单 Spec 三 Tickets；03 被 01/02 阻塞。", "entry_prompt": "运行 Spec 直到无 Frontier。",
+      "expected_writes": ["每轮重查 Frontier", "严格串行 Claim 01、02、03"], "forbidden_writes": ["同时活动两张 Ticket", "复用旧 Frontier"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "依赖环或坏引用返回 RECOVERY_CONFLICT。", "domain_state": {"tickets_complete": 3, "serial": true},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:T01_READY", "REVIEW_RESULT:T01_DUAL_PASS", "INTEGRATION_RESULT:T01", "CODER_RESULT:T02_READY", "REVIEW_RESULT:T02_DUAL_PASS", "INTEGRATION_RESULT:T02", "CODER_RESULT:T03_READY", "REVIEW_RESULT:T03_DUAL_PASS", "INTEGRATION_RESULT:T03", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "multi-spec", "group": "multi-spec", "tracker": "local",
+      "initial_state": "两个正式 Specs，尚无父 Initiative。", "entry_prompt": "运行这两份 Specs。",
+      "expected_writes": ["确认后幂等创建或复用父 Item", "所有 Tickets 先集成", "两个 Spec 对同一最终 Commit 验收并保持 Open", "Initiative PASS 后先关闭成员 Specs 再关闭父 Item"], "forbidden_writes": ["单 Spec 多余父对象", "重复父 Item", "提前 Spec Acceptance", "Initiative PASS 前关闭成员 Spec", "未确认增删成员"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "跨 Spec 验收失败时所有成员保持 Open 并要求显式调用 to-tickets。", "domain_state": {"specs_complete": 2, "initiative_acceptance": "PASS", "shared_final_commit": true, "delayed_member_closure": true},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:S1_READY", "REVIEW_RESULT:S1_DUAL_PASS", "INTEGRATION_RESULT:S1", "CODER_RESULT:S2_READY", "REVIEW_RESULT:S2_DUAL_PASS", "INTEGRATION_RESULT:S2", "ACCEPTANCE_RESULT:SPEC_PASS_S1_FINAL", "ACCEPTANCE_RESULT:SPEC_PASS_S2_FINAL", "ACCEPTANCE_RESULT:INITIATIVE_PASS"], "final_native_state": {"root_open": false, "claim_active": false, "member_specs_open": false, "closure_order": ["member_specs", "initiative"]}
+    },
+    {
+      "id": "spec-repair", "group": "spec-repair", "tracker": "local",
+      "initial_state": "Spec Reviewer 首轮返回一个稳定 Finding。", "entry_prompt": "继续当前 Run。",
+      "expected_writes": ["返回原 Coder thread", "Coder 同时收到两轴 Findings", "两轴对新 Head 重审"], "forbidden_writes": ["只重审失败轴", "改写旧 Verdict", "宿主级 child 配置"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "重复两次同 Finding 时 PAUSED。", "domain_state": {"repair_axis": "SPEC", "both_reissued": true},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:REPAIR_REQUIRED", "CODER_RESULT:REPAIR_1_READY", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "standards-repair", "group": "standards-repair", "tracker": "local",
+      "initial_state": "Standards Reviewer 首轮返回一个稳定 Finding。", "entry_prompt": "继续当前 Run。",
+      "expected_writes": ["返回原 Coder thread", "Coder 同时收到两轴 Findings", "两轴对新 Head 重审"], "forbidden_writes": ["只重审失败轴", "改写旧 Verdict", "宿主级 child 配置"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "重复两次同 Finding 时 PAUSED。", "domain_state": {"repair_axis": "STANDARDS", "both_reissued": true},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:REPAIR_REQUIRED", "CODER_RESULT:REPAIR_1_READY", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "dual-repair", "group": "dual-repair", "tracker": "local",
+      "initial_state": "两个 Reviewer 同时 REPAIR_REQUIRED。", "entry_prompt": "继续当前 Run。",
+      "expected_writes": ["Coder 同时收到两轴 Findings", "复用原三条 child threads 并重审"], "forbidden_writes": ["合并重排 Findings", "丢失任一轴", "宿主级 child 配置"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "两轴要求冲突转 CONTRACT_BLOCKER。", "domain_state": {"repair_axes": 2, "independent": true},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:REPAIR_REQUIRED", "CODER_RESULT:REPAIR_1_READY", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "repair-exhausted", "group": "repair-exhausted", "tracker": "local",
+      "initial_state": "同一 Finding 两次修复仍存在。", "entry_prompt": "继续当前 Run。",
+      "expected_writes": ["两轮普通修复", "RUN_PAUSED 与未解决证据"], "forbidden_writes": ["第三轮普通修复", "伪造 PASS", "宿主级 child 配置"],
+      "terminal_state": "PAUSED", "failure_diagnostic": "明确预算耗尽与用户可选动作。", "domain_state": {"paused": true, "reason": "REPAIR_BUDGET"},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:REPAIR_REQUIRED", "CODER_RESULT:REPAIR_1_READY", "REVIEW_RESULT:REPAIR_REQUIRED", "CODER_RESULT:REPAIR_2_READY", "REVIEW_RESULT:REPAIR_REQUIRED", "RUN_PAUSED:REPAIR_BUDGET"], "final_native_state": {"root_open": true, "claim_active": true}
+    },
+    {
+      "id": "contract-blocker", "group": "contract-blocker", "tracker": "local",
+      "initial_state": "两轴要求冲突且需修改 Spec。", "entry_prompt": "继续当前 Run。",
+      "expected_writes": ["CONTRACT_BLOCKER", "冲突证据与所需裁决"], "forbidden_writes": ["消耗普通修复预算", "Coder 修改 Spec"],
+      "terminal_state": "CONTRACT_BLOCKER", "failure_diagnostic": "保持 Ticket/Spec Open。", "domain_state": {"contract_blocker": true, "repair_budget_used": false},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:CONTRACT_BLOCKER", "RUN_PAUSED:CONTRACT_BLOCKER"], "final_native_state": {"root_open": true, "claim_active": true}
+    },
+    {
+      "id": "human-merge", "group": "human-merge", "tracker": "github",
+      "initial_state": "双 PASS，策略 human-merge，PR 尚未合并。", "entry_prompt": "继续并等待人工合并后恢复。",
+      "expected_writes": ["READY_FOR_HUMAN_MERGE", "沿原 Run ID 恢复", "合并后 Integration Result"], "forbidden_writes": ["合并前关闭 Ticket", "新 Run ID"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "PR 关闭未合并保持 Open。", "domain_state": {"paused_then_resumed": true, "merged": true},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:DUAL_PASS", "RUN_PAUSED:READY_FOR_HUMAN_MERGE", "RUN_RESUMED", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "shared-integration", "group": "shared-integration", "tracker": "local",
+      "initial_state": "Ticket Graph 预声明共享 Integration Branch 与 integrate-and-verify。", "entry_prompt": "运行 Wide Refactor Spec。",
+      "expected_writes": ["Tickets 进入共享分支", "最终 integrate-and-verify 双审与集成"], "forbidden_writes": ["Coder 临时切换模式", "缺少最终验证 Ticket"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "缺少声明或验证 Ticket 时预检失败。", "domain_state": {"shared_branch": true, "final_verify": true},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:INTEGRATE_AND_VERIFY", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:SHARED_BRANCH", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "spec-acceptance-fail", "group": "spec-acceptance-fail", "tracker": "local",
+      "initial_state": "多 Ticket 已完成，全新 Spec Acceptance 失败。", "entry_prompt": "完成 Spec 验收。",
+      "expected_writes": ["Spec 保持 Open", "ACCEPTANCE_RESULT 与 repair_key", "提示显式调用 to-tickets"], "forbidden_writes": ["创建或改写 Repair Ticket", "隐式调用 to-tickets", "关闭 Spec"],
+      "terminal_state": "PAUSED", "failure_diagnostic": "列出失败行为、repair_key 与显式修复入口。", "domain_state": {"spec_open": true, "repair_work_created": false},
+      "event_trace": ["RUN_CLAIMED", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_REPAIR_REQUIRED", "RUN_PAUSED:ACCEPTANCE_REPAIR"], "final_native_state": {"root_open": true, "claim_active": true}
+    },
+    {
+      "id": "initiative-acceptance-fail", "group": "initiative-acceptance-fail", "tracker": "local",
+      "initial_state": "成员 Specs 已对同一 Commit Acceptance PASS 但仍保持 Open，Initiative Acceptance 失败。", "entry_prompt": "完成多 Spec Initiative 验收。",
+      "expected_writes": ["父 Item 与成员 Specs 保持 Open", "ACCEPTANCE_RESULT 与逐 Finding repair_key", "提示显式调用 to-tickets"], "forbidden_writes": ["Initiative 直属 Repair Ticket", "关闭成员 Spec", "隐式调用 to-tickets", "伪造 COMPLETED"],
+      "terminal_state": "PAUSED", "failure_diagnostic": "列出失败约束、repair_key 与 owning Spec 选择要求。", "domain_state": {"initiative_open": true, "member_specs_open": true, "repair_work_created": false},
+      "event_trace": ["RUN_CLAIMED", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS_S1_FINAL", "ACCEPTANCE_RESULT:SPEC_PASS_S2_FINAL", "ACCEPTANCE_RESULT:INITIATIVE_REPAIR_REQUIRED", "RUN_PAUSED:ACCEPTANCE_REPAIR"], "final_native_state": {"root_open": true, "member_specs_open": true, "claim_active": true}
+    },
+    {
+      "id": "empty-frontier", "group": "empty-frontier", "tracker": "local",
+      "initial_state": "没有 Open/Unblocked/Unclaimed Ticket，但仍有 Blocked 项。", "entry_prompt": "继续当前 Run。",
+      "expected_writes": ["报告 Completed/Blocked/Claimed/Invalid 桶"], "forbidden_writes": ["创建 Coder", "宣称完成"],
+      "terminal_state": "PAUSED", "failure_diagnostic": "明确阻塞 Ticket 与 blocker。", "domain_state": {"coder_created": false, "blocked_reported": true},
+      "event_trace": ["RUN_CLAIMED", "RUN_PAUSED:EMPTY_FRONTIER"], "final_native_state": {"root_open": true, "claim_active": true}
+    },
+    {
+      "id": "auth-permission", "group": "auth-permission", "tracker": "github",
+      "initial_state": "gh 未认证或缺 Issue/PR 权限。", "entry_prompt": "运行正式 Spec。",
+      "expected_writes": ["无"], "forbidden_writes": ["回退 Local", "Claim", "Coder"],
+      "terminal_state": "FAILED_PRECONDITION", "failure_diagnostic": "指出失败命令、身份和所需权限。", "domain_state": {"writes": 0, "explicit_error": true},
+      "event_trace": [], "final_native_state": {"root_open": true, "claim_active": false}
+    },
+    {
+      "id": "reviewer-unavailable", "group": "reviewer-unavailable", "tracker": "local",
+      "initial_state": "Coder READY，但无法创建两个独立 Reviewer。", "entry_prompt": "继续当前 Run。",
+      "expected_writes": ["RUN_PAUSED reason AGENT_UNAVAILABLE"], "forbidden_writes": ["单 Reviewer 代替双轴", "伪造 Verdict", "预创建一次性 child 探测"],
+      "terminal_state": "PAUSED", "failure_diagnostic": "记录能力不可用和恢复条件。", "domain_state": {"review_blocked": true, "verdict_forged": false},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "RUN_PAUSED:AGENT_UNAVAILABLE"], "final_native_state": {"root_open": true, "claim_active": true}
+    },
+    {
+      "id": "crash-recovery", "group": "crash-recovery", "tracker": "local",
+      "initial_state": "Claim 与 Coder Result 已写，进程在 Review 前崩溃；存在重复幂等请求。", "entry_prompt": "恢复当前 Run。",
+      "expected_writes": ["RUN_RESUMED", "复用原 Run ID", "用持久事实创建 fresh Reviewer", "不重复已有 checkpoint"], "forbidden_writes": ["依赖旧 child thread", "新 Claim", "重复 CODER_RESULT", "短 TTL 接管"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "原生事实冲突时 RECOVERY_CONFLICT。", "domain_state": {"same_run_id": true, "duplicate_events": 0},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "RUN_RESUMED", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "concurrent-claim", "group": "concurrent-claim", "tracker": "github",
+      "initial_state": "两个 Scheduler 同时对同一 Initiative Claim。", "entry_prompt": "竞争并运行 Frontier。",
+      "expected_writes": ["服务端最早 Claim 唯一获胜"], "forbidden_writes": ["失败者创建 Coder", "两个活动 Ticket"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "报告胜者 Run ID 与失败者停止。", "domain_state": {"claim_winners": 1, "coders": 1},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "no-change-required", "group": "no-change-required", "tracker": "local",
+      "initial_state": "正式单 Ticket Spec 已由当前目标树满足，Coder 返回 Base == Head。", "entry_prompt": "运行正式 Spec。",
+      "expected_writes": ["NO_CHANGE_REQUIRED", "两个独立 PASS", "零变更 Integration Result", "集成后 Spec Acceptance"], "forbidden_writes": ["空 Commit", "拒绝合法空 Diff"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "证据不足时 Reviewer 返回 REPAIR_REQUIRED。", "domain_state": {"zero_diff_reviewed": true, "empty_commit_created": false},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:NO_CHANGE_REQUIRED", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:ALREADY_PRESENT", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "cancel-release", "group": "cancel-release", "tracker": "local",
+      "initial_state": "当前 Run 拥有活动 Ticket Claim，存在未集成候选 Branch。", "entry_prompt": "取消当前 Initiative Run。",
+      "expected_writes": ["RUN_CANCELLED", "停止派发并尽力中断当前 Agent", "按 Run ID 释放 Claim"], "forbidden_writes": ["要求 child close 能力", "删除候选 Branch", "关闭为成功", "释放其他 Run Claim"],
+      "terminal_state": "CANCELLED", "failure_diagnostic": "Run ID 不匹配时拒绝释放并报告所有者。", "domain_state": {"cancelled": true, "evidence_preserved": true},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "RUN_CANCELLED"], "final_native_state": {"root_open": true, "claim_active": false}
+    },
+    {
+      "id": "spec-change-boundary", "group": "spec-change-boundary", "tracker": "local",
+      "initial_state": "执行中发现 Spec Scope 发生实质修改。", "entry_prompt": "继续当前 Run。",
+      "expected_writes": ["RUN_PAUSED:SPEC_CHANGE", "要求显式调用 to-tickets"], "forbidden_writes": ["run-initiative 自行增删 Ticket", "隐式启动 to-tickets"],
+      "terminal_state": "PAUSED", "failure_diagnostic": "报告旧新 Revision 与恢复入口。", "domain_state": {"spec_change": true, "tickets_rewritten": false},
+      "event_trace": ["RUN_CLAIMED", "RUN_PAUSED:SPEC_CHANGE"], "final_native_state": {"root_open": true, "claim_active": true}
+    },
+    {
+      "id": "repair-work-idempotent", "group": "repair-work-idempotent", "tracker": "local",
+      "initial_state": "Spec Acceptance 失败后已暂停；用户显式调用 to-tickets 创建了带同一 repair_key 的正式 Ticket。", "entry_prompt": "恢复当前 Run。",
+      "expected_writes": ["复用已有 repair_key Ticket", "RUN_RESUMED", "普通 Ticket 闭环与 renewed Acceptance"], "forbidden_writes": ["创建第二张修复 Ticket", "隐式调用 to-tickets", "扩大 Spec Scope"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "repair_key 或 Scope 冲突时停止并报告 RECOVERY_CONFLICT。", "domain_state": {"repair_tickets": 1, "same_repair_key": true},
+      "event_trace": ["RUN_CLAIMED", "ACCEPTANCE_RESULT:SPEC_REPAIR_REQUIRED", "RUN_PAUSED:ACCEPTANCE_REPAIR", "RUN_RESUMED", "CODER_RESULT:REPAIR_TICKET_READY", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "initiative-revision-drift", "group": "initiative-revision-drift", "tracker": "local",
+      "initial_state": "多 Spec Run 已记录确认引用，恢复时 Tracker 成员 Revision 已变化。", "entry_prompt": "恢复当前 Initiative。",
+      "expected_writes": ["检测 initiative_revision 漂移", "报告 RECOVERY_CONFLICT"], "forbidden_writes": ["追加 RUN_RESUMED", "沿旧成员范围继续", "复制成员关系到账本"],
+      "terminal_state": "PAUSED", "failure_diagnostic": "列出旧新 Revision 与需要重新确认的成员。", "domain_state": {"revision_drift": true, "advanced": false},
+      "event_trace": ["RUN_CLAIMED"], "final_native_state": {"root_open": true, "claim_active": true}
+    },
+    {
+      "id": "review-input-blocked", "group": "review-input-blocked", "tracker": "local",
+      "initial_state": "两名 Reviewer 已创建，其中一轴无法读取冻结的 Spec Revision。", "entry_prompt": "继续当前 Run。",
+      "expected_writes": ["收齐两轴结果", "REVIEW_RESULT:REVIEW_BLOCKED", "RUN_PAUSED:REVIEW_BLOCKED"], "forbidden_writes": ["送回 Coder", "消耗 Repair Budget", "伪造 PASS"],
+      "terminal_state": "PAUSED", "failure_diagnostic": "指出不可读输入与恢复条件。", "domain_state": {"review_blocked": true, "repair_budget_used": false},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:REVIEW_BLOCKED", "RUN_PAUSED:REVIEW_BLOCKED"], "final_native_state": {"root_open": true, "claim_active": true}
+    },
+    {
+      "id": "acceptance-input-blocked", "group": "acceptance-input-blocked", "tracker": "local",
+      "initial_state": "所有 Tickets 已集成，但 Acceptance Reviewer 无法验证最终目标 Commit。", "entry_prompt": "完成 Spec Acceptance。",
+      "expected_writes": ["ACCEPTANCE_RESULT:ACCEPTANCE_BLOCKED", "RUN_PAUSED:ACCEPTANCE_BLOCKED"], "forbidden_writes": ["生成 repair_key", "调用 to-tickets", "关闭 Spec"],
+      "terminal_state": "PAUSED", "failure_diagnostic": "指出缺失的最终 Commit 事实。", "domain_state": {"acceptance_blocked": true, "repair_work_created": false},
+      "event_trace": ["RUN_CLAIMED", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:ACCEPTANCE_BLOCKED", "RUN_PAUSED:ACCEPTANCE_BLOCKED"], "final_native_state": {"root_open": true, "claim_active": true}
+    },
+    {
+      "id": "candidate-check-repair", "group": "candidate-check-repair", "tracker": "github",
+      "initial_state": "双 PASS 后 Required Check 因候选代码失败，仍在 Ticket Scope。", "entry_prompt": "继续当前 Run。",
+      "expected_writes": ["原 Coder 收到 Check 证据", "消耗一轮 Repair", "新 Head 双轴重审"], "forbidden_writes": ["直接合并", "创建新 Coder", "额外触发完整 CI"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "超出两轮预算时暂停。", "domain_state": {"check_repair_rounds": 1, "both_reissued": true},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:DUAL_PASS", "CODER_RESULT:CHECK_REPAIR_1_READY", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "external-check-blocked", "group": "external-check-blocked", "tracker": "github",
+      "initial_state": "双 PASS 后 Required Check 因基础设施故障失败。", "entry_prompt": "继续当前 Run。",
+      "expected_writes": ["RUN_PAUSED:CHECKS_BLOCKED", "基础设施诊断"], "forbidden_writes": ["修改候选代码", "消耗 Repair Budget", "额外触发完整 CI"],
+      "terminal_state": "PAUSED", "failure_diagnostic": "记录失败 Check 与外部恢复条件。", "domain_state": {"checks_blocked": true, "repair_budget_used": false},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:DUAL_PASS", "RUN_PAUSED:CHECKS_BLOCKED"], "final_native_state": {"root_open": true, "claim_active": true}
+    },
+    {
+      "id": "initiative-parent-idempotent", "group": "initiative-parent-idempotent", "tracker": "github",
+      "initial_state": "多 Spec 父 Item 创建响应不确定，但 Tracker 中已有唯一相同 initiative_revision。", "entry_prompt": "继续创建并运行 Initiative。",
+      "expected_writes": ["查询并复用唯一父 Item", "只产生一个 RUN_CLAIMED"], "forbidden_writes": ["创建第二个父 Item", "不查询直接重试"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "多个匹配父 Item 时停止并报告歧义。", "domain_state": {"initiative_parents": 1, "create_retried": false},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:S1_READY", "REVIEW_RESULT:S1_DUAL_PASS", "INTEGRATION_RESULT:S1", "CODER_RESULT:S2_READY", "REVIEW_RESULT:S2_DUAL_PASS", "INTEGRATION_RESULT:S2", "ACCEPTANCE_RESULT:SPEC_PASS_S1_FINAL", "ACCEPTANCE_RESULT:SPEC_PASS_S2_FINAL", "ACCEPTANCE_RESULT:INITIATIVE_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "review-shared-input-corrected", "group": "review-shared-input-corrected", "tracker": "local",
+      "initial_state": "首轮一轴 REVIEW_BLOCKED；Scheduler 发现共享 Coder evidence 不完整并补齐。", "entry_prompt": "继续当前 Run。",
+      "expected_writes": ["旧两轴结果失效", "原两个 Reviewer 对同一修正输入重审", "合并后的新双 PASS"], "forbidden_writes": ["只继续 blocked 轴", "消耗 Repair Budget", "创建新 Reviewer"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "共享输入不能一致时暂停 REVIEW_BLOCKED。", "domain_state": {"shared_input_changed": true, "both_reissued": true, "repair_budget_used": false},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:REVIEW_BLOCKED", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "spec-revision-reconciled", "group": "spec-revision-reconciled", "tracker": "local",
+      "initial_state": "Run 因 material Spec Revision 暂停；已有 Completed Ticket 和三个受影响 Open Tickets。", "entry_prompt": "用户显式调用 to-tickets 对账后恢复原 Run。",
+      "expected_writes": ["保留 Completed 历史", "仅对 Open Tickets 执行 retain/update/supersede/create", "RUN_RESUMED"], "forbidden_writes": ["重写 Completed Ticket", "重新发布完整 Ticket 集", "修改 Spec", "隐式恢复 run-initiative"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "核心 Problem、Actor、Scope 或交付目标变化时 CONTRACT_BLOCKER。", "domain_state": {"completed_preserved": true, "open_tickets_reconciled": true, "duplicate_tickets": 0},
+      "event_trace": ["RUN_CLAIMED", "RUN_PAUSED:SPEC_CHANGE", "RUN_RESUMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "initiative-repair-owned", "group": "initiative-repair-owned", "tracker": "local",
+      "initial_state": "Initiative Acceptance 失败；成员 Specs 仍 Open，用户显式调用 to-tickets 将 Findings 路由到现有 owning Specs。", "entry_prompt": "恢复原 Initiative Run。",
+      "expected_writes": ["无 Initiative 直属 Ticket", "复用 owning Spec 下 repair_key Tickets", "Repair 后所有 Spec 对新 Commit 重验", "Initiative PASS 后统一关闭"], "forbidden_writes": ["reopen Spec", "扩大成员 Scope", "只重验 owning Spec", "提前关闭成员 Spec"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "Finding 无合法 owning Spec 时 CONTRACT_BLOCKER。", "domain_state": {"owning_specs_assigned": true, "member_specs_reopened": false, "all_spec_acceptance_rerun": true, "delayed_member_closure": true},
+      "event_trace": ["RUN_CLAIMED", "ACCEPTANCE_RESULT:SPEC_PASS_S1_OLD", "ACCEPTANCE_RESULT:SPEC_PASS_S2_OLD", "ACCEPTANCE_RESULT:INITIATIVE_REPAIR_REQUIRED", "RUN_PAUSED:ACCEPTANCE_REPAIR", "RUN_RESUMED", "CODER_RESULT:REPAIR_TICKET_READY", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS_S1_FINAL", "ACCEPTANCE_RESULT:SPEC_PASS_S2_FINAL", "ACCEPTANCE_RESULT:INITIATIVE_PASS"], "final_native_state": {"root_open": false, "member_specs_open": false, "closure_order": ["member_specs", "initiative"], "claim_active": false}
+    }
+  ]
+}

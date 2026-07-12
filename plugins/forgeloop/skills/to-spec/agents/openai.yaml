@@ -1,0 +1,6 @@
+interface:
+  display_name: "Publish Spec"
+  short_description: "Synthesize approved context into a Tracker Spec"
+  default_prompt: "Use $to-spec to publish the resolved context as a formal Tracker Spec."
+policy:
+  allow_implicit_invocation: false

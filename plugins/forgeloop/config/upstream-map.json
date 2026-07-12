@@ -1,0 +1,185 @@
+{
+  "upstream_commit": "391a2701dd948f94f56a39f7533f8eea9a859c87",
+  "upstream_root": "references/mattpocock-skills",
+  "mappings": [
+    {"source": "skills/engineering/ask-matt", "target": "ask-forgeloop", "overlay": "config/overlays/ask-forgeloop.md"},
+    {
+      "source": "skills/engineering/code-review",
+      "target": "review-change",
+      "file_replacements": {
+        "SKILL.md": [
+          [
+            "The issue tracker should have been provided to you — run `/setup-forgeloop` if `docs/agents/issue-tracker.md` is missing.",
+            "Issue tracker configuration is only required when the review must fetch its Spec from the configured tracker. If `docs/agents/issue-tracker.md` is missing, do not run `$setup-forgeloop` automatically: use any Spec or PRD the user supplied, otherwise continue to step 2 without starting another Workflow."
+          ],
+          [
+            "4. If nothing is found, ask the user where the spec is. If they say there isn't one, the **Spec** sub-agent will skip and report \"no spec available\".",
+            "4. If nothing is found, ask the user where the spec is. If they say there isn't one, skip the **Spec** sub-agent and report `SPEC: NOT_AVAILABLE`."
+          ],
+          [
+            "Send a single message with two `Agent` tool calls. Use the `general-purpose` subagent for both.",
+            "Create two independent child Agents from self-contained prompts and let them run in parallel without inheriting the current conversation."
+          ]
+        ]
+      },
+      "appends": {"SKILL.md": "config/overlays/review-change-append.md"}
+    },
+    {"source": "skills/engineering/codebase-design", "target": "codebase-design"},
+    {
+      "source": "skills/engineering/diagnosing-bugs",
+      "target": "diagnosing-bugs",
+      "file_replacements": {
+        "SKILL.md": [
+          [
+            "When exploring the codebase, read `CONTEXT.md` (if it exists) to get a clear mental model of the relevant modules, and check ADRs in the area you're touching.",
+            "When exploring the codebase, read `CONTEXT.md` (if it exists) to get a clear mental model of the relevant modules, and check ADRs in the area you're touching.\n\n## Forgeloop Authorization Mode\n\nBefore Phase 1, determine the scope the caller has already authorized. The default mode is diagnostic-only: investigate, reproduce, and report without modifying the workspace, production environment, Tracker, Spec, Commit, or PR/MR. Any workspace write or production instrumentation requires separate, explicit, minimally scoped diagnostic-write authorization, and diagnostic-write authorization does not grant repair authorization. Diagnose-and-fix mode applies only when the user explicitly authorizes a fix or a `$run-initiative` Coder supplies a writable Ticket Scope. Do not ask again for authorization the caller has already granted, but this Skill must not expand that Scope. Repair authorization covers only code and tests within Scope; it does not automatically include permission to create or update Commits, PRs/MRs, Tracker state, Specs, the target branch, or integration state."
+          ],
+          [
+            "Build the right feedback loop, and the bug is 90% fixed.",
+            "In diagnostic-only mode, the feedback loop may only reuse existing repository entry points or create a disposable Reproducer in an OS temporary directory. Do not add or modify tests, scripts, Fixtures, Harnesses, configuration, or source code in the workspace. If the feedback loop cannot be established without workspace-write authorization, stop and clearly report that diagnosis is blocked, which permission is missing, and what recoverable input is required; do not substitute guesses.\n\nBuild the right feedback loop, and the bug is 90% fixed."
+          ],
+          [
+            "3. Never \"log everything and grep\".",
+            "3. Never \"log everything and grep\".\n\nIn diagnostic-only mode, prefer observational tools that do not modify the workspace, such as a Debugger, REPL, or Profiler. Targeted logs, source-level timing, and any other workspace instrumentation require write authorization. Instrumentation must carry a unique marker, and every file created or modified during the run must be recorded for cleanup on exit."
+          ],
+          [
+            "## Phase 5 — Fix + regression test\n\nWrite the regression test **before the fix** — but only if there is a **correct seam** for it.",
+            "## Phase 5 — Fix + regression test\n\nEnter this phase only in diagnose-and-fix mode. When invoked by a `$run-initiative` Coder, the existing writable Ticket Scope constitutes repair authorization and must not be requested again. All tests, instrumentation, and repairs remain limited to that Scope, and the Spec, Tracker, and target branch must not be modified.\n\nWrite the regression test **before the fix** — but only if there is a **correct seam** for it."
+          ],
+          [
+            "Required before declaring done:\n\n- [ ] Original repro no longer reproduces (re-run the Phase 1 loop)\n- [ ] Regression test passes (or absence of seam is documented)\n- [ ] All `[DEBUG-...]` instrumentation removed (`grep` the prefix)\n- [ ] Throwaway prototypes deleted (or moved to a clearly-marked debug location)\n- [ ] The hypothesis that turned out correct is stated in the commit / PR message — so the next debugger learns",
+            "Every exit path must complete cleanup first, whether the final outcome is diagnostic-only, repair completed, unable to reproduce, insufficient permission, or an environment blocker:\n\n- [ ] All `[DEBUG-...]` instrumentation removed (`grep` the prefix)\n- [ ] Throwaway scripts, reproducers and prototypes deleted from the workspace; OS temporary artifacts are either removed or reported\n- [ ] Changes that existed before this run remain unchanged\n- [ ] The final report records the root cause and current evidence, or why diagnosis is blocked and which recoverable inputs are required\n- [ ] Any residue that cannot be cleaned up safely, its cause, and the recovery steps are clearly reported\n\nOnly a completed repair additionally requires:\n\n- [ ] Original repro no longer reproduces (re-run the Phase 1 loop)\n- [ ] Regression test passes (or absence of seam is documented)\n- [ ] Synchronize the root cause into a Commit or PR message only when the user or caller separately authorizes Commit/PR writes; this requirement does not authorize creating or updating a Commit, PR, or MR"
+          ],
+          [
+            "**Then ask: what would have prevented this bug?** If the answer involves architectural change (no good test seam, tangled callers, hidden coupling) hand off to the `/improve-codebase-architecture` skill with the specifics. Make the recommendation **after** the fix is in, not before — you have more information now than when you started.",
+            "**Then ask: what would have prevented this bug?** Offer architectural recommendations only after diagnosis is complete, or after the repair when repair authorization was granted. If the answer involves a missing test Seam, tangled callers, or hidden coupling, recommend that the user explicitly invoke `$improve-codebase-architecture`; do not start `$improve-codebase-architecture` automatically. Include the evidence from this diagnosis, but do not substitute for that Workflow."
+          ]
+        ]
+      }
+    },
+    {"source": "skills/engineering/domain-modeling", "target": "domain-modeling"},
+    {"source": "skills/engineering/grill-with-docs", "target": "grill-with-docs", "appends": {"SKILL.md": "config/overlays/grill-with-docs-append.md"}},
+    {
+      "source": "skills/engineering/improve-codebase-architecture",
+      "target": "improve-codebase-architecture",
+      "file_replacements": {
+        "SKILL.md": [
+          [
+            "- The domain language in `CONTEXT.md` gives names to good seams; ADRs in `docs/adr/` record decisions this command should not re-litigate.",
+            "- The domain language in `CONTEXT.md` gives names to good seams; ADRs in `docs/adr/` record decisions this command should not re-litigate.\n\n## Forgeloop Scope\n\nThe Explore and Report phases remain read-only. Outside the project, this run may only generate its HTML in an OS temporary directory. Do not create a Spec, Ticket, or Initiative, and do not modify production code. After the user selects a candidate, Phase 3 writes to domain documentation require a separate authorization seam. That authorization covers only adjudicated `CONTEXT.md` terms or an ADR confirmed by the user and does not extend to other project files."
+          ],
+          [
+            "Then use the Agent tool with `subagent_type=Explore` to walk the codebase. Don't follow rigid heuristics — explore organically and note where you experience friction:",
+            "Then delegate the read-only scan to an isolated child Agent with a self-contained brief. Don't follow rigid heuristics — explore organically and note where you experience friction:"
+          ],
+          [
+            "Apply the **deletion test** to anything you suspect is shallow: would deleting it concentrate complexity, or just move it? A \"yes, concentrates\" is the signal you want.",
+            "Apply the **deletion test** to anything you suspect is shallow: would deleting it concentrate complexity, or just move it? A \"yes, concentrates\" is the signal you want.\n\nIf the scan finds no genuine Deepening Opportunity caused by a shallow module, misplaced Seam, duplicate source of truth, or cross-module coupling, immediately return an empty result, the inspected scope, and evidence for excluding the candidates. Do not generate HTML, produce a Top recommendation, or enter Grilling."
+          ],
+          [
+            "Write a self-contained HTML file to the OS temp directory so nothing lands in the repo. Resolve the temp dir from `$TMPDIR`, falling back to `/tmp` (or `%TEMP%` on Windows), and write to `<tmpdir>/architecture-review-<timestamp>.html` so each run gets a fresh file. Open it for the user — `xdg-open <path>` on Linux, `open <path>` on macOS, `start <path>` on Windows — and tell them the absolute path.",
+            "Write a self-contained HTML file to the OS temp directory so nothing lands in the repo. Resolve the temp dir from `$TMPDIR`, falling back to `/tmp` (or `%TEMP%` on Windows), and write to `<tmpdir>/architecture-review-<timestamp>.html` so each run gets a fresh file. If generation fails, report that no artifact was produced, the failed path, and a locatable error, then stop; do not enter candidate selection. After successful generation, try to open it with `xdg-open <path>`, `open <path>`, or `start <path>`. If opening fails, preserve the generated file and return its absolute path, the failed command, and manual opening instructions; do not regenerate a duplicate report. When the user cancels or retries, clean up only temporary files from this run that are confirmed to be unused, and do not touch existing artifacts."
+          ],
+          [
+            "Side effects happen inline as decisions crystallize — run the `/domain-modeling` skill to keep the domain model current as you go:",
+            "Writing domain documentation is a separate authorization seam. Before the first write, list the target files and the adjudicated terms or durable decisions to be recorded, and obtain explicit user authorization. Without authorization, return only the proposed text in the conversation, do not modify the project, and do not invoke `$domain-modeling` to perform writes. Invoke `$domain-modeling` only after authorization is granted, while continuing to follow its `CONTEXT.md` and ADR rules:"
+          ]
+        ]
+      }
+    },
+    {"source": "skills/engineering/prototype", "target": "prototype"},
+    {"source": "skills/engineering/research", "target": "primary-source-research"},
+    {"source": "skills/engineering/resolving-merge-conflicts", "target": "resolving-merge-conflicts", "overlay": "config/overlays/resolving-merge-conflicts.md"},
+    {
+      "source": "skills/engineering/setup-matt-pocock-skills",
+      "target": "setup-forgeloop",
+      "appends": {
+        "SKILL.md": "config/overlays/setup-forgeloop-append.md",
+        "issue-tracker-github.md": "config/overlays/tracker-runtime-github-append.md",
+        "issue-tracker-gitlab.md": "config/overlays/tracker-runtime-gitlab-append.md",
+        "issue-tracker-local.md": "config/overlays/tracker-runtime-local-append.md"
+      }
+    },
+    {"source": "skills/engineering/tdd", "target": "tdd"},
+    {
+      "source": "skills/engineering/to-spec",
+      "target": "to-spec",
+      "file_replacements": {
+        "SKILL.md": [
+          [
+            "The issue tracker and triage label vocabulary should have been provided to you — run `/setup-forgeloop` if not.",
+            "A configured Issue Tracker must already exist before publication. If `docs/agents/issue-tracker.md` is missing, do not run `$setup-forgeloop` automatically. Return `FAILED_PRECONDITION`, identify the missing configuration, and instruct the user to invoke `$setup-forgeloop` explicitly. Do not write any Spec or Tracker state."
+          ],
+          [
+            "3. Write the spec using the template below, then publish it to the project issue tracker. Apply the `ready-for-agent` triage label - no need for additional triage.",
+            "3. Before writing or publishing, enforce the Forgeloop publication gates:\n\n   - No interview does not mean inventing decisions. If the current context still lacks the Problem, Actor, target behavior, key failure states, user or role permission model, Scope, public Seam, or irreversible constraints, return `CONTEXT_INSUFFICIENT` and list each gap. Do not generate or publish a draft, and do not fill in decisions on the user's behalf.\n   - Confirm that the user approved the test Seam from step 2.\n   - Read the configured Tracker Operations and, before the first write, verify authentication, Tracker publication permission, and target conflicts. On failure, return `FAILED_PRECONDITION`, leave the Spec unpublished, and do not fall back to another Tracker.\n\n   After all gates pass, write the Spec using the template below and publish it exactly once to the configured project Issue Tracker. Following the upstream publication rule, add `ready-for-agent` to the parent Spec. On the parent item, this label means the Spec is sufficiently defined to proceed to ticket decomposition or execution orchestration; it does not make the parent Spec part of the Ticket Frontier. Execution state for child Tickets remains the responsibility of `$to-tickets`. If the publication result is ambiguous, first query candidates by the expected title and verify their bodies. Retry only after confirming that an identical Spec does not exist, to avoid creating a duplicate parent Spec."
+          ]
+        ]
+      }
+    },
+    {
+      "source": "skills/engineering/to-tickets",
+      "target": "to-tickets",
+      "file_replacements": {
+        "SKILL.md": [
+          [
+            "Break a plan, spec, or conversation into a set of **tickets** — tracer-bullet vertical slices, each declaring the tickets that **block** it.",
+            "In normal decomposition mode, break one approved formal Tracker Spec into **tickets** — tracer-bullet vertical slices, each declaring the tickets that **block** it. A plan or conversation may clarify the Spec but never replaces the formal parent. The explicit repair and reconciliation modes below use their own formal inputs."
+          ],
+          [
+            "The issue tracker and triage label vocabulary should have been provided to you — run `/setup-forgeloop` if not.",
+            "A configured Issue Tracker must already exist before any read or write. If `docs/agents/issue-tracker.md` is missing, return `FAILED_PRECONDITION`, identify the missing configuration, and instruct the user to invoke `$setup-forgeloop` explicitly. Do not invoke it, invent a Tracker, fall back to Local, or publish Tickets."
+          ],
+          [
+            "Work from whatever is already in the conversation context. If the user passes a reference (a spec path, an issue number or URL) as an argument, fetch it and read its full body and comments.",
+            "Require a reference to one approved formal Tracker Spec, fetch it, and read its full body, comments, revision, state, and existing child Tickets. Conversation context may supply clarifications but cannot serve as the parent contract. If the reference is missing, ambiguous, not a Spec, or not approved, return `FAILED_PRECONDITION` without drafting or publishing Tickets."
+          ],
+          [
+            "A reference to the parent issue on the tracker (if the source was an existing issue, otherwise omit this section).",
+            "A reference to the approved parent Spec on the configured Tracker. This section is mandatory."
+          ],
+          [
+            "Work the frontier one ticket at a time with `/run-initiative`, clearing context between tickets.",
+            "After publication, return the parent Spec and Ticket references and tell the user they may explicitly invoke `$run-initiative`. Do not start that Workflow automatically."
+          ]
+        ]
+      },
+      "appends": {"SKILL.md": "config/overlays/to-tickets-append.md"}
+    },
+    {
+      "source": "skills/engineering/triage",
+      "target": "triage",
+      "file_replacements": {
+        "SKILL.md": [[
+          "These are canonical role names — the actual label strings used in the issue tracker may differ. The mapping should have been provided to you - run `/setup-forgeloop` if not.",
+          "These are canonical role names — the actual label strings used in the issue tracker may differ. If the configured mapping is missing, return `FAILED_PRECONDITION` and instruct the user to invoke `$setup-forgeloop` explicitly. Do not invoke it, invent labels, or modify Tracker state."
+        ]]
+      }
+    },
+    {
+      "source": "skills/engineering/wayfinder",
+      "target": "wayfinder",
+      "file_replacements": {
+        "SKILL.md": [[
+          "**Where the map, its child tickets, blocking, and frontier queries physically live is tracker-specific.** The issue tracker should have been provided to you — run `/setup-forgeloop` if not. Consult the tracker doc's \"Wayfinding operations\" section for how _this_ repo expresses them. If no tracker has been provided, default to the local-markdown tracker.",
+          "**Where the map, its child tickets, blocking, and frontier queries physically live is tracker-specific.** A configured Issue Tracker must already exist. If `docs/agents/issue-tracker.md` is missing, return `FAILED_PRECONDITION` and instruct the user to invoke `$setup-forgeloop` explicitly. Do not invoke it or fall back to Local. Otherwise consult the tracker doc's \"Wayfinding operations\" section for how _this_ repo expresses them."
+        ]]
+      }
+    },
+    {"source": "skills/productivity/grilling", "target": "grilling"},
+    {"source": "skills/productivity/handoff", "target": "handoff"}
+  ],
+  "replacements": [
+    ["setup-matt-pocock-skills", "setup-forgeloop"],
+    ["Setup Matt Pocock's Skills", "Setup Forgeloop"],
+    ["Matt Pocock's Skills", "Forgeloop"],
+    ["Matt Pocock Skills", "Forgeloop"],
+    ["mattpocock/skills", "Forgeloop"],
+    ["ask-matt", "ask-forgeloop"],
+    ["Ask Matt", "Ask Forgeloop"],
+    ["code-review", "review-change"],
+    ["/research", "/primary-source-research"],
+    ["/implement", "/run-initiative"],
+    ["`qa`", "`review-change`"]
+  ]
+}

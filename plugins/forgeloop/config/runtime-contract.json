@@ -1,0 +1,11 @@
+{
+  "SKILL.md": ["At entry, read [scheduler.md]", "[events-and-recovery.md]", "continue both original Reviewers", "keeping every member Spec Open", "Only on Initiative `PASS`", "release the root Scheduler Claim"],
+  "references/domain-and-state.md": ["Child thread identity is not durable state", "at most one active Ticket", "keep member Specs Open through Initiative Acceptance", "Do not create `PLAN.md`, `LEDGER.md`"],
+  "references/scheduler.md": ["Role Task Pack", "exact same frozen inputs", "continue both original Reviewers", "reason=`REVIEW_BLOCKED`", "reported Head equals the Ticket Branch Head", "Do not depend on a host-level close operation"],
+  "references/coder.md": ["READY_FOR_REVIEW", "NO_CHANGE_REQUIRED", "CONTRACT_BLOCKER", "IMPLEMENTATION_BLOCKED", "unrelated worktree changes"],
+  "references/reviewers.md": ["read-only Reviewer", "Commit objects", "REVIEW_BLOCKED", "finding_id", "withhold both results"],
+  "references/events-and-recovery.md": ["tracker-observed-time", "append-write time for Local Markdown", "atomically remove the current Ticket lock", "atomically remove `scheduler.lock`", "Do not rely on child thread existence"],
+  "references/repair-and-integration.md": ["at most two ordinary repair rounds", "candidate-caused Required Check failure", "reason=`CHECKS_BLOCKED`", "ALREADY_PRESENT", "READY_FOR_HUMAN_MERGE"],
+  "references/acceptance.md": ["keeping all member Specs Open", "Only on Initiative `PASS`", "owning_spec_ref", "Do not create a Ticket directly under the Initiative", "do not introduce a reopen state", "reason=`ACCEPTANCE_BLOCKED`"],
+  "references/tracker-operations.md": ["Use `gh` for all operations", "Use `glab` for all operations", "keep member Specs Open through Initiative Acceptance", "atomically remove only its owned Ticket lock", "owned `scheduler.lock`"]
+}

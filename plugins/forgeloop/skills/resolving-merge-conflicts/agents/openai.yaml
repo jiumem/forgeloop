@@ -1,0 +1,6 @@
+interface:
+  display_name: "Resolve Merge Conflicts"
+  short_description: "Resolve compatible merge intents and expose blockers"
+  default_prompt: "Use $resolving-merge-conflicts to recover both sides' intent and resolve the conflict safely."
+policy:
+  allow_implicit_invocation: true

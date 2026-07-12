@@ -1,0 +1,6 @@
+interface:
+  display_name: "Grilling"
+  short_description: "Ask one high impact design question at a time"
+  default_prompt: "Use $grilling to ask one high-impact design question at a time."
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Ask Forgeloop"
+  short_description: "Route requests to the right Forgeloop workflow"
+  default_prompt: "Use $ask-forgeloop to recommend the right workflow for this engineering situation."
+policy:
+  allow_implicit_invocation: false
