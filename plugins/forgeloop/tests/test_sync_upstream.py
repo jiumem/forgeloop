@@ -91,6 +91,29 @@ class SyncUpstreamTests(unittest.TestCase):
         self.assertIn("If the publication result is ambiguous, first query candidates", text)
         self.assertNotIn("No interview does not mean inventing decisions", text[text.index("</spec-template>") :])
 
+    def test_formal_spec_and_ticket_titles_use_one_canonical_prefix(self) -> None:
+        config = MODULE.load_config()
+        expected_prefixes = {
+            "to-spec": "`[Spec] <outcome-oriented title>`",
+            "to-tickets": "`[Ticket] <outcome-oriented title>`",
+        }
+
+        for target, expected_prefix in expected_prefixes.items():
+            mapping = next(
+                item for item in config["mappings"] if item["target"] == target
+            )
+            text = MODULE.expected_files(config, mapping)[Path("SKILL.md")].decode()
+            self.assertIn(expected_prefix, text, target)
+            self.assertIn("exactly once", text, target)
+
+        for target in ("triage", "wayfinder"):
+            mapping = next(
+                item for item in config["mappings"] if item["target"] == target
+            )
+            text = MODULE.expected_files(config, mapping)[Path("SKILL.md")].decode()
+            for prefix in ("[Initiative]", "[Spec]", "[Ticket]"):
+                self.assertNotIn(prefix, text, target)
+
     def test_to_tickets_accepts_idempotent_acceptance_repairs(self) -> None:
         config = MODULE.load_config()
         mapping = next(

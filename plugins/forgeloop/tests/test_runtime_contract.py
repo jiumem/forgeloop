@@ -136,6 +136,12 @@ class RuntimeContractTests(unittest.TestCase):
         self.assertIn("reuse one unique valid match", scheduler)
         self.assertIn("query again before retrying", scheduler)
 
+    def test_multi_spec_parent_title_uses_one_canonical_initiative_prefix(self) -> None:
+        scheduler = (SKILL_ROOT / "references" / "scheduler.md").read_text(encoding="utf-8")
+
+        self.assertIn("`[Initiative] <outcome-oriented title>`", scheduler)
+        self.assertIn("exactly once", scheduler)
+
     def test_multi_spec_revision_and_confirmation_are_recoverable(self) -> None:
         events = (SKILL_ROOT / "references" / "events-and-recovery.md").read_text(encoding="utf-8")
 
