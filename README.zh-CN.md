@@ -301,6 +301,17 @@ python3 -m unittest \
   plugins/forgeloop/tests/test_recommend_initiatives.py
 ```
 
+### Agent 行为评估
+
+需要验证 Skill 的语义判断而不引入 parser 或程序状态机时，维护者可显式运行隔离的 Codex Agent eval：
+
+```bash
+FORGELOOP_RUN_AGENT_EVALS=1 python3 -m unittest \
+  plugins/forgeloop/tests/test_to_spec_agent_eval.py
+```
+
+该评估需要已认证的全局 `codex` CLI。它在临时沙箱中评估候选 Spec，并以临时文件模拟首次 Tracker 写入；不会访问或修改真实 Tracker。
+
 ### 已安装缓存复验
 
 定位 Codex 当前安装的 `forgeloop-local/forgeloop` 最新缓存根目录后运行：
