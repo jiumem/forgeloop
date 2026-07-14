@@ -1,0 +1,200 @@
+{
+  "schema_version": 1,
+  "kind": "run-initiative-runtime",
+  "evidence_cases": [
+    {
+      "id": "clean-target-drift-github",
+      "integrations": [{"candidate_head": "candidate-1", "target_before": "target-1", "target_after": "target-2", "integration_method": "merge", "native_ref": "github:pr:101"}],
+      "seal": {"acceptance_level": "SPEC", "subject_revision": "spec-1@r1", "membership": ["ticket-1@r1"], "final_target_commit": "target-2", "idempotency_key": "accept:spec-1:r1:target-2", "native_checkpoint_ref": "github:comment:201", "integration_target_afters": ["target-2"], "all_in_final_history": true, "eligibility_refresh": {"final_target_commit": "target-2", "observed_target": "target-2"}, "native_readback": {"exact_match": true, "native_ref": "github:comment:201"}}
+    },
+    {
+      "id": "clean-target-drift-gitlab",
+      "integrations": [{"candidate_head": "candidate-1", "target_before": "target-1", "target_after": "target-2", "integration_method": "merge", "native_ref": "gitlab:mr:101"}],
+      "seal": {"acceptance_level": "SPEC", "subject_revision": "spec-1@r1", "membership": ["ticket-1@r1"], "final_target_commit": "target-2", "idempotency_key": "accept:spec-1:r1:target-2", "native_checkpoint_ref": "gitlab:note:201", "integration_target_afters": ["target-2"], "all_in_final_history": true, "eligibility_refresh": {"final_target_commit": "target-2", "observed_target": "target-2"}, "native_readback": {"exact_match": true, "native_ref": "gitlab:note:201"}}
+    },
+    {
+      "id": "clean-target-drift-local",
+      "integrations": [{"candidate_head": "candidate-1", "target_before": "target-1", "target_after": "target-2", "integration_method": "merge", "native_ref": "local:git:target-2"}],
+      "seal": {"acceptance_level": "SPEC", "subject_revision": "spec-1@r1", "membership": ["ticket-1@r1"], "final_target_commit": "target-2", "idempotency_key": "accept:spec-1:r1:target-2", "native_checkpoint_ref": "local:events:201", "integration_target_afters": ["target-2"], "all_in_final_history": true, "eligibility_refresh": {"final_target_commit": "target-2", "observed_target": "target-2"}, "native_readback": {"exact_match": true, "native_ref": "local:events:201"}}
+    },
+    {
+      "id": "native-squash",
+      "integrations": [{"candidate_head": "candidate-1", "target_before": "target-1", "target_after": "squash-1", "integration_method": "squash", "native_ref": "gitlab:mr:102"}],
+      "seal": {"acceptance_level": "SPEC", "subject_revision": "spec-1@r1", "membership": ["ticket-1@r1"], "final_target_commit": "squash-1", "idempotency_key": "accept:spec-1:r1:squash-1", "native_checkpoint_ref": "gitlab:note:202", "integration_target_afters": ["squash-1"], "all_in_final_history": true, "eligibility_refresh": {"final_target_commit": "squash-1", "observed_target": "squash-1"}, "native_readback": {"exact_match": true, "native_ref": "gitlab:note:202"}}
+    },
+    {
+      "id": "already-present-current-target",
+      "integrations": [{"candidate_head": "target-1", "target_before": "target-1", "target_after": "target-1", "integration_method": "already_present", "native_ref": "local:git:target-1"}],
+      "seal": {"acceptance_level": "SPEC", "subject_revision": "spec-1@r1", "membership": ["ticket-1@r1"], "final_target_commit": "target-1", "idempotency_key": "accept:spec-1:r1:target-1", "native_checkpoint_ref": "local:events:203", "integration_target_afters": ["target-1"], "all_in_final_history": true, "eligibility_refresh": {"final_target_commit": "target-1", "observed_target": "target-1"}, "native_readback": {"exact_match": true, "native_ref": "local:events:203"}}
+    },
+    {
+      "id": "force-push-removes-integration",
+      "integrations": [{"candidate_head": "candidate-1", "target_before": "target-1", "target_after": "target-2", "integration_method": "merge", "native_ref": "github:pr:103"}],
+      "acceptance_check": {"final_target_commit": "target-rewritten", "integration_target_afters": ["target-2"], "all_in_final_history": false, "behavior_pass": false}
+    },
+    {
+      "id": "revert-preserves-ancestry",
+      "integrations": [{"candidate_head": "candidate-1", "target_before": "target-1", "target_after": "target-2", "integration_method": "merge", "native_ref": "local:git:target-2"}],
+      "acceptance_check": {"final_target_commit": "revert-1", "integration_target_afters": ["target-2"], "all_in_final_history": true, "behavior_pass": false}
+    },
+    {
+      "id": "single-spec-preseal-drift",
+      "integrations": [{"candidate_head": "candidate-1", "target_before": "target-1", "target_after": "target-2", "integration_method": "merge", "native_ref": "github:pr:104"}],
+      "invalidated_refresh": {"reviewed_commit": "target-2", "observed_target": "target-3", "payload_published": false},
+      "seal": {"acceptance_level": "SPEC", "subject_revision": "spec-1@r1", "membership": ["ticket-1@r1"], "final_target_commit": "target-3", "idempotency_key": "accept:spec-1:r1:target-3", "native_checkpoint_ref": "github:comment:204", "integration_target_afters": ["target-2"], "all_in_final_history": true, "eligibility_refresh": {"final_target_commit": "target-3", "observed_target": "target-3"}, "native_readback": {"exact_match": true, "native_ref": "github:comment:204"}}
+    },
+    {
+      "id": "eligibility-refresh-before-readback-drift",
+      "integrations": [{"candidate_head": "candidate-1", "target_before": "target-1", "target_after": "target-2", "integration_method": "merge", "native_ref": "github:pr:105"}],
+      "drift_after_eligibility_refresh": {"observed_later_target": "target-3"},
+      "seal": {"acceptance_level": "SPEC", "subject_revision": "spec-1@r1", "membership": ["ticket-1@r1"], "final_target_commit": "target-2", "idempotency_key": "accept:spec-1:r1:target-2", "native_checkpoint_ref": "github:comment:205", "integration_target_afters": ["target-2"], "all_in_final_history": true, "eligibility_refresh": {"final_target_commit": "target-2", "observed_target": "target-2"}, "native_readback": {"exact_match": true, "native_ref": "github:comment:205"}}
+    },
+    {
+      "id": "multi-spec-acceptance-drift",
+      "integrations": [{"candidate_head": "candidate-1", "target_before": "target-1", "target_after": "target-2", "integration_method": "merge", "native_ref": "gitlab:mr:106"}, {"candidate_head": "candidate-2", "target_before": "target-2", "target_after": "target-3", "integration_method": "merge", "native_ref": "gitlab:mr:107"}],
+      "seal": {"acceptance_level": "INITIATIVE", "subject_revision": "initiative-1@r1", "membership": ["spec-1@r1", "spec-2@r1"], "final_target_commit": "target-3", "idempotency_key": "accept:initiative-1:r1:target-3", "native_checkpoint_ref": "gitlab:note:206", "integration_target_afters": ["target-2", "target-3"], "all_in_final_history": true, "eligibility_refresh": {"final_target_commit": "target-3", "observed_target": "target-3"}, "native_readback": {"exact_match": true, "native_ref": "gitlab:note:206"}}
+    },
+    {
+      "id": "post-seal-drift",
+      "integrations": [{"candidate_head": "candidate-1", "target_before": "target-1", "target_after": "target-2", "integration_method": "merge", "native_ref": "github:pr:108"}],
+      "drift_after_eligibility_refresh": {"observed_later_target": "target-3"},
+      "seal": {"acceptance_level": "SPEC", "subject_revision": "spec-1@r1", "membership": ["ticket-1@r1"], "final_target_commit": "target-2", "idempotency_key": "accept:spec-1:r1:target-2", "native_checkpoint_ref": "github:comment:208", "integration_target_afters": ["target-2"], "all_in_final_history": true, "eligibility_refresh": {"final_target_commit": "target-2", "observed_target": "target-2"}, "native_readback": {"exact_match": true, "native_ref": "github:comment:208"}}
+    },
+    {
+      "id": "post-seal-partial-close-recovery",
+      "integrations": [{"candidate_head": "candidate-1", "target_before": "target-1", "target_after": "target-2", "integration_method": "merge", "native_ref": "local:git:target-2"}, {"candidate_head": "candidate-2", "target_before": "target-2", "target_after": "target-3", "integration_method": "merge", "native_ref": "local:git:target-3"}],
+      "seal": {"acceptance_level": "INITIATIVE", "subject_revision": "initiative-1@r1", "membership": ["spec-1@r1", "spec-2@r1"], "final_target_commit": "target-3", "idempotency_key": "accept:initiative-1:r1:target-3", "native_checkpoint_ref": "local:events:207", "integration_target_afters": ["target-2", "target-3"], "all_in_final_history": true, "eligibility_refresh": {"final_target_commit": "target-3", "observed_target": "target-3"}, "native_readback": {"exact_match": true, "native_ref": "local:events:207"}}
+    }
+  ],
+  "cases": [
+    {
+      "id": "clean-target-drift-github", "group": "clean-target-drift", "tracker": "github",
+      "initial_state": "Candidate 已双 PASS，目标分支随后 clean 前进且 Candidate 输入未变。", "entry_prompt": "继续自动集成。",
+      "expected_writes": ["保留双 PASS", "刷新当前目标组合", "记录完整 Integration binding", "确认 Spec Seal"], "forbidden_writes": ["因目标移动重审 Candidate", "按文件交集猜测", "额外完整 CI"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "当前组合无法由原生证据证明时 CHECKS_BLOCKED。",
+      "domain_state": {"target_drift": true, "review_inputs_unchanged": true, "review_rerun": false, "current_integration_bound": true, "repair_budget_used": false},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"],
+      "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "clean-target-drift-gitlab", "group": "clean-target-drift", "tracker": "gitlab",
+      "initial_state": "Candidate 已双 PASS，目标分支随后 clean 前进且 Candidate 输入未变。", "entry_prompt": "继续自动集成。",
+      "expected_writes": ["保留双 PASS", "刷新当前目标组合", "记录完整 Integration binding", "确认 Spec Seal"], "forbidden_writes": ["因目标移动重审 Candidate", "按文件交集猜测", "额外完整 CI"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "当前组合无法由原生证据证明时 CHECKS_BLOCKED。",
+      "domain_state": {"target_drift": true, "review_inputs_unchanged": true, "review_rerun": false, "current_integration_bound": true, "repair_budget_used": false},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"],
+      "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "clean-target-drift-local", "group": "clean-target-drift", "tracker": "local",
+      "initial_state": "Candidate 已双 PASS，目标分支随后 clean 前进且 Candidate 输入未变。", "entry_prompt": "继续自动集成。",
+      "expected_writes": ["保留双 PASS", "刷新当前目标组合", "记录完整 Integration binding", "确认 Spec Seal"], "forbidden_writes": ["因目标移动重审 Candidate", "按文件交集猜测", "额外完整 CI"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "当前组合无法由原生证据证明时 CHECKS_BLOCKED。",
+      "domain_state": {"target_drift": true, "review_inputs_unchanged": true, "review_rerun": false, "current_integration_bound": true, "repair_budget_used": false},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"],
+      "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "stale-checks-current-target", "group": "stale-checks-current-target", "tracker": "github",
+      "initial_state": "双 PASS 仍有效，但旧 Required Checks 无法绑定当前目标组合。", "entry_prompt": "尝试自动集成。",
+      "expected_writes": ["刷新当前目标与 Checks", "RUN_PAUSED CHECKS_BLOCKED"], "forbidden_writes": ["沿用旧 Checks", "自动集成", "消耗 repair budget"],
+      "terminal_state": "PAUSED", "failure_diagnostic": "报告无法证明的 Candidate 与当前目标组合。",
+      "domain_state": {"checks_current_combination": false, "advance": false, "repair_budget_used": false},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:DUAL_PASS", "RUN_PAUSED:CHECKS_BLOCKED"],
+      "final_native_state": {"root_open": true, "claim_active": true}
+    },
+    {
+      "id": "native-merge", "group": "native-merge", "tracker": "github",
+      "initial_state": "未变 Candidate 可由平台原生 merge 绑定当前目标。", "entry_prompt": "集成。",
+      "expected_writes": ["保留双 PASS", "integration_method merge", "target_before 与 target_after"], "forbidden_writes": ["无故重审"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "原生 merge evidence 缺失则不推进。", "domain_state": {"integration_method": "merge", "candidate_head_unchanged": true},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "native-squash", "group": "native-squash", "tracker": "gitlab",
+      "initial_state": "未变 Candidate 可由平台原生 squash 绑定当前目标。", "entry_prompt": "集成。",
+      "expected_writes": ["保留双 PASS", "integration_method squash", "target_before 与 target_after"], "forbidden_writes": ["把 squash 误判为 Candidate 改写"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "原生 squash evidence 缺失则不推进。", "domain_state": {"integration_method": "squash", "candidate_head_unchanged": true},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "candidate-rebase", "group": "candidate-rebase", "tracker": "github",
+      "initial_state": "双 PASS 后 Candidate Branch 被 rebase 并产生新 Head。", "entry_prompt": "继续集成。",
+      "expected_writes": ["Repair Diagnosis", "一轮共享修复", "新 Head Coder 验证与双审"], "forbidden_writes": ["复用旧 PASS"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "Head 改写必须重审。", "domain_state": {"head_rewritten": true, "both_reissued": true, "repair_rounds": 1},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:DUAL_PASS", "CODER_RESULT:REPAIR_1_REBASE", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "conflict-repair", "group": "conflict-repair", "tracker": "local",
+      "initial_state": "目标前进产生冲突，人工修复改变 Candidate Head。", "entry_prompt": "继续集成。",
+      "expected_writes": ["Repair Diagnosis", "一轮共享修复", "新 Head Coder 验证与双审"], "forbidden_writes": ["沿用旧 PASS", "Scheduler 自行选边"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "冲突修复改变 Head 必须重审。", "domain_state": {"head_rewritten": true, "both_reissued": true, "repair_rounds": 1},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:DUAL_PASS", "CODER_RESULT:REPAIR_1_CONFLICT", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "already-present-current-target", "group": "already-present-current-target", "tracker": "local",
+      "initial_state": "当前目标已满足 Ticket，Base 等于 Head。", "entry_prompt": "完成零变更路径。",
+      "expected_writes": ["双 PASS", "ALREADY_PRESENT", "target_before 等于 target_after"], "forbidden_writes": ["空 Commit", "无意义 PR"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "必须绑定当前目标。", "domain_state": {"base_equals_head": true, "target_before_equals_after": true},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:NO_CHANGE_REQUIRED", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:ALREADY_PRESENT", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "integration-fast-forward", "group": "integration-fast-forward", "tracker": "gitlab",
+      "initial_state": "Ticket 集成后目标继续 fast-forward，集成 target_after 仍在最终历史。", "entry_prompt": "执行 Final Acceptance。",
+      "expected_writes": ["验证 target_after ancestry", "验证最终行为", "确认 Seal"], "forbidden_writes": ["只凭 ancestry PASS"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "行为失败仍须 REPAIR_REQUIRED。", "domain_state": {"integration_ancestor": true, "behavior_pass": true},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "force-push-removes-integration", "group": "force-push-removes-integration", "tracker": "github",
+      "initial_state": "force-push 使已记录 target_after 不再属于最终目标历史。", "entry_prompt": "执行 Final Acceptance。",
+      "expected_writes": ["ACCEPTANCE_RESULT REPAIR_REQUIRED", "报告缺失集成证据", "保持根 Open"], "forbidden_writes": ["Acceptance PASS", "新恢复状态"],
+      "terminal_state": "PAUSED", "failure_diagnostic": "通过 Acceptance Repair Boundary 定位缺失交付。", "domain_state": {"integration_ancestor": false, "repair_budget_used": false},
+      "event_trace": ["RUN_CLAIMED", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_REPAIR_REQUIRED", "RUN_PAUSED:ACCEPTANCE_REPAIR"], "final_native_state": {"root_open": true, "claim_active": true}
+    },
+    {
+      "id": "revert-preserves-ancestry", "group": "revert-preserves-ancestry", "tracker": "local",
+      "initial_state": "后续 revert 保留 target_after ancestry，但公开行为已破坏。", "entry_prompt": "执行 Final Acceptance。",
+      "expected_writes": ["行为验收失败", "ACCEPTANCE_RESULT REPAIR_REQUIRED"], "forbidden_writes": ["仅凭 ancestry PASS"],
+      "terminal_state": "PAUSED", "failure_diagnostic": "报告可观察行为回归。", "domain_state": {"integration_ancestor": true, "behavior_pass": false, "repair_budget_used": false},
+      "event_trace": ["RUN_CLAIMED", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_REPAIR_REQUIRED", "RUN_PAUSED:ACCEPTANCE_REPAIR"], "final_native_state": {"root_open": true, "claim_active": true}
+    },
+    {
+      "id": "single-spec-preseal-drift", "group": "single-spec-preseal-drift", "tracker": "github",
+      "initial_state": "Spec Reviewer PASS 后、Seal Payload 渲染前目标已移动。", "entry_prompt": "完成 Spec。",
+      "expected_writes": ["重新读取 target", "不发布旧 PASS", "新 Commit 重新 Acceptance", "确认新 Seal"], "forbidden_writes": ["旧 Commit Seal", "消耗 repair budget"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "Seal 前漂移使当前资格失效。", "domain_state": {"pre_seal_drift": true, "acceptance_rerun": true, "repair_budget_used": false, "seal_confirmed": true},
+      "event_trace": ["RUN_CLAIMED", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "multi-spec-acceptance-drift", "group": "multi-spec-acceptance-drift", "tracker": "gitlab",
+      "initial_state": "首个成员 Spec PASS 后、Initiative Seal 前目标移动。", "entry_prompt": "完成 Initiative。",
+      "expected_writes": ["保留历史结果", "最新 Commit 重启完整成员序列", "确认 Initiative Seal"], "forbidden_writes": ["混用不同 Commit", "消耗 repair budget"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "所有当前资格必须绑定同一 Commit。", "domain_state": {"initiative_acceptance": "PASS", "sequence_restarted": true, "repair_budget_used": false},
+      "event_trace": ["RUN_CLAIMED", "REVIEW_RESULT:S1_DUAL_PASS", "INTEGRATION_RESULT:S1", "REVIEW_RESULT:S2_DUAL_PASS", "INTEGRATION_RESULT:S2", "ACCEPTANCE_RESULT:SPEC_PASS_S1_OLD", "ACCEPTANCE_RESULT:SPEC_PASS_S1_FINAL", "ACCEPTANCE_RESULT:SPEC_PASS_S2_FINAL", "ACCEPTANCE_RESULT:INITIATIVE_PASS"],
+      "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "eligibility-refresh-before-readback-drift", "group": "eligibility-refresh-before-readback-drift", "tracker": "github",
+      "initial_state": "目标在成功 eligibility refresh 后前进，但旧 Commit 的 Seal Payload 随后精确回读成功。", "entry_prompt": "完成 Spec。",
+      "expected_writes": ["确认旧 Commit Seal", "按 post-seal drift 继续行政关闭"], "forbidden_writes": ["重新 Acceptance", "废弃已确认 Payload", "消耗 repair budget"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "线性化点后的漂移由最终精确回读决定；回读失败才重新 refresh。", "domain_state": {"seal_confirmed": true, "post_seal_drift": true, "acceptance_rerun": false, "repair_budget_used": false},
+      "event_trace": ["RUN_CLAIMED", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "post-seal-drift", "group": "post-seal-drift", "tracker": "github",
+      "initial_state": "Spec Seal 已原生回读确认，随后目标分支前进。", "entry_prompt": "完成行政关闭。",
+      "expected_writes": ["沿已确认 Seal 关闭并释放 Claim"], "forbidden_writes": ["重新 Acceptance", "废弃 Seal", "重开 Run"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "Seal 证明其绑定 Commit，不承诺未来提交。", "domain_state": {"seal_confirmed": true, "post_seal_drift": true, "acceptance_rerun": false, "repair_budget_used": false},
+      "event_trace": ["RUN_CLAIMED", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "post-seal-partial-close-recovery", "group": "post-seal-partial-close-recovery", "tracker": "local",
+      "initial_state": "Initiative Seal 已确认，但成员关闭后根关闭与 Claim 释放中断，目标随后前进。", "entry_prompt": "恢复原 Run。",
+      "expected_writes": ["从 Seal 恢复", "完成剩余关闭", "释放原 Claim"], "forbidden_writes": ["重跑 Acceptance", "新 Seal", "重开成员"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "行政恢复只消费既有 Seal。", "domain_state": {"initiative_acceptance": "PASS", "seal_confirmed": true, "resumed_from_seal": true, "acceptance_rerun": false},
+      "event_trace": ["RUN_CLAIMED", "REVIEW_RESULT:S1_DUAL_PASS", "INTEGRATION_RESULT:S1", "REVIEW_RESULT:S2_DUAL_PASS", "INTEGRATION_RESULT:S2", "ACCEPTANCE_RESULT:SPEC_PASS_S1_FINAL", "ACCEPTANCE_RESULT:SPEC_PASS_S2_FINAL", "ACCEPTANCE_RESULT:INITIATIVE_PASS", "RUN_RESUMED"],
+      "final_native_state": {"root_open": false, "claim_active": false, "member_specs_open": false, "closure_order": ["member_specs", "initiative"]}
+    }
+  ]
+}

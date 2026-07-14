@@ -74,6 +74,105 @@ def validate(path: Path) -> list[str]:
         terminals = {case["terminal_state"] for case in group_cases}
         if len(states) != 1 or len(terminals) != 1:
             errors.append(f"{group}: 三 Tracker 领域终态不等价")
+    if runtime and "evidence_cases" in data:
+        errors.extend(validate_evidence_cases(data["evidence_cases"], ids, cases))
+    return errors
+
+
+def validate_evidence_cases(
+    evidence_cases: object, case_ids: set[str], cases: list[dict]
+) -> list[str]:
+    """校验目标漂移 Fixture 的不可变绑定、线性化刷新与精确回读。"""
+
+    if not isinstance(evidence_cases, list):
+        return ["evidence_cases 必须是列表"]
+    errors: list[str] = []
+    states = {case["id"]: case["domain_state"] for case in cases if "id" in case}
+    seen: set[str] = set()
+    integration_fields = {
+        "candidate_head", "target_before", "target_after", "integration_method", "native_ref"
+    }
+    seal_fields = {
+        "acceptance_level", "subject_revision", "membership", "final_target_commit",
+        "idempotency_key", "native_checkpoint_ref", "integration_target_afters",
+        "all_in_final_history", "eligibility_refresh", "native_readback",
+    }
+    for evidence in evidence_cases:
+        if not isinstance(evidence, dict):
+            errors.append("evidence_cases 条目必须是对象")
+            continue
+        case_id = evidence.get("id")
+        if not isinstance(case_id, str) or case_id not in case_ids:
+            errors.append(f"{case_id or '<unknown>'}: 证据必须引用已有 Fixture")
+            continue
+        if case_id in seen:
+            errors.append(f"{case_id}: 重复结构化证据")
+            continue
+        seen.add(case_id)
+        integrations = evidence.get("integrations")
+        if not isinstance(integrations, list):
+            errors.append(f"{case_id}: integrations 必须是列表")
+            continue
+        for index, binding in enumerate(integrations):
+            missing = integration_fields - set(binding) if isinstance(binding, dict) else integration_fields
+            if missing or not all(isinstance(binding.get(field), str) and binding[field] for field in integration_fields):
+                errors.append(f"{case_id}: Integration binding {index} 缺失非空字段 {sorted(missing)}")
+        if case_id == "already-present-current-target" and integrations:
+            binding = integrations[0]
+            if binding.get("integration_method") != "already_present" or binding.get("target_before") != binding.get("target_after"):
+                errors.append(f"{case_id}: ALREADY_PRESENT 必须绑定相同当前目标")
+
+        seal = evidence.get("seal")
+        if seal is not None:
+            missing = seal_fields - set(seal) if isinstance(seal, dict) else seal_fields
+            if missing:
+                errors.append(f"{case_id}: Acceptance Seal 缺失字段 {sorted(missing)}")
+                continue
+            scalar_fields = seal_fields - {
+                "membership", "integration_target_afters", "all_in_final_history",
+                "eligibility_refresh", "native_readback",
+            }
+            if not all(isinstance(seal.get(field), str) and seal[field] for field in scalar_fields):
+                errors.append(f"{case_id}: Acceptance Seal 标量绑定必须非空")
+            if not isinstance(seal.get("membership"), list) or not seal["membership"]:
+                errors.append(f"{case_id}: Acceptance Seal 必须绑定 confirmed membership")
+            expected_afters = [binding.get("target_after") for binding in integrations]
+            if seal.get("integration_target_afters") != expected_afters or seal.get("all_in_final_history") is not True:
+                errors.append(f"{case_id}: Seal 必须验证全部 Integration target_after")
+            refresh = seal.get("eligibility_refresh", {})
+            if refresh.get("final_target_commit") != seal.get("final_target_commit") or refresh.get("observed_target") != seal.get("final_target_commit"):
+                errors.append(f"{case_id}: Seal eligibility refresh 必须命中 final target Commit")
+            readback = seal.get("native_readback", {})
+            if readback.get("exact_match") is not True or readback.get("native_ref") != seal.get("native_checkpoint_ref"):
+                errors.append(f"{case_id}: Acceptance Seal 必须精确原生回读")
+        if states.get(case_id, {}).get("seal_confirmed") and seal is None:
+            errors.append(f"{case_id}: seal_confirmed 缺失结构化 Seal")
+
+        invalidated = evidence.get("invalidated_refresh")
+        if invalidated is not None and (
+            invalidated.get("reviewed_commit") == invalidated.get("observed_target")
+            or invalidated.get("payload_published") is not False
+        ):
+            errors.append(f"{case_id}: 漂移后的旧 Acceptance 不得发布")
+        acceptance_check = evidence.get("acceptance_check")
+        if acceptance_check is not None:
+            required = {
+                "final_target_commit", "integration_target_afters",
+                "all_in_final_history", "behavior_pass",
+            }
+            if not isinstance(acceptance_check, dict) or required - set(acceptance_check):
+                errors.append(f"{case_id}: Acceptance check 缺失结构化字段")
+            elif acceptance_check["integration_target_afters"] != [
+                binding.get("target_after") for binding in integrations
+            ]:
+                errors.append(f"{case_id}: Acceptance check 未绑定全部 target_after")
+        after_refresh = evidence.get("drift_after_eligibility_refresh")
+        if after_refresh is not None and (
+            seal is None
+            or after_refresh.get("observed_later_target") == seal.get("final_target_commit")
+            or states.get(case_id, {}).get("acceptance_rerun") is not False
+        ):
+            errors.append(f"{case_id}: eligibility refresh 后漂移不得废弃精确确认的 Seal")
     return errors
 
 
@@ -132,6 +231,16 @@ def validate_runtime_case(case: dict) -> list[str]:
         errors.append(f"{case_id}: REPAIR_BUDGET 必须在第三轮修复后")
     if case["domain_state"].get("repair_budget_used") is False and repair_rounds:
         errors.append(f"{case_id}: 声明未消耗预算但存在修复结果")
+    state = case["domain_state"]
+    if (
+        state.get("target_drift")
+        and state.get("review_inputs_unchanged")
+        and state.get("review_rerun") is not False
+    ):
+        errors.append(f"{case_id}: 目标漂移不得使未变 Candidate Review 失效")
+    if state.get("seal_confirmed") and state.get("post_seal_drift"):
+        if state.get("acceptance_rerun") is not False:
+            errors.append(f"{case_id}: Seal 后漂移不得重跑 Acceptance")
 
     terminal = case["terminal_state"]
     if terminal == "COMPLETED":

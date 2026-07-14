@@ -33,8 +33,8 @@ Add only facts needed by that event:
 - Claim: root revision and multi-Spec confirmation reference when applicable.
 - Coder: result, Base/Head, Spec Revision, repair round, diagnosis summary and finding dispositions when repairing, Commit and evidence references.
 - Review: Base/Head, Spec Revision, repair round, and both complete axis Verdicts.
-- Integration: result, target, Commit, PR/MR and native merge or already-present evidence.
-- Acceptance: level, parent revision, final target Commit, Verdict, Findings, and repair key when needed.
+- Integration: result, candidate_head, target_before, target_after, integration_method, and native_ref for merge or already-present evidence.
+- Acceptance: level, parent revision, applicable confirmed membership, final target Commit, Verdict, Findings, and repair key when needed.
 - Pause, resume, or cancel: reason, current Ticket if any, and recovery evidence.
 
 Build an idempotency key from the stable identity of the write. Include Base/Head, revision, axis or acceptance level, and repair round whenever they can distinguish two valid checkpoints. Do not add a sequence chain, parser, serializer, or second state engine.
@@ -61,9 +61,11 @@ Do not use a short TTL to infer that a long-running task is dead. GitHub and Git
 
 1. Read native Tracker state, valid checkpoints, Branch, Commit, PR/MR, checks, and merge facts.
 2. Reconstruct only the last checkpoint whose native references still agree. Do not rely on child thread existence or conversation memory.
-3. Verify the root Claim owner, current Ticket Claim, Base/Head, Spec Revision, target, multi-Spec revision, confirmation reference, and any existing Verdicts. Treat a closed Ticket with valid Integration or a closed root with final Acceptance as a completed inactive Claim, not a resumable owner.
+3. Verify the root Claim owner, current Ticket Claim, Base/Head, Spec Revision, multi-Spec revision, confirmation reference, and any existing Verdicts. Before an Acceptance Seal, also verify the current target. After a Seal, verify its immutable binding and native read-back instead; later target movement does not conflict with it. Treat a closed Ticket with valid Integration or a closed root with final Acceptance as a completed inactive Claim, not a resumable owner.
 4. Publish `RUN_RESUMED` under the original `run_id` and continue after the last verified durable checkpoint. Do not replay a confirmed write.
 5. Create fresh isolated children for the next required role and give each a self-contained Role Task Pack containing only durable role-relevant history.
+
+When a confirmed root Acceptance `PASS` is an Acceptance Seal, resume unfinished closure and Claim release from that Seal. Target movement after the Seal does not invalidate it or require another Reviewer.
 
 Repair Diagnosis is a temporary preflight, not a new checkpoint. When recovery finds it was interrupted before the repair result, rerun the diagnosis from current trigger evidence, cumulative Diff, and durable repair history before authorizing further code changes.
 
