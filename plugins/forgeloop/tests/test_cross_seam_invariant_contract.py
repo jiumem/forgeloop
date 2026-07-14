@@ -65,7 +65,7 @@ class CrossSeamInvariantContractTests(unittest.TestCase):
         self.assertIn("exactly one Owning Ticket", text)
         self.assertIn("deliver the complete parent `Contract`", text)
         self.assertIn("cite the invariant `ID` and parent `Proof` mapping", text)
-        self.assertIn("evidence from the referenced Validation Entry", text)
+        self.assertIn("evidence from every Validation Entry named in the parent `Proof`", text)
         self.assertIn("do not copy or reinterpret the parent Contract", text)
         self.assertIn("Owned Cross-seam Invariants", text)
         for template_tag in ("local-ticket-template", "issue-template"):
@@ -78,11 +78,19 @@ class CrossSeamInvariantContractTests(unittest.TestCase):
     def test_to_tickets_blocks_invalid_ownership_with_zero_writes(self) -> None:
         text = generated_skill("to-tickets")
 
+        self.assertIn(
+            "An invalid or internal-only parent `Proof` is a malformed parent contract",
+            text,
+        )
+        self.assertIn(
+            "an Owning Ticket whose planned evidence uses only a helper or internal seam",
+            text,
+        )
         for contract in (
             "no Contributing Tickets, shared ownership, or special invariant Ticket type",
             "reshape the slices or add an ordinary vertical Ticket",
             "Never create a Ticket that only adds an integration test",
-            "With no owner, multiple owners, or proof only through a helper or internal seam",
+            "With no owner, multiple owners, or an Owning Ticket whose planned evidence",
             "return `CONTRACT_BLOCKER`",
             "do not invent or write back the contract",
             "gains no ownership",
