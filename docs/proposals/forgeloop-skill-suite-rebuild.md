@@ -251,7 +251,7 @@ GitHub/GitLab 将 Event 写为结构化 Comment；Local Markdown 追加到 Ticke
 - `RUN_RESUMED`
 - `EVENT_SUPERSEDED`
 
-每个 Checkpoint 只包含 Run ID、事件类型、事件特定幂等键、主体引用、Tracker 服务端时间，以及该事件恢复所必需的字段。`REVIEW_RESULT` 在两个 Reviewer 独立完成后一次性记录双 Verdict；`ACCEPTANCE_RESULT` 记录 `SPEC` 或 `INITIATIVE` 层级。不得增加序号链、事件解析器、序列化器或第二套状态机。多 Spec Run 只额外记录派生的 `initiative_revision` 与用户确认引用，不复制成员关系。
+每个 Checkpoint 由 Native envelope 与 Prepared Literal Payload 共同构成。Prepared Literal Payload 只包含 Run ID、事件类型、事件特定幂等键、主体引用，以及该事件恢复所必需的字段；Native envelope 保存 Tracker 原生位置与平台观察时间。原生位置和时间不进入 Payload、幂等身份或正文等价判断。`REVIEW_RESULT` 在两个 Reviewer 独立完成后一次性记录双 Verdict；`ACCEPTANCE_RESULT` 记录 `SPEC` 或 `INITIATIVE` 层级。不得增加序号链、事件解析器、序列化器或第二套状态机。多 Spec Run 只额外记录派生的 `initiative_revision` 与用户确认引用，不复制成员关系。
 
 事件发布后不修改；错误通过 `EVENT_SUPERSEDED` 追加纠正。Tracker 原生状态与事件冲突时停止自动推进并报告恢复异常。
 

@@ -115,12 +115,14 @@ class RuntimeContractTests(unittest.TestCase):
         self.assertIn("invalidate both collected results", scheduler)
         self.assertIn("continue both original Reviewers", scheduler)
 
-    def test_checkpoint_time_supports_local_and_remote_trackers(self) -> None:
+    def test_checkpoint_time_belongs_only_to_the_native_envelope(self) -> None:
         events = (SKILL_ROOT / "references" / "events-and-recovery.md").read_text(encoding="utf-8")
 
-        self.assertIn("tracker-observed-time", events)
-        self.assertIn("Tracker server timestamp", events)
-        self.assertIn("append-write time for Local Markdown", events)
+        payload = events.split("The Prepared Literal Payload needs only:", 1)[1].split("```", 2)[1]
+        self.assertIn("server timestamp", events)
+        self.assertIn("append timestamp", events)
+        self.assertNotIn("timestamp", payload)
+        self.assertNotIn("native reference", payload)
 
     def test_ticket_fixed_point_refreshes_and_rejects_uncommitted_candidate_work(self) -> None:
         scheduler = (SKILL_ROOT / "references" / "scheduler.md").read_text(encoding="utf-8")
