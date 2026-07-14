@@ -15,7 +15,7 @@ Give the Acceptance Reviewer a self-contained Role Task Pack containing:
 - `level: SPEC | INITIATIVE` and the formal parent reference and revision;
 - the final target Commit and target branch;
 - member Specs or Tickets and their native completion and integration facts;
-- Acceptance Criteria, cross-item Dependencies, delivery evidence, validation entry points, and known limitations;
+- the applicable formal Spec or member Specs' `Delivery Acceptance` with stable references, cross-item Dependencies, delivery evidence, validation entry points, known limitations, and any `Release Boundary` for reporting only;
 - explicit read-only permissions and the required Verdict.
 
 The Reviewer must inspect the final target tree and return:
@@ -34,17 +34,19 @@ findings:
     repair_check: <observable check>
 ```
 
-The Reviewer must not edit code, Tracker items, Specs, Tickets, or acceptance criteria, and must not create repair work. Return `ACCEPTANCE_BLOCKED` only when the frozen parent, revision, final Commit, membership, or required evidence cannot be read or validated; explain the missing input in Findings.
+The Reviewer judges only `Delivery Acceptance` and does not execute or validate any Post-delivery Release Action. It must not edit code, Tracker items, Specs, Tickets, or acceptance criteria, and must not create repair work. Return `ACCEPTANCE_BLOCKED` only when the frozen parent, revision, final Commit, membership, or required evidence cannot be read or validated; explain the missing input in Findings.
 
 ## Spec Gate
 
-Run fresh Spec Acceptance only when every Ticket in the current Scope is integrated, no Open, Blocked, repair, or pending human-merge Ticket remains, confirmed Scope has not drifted, and the final target Commit is known. Persist `ACCEPTANCE_RESULT level=SPEC` and record the delivery summary, validation entry point, evidence, limitations, and final references. For a single-Spec Run, close the Spec only on `PASS`.
+Run fresh Spec Acceptance only when every Ticket in the current Scope is integrated, no Open, Blocked, repair, or pending human-merge Ticket remains, confirmed Scope has not drifted, and the final target Commit is known. Verify every `Delivery Acceptance` reference against the final target and persist `ACCEPTANCE_RESULT level=SPEC` with the delivery summary, validation entry point, evidence, limitations, and final references. For a single-Spec Run, close the Spec only on `PASS`.
 
 For a multi-Spec Initiative, defer every Spec Acceptance until all Initiative Tickets are integrated. Freeze one final target Commit, then run each member Spec Acceptance sequentially against that same Commit while keeping all member Specs Open. If the target changes during this sequence, invalidate completed Acceptance Verdicts and restart the sequence from the new final Commit.
 
 ## Initiative Gate
 
-A single-Spec Initiative completes with its Spec. For multiple Specs, create a fresh Initiative Acceptance Reviewer only after every member Spec passed, cross-Spec Dependencies are resolved, the confirmed member set and Initiative Revision remain valid, and all delivery entered the final target. Persist `ACCEPTANCE_RESULT level=INITIATIVE` and record cross-Spec evidence and limitations. Only on Initiative `PASS`, close the member Specs whose Acceptance still binds to the frozen final Commit, then close the Initiative parent last.
+A single-Spec Initiative completes with its Spec. For multiple Specs, create a fresh Initiative Acceptance Reviewer only after every member Spec passed, cross-Spec Dependencies are resolved, the confirmed member set and Initiative Revision remain valid, and all delivery entered the final target. Judge only the member Specs' `Delivery Acceptance`; use cross-Spec invariants only as evidence for the Delivery Acceptance items that reference them, never as a parallel completion standard. Persist `ACCEPTANCE_RESULT level=INITIATIVE` and record cross-Spec evidence and limitations. Only on Initiative `PASS`, close the member Specs whose Acceptance still binds to the frozen final Commit, then close the Initiative parent last.
+
+An unexecuted Post-delivery Release Action is not an Acceptance failure and must not return `REPAIR_REQUIRED`. When a Spec has a `Release Boundary`, preserve its Tracking reference verbatim in the completion report. `run-initiative` must not mutate the referenced item's Open/Closed state, assignee, labels, or comments; they must remain unchanged.
 
 For `ACCEPTANCE_BLOCKED`, correct a Scheduler-supplied frozen input and continue the same Acceptance Reviewer when possible. Otherwise persist `ACCEPTANCE_RESULT`, then `RUN_PAUSED` with reason=`ACCEPTANCE_BLOCKED`. Do not derive a repair key, create repair work, or consume an ordinary repair round.
 
@@ -63,6 +65,6 @@ Do not let `run-initiative` create, delete, rewrite, or implicitly invoke work t
 
 ## Material Revisions
 
-Treat spelling, formatting, links, and behavior-preserving clarification as non-material. Treat changes to the Problem, Actor, goal, Acceptance Criteria, failure states, permissions, Scope, interface, Schema, migration, Seam, target, or Initiative membership as material.
+Treat spelling, formatting, links, and behavior-preserving clarification as non-material. Treat changes to the Problem, Actor, goal, `Delivery Acceptance`, Ticket Acceptance criteria, failure states, permissions, Scope, interface, Schema, migration, Seam, target, or Initiative membership as material.
 
 For a material change, require user confirmation, persist `RUN_PAUSED` with reason=`SPEC_CHANGE`, and expose `PAUSED_FOR_SPEC_CHANGE`. Resume only after the user explicitly invokes `$to-tickets` to reconcile Open Tickets and the Scheduler validates the new revision. Preserve completed history and invalidate affected Verdicts and Acceptance eligibility. When the core Problem, Actor, or delivery target is replaced, require a new Spec and mark the old one `SUPERSEDED` through the appropriate planning workflow.

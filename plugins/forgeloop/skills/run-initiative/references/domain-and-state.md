@@ -3,9 +3,9 @@
 ## Domain Objects
 
 - **Initiative**: one user-authorized delivery scope. A single Spec is its own run root. Multiple Specs use one persisted parent Tracker Item with a confirmed member set and derived Initiative Revision.
-- **Spec**: the formal delivery contract, including Revision, target branch, Scope, and Acceptance Criteria.
+- **Spec**: the formal delivery contract, including Revision, target branch, Scope, and `Delivery Acceptance`; an optional `Release Boundary` only records post-delivery actions.
 - **Ticket**: the smallest vertical slice that a fresh Coder can implement and two fresh Reviewers can verify through a public Seam.
-- **Frontier**: all Open, Unblocked, Unclaimed Tickets inside the authorized scope.
+- **Frontier**: the Ticket Frontier of all Open, Unblocked, Unclaimed Tickets inside the authorized scope.
 - **Agent Run**: the durable execution evidence for one Ticket: Coder result, fixed candidate Commit, two independent Verdicts, repair rounds, and Integration Result. Child thread identity is not durable state.
 - **Review Verdict**: one axis's `PASS`, `REPAIR_REQUIRED`, or `REVIEW_BLOCKED`, bound to a fixed Base, Head, and Spec Revision.
 
@@ -15,6 +15,7 @@
 - Use the configured Tracker for Specs, Tickets, membership, dependencies, native Claims, discussions, and Open/Closed state.
 - Use Branch, Commit, PR/MR, checks, and merge facts for candidate implementation and integration.
 - Use code, tests, and observable validation evidence for behavior.
+- Use the formal Spec's `Delivery Acceptance` as the single source of truth for Spec completion. Ticket Acceptance criteria govern only their Ticket slices.
 
 Append-only checkpoints explain what a Run observed and decided. They never override native Tracker or Git facts. Stop recovery when the two conflict; do not choose whichever is convenient.
 
@@ -28,6 +29,7 @@ Append-only checkpoints explain what a Run observed and decided. They never over
 6. Invalidate both Verdicts whenever code, Base, Head, Spec Revision, or final target changes.
 7. Close a Ticket only after integration. Close a single Spec only after its fresh Acceptance `PASS`. In a multi-Spec Run, keep member Specs Open through Initiative Acceptance; on Initiative `PASS`, close the valid member Specs first and the Initiative parent last.
 8. Keep `PAUSED` Items Open and reserve the Claim for the original Run. On `CANCELLED`, release only that Run's Claims and never represent it as `COMPLETED`.
+9. Keep every `Release Boundary` Tracking reference and Post-delivery action outside the Ticket Frontier, Spec Scope, and Initiative membership.
 
 ## Forbidden Secondary State
 
