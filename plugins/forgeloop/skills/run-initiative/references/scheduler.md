@@ -56,6 +56,7 @@ Before repair, validate that every diagnosis field is present, then route the de
 - After every Ticket Claim, refresh the declared target or Integration Branch and freeze Base from its current Head before preparing the Ticket Branch.
 - Publish idempotent durable checkpoints after validating their references.
 - Do not advance the Frontier, Integration, Acceptance, or Closure until native read-back confirms the complete Prepared Literal Payload.
+- After an Acceptance Reviewer returns `PASS`, refresh the target again before rendering an Acceptance `PASS` Payload.
 - Validate that the reported Head equals the Ticket Branch Head, all Ticket implementation changes are committed, unrelated worktree changes remain outside the candidate, and the fixed Base is still valid. Do not rerun the Coder's complete validation suite.
 - Hold both Reviewer results privately until both finish, then validate their common Base/Head and persist one combined review checkpoint.
 - Orchestrate repair, remote branch publication, PR/MR creation or reuse, Required Checks, merge, pause, cancellation, recovery, acceptance, and Tracker closure.

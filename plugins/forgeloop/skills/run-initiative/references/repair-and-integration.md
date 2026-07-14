@@ -14,13 +14,13 @@ Route the complete diagnosis as follows:
 
 When either axis returns `REPAIR_REQUIRED`, wait for the other axis, then continue the original Coder with both complete Finding sets. Do not merge, reorder, or reinterpret Findings. Continue each original Reviewer with the new fixed Head and only that Reviewer's own axis history.
 
-Allow at most three ordinary repair rounds per Ticket. Count every authorized candidate code change against this one budget, whether triggered by Reviewer Findings, a candidate-caused Required Check failure, or compatibility or merge-conflict resolution. Diagnosis turns do not consume this budget. A contract blocker or external infrastructure failure also consumes no round.
+Allow at most three ordinary repair rounds per Ticket. Count every authorized Candidate code change or Head rewrite against this one budget, whether triggered by Reviewer Findings, a candidate-caused Required Check failure, rebase, or compatibility or merge-conflict resolution. Diagnosis turns do not consume this budget. A contract blocker or external infrastructure failure also consumes no round.
 
 The second and third diagnoses must compare current evidence with prior diagnosis and repair history, state whether the prior mechanism hypothesis was falsified, and identify whether different `finding_id` values share one mechanism. New evidence may escalate `LOCAL_REPAIR` to `STRUCTURAL_REPAIR` or `STRUCTURAL_REPAIR` to `CONTRACT_BLOCKER`; it must not downgrade `STRUCTURAL_REPAIR` to `LOCAL_REPAIR` without new evidence.
 
 After the third repair, a fixed Head with two fresh `PASS` Verdicts may integrate normally. If any Blocking Finding, candidate-caused failure, or unresolved compatibility or merge conflict remains, persist `RUN_PAUSED` with reason=`REPAIR_BUDGET`; do not start a fourth repair. Record the three diagnosis classifications, falsified hypotheses, unresolved Findings, current shared mechanism, and next legal action. Never rewrite `REPAIR_REQUIRED` as `PASS`.
 
-Any code change, rebase, Base update, or conflict resolution invalidates both prior Verdicts. Require the Coder to validate the new Head and both Reviewers to issue fresh Verdicts for the complete cumulative Diff.
+Any code change, rebase, replacement of the frozen review Base, or conflict resolution invalidates both prior Verdicts. Target movement alone does not. Require the Coder to validate the new Head and both Reviewers to issue fresh Verdicts for the complete cumulative Diff.
 
 ## Branch Ownership
 
@@ -30,15 +30,21 @@ The Scheduler prepares the Branch and Base. The Coder edits, validates, and comm
 
 ## Integration Policy
 
+If the target moves after Review, retain dual `PASS` only while the Candidate Review inputs remain unchanged. Before integration, refresh the current target, native mergeability, Integration Policy, Required Checks, and native merge evidence. Automatic integration requires platform evidence for the unchanged Candidate plus current target. If current-combination checks cannot be proved, pause through `CHECKS_BLOCKED` or follow the configured `human-merge` policy; do not infer safety from file overlap or a single `MERGEABLE` or `CLEAN` value, and do not trigger an extra full CI run.
+
+A platform-native merge or squash preserves the dual `PASS` when Candidate Head is unchanged, no unreviewed conflict repair occurred, and native evidence binds that Candidate to `target_after`. A rebase, target merge into the Candidate Branch, manual conflict resolution, or any other Head rewrite returns through Repair Diagnosis, Coder validation, and dual Review.
+
+Target refresh, mergeability and Check refresh, read-only Acceptance, and pre- or post-seal drift consume no repair round. A Candidate code change or Head rewrite enters Repair Diagnosis and consumes one round from the shared three-round budget when authorized.
+
 - `auto-merge`: integrate only after both Verdicts have `PASS`, Base/Head and revision remain unchanged, and existing Required Checks, protection rules, and permissions pass.
 - `human-merge`: persist `RUN_PAUSED` with reason=`READY_FOR_HUMAN_MERGE`, preserve the Branch and PR/MR, keep the Ticket Open, and refresh native facts after user action.
 - Missing policy prohibits automatic merge. A one-run override requires explicit user confirmation recorded in the Tracker.
 - Automatic integration does not authorize deployment, release, data migration execution, or any other irreversible external action.
 - A closed but unmerged PR/MR is not integrated.
 
-When a Required Check fails, inspect its existing evidence before acting. If the failure is candidate-caused, send its complete evidence into Repair Diagnosis before deciding whether it is in Scope. Route the diagnosis; only an authorized code change consumes one ordinary repair round, invalidates both Verdicts, and repeats Coder validation and dual review. If the failure is caused by permissions, infrastructure, an unrelated target-branch failure, or evidence that cannot be attributed safely, persist `RUN_PAUSED` with reason=`CHECKS_BLOCKED`. Do not trigger an extra full CI run merely to classify the failure.
+When a Required Check fails, inspect its existing evidence before acting. If the failure is candidate-caused, send its complete evidence into Repair Diagnosis before deciding whether it is in Scope. Route the diagnosis; only an authorized Candidate code change or Head rewrite consumes one ordinary repair round, invalidates both Verdicts, and repeats Coder validation and dual review. If the failure is caused by permissions, infrastructure, an unrelated target-branch failure, or evidence that cannot be attributed safely, persist `RUN_PAUSED` with reason=`CHECKS_BLOCKED`. Do not trigger an extra full CI run merely to classify the failure.
 
-For `NO_CHANGE_REQUIRED`, verify `Base == Head` and both Reviewer Verdicts, then record `INTEGRATION_RESULT` with result=`ALREADY_PRESENT`; do not create an empty Commit or meaningless PR/MR.
+For `NO_CHANGE_REQUIRED`, verify `Base == Head` and both Reviewer Verdicts, then record `INTEGRATION_RESULT` with result=`ALREADY_PRESENT` and the current target as `target_before == target_after`; do not create an empty Commit or meaningless PR/MR.
 
 In shared-branch mode, a Ticket completes after its Commit enters the declared Integration Branch. The final `integrate-and-verify` Ticket owns delivery to the target branch.
 

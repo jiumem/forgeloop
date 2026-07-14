@@ -219,6 +219,18 @@ class RuntimeContractTests(unittest.TestCase):
         self.assertIn("one initial Coder result plus at most three ordinary repair results", tracker)
         self.assertNotIn("at most two ordinary repair results", tracker)
 
+    def test_target_drift_uses_evidence_bindings_without_new_runtime_state(self) -> None:
+        domain = (SKILL_ROOT / "references" / "domain-and-state.md").read_text(encoding="utf-8")
+        acceptance = (SKILL_ROOT / "references" / "acceptance.md").read_text(encoding="utf-8")
+        integration = (SKILL_ROOT / "references" / "repair-and-integration.md").read_text(encoding="utf-8")
+
+        self.assertIn("target reference moving alone does not invalidate", domain)
+        self.assertIn("current target", integration)
+        self.assertIn("not a new Event or state", acceptance)
+        self.assertIn("Drift after that successful refresh counts as post-seal", acceptance)
+        for invented_state in ("SEAL_PENDING", "SEAL_CONFIRMED", "TARGET_DRIFTED"):
+            self.assertNotIn(invented_state, domain + acceptance + integration)
+
 
 if __name__ == "__main__":
     unittest.main()
