@@ -74,7 +74,7 @@ def schema() -> dict:
 
 
 def prompt() -> str:
-    return f"""Apply the planning and runtime protocols to every case. Judge from native Tracker/Git/PR facts. Report only ordinary repair rounds consumed by the immediate action, not the available or remaining budget. Do not invent an Integration Policy, state, Event, parser, Draft phase, or file-overlap gate. Modify nothing.
+    return f"""Apply the planning and runtime protocols to every case. Judge from native Tracker/Git/PR facts. Use KEEP_INDEPENDENT only after explicit user rejection; use REJECT_CUMULATIVE when the Spec or runtime is ineligible. Report only ordinary repair rounds consumed by the immediate action, not the available or remaining budget. Do not invent an Integration Policy, state, Event, parser, Draft phase, or file-overlap gate. Modify nothing.
 
 <to-tickets>{read(PLUGIN_ROOT / "skills" / "to-tickets" / "SKILL.md")}</to-tickets>
 <cumulative>{read(RUN_ROOT / "references" / "cumulative-audit.md")}</cumulative>
