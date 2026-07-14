@@ -12,11 +12,12 @@ Treat the configured Tracker as the sole source of truth for Specs, Tickets, dep
 Do not preload every Reference.
 
 1. At entry, read [scheduler.md](references/scheduler.md), [events-and-recovery.md](references/events-and-recovery.md), and the configured runtime through [tracker-operations.md](references/tracker-operations.md).
-2. Before creating a Coder, read [coder.md](references/coder.md).
-3. Before creating Ticket Reviewers, read [reviewers.md](references/reviewers.md).
-4. When repair, integration, or a merge conflict becomes relevant, read [repair-and-integration.md](references/repair-and-integration.md).
-5. When a Spec becomes eligible for final acceptance, read [acceptance.md](references/acceptance.md).
-6. For a multi-Spec run or a state conflict, also read [domain-and-state.md](references/domain-and-state.md).
+2. For a declared `CUMULATIVE_AUDIT`, read [cumulative-audit.md](references/cumulative-audit.md) before the root Claim or any Integration Branch write.
+3. Before creating a Coder, read [coder.md](references/coder.md).
+4. Before creating Ticket Reviewers, read [reviewers.md](references/reviewers.md).
+5. When repair, integration, or a merge conflict becomes relevant, read [repair-and-integration.md](references/repair-and-integration.md).
+6. When a Spec becomes eligible for final acceptance, read [acceptance.md](references/acceptance.md).
+7. For a multi-Spec run or a state conflict, also read [domain-and-state.md](references/domain-and-state.md).
 
 Follow the selected Reference completely. Do not invent unloaded protocol details.
 

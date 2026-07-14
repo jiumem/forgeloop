@@ -24,7 +24,7 @@ Any code change, rebase, replacement of the frozen review Base, or conflict reso
 
 ## Branch Ownership
 
-Use one independent Branch per Ticket by default. Use a shared Spec Integration Branch only when `$to-tickets` already declared a Wide Refactor, an independently non-green migration, or required atomic delivery, together with a final `integrate-and-verify` Ticket. Neither the Scheduler nor Coder may switch modes ad hoc.
+Use one independent Branch per Ticket by default. Use a shared Spec Integration Branch only when `$to-tickets` already declared `WIDE_REFACTOR`, `NON_GREEN_MIGRATION`, `ATOMIC_DELIVERY`, or `CUMULATIVE_AUDIT`, together with a final `integrate-and-verify` Ticket. Neither the Scheduler nor Coder may switch modes ad hoc. For cumulative delivery, follow [cumulative-audit.md](cumulative-audit.md).
 
 The Scheduler prepares the Branch and Base. The Coder edits, validates, and commits only Ticket Scope. Reviewers inspect fixed Commit objects. The Scheduler owns push, PR/MR creation or reuse, Required Checks, merge, and closure. Let the configured Tracker Runtime decide when remote publication occurs; do not impose an extra Draft-PR phase.
 

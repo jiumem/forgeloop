@@ -231,6 +231,17 @@ class RuntimeContractTests(unittest.TestCase):
         for invented_state in ("SEAL_PENDING", "SEAL_CONFIRMED", "TARGET_DRIFTED"):
             self.assertNotIn(invented_state, domain + acceptance + integration)
 
+    def test_cumulative_audit_is_loaded_as_native_projection_protocol(self) -> None:
+        skill = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
+        cumulative = (SKILL_ROOT / "references" / "cumulative-audit.md").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("[cumulative-audit.md]", skill)
+        self.assertIn("audit projection, not a source of truth", cumulative)
+        self.assertIn("adds no Event, parser, or fact source", cumulative)
+        self.assertIn("fresh Spec Acceptance", cumulative)
+
 
 if __name__ == "__main__":
     unittest.main()

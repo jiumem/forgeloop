@@ -1,3 +1,30 @@
+## Forgeloop Cumulative Audit Declaration
+
+Keep three approved facts independent:
+
+- Branch topology: `INDEPENDENT | SHARED`.
+- Shared-branch reason: `WIDE_REFACTOR | NON_GREEN_MIGRATION | ATOMIC_DELIVERY | CUMULATIVE_AUDIT`.
+- Integration policy: `auto-merge | human-merge`.
+
+`CUMULATIVE_AUDIT` extends only the legal reasons for `SHARED`; it does not grant merge authority or change the existing reasons. Offer it only for a Spec with a native PR/MR runtime and at least two implementation Tickets. A single-Ticket Spec remains `INDEPENDENT`. Local runtime must not offer `CUMULATIVE_AUDIT`, while its other approved shared-branch reasons remain available.
+
+When eligible, propose this declaration with the complete Ticket and dependency drafts:
+
+```text
+Branch topology: SHARED
+Shared-branch reason: CUMULATIVE_AUDIT
+Integration branch: <derived Spec branch>
+Target: <declared target>
+Final integration owner: <integrate-and-verify Ticket>
+Final delivery surface: one cumulative PR/MR to <target>
+```
+
+Publish nothing until the user explicitly approves this declaration, every Ticket body, and all blocking edges together. Rejection keeps `INDEPENDENT`; `$run-initiative` must never switch modes later.
+
+A cumulative draft has exactly one `integrate-and-verify` Ticket, blocked by every delivery Ticket. Ordinary Tickets remain independently verifiable vertical slices and keep only real dependencies; do not turn them into Stacked PRs. The final Ticket must declare its final integration Scope, public validation Seam, failure semantics, and Acceptance criteria before publication. It re-executes or verifies each existing owner-referenced Proof on the final Head but does not gain Cross-seam Invariant ownership.
+
+Because cumulative delivery depends on cross-stage identity, provenance, and evidence, the final `integrate-and-verify` Ticket must be `HIGH_RISK` and receive the normal bound Adversarial Design Review with the complete draft set. Do not publish it or any ordinary Ticket until that Review returns `PASS`.
+
 ## Forgeloop Acceptance Repair Mode
 
 Enter this mode only when the user explicitly invokes `$to-tickets` for a formal `ACCEPTANCE_RESULT` with `REPAIR_REQUIRED` and one stable `repair_key` per Finding. Read the parent Spec or Initiative, the Acceptance Findings, the final Commit, existing Open Tickets, and every Ticket already carrying any of those keys.
