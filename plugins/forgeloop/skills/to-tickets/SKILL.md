@@ -13,7 +13,7 @@ A configured Issue Tracker must already exist before any read or write. If `docs
 
 ### 1. Gather context
 
-Require a reference to one approved formal Tracker Spec, fetch it, and read its full body, comments, revision, state, and existing child Tickets. Conversation context may supply clarifications but cannot serve as the parent contract. Require valid `Delivery Acceptance` with unique stable local references; it is the single source of truth for parent completion. If the reference is missing, ambiguous, not a Spec, not approved, or lacks valid `Delivery Acceptance`, return `FAILED_PRECONDITION` without drafting or publishing Tickets.
+Require a reference to one approved formal Tracker Spec, fetch it, and read its full body, comments, revision, state, and existing child Tickets. Conversation context may supply clarifications but cannot serve as the parent contract. Require valid `Delivery Acceptance` with unique stable local references; it is the single source of truth for parent completion. Also require the parent Spec's explicit `Cross-seam Invariants` form and the Validation Entries referenced by every `Proof`. If either contract is missing or malformed, return `FAILED_PRECONDITION` without drafting or publishing Tickets. If the reference is missing, ambiguous, not a Spec, not approved, or lacks valid `Delivery Acceptance`, return `FAILED_PRECONDITION` without drafting or publishing Tickets.
 
 ### 2. Explore the codebase (optional)
 
@@ -24,6 +24,10 @@ Look for opportunities to prefactor the code to make the implementation easier. 
 ### 3. Draft vertical slices
 
 Map every Ticket to one or more stable Delivery Acceptance references before drafting. Together, the Tickets must cover every parent reference while retaining their own Ticket Acceptance criteria. Keep `Release Boundary` Post-delivery actions and Tracking references outside the Ticket Frontier, Spec Scope, and Initiative membership; never create a parallel parent completion standard.
+
+When the parent states `None — no Cross-seam Invariants.`, retain `Invariant ownership: None`. Otherwise assign every invariant to exactly one Owning Ticket. That Ticket must deliver the complete parent `Contract`; its Acceptance criteria cite the invariant `ID` and parent `Proof` mapping and require evidence from the referenced Validation Entry. Record references only; do not copy or reinterpret the parent Contract. Other Tickets may provide prerequisites through normal blocking edges, but there are no Contributing Tickets, shared ownership, or special invariant Ticket type.
+
+If no proposed ordinary vertical slice can own the complete Contract, reshape the slices or add an ordinary vertical Ticket that closes the real behavior. Never create a Ticket that only adds an integration test. Later integration, cumulative audit, or Final Acceptance may re-run or inspect the owner's Proof on a bound Head but gains no ownership. If decomposition reveals a required invariant absent from the approved Spec, or requires changing a parent Contract or Proof mapping, return `CONTRACT_BLOCKER`; do not invent or write back the contract, and keep Tracker writes at zero.
 
 Break the work into **tracer bullet** tickets.
 
@@ -42,7 +46,7 @@ Give each ticket its **blocking edges** — the other tickets that must complete
 
 ### 4. Quiz the user
 
-Present the proposed breakdown as a numbered list. For each ticket, show:
+Present the proposed breakdown as a numbered list. Then show the complete `Invariant → Owning Ticket` mapping; when the parent declares `None`, show `Invariant ownership: None`. For each ticket, show:
 
 - **Title**: short descriptive name
 - **Blocked by**: which other tickets (if any) must complete first
@@ -54,7 +58,7 @@ Ask the user:
 - Are the blocking edges correct — does each ticket only depend on tickets that genuinely gate it?
 - Should any tickets be merged or split further?
 
-Iterate until the user approves the breakdown.
+Validate the mapping before asking for approval: every parent invariant has exactly one Owning Ticket, and that Ticket closes the complete Contract and will submit the parent Proof through its real public behavior seam. With no owner, multiple owners, or proof only through a helper or internal seam, publish no Tickets and ask the user to adjust the ordinary vertical slices. Iterate until the user approves both the breakdown and the mapping. Every invariant gate runs before the first Tracker write. On failure, create no Ticket, change no Tracker state, and add no `ready-for-agent` label. Ownership IDs and references are Agent-readable planning traceability, not Tracker state, a parser, or a workflow.
 
 ### 5. Publish the tickets to the configured tracker
 
@@ -74,6 +78,8 @@ Do NOT close or modify any parent issue.
 **What to build:** the end-to-end behaviour this ticket makes work, from the user's perspective — not a layer-by-layer implementation list.
 
 **Parent Delivery Acceptance references:** <stable parent references covered by this Ticket>
+
+**Owned Cross-seam Invariants:** <invariant IDs or None; for each ID, reference the parent Contract and Proof without copying them>
 
 **Blocked by:** the numbers/titles of the tickets that gate this one, or "None — can start immediately".
 
@@ -97,6 +103,10 @@ The end-to-end behaviour this ticket makes work, from the user's perspective —
 ## Parent Delivery Acceptance references
 
 - <stable parent reference covered by this Ticket>
+
+## Owned Cross-seam Invariants
+
+- <invariant ID or None; for each ID, reference the parent Contract and Proof without copying them>
 
 ## Acceptance criteria
 
