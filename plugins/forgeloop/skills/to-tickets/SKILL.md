@@ -15,9 +15,9 @@ A configured Issue Tracker must already exist before any read or write. If `docs
 
 Require a reference to one approved formal Tracker Spec, fetch it, and read its full body, comments, revision, state, and existing child Tickets. Conversation context may supply clarifications but cannot serve as the parent contract. Require valid `Delivery Acceptance` with unique stable local references; it is the single source of truth for parent completion. Also require the parent Spec's explicit `Cross-seam Invariants` form and the Validation Entries referenced by every `Proof`. An invalid or internal-only parent `Proof` is a malformed parent contract: return `FAILED_PRECONDITION` without drafting or publishing Tickets. If the reference is missing, ambiguous, not a Spec, not approved, or lacks valid `Delivery Acceptance`, return `FAILED_PRECONDITION` without drafting or publishing Tickets.
 
-### 2. Explore the codebase (optional)
+### 2. Explore the relevant codebase
 
-If you have not already explored the codebase, do so to understand the current state of the code. Ticket titles and descriptions should use the project's domain glossary vocabulary, and respect ADRs in the area you're touching.
+Explore the code relevant to this Spec and retain locatable evidence for design decisions. Complete this exploration before drafting or risk screening. Ticket titles and descriptions should use the project's domain glossary vocabulary and respect relevant ADRs.
 
 Look for opportunities to prefactor the code to make the implementation easier. "Make the change easy, then make the easy change."
 
@@ -44,9 +44,45 @@ Give each ticket its **blocking edges** — the other tickets that must complete
 
 **Wide refactors are the exception to vertical slicing.** A **wide refactor** is one mechanical change — rename a column, retype a shared symbol — whose **blast radius** fans across the whole codebase, so a single edit breaks thousands of call sites at once and no vertical slice can land green. Don't force it into a tracer bullet; sequence it as **expand–contract**. First expand: add the new form beside the old so nothing breaks. Then migrate the call sites over in batches sized by blast radius (per package, per directory), each batch its own ticket blocked by the expand, keeping CI green batch to batch because the old form still exists. Finally contract: delete the old form once no caller remains, in a ticket blocked by every migrate batch. When even the batches can't stay green alone, keep the sequence but let them share an integration branch that all block a final integrate-and-verify ticket — green is promised only there.
 
+Complete the full draft set before risk screening, including the final integrate-and-verify Ticket and shared-branch reason required by the selected Branch topology. Classify every draft and show `Ticket → STANDARD | HIGH_RISK → evidence`. Use `HIGH_RISK` only when correctness, failure semantics, or evidence credibility materially depends on one or more of these properties:
+
+- interpretation of dynamic, untrusted, or extensible input;
+- concurrency, ordering, cancellation, retry, timeout, re-entry, or resource lifecycle;
+- multi-step state changes requiring atomicity, rollback, recovery, or finalization;
+- authority, permission, ownership, or another trust relationship;
+- versioning, compatibility, migration, or recovery of old state;
+- cross-stage identity, provenance, or evidence.
+
+Do not classify by syntax, fields, dependencies, paths, project names, or technology labels. A merely mentioned property remains `STANDARD` when it does not materially affect correctness, failure semantics, or evidence credibility.
+
+For each `HIGH_RISK` draft add a complete section with no `TBD`, placeholders, or unresolved branches:
+
+```markdown
+## Adversarial Design
+
+Risk surface:
+<input, state, timing, or authority that could break correctness>
+
+Bounded model:
+<finite and falsifiable grammar, state, transaction, lock, ownership, or compatibility rules>
+
+Invariants:
+<references to existing Spec/ADR invariants plus Ticket-internal constraints within Scope>
+
+Adversarial cases:
+<counterexamples directly related to the identified risk>
+
+Proof:
+<expected result observed through a real public behavior seam>
+```
+
+The model must bound applicable inputs, states, transitions, ordering, or ownership; claims such as “handle every case” are not finite and falsifiable. Cases target the identified risk rather than mechanically covering every category. Proof through only a helper, internal field, or intermediate projection is insufficient. This Proof is Ticket-level adversarial design evidence, not another `Delivery Acceptance` source. It may narrow checks for Ticket-internal constraints; if it claims a parent Cross-seam Invariant, cite its existing Validation Entry/Proof mapping. Reference the Spec and ADRs; do not copy or reinterpret the parent contract.
+
+Implementation design may only refine approved behavior. If exploration exposes an unapproved high-risk product behavior, invariant, or failure semantics, or the design must change the Spec, `Delivery Acceptance`, product behavior, Scope, an ADR, or an approved public interface, return `CONTRACT_BLOCKER` and keep Tracker writes at zero. Approved implementation design cannot replace a missing product contract.
+
 ### 4. Quiz the user
 
-Present the proposed breakdown as a numbered list. Then show the complete `Invariant → Owning Ticket` mapping; when the parent declares `None`, show `Invariant ownership: None`. For each ticket, show:
+Show the complete Ticket bodies, the `Ticket → STANDARD | HIGH_RISK → evidence` classification, and the complete `Invariant → Owning Ticket` mapping; when the parent declares `None`, show `Invariant ownership: None`. Then summarize each Ticket:
 
 - **Title**: short descriptive name
 - **Blocked by**: which other tickets (if any) must complete first
@@ -58,11 +94,17 @@ Ask the user:
 - Are the blocking edges correct — does each ticket only depend on tickets that genuinely gate it?
 - Should any tickets be merged or split further?
 
-Validate the mapping before asking for approval: every parent invariant has exactly one Owning Ticket, and that Ticket closes the complete Contract and will submit every assertion in the parent Proof through its named public behavior seam. With no owner, multiple owners, or an Owning Ticket whose planned evidence uses only a helper or internal seam, publish no Tickets and ask the user to adjust the ordinary vertical slices. Iterate until the user approves both the breakdown and the mapping. Every invariant gate runs before the first Tracker write. On failure, create no Ticket, change no Tracker state, and add no `ready-for-agent` label. Ownership IDs and references are Agent-readable planning traceability, not Tracker state, a parser, or a workflow.
+Validate the mapping before asking for approval: every parent invariant has exactly one Owning Ticket, and that Ticket closes the complete Contract and will submit every assertion in the parent Proof through its named public behavior seam. With no owner, multiple owners, or an Owning Ticket whose planned evidence uses only a helper or internal seam, publish no Tickets and ask the user to adjust the ordinary vertical slices. Ask the user to approve the complete drafts, including risk classification, blocking edges, invariant mapping, and every applicable `Adversarial Design`. If the user changes any of them, update and reapprove the complete set. Every invariant gate runs before the first Tracker write. On failure, create no Ticket, change no Tracker state, and add no `ready-for-agent` label. Ownership IDs and references are Agent-readable planning traceability, not Tracker state, a parser, or a workflow.
+
+Only after approval, create one fresh, isolated, read-only Design Reviewer for each approved `HIGH_RISK` Ticket; skip Design Reviewers for `STANDARD` Tickets. Bind each Reviewer to the parent Spec revision, relevant ADRs, complete Ticket draft, blocking edges, code evidence, and referenced invariants. It must not modify files, the Spec, ADRs, draft Tickets, or Tracker state, and must not propose unapproved product behavior. Ask it to use counterexamples to check that the model is finite, facts have one authoritative source, failure and recovery close the loop, no hidden caller constraints remain, and Proof is credible.
+
+Require `PASS | DESIGN_GAPS | REVIEW_BLOCKED`. Every Finding contains `evidence`, `counterexample`, `missing_decision`, `required_proof`, and `contract_impact: NONE | SPEC | ADR`. Return PASS only with no Findings. A PASS binds only its exact fixed inputs. If that Ticket body, blocking edges, Spec revision, or referenced ADR changes, discard the affected PASS and run a new Reviewer.
+
+All bound high-risk verdicts must be PASS before publication. If any Finding has `SPEC` or `ADR` impact, return `CONTRACT_BLOCKER` without changing the contract. Otherwise, for `DESIGN_GAPS`, keep Tracker writes at zero, return locatable Findings, and name the design clarification entry point. Do not create an automatic design repair loop. For `REVIEW_BLOCKED`, report the unreadable or invalid fixed input; do not treat missing evidence as PASS. Any failed, blocked, stale, or contract-conflicting review keeps Tracker writes at zero. Do not publish `STANDARD` Tickets early. These classifications and verdicts are Agent-readable design judgment and evidence, not Tracker fields, a parser, a state machine, or a workflow DSL.
 
 ### 5. Publish the tickets to the configured tracker
 
-Publish the approved tickets. Build every new Ticket's canonical tracker title as `[Ticket] <outcome-oriented title>` and render the `[Ticket]` prefix exactly once, even when the supplied title already contains a canonical or legacy prefix. Use that canonical title for conflict checks, duplicate queries, and publication. **How** depends on the tracker `/setup-forgeloop` configured — the tickets are the same either way, only the shape of the blocking edges changes:
+After every applicable Design Reviewer returns a bound PASS, publish the complete Ticket set in one batch. Build every new Ticket's canonical tracker title as `[Ticket] <outcome-oriented title>` and render the `[Ticket]` prefix exactly once, even when the supplied title already contains a canonical or legacy prefix. Use that canonical title for conflict checks, duplicate queries, and publication. **How** depends on the tracker `/setup-forgeloop` configured — the tickets are the same either way, only the shape of the blocking edges changes:
 
 - **Local files** → write one file per ticket under `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01` in dependency order (blockers first). Each file's "Blocked by" lists the numbers/titles it depends on. Use the per-ticket file template below — one ticket per file, never a single combined file.
 - **A real issue tracker (GitHub, Linear, …)** → publish one issue per ticket in dependency order (blockers first) so each ticket's blocking edges can reference real identifiers. Use the platform's native blocking / sub-issue relationship where it has one; otherwise set each ticket's "Blocked by" to the blocking issues. Apply the `ready-for-agent` triage label unless instructed otherwise — the tickets are agent-grabbable by construction.
@@ -80,6 +122,8 @@ Do NOT close or modify any parent issue.
 **Parent Delivery Acceptance references:** <stable parent references covered by this Ticket>
 
 **Owned Cross-seam Invariants:** <invariant IDs or None; for each ID, reference the parent Contract and Proof without copying them>
+
+**Adversarial Design:** <omit for STANDARD; for HIGH_RISK include Risk surface, Bounded model, Invariants, Adversarial cases, and Proof>
 
 **Blocked by:** the numbers/titles of the tickets that gate this one, or "None — can start immediately".
 
@@ -107,6 +151,10 @@ The end-to-end behaviour this ticket makes work, from the user's perspective —
 ## Owned Cross-seam Invariants
 
 - <invariant ID or None; for each ID, reference the parent Contract and Proof without copying them>
+
+## Adversarial Design
+
+Omit this section for `STANDARD`. For `HIGH_RISK`, include complete Risk surface, Bounded model, Invariants, Adversarial cases, and Proof fields.
 
 ## Acceptance criteria
 
