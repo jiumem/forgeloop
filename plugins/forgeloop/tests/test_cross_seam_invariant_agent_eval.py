@@ -213,11 +213,11 @@ def evaluation_prompt() -> str:
 gates, permissions, conflicts, and required user approvals pass. A temporary mock Tracker is in
 `tracker/`. For each candidate:
 
-- if its gate passes, create one empty `tracker/<id>.published`, then return READY_TO_PUBLISH;
-- for an invalid to-spec invariant, write nothing and return CONTEXT_INSUFFICIENT;
-- for no owner, multiple owners, or internal-only owner proof, write nothing and return ADJUST_BREAKDOWN;
-- for a required but undeclared invariant or a required parent contract change, write nothing and
-  return CONTRACT_BLOCKER;
+- Use the disposition required by the applicable Skill: READY_TO_PUBLISH when its gate passes,
+  CONTEXT_INSUFFICIENT when `to-spec` requires that result, ADJUST_BREAKDOWN when `to-tickets`
+  requires further slice adjustment, or CONTRACT_BLOCKER when `to-tickets` requires that result.
+- Create one empty `tracker/<id>.published` only for READY_TO_PUBLISH; write nothing for every
+  other disposition.
 - use ALLOWED_AFTER_GATE only with READY_TO_PUBLISH; otherwise use ZERO;
 - list every gap on failure and use an empty gaps list on success.
 
@@ -233,6 +233,40 @@ Do not create any other file, inspect the environment, or use the network.
 {json.dumps(candidates, indent=2)}
 </candidates>
 """
+
+
+def observed_tracker_entries(tracker: Path) -> set[str]:
+    return {
+        path.relative_to(tracker).as_posix()
+        for path in tracker.rglob("*")
+    }
+
+
+class CrossSeamInvariantEvalPromptTests(unittest.TestCase):
+    def test_eval_prompt_does_not_supply_domain_answers(self) -> None:
+        prompt = evaluation_prompt()
+
+        for leaked_answer in (
+            "for no owner, multiple owners",
+            "internal-only owner proof",
+            "for a required but undeclared invariant",
+        ):
+            with self.subTest(leaked_answer=leaked_answer):
+                self.assertNotIn(leaked_answer, prompt)
+        self.assertIn("Use the disposition required by the applicable Skill", prompt)
+
+    def test_tracker_observation_includes_every_entry(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            tracker = Path(directory)
+            (tracker / "success.published").touch()
+            (tracker / "failed.comment").touch()
+            (tracker / "nested").mkdir()
+            (tracker / "nested" / "status").touch()
+
+            self.assertEqual(
+                observed_tracker_entries(tracker),
+                {"failed.comment", "nested", "nested/status", "success.published"},
+            )
 
 
 @unittest.skipUnless(
@@ -281,12 +315,16 @@ class CrossSeamInvariantAgentEvalTests(unittest.TestCase):
                 f"Codex Agent eval failed:\n{completed.stdout}\n{completed.stderr}",
             )
             actual = json.loads(result_path.read_text(encoding="utf-8"))["results"]
-            published = {path.stem for path in tracker.glob("*.published")}
+            tracker_entries = observed_tracker_entries(tracker)
 
         self.assertEqual({item["id"] for item in actual}, {case["id"] for case in CASES})
         self.assertEqual(
-            published,
-            {case["id"] for case in CASES if case["tracker_writes"] == "ALLOWED_AFTER_GATE"},
+            tracker_entries,
+            {
+                f"{case['id']}.published"
+                for case in CASES
+                if case["tracker_writes"] == "ALLOWED_AFTER_GATE"
+            },
         )
         by_id = {item["id"]: item for item in actual}
         for case in CASES:
