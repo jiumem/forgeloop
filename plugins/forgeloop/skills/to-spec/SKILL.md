@@ -20,6 +20,9 @@ Check with the user that these seams match their expectations.
    - No interview does not mean inventing decisions. If the current context still lacks the Problem, Actor, target behavior, key failure states, user or role permission model, Scope, public Seam, or irreversible constraints, return `CONTEXT_INSUFFICIENT` and list each gap. Do not generate or publish a draft, and do not fill in decisions on the user's behalf.
    - Confirm that the user approved the test Seam from step 2.
    - Synthesize the complete candidate Spec in memory from the template below. Validate the in-memory candidate before publication: `Delivery Acceptance` must be non-empty, every item must state an observable delivery outcome, and every item must have a unique stable local reference in the current Revision such as `DA-1`. If the section is missing or empty, an outcome is not observable, a reference is duplicate, or an item contains `TBD`, a placeholder, or an unresolved branch, return `CONTEXT_INSUFFICIENT` and list the gaps.
+   - Validate the `Validation Entries` in `Testing Decisions`: require at least one unique stable `Name`, and complete `Covers`, `Behavior`, and `Evidence` fields. Every `Covers` reference must exactly match a Delivery Acceptance identifier in the current Revision. Every Delivery Acceptance item must be covered by at least one entry; similar wording does not create a mapping.
+   - Validate `Acceptance Prerequisites`: a prerequisite is a condition a Validation Entry cannot establish itself and whose absence makes that entry unavailable or its evidence untrustworthy. Require exactly one of the two template forms. For a prerequisite list, require complete `Condition`, `Required by`, `Observation`, and `Unavailable path` fields. Every `Required by` name must exactly match a declared Validation Entry. `Observation` must state the confirmation method, required permissions, and allowed side effects, including explicit `None`; `Unavailable path` must state the next legal action and responsible role. Reject missing fields, invalid references, both forms, contradictions, `TBD`, placeholders, and unresolved branches with `CONTEXT_INSUFFICIENT`, listing every gap.
+   - Keep this gate declarative and read-only. Names and references are Agent-readable traceability, not a parser, schema, execution state, or automated workflow. Do not establish prerequisites, observe their current state, execute a Validation Entry, or expand access. Validation Entries may cover only Delivery Acceptance; do not place a Post-delivery Release Action in `Covers` or imply through `Observation` that this Run authorized or completed it. Apply this contract only to the candidate new Spec; do not migrate or rewrite an existing Spec.
    - Check completion claims and evidence for semantic consistency across all normative content, including sections added later. This judgment must not use keyword lists, regular expressions, or a fixed section list as a substitute. If a title or body claims an external action already happened but the evidence only proves release readiness, return `CONTEXT_INSUFFICIENT` and identify the conflicting goal and evidence. Delivering release capability, a release pipeline, or release readiness is valid, but its completion wording must not claim an actual release.
    - If the context includes a genuine Post-delivery Release Action, require the complete `Release Boundary` from the template. Its Tracking reference names an existing external item or `None`; `None` does not mean the action is covered. Do not create a Release Item, define a dedicated Release Tracker type or workflow, or put the external action in `Delivery Acceptance`.
    - Read the configured Tracker Operations and verify authentication, Tracker publication permission, and target conflicts. On failure, return `FAILED_PRECONDITION`, leave the Spec unpublished, and do not fall back to another Tracker.
@@ -71,6 +74,28 @@ A list of testing decisions that were made. Include:
 - A description of what makes a good test (only test external behavior, not implementation details)
 - Which modules will be tested
 - Prior art for the tests (i.e. similar types of tests in the codebase)
+
+### Validation Entries
+
+List at least one Validation Entry. For each entry, provide all four fields:
+
+- Name: <stable, unique name in the current Spec Revision>
+- Covers: <one or more exact Delivery Acceptance references>
+- Behavior: <public behavior validated through this entry>
+- Evidence: <observable evidence produced by successful validation>
+
+## Acceptance Prerequisites
+
+Use exactly one of these mutually exclusive forms and remove the unused form:
+
+1. State: `All Validation Entries can establish their own runtime conditions without separately supplied acceptance prerequisites.`
+2. List every prerequisite with all four fields:
+   - Condition: <condition that must hold>
+   - Required by: <one or more exact Validation Entry names>
+   - Observation: <how to confirm the condition, required permissions, and allowed side effects; state None explicitly where applicable>
+   - Unavailable path: <next legal action and responsible role when the condition is missing or unknown; recovery, requesting input, waiting, escalation, and blocking are all valid>
+
+Do not leave `TBD`, placeholders, or an unresolved choice between the forms. Do not require the Agent to recover a missing prerequisite.
 
 ## Delivery Acceptance
 
