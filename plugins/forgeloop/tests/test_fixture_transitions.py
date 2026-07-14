@@ -41,8 +41,34 @@ class FixtureTransitionTests(unittest.TestCase):
                 "review-shared-input-corrected",
                 "spec-revision-reconciled",
                 "initiative-repair-owned",
+                "repair-diagnosis-github",
+                "repair-diagnosis-gitlab",
+                "repair-diagnosis-local",
+                "structural-repair",
+                "repair-diagnosis-interrupted",
+                "third-repair-pass",
+                "mixed-repair-budget",
             }.issubset(ids)
         )
+
+    def test_repair_diagnosis_and_three_round_budget_have_closed_loop_fixtures(self) -> None:
+        data = json.loads(M2_FIXTURE.read_text(encoding="utf-8"))
+        by_id = {case["id"]: case for case in data["cases"]}
+
+        for tracker in ("github", "gitlab", "local"):
+            case = by_id[f"repair-diagnosis-{tracker}"]
+            self.assertEqual(case["domain_state"]["diagnosis_writes"], 0)
+            self.assertEqual(case["domain_state"]["repair_rounds"], 1)
+            self.assertFalse(any("REPAIR_DIAGNOSIS:" in event for event in case["event_trace"]))
+
+        self.assertTrue(by_id["structural-repair"]["domain_state"]["codebase_design_used"])
+        self.assertTrue(by_id["repair-diagnosis-interrupted"]["domain_state"]["diagnosis_rerun"])
+        self.assertEqual(by_id["third-repair-pass"]["domain_state"]["repair_rounds"], 3)
+        self.assertEqual(by_id["mixed-repair-budget"]["domain_state"]["repair_rounds"], 3)
+
+        exhausted = by_id["repair-exhausted"]
+        self.assertEqual(exhausted["domain_state"]["repair_rounds"], 3)
+        self.assertIn("第四轮普通修复", exhausted["forbidden_writes"])
 
     def test_completed_without_acceptance_is_rejected(self) -> None:
         fixture = {
@@ -235,6 +261,74 @@ class FixtureTransitionTests(unittest.TestCase):
             errors = MODULE.validate(path)
 
         self.assertTrue(any("所有 Ticket 集成后开始" in error for error in errors))
+
+    def test_fourth_repair_round_is_rejected(self) -> None:
+        fixture = self._repair_fixture(
+            "fourth-repair",
+            [
+                "CODER_RESULT:REPAIR_1_READY",
+                "CODER_RESULT:REPAIR_2_READY",
+                "CODER_RESULT:REPAIR_3_READY",
+                "CODER_RESULT:REPAIR_4_READY",
+                "RUN_PAUSED:REPAIR_BUDGET",
+            ],
+        )
+
+        errors = self._validate_fixture(fixture)
+
+        self.assertTrue(any("不得超过三轮普通修复" in error for error in errors))
+
+    def test_repair_budget_pause_requires_three_rounds(self) -> None:
+        fixture = self._repair_fixture(
+            "early-budget-pause",
+            ["CODER_RESULT:REPAIR_1_READY", "RUN_PAUSED:REPAIR_BUDGET"],
+        )
+
+        errors = self._validate_fixture(fixture)
+
+        self.assertTrue(any("REPAIR_BUDGET 必须在第三轮修复后" in error for error in errors))
+
+    def test_contract_blocker_fixture_cannot_claim_zero_budget_after_repair(self) -> None:
+        fixture = self._repair_fixture(
+            "false-zero-budget",
+            ["CODER_RESULT:REPAIR_1_READY", "RUN_PAUSED:CONTRACT_BLOCKER"],
+        )
+        fixture["cases"][0]["terminal_state"] = "CONTRACT_BLOCKER"
+        fixture["cases"][0]["domain_state"] = {"repair_budget_used": False}
+
+        errors = self._validate_fixture(fixture)
+
+        self.assertTrue(any("声明未消耗预算但存在修复结果" in error for error in errors))
+
+    @staticmethod
+    def _repair_fixture(case_id: str, trace: list[str]) -> dict:
+        return {
+            "schema_version": 1,
+            "kind": "run-initiative-runtime",
+            "cases": [
+                {
+                    "id": case_id,
+                    "group": case_id,
+                    "tracker": "local",
+                    "initial_state": "修复中。",
+                    "entry_prompt": "继续。",
+                    "expected_writes": ["修复证据"],
+                    "forbidden_writes": ["越界修复"],
+                    "terminal_state": "PAUSED",
+                    "failure_diagnostic": "预算边界。",
+                    "domain_state": {},
+                    "event_trace": ["RUN_CLAIMED", *trace],
+                    "final_native_state": {"root_open": True, "claim_active": True},
+                }
+            ],
+        }
+
+    @staticmethod
+    def _validate_fixture(fixture: dict) -> list[str]:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "fixture.json"
+            path.write_text(json.dumps(fixture), encoding="utf-8")
+            return MODULE.validate(path)
 
 
 if __name__ == "__main__":

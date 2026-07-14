@@ -26,4 +26,6 @@ Append minimal idempotent checkpoints under the configured Agent Run section. St
 
 ## Platform-Equivalent Result
 
-All runtimes must produce the same domain outcome: one root Scheduler Claim, at most one native active Ticket Claim, one initial Coder result plus at most two ordinary repair results per Ticket, two independently collected Verdicts persisted together, explicit Integration, fresh layered Acceptance, explicit pause/cancel behavior, and recovery from Tracker and Git without old child threads. CLI commands and physical storage must not change completion semantics.
+The Repair Loop is the authoritative repair-budget contract; this runtime summary must mirror it.
+
+All runtimes must produce the same domain outcome: one root Scheduler Claim, at most one native active Ticket Claim, one initial Coder result plus at most three ordinary repair results per Ticket, two independently collected Verdicts persisted together, explicit Integration, fresh layered Acceptance, explicit pause/cancel behavior, and recovery from Tracker and Git without old child threads. CLI commands and physical storage must not change completion semantics.

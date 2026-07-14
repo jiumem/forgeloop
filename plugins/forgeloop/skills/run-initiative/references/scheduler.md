@@ -47,6 +47,10 @@ If a required child cannot actually be created, persist `RUN_PAUSED` with reason
 
 If a Reviewer returns `REVIEW_BLOCKED`, finish collecting the other axis without exposing either result. When access to the exact same frozen inputs is restored without changing their contents, continue only the blocked Reviewer. When Ticket, Spec Revision, Base/Head, Coder evidence, or any other shared input changes, invalidate both collected results and continue both original Reviewers with the corrected common task pack. Otherwise persist the combined result and `RUN_PAUSED` with reason=`REVIEW_BLOCKED`. Do not send blocked input to the Coder or consume an ordinary repair round.
 
+## Repair Diagnosis Routing
+
+Before repair, validate that every diagnosis field is present, then route the declared classification under the Repair protocol. The Scheduler must not classify the mechanism itself, merge classifications, or authorize a repair from an incomplete diagnosis. It must not merge, reorder, or rewrite Reviewer Findings.
+
 ## Scheduler Responsibilities
 
 - After every Ticket Claim, refresh the declared target or Integration Branch and freeze Base from its current Head before preparing the Ticket Branch.

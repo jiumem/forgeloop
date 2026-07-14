@@ -28,6 +28,7 @@ RUNTIME_EVENTS = {
 }
 REVIEW_PASS = re.compile(r"^(?:[A-Z0-9]+_)*DUAL_PASS$")
 ACCEPTANCE_PASS = re.compile(r"^(?:SPEC_PASS(?:_[A-Z0-9]+)*|INITIATIVE_PASS)$")
+REPAIR_ROUND = re.compile(r"^(?:[A-Z]+_)*REPAIR_([1-9][0-9]*)")
 
 
 def event_payload(event: str, event_name: str) -> str | None:
@@ -89,6 +90,21 @@ def validate_runtime_case(case: dict) -> list[str]:
     unknown_events = sorted(set(event_names) - RUNTIME_EVENTS)
     if unknown_events:
         errors.append(f"{case_id}: 包含未声明的运行事件 {unknown_events}")
+
+    repair_rounds = []
+    for event in trace:
+        payload = event_payload(event, "CODER_RESULT")
+        if payload is None or (match := REPAIR_ROUND.match(payload)) is None:
+            continue
+        repair_rounds.append(int(match.group(1)))
+    if any(round_number > 3 for round_number in repair_rounds):
+        errors.append(f"{case_id}: 不得超过三轮普通修复")
+    if "RUN_PAUSED:REPAIR_BUDGET" in trace and (
+        not repair_rounds or max(repair_rounds) != 3
+    ):
+        errors.append(f"{case_id}: REPAIR_BUDGET 必须在第三轮修复后")
+    if case["domain_state"].get("repair_budget_used") is False and repair_rounds:
+        errors.append(f"{case_id}: 声明未消耗预算但存在修复结果")
 
     terminal = case["terminal_state"]
     if terminal == "COMPLETED":
