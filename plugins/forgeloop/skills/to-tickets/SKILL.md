@@ -13,7 +13,7 @@ A configured Issue Tracker must already exist before any read or write. If `docs
 
 ### 1. Gather context
 
-Require a reference to one approved formal Tracker Spec, fetch it, and read its full body, comments, revision, state, and existing child Tickets. Conversation context may supply clarifications but cannot serve as the parent contract. If the reference is missing, ambiguous, not a Spec, or not approved, return `FAILED_PRECONDITION` without drafting or publishing Tickets.
+Require a reference to one approved formal Tracker Spec, fetch it, and read its full body, comments, revision, state, and existing child Tickets. Conversation context may supply clarifications but cannot serve as the parent contract. Require valid `Delivery Acceptance` with unique stable local references; it is the single source of truth for parent completion. If the reference is missing, ambiguous, not a Spec, not approved, or lacks valid `Delivery Acceptance`, return `FAILED_PRECONDITION` without drafting or publishing Tickets.
 
 ### 2. Explore the codebase (optional)
 
@@ -22,6 +22,8 @@ If you have not already explored the codebase, do so to understand the current s
 Look for opportunities to prefactor the code to make the implementation easier. "Make the change easy, then make the easy change."
 
 ### 3. Draft vertical slices
+
+Map every Ticket to one or more stable Delivery Acceptance references before drafting. Together, the Tickets must cover every parent reference while retaining their own Ticket Acceptance criteria. Keep `Release Boundary` Post-delivery actions and Tracking references outside the Ticket Frontier, Spec Scope, and Initiative membership; never create a parallel parent completion standard.
 
 Break the work into **tracer bullet** tickets.
 
@@ -71,6 +73,8 @@ Do NOT close or modify any parent issue.
 
 **What to build:** the end-to-end behaviour this ticket makes work, from the user's perspective — not a layer-by-layer implementation list.
 
+**Parent Delivery Acceptance references:** <stable parent references covered by this Ticket>
+
 **Blocked by:** the numbers/titles of the tickets that gate this one, or "None — can start immediately".
 
 **Status:** ready-for-agent
@@ -89,6 +93,10 @@ A reference to the approved parent Spec on the configured Tracker. This section 
 ## What to build
 
 The end-to-end behaviour this ticket makes work, from the user's perspective — not layer-by-layer implementation.
+
+## Parent Delivery Acceptance references
+
+- <stable parent reference covered by this Ticket>
 
 ## Acceptance criteria
 
@@ -109,7 +117,7 @@ After publication, return the parent Spec and Ticket references and tell the use
 
 Enter this mode only when the user explicitly invokes `$to-tickets` for a formal `ACCEPTANCE_RESULT` with `REPAIR_REQUIRED` and one stable `repair_key` per Finding. Read the parent Spec or Initiative, the Acceptance Findings, the final Commit, existing Open Tickets, and every Ticket already carrying any of those keys.
 
-- Keep the approved parent contract and completed Ticket history unchanged. If the Findings require changing Scope, Acceptance Criteria, the Spec, an ADR, or confirmed Initiative membership, stop with `CONTRACT_BLOCKER` instead of drafting repair Tickets.
+- Keep the approved parent contract and completed Ticket history unchanged. If the Findings require changing Scope, `Delivery Acceptance`, Ticket Acceptance criteria, the Spec, an ADR, or confirmed Initiative membership, stop with `CONTRACT_BLOCKER` instead of drafting repair Tickets.
 - For Spec Acceptance, use that Spec as `owning_spec_ref`. For Initiative Acceptance, route each repair slice to an existing member Spec whose approved Scope covers it; use coordinated Tickets under multiple member Specs when necessary. Never create a repair Ticket directly under the Initiative. If no existing member Spec can own a Finding without contract change, return `CONTRACT_BLOCKER`.
 - Query every key before drafting. Reuse the unique valid Open repair Ticket carrying each key; stop when one key has ambiguous or conflicting matches. Multiple keys may point to the same Ticket only when its body lists every key and the Findings form one atomic vertical slice. Do not recreate represented work.
 - For unmatched keys, draft only the smallest vertical Ticket or Tickets needed to satisfy their named Acceptance Findings. Do not decompose the whole Spec again. Preserve the normal user quiz and approval before publication.

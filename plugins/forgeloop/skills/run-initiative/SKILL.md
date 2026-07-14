@@ -47,6 +47,12 @@ Return `FAILED_PRECONDITION` without publishing a Claim or creating a child when
 11. For one Spec, start fresh Spec Acceptance after all its Tickets integrate and close it only on `PASS`. For multiple Specs, wait until every Initiative Ticket integrates, freeze one final target Commit, then run each fresh Spec Acceptance sequentially against that same Commit while keeping every member Spec Open.
 12. After all member Spec Verdicts have `PASS`, run fresh Initiative Acceptance. Only on Initiative `PASS`, close the member Specs and then the Initiative parent last. After root closure, release the root Scheduler Claim according to the configured runtime.
 
+## Delivery Completion Report
+
+Final Acceptance judges only the formal Specs' `Delivery Acceptance`. If a completed Spec declares a `Release Boundary`, close it under the existing single- or multi-Spec rule and report: `Delivery is complete; Release was not executed by this Run`, followed by its Post-delivery action and Tracking reference.
+
+A Tracking reference is read-only context outside delivery scope. This Workflow must not create, claim, update, or close the referenced external item. It must not add a dedicated Reviewer, Acceptance level, Event, terminal state, repair budget, permission, or automatic release action.
+
 ## Terminal States
 
 - `COMPLETED`: every applicable Acceptance level has `PASS`, final Git integration is verified, and the root Item is closed last.
