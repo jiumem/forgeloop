@@ -40,6 +40,7 @@ def validate(path: Path) -> list[str]:
     data = json.loads(path.read_text(encoding="utf-8"))
     runtime = data.get("kind") == "run-initiative-runtime"
     checkpoint_transport = data.get("kind") == "checkpoint-transport"
+    cumulative_audit = data.get("kind") == "cumulative-audit"
     errors: list[str] = []
     cases = data.get("cases", [])
     ids: set[str] = set()
@@ -63,11 +64,14 @@ def validate(path: Path) -> list[str]:
             errors.extend(validate_runtime_case(case))
         if checkpoint_transport:
             errors.extend(validate_checkpoint_transport_case(case))
+        if cumulative_audit:
+            errors.extend(validate_cumulative_audit_case(case))
     for group, group_cases in groups.items():
         if len(group_cases) == 1:
             continue
         trackers = {case["tracker"] for case in group_cases}
-        if trackers != TRACKERS:
+        expected_trackers = {"github", "gitlab"} if cumulative_audit else TRACKERS
+        if trackers != expected_trackers:
             errors.append(f"{group}: Tracker 覆盖不完整 {sorted(trackers)}")
             continue
         states = {json.dumps(case["domain_state"], sort_keys=True, ensure_ascii=False) for case in group_cases}
@@ -76,6 +80,115 @@ def validate(path: Path) -> list[str]:
             errors.append(f"{group}: 三 Tracker 领域终态不等价")
     if runtime and "evidence_cases" in data:
         errors.extend(validate_evidence_cases(data["evidence_cases"], ids, cases))
+    return errors
+
+
+CUMULATIVE_PROJECTION_FIELDS = {
+    "Spec",
+    "Delivery range",
+    "Target",
+    "Tickets",
+    "Commit mapping",
+    "Review",
+    "Invariants",
+    "Checks",
+    "Limitations",
+}
+CUMULATIVE_MERGE_LIFECYCLE = [
+    "DUAL_PASS",
+    "PR_IDENTITY",
+    "REQUIRED_CHECKS",
+    "PROJECTION_REFRESH",
+    "LITERAL_WRITE",
+    "EXACT_READBACK",
+    "MERGE",
+    "SPEC_ACCEPTANCE",
+]
+CUMULATIVE_HUMAN_READY_LIFECYCLE = [
+    *CUMULATIVE_MERGE_LIFECYCLE[:-2],
+    "READY_FOR_HUMAN_MERGE",
+]
+
+
+def validate_cumulative_audit_case(case: dict) -> list[str]:
+    """校验累计审计声明、唯一原生投影与合并门槛。"""
+
+    errors: list[str] = []
+    case_id = case["id"]
+    state = case["domain_state"]
+    selected = state.get("cumulative_selected") is True
+    if case["tracker"] == "local" and (selected or state.get("native_pr_claimed")):
+        errors.append(f"{case_id}: Local 不得提供或伪造累计 PR/MR")
+    if not selected:
+        return errors
+    if state.get("topology") != "SHARED" or state.get("reason") != "CUMULATIVE_AUDIT":
+        errors.append(f"{case_id}: 累计审计必须是 SHARED topology reason")
+    if state.get("integration_policy") not in {"auto-merge", "human-merge"}:
+        errors.append(f"{case_id}: 累计审计不得成为 Integration Policy")
+    if state.get("native_pr_runtime") is not True:
+        errors.append(f"{case_id}: CUMULATIVE_AUDIT 需要原生 PR/MR runtime")
+    if not isinstance(state.get("implementation_tickets"), int) or state["implementation_tickets"] < 2:
+        errors.append(f"{case_id}: CUMULATIVE_AUDIT 需要至少两张实现 Ticket")
+    if state.get("approved") is not True:
+        errors.append(f"{case_id}: CUMULATIVE_AUDIT 需要用户批准完整草案")
+
+    blocked_reason = state.get("blocked_reason")
+    member_specs = state.get("member_specs", 1)
+    if state.get("final_ticket_count") != member_specs and blocked_reason != "FINAL_TICKET_MISSING":
+        errors.append(f"{case_id}: 每个适用 Spec 必须恰有一个 integrate-and-verify Ticket")
+    if state.get("final_ticket_high_risk_pass") is not True and blocked_reason not in {
+        "FINAL_TICKET_MISSING", "DESIGN_REVIEW",
+    }:
+        errors.append(f"{case_id}: 最终 Ticket 必须有 HIGH_RISK Design Review PASS")
+
+    if member_specs == 1 and state.get("pr_identities", 0) > 1:
+        errors.append(f"{case_id}: 单 Spec 最多一个累计 PR/MR identity")
+    if member_specs > 1:
+        if state.get("cross_spec_prs") != 0:
+            errors.append(f"{case_id}: 不得创建跨 Spec 累计 PR/MR")
+        if state.get("per_spec_pr_identities") != [1] * member_specs:
+            errors.append(f"{case_id}: 每个适用成员 Spec 必须独立拥有一个 PR/MR")
+
+    if state.get("ready_for_human_merge"):
+        if state.get("pr_identities") != member_specs:
+            errors.append(f"{case_id}: human-merge 必须绑定每个 Spec 唯一 PR/MR identity")
+        if state.get("lifecycle") != CUMULATIVE_HUMAN_READY_LIFECYCLE:
+            errors.append(f"{case_id}: human-merge 准备时序不完整")
+        for field in (
+            "final_dual_pass", "head_revision_unchanged", "required_checks_pass",
+            "protection_pass", "permissions_pass", "projection_matches_native",
+            "exact_readback",
+        ):
+            if state.get(field) is not True:
+                errors.append(f"{case_id}: READY_FOR_HUMAN_MERGE 缺失门槛 {field}")
+    if state.get("merge_attempted"):
+        if state.get("pr_identities") != member_specs:
+            errors.append(f"{case_id}: 合并必须绑定每个 Spec 唯一 PR/MR identity")
+        if state.get("lifecycle") != CUMULATIVE_MERGE_LIFECYCLE:
+            errors.append(f"{case_id}: 累计 PR/MR 生命周期顺序不完整")
+        fields = set(state.get("projection_fields", []))
+        missing = CUMULATIVE_PROJECTION_FIELDS - fields
+        if missing:
+            errors.append(f"{case_id}: 累计审计字段不完整 {sorted(missing)}")
+        if state.get("projection_matches_native") is not True:
+            errors.append(f"{case_id}: 审计投影与原生事实不一致时不得合并")
+        if state.get("exact_readback") is not True:
+            errors.append(f"{case_id}: 合并前必须完成正文精确回读")
+        if state.get("required_checks_pass") is not True:
+            errors.append(f"{case_id}: 合并前 Required Checks 必须通过")
+        if state.get("final_dual_pass") is not True:
+            errors.append(f"{case_id}: 合并前最终 Ticket 必须双 PASS")
+        if state.get("head_revision_unchanged") is not True:
+            errors.append(f"{case_id}: 合并前 Head 与 Revision 必须保持固定")
+        if state.get("protection_pass") is not True or state.get("permissions_pass") is not True:
+            errors.append(f"{case_id}: 合并前保护规则与权限必须通过")
+        if state.get("ordinary_tickets_closed") != state.get("implementation_tickets"):
+            errors.append(f"{case_id}: 普通 Ticket 完成前不得最终合并")
+    if case["terminal_state"] == "COMPLETED":
+        if state.get("merge_attempted") is not True:
+            errors.append(f"{case_id}: COMPLETED 必须先完成累计 PR/MR 合并")
+        if state.get("fresh_spec_acceptance") is not True:
+            errors.append(f"{case_id}: 累计合并后必须通过 fresh Spec Acceptance 才能完成")
     return errors
 
 

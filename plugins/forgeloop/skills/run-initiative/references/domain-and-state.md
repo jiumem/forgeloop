@@ -8,6 +8,9 @@
 - **Frontier**: the Ticket Frontier of all Open, Unblocked, Unclaimed Tickets inside the authorized scope.
 - **Agent Run**: the durable execution evidence for one Ticket: Coder result, fixed candidate Commit, two independent Verdicts, repair rounds, and Integration Result. Child thread identity is not durable state.
 - **Review Verdict**: one axis's `PASS`, `REPAIR_REQUIRED`, or `REVIEW_BLOCKED`, bound to a fixed Base, Head, and Spec Revision.
+- **Branch Topology**: `INDEPENDENT` or user-approved `SHARED`; it describes where Ticket Candidates integrate, not who may merge.
+- **Shared-branch Reason**: `WIDE_REFACTOR`, `NON_GREEN_MIGRATION`, `ATOMIC_DELIVERY`, or `CUMULATIVE_AUDIT`; it justifies `SHARED` without replacing Integration Policy.
+- **Integration Policy**: `auto-merge` or `human-merge`; it alone governs merge authority under the configured runtime.
 
 ## Sources of Truth
 
