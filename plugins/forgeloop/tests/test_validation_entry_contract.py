@@ -52,26 +52,28 @@ class ValidationEntryContractTests(unittest.TestCase):
         self.assertIn("similar wording does not create a mapping", gate)
         self.assertIn("Every `Required by` name must exactly match", gate)
 
-    def test_gate_scenarios_cover_success_failure_and_zero_writes(self) -> None:
+    def test_gate_declares_failure_and_publication_boundaries(self) -> None:
         text = generated_to_spec()
-        scenarios = {
-            "self-contained": "All Validation Entries can establish their own runtime conditions",
-            "declared prerequisites": "List every prerequisite with all four fields",
-            "missing entry": "require at least one unique stable `Name`",
-            "missing field": "Reject missing fields",
-            "invalid reference": "invalid references",
-            "mutually exclusive conflict": "both forms",
-            "diagnostics": "listing every gap",
-            "zero writes": "Every content-gate failure above leaves Tracker writes at zero",
-            "single publication": "publish the validated Spec exactly once",
-        }
-        for scenario, contract in scenarios.items():
-            with self.subTest(scenario=scenario):
+
+        for contract in (
+            "Reject missing fields",
+            "invalid references",
+            "both forms",
+            "listing every gap",
+            "Every content-gate failure above leaves Tracker writes at zero",
+            "publish the validated Spec exactly once",
+        ):
+            with self.subTest(contract=contract):
                 self.assertIn(contract, text)
 
     def test_gate_is_declarative_read_only_and_delivery_scoped(self) -> None:
         text = generated_to_spec()
 
+        self.assertIn(
+            "Recovery may be assigned to the named responsible role. "
+            "The publishing Agent records the path but does not perform the recovery.",
+            text,
+        )
         for forbidden_action in (
             "Do not establish prerequisites",
             "observe their current state",

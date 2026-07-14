@@ -95,7 +95,7 @@ Use exactly one of these mutually exclusive forms and remove the unused form:
    - Observation: <how to confirm the condition, required permissions, and allowed side effects; state None explicitly where applicable>
    - Unavailable path: <next legal action and responsible role when the condition is missing or unknown; recovery, requesting input, waiting, escalation, and blocking are all valid>
 
-Do not leave `TBD`, placeholders, or an unresolved choice between the forms. Do not require the Agent to recover a missing prerequisite.
+Do not leave `TBD`, placeholders, or an unresolved choice between the forms. Recovery may be assigned to the named responsible role. The publishing Agent records the path but does not perform the recovery.
 
 ## Delivery Acceptance
 
