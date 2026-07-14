@@ -2,9 +2,9 @@
 
 Forgeloop 是一套面向 Codex 的 Tracker 驱动交付插件。它不替代 Codex，也不建立第二套项目管理系统；它把 Codex 已有的任务、子任务、Git 与 Tracker 能力组织成一条可恢复、可评审、可验收的工程交付路径。
 
-> 当前版本：`3.0.0` · 20 个正式 Skill · 11 个用户入口 · 9 个模型可调用能力
+> 当前版本：`3.1.0` · 20 个正式 Skill · 11 个用户入口 · 9 个模型可调用能力
 
-[快速开始](README.md) · [3.0 发布说明](docs/releases/3.0.0-release-notes.md) · [3.0 迁移指南](docs/migrations/2.5.0-to-3.0.0.md)
+[快速开始](README.md) · [3.1 发布说明](docs/releases/3.1.0-release-notes.md) · [3.0 迁移指南](docs/migrations/2.5.0-to-3.0.0.md)
 
 ## 目录
 
