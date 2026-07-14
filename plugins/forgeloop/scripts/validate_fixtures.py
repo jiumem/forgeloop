@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""校验 Fixture 字段、三 Tracker 等价性与 run-initiative 状态轨迹不变量。"""
+"""校验 Fixture 字段、三 Tracker 等价性与公开协议不变量。"""
 
 from __future__ import annotations
 
@@ -39,6 +39,7 @@ def event_payload(event: str, event_name: str) -> str | None:
 def validate(path: Path) -> list[str]:
     data = json.loads(path.read_text(encoding="utf-8"))
     runtime = data.get("kind") == "run-initiative-runtime"
+    checkpoint_transport = data.get("kind") == "checkpoint-transport"
     errors: list[str] = []
     cases = data.get("cases", [])
     ids: set[str] = set()
@@ -60,6 +61,8 @@ def validate(path: Path) -> list[str]:
                 errors.append(f"{case['id']}: 缺失运行轨迹字段 {sorted(runtime_missing)}")
                 continue
             errors.extend(validate_runtime_case(case))
+        if checkpoint_transport:
+            errors.extend(validate_checkpoint_transport_case(case))
     for group, group_cases in groups.items():
         if len(group_cases) == 1:
             continue
@@ -71,6 +74,30 @@ def validate(path: Path) -> list[str]:
         terminals = {case["terminal_state"] for case in group_cases}
         if len(states) != 1 or len(terminals) != 1:
             errors.append(f"{group}: 三 Tracker 领域终态不等价")
+    return errors
+
+
+def validate_checkpoint_transport_case(case: dict) -> list[str]:
+    """校验字面量传输 Fixture 的确认与副作用声明。"""
+
+    errors: list[str] = []
+    case_id = case["id"]
+    state = case["domain_state"]
+    required = {"writes", "payload_equal", "advance"}
+    missing = required - set(state)
+    if missing:
+        return [f"{case_id}: Checkpoint transport 缺失领域字段 {sorted(missing)}"]
+    if not isinstance(state["writes"], int) or state["writes"] < 0:
+        errors.append(f"{case_id}: writes 必须是非负整数")
+    terminal = case["terminal_state"]
+    if terminal == "CONFIRMED" and (
+        state["payload_equal"] is not True or state["advance"] is not True
+    ):
+        errors.append(f"{case_id}: CONFIRMED 必须完整匹配 Payload 后才可推进")
+    if terminal in {"UNCONFIRMED", "RECOVERY_CONFLICT"} and state["advance"] is not False:
+        errors.append(f"{case_id}: 未确认或冲突的 Checkpoint 不得推进")
+    if state.get("sentinel_effects", 0) != 0 or state.get("worktree_unchanged", True) is not True:
+        errors.append(f"{case_id}: 攻击性 Payload 不得产生副作用或改变 worktree")
     return errors
 
 

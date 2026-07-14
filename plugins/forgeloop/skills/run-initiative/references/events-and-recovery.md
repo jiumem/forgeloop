@@ -8,17 +8,25 @@ Use only `RUN_CLAIMED`, `CODER_RESULT`, `REVIEW_RESULT`, `INTEGRATION_RESULT`, `
 
 ## Minimal Durable Record
 
-Every checkpoint needs only:
+Treat every Durable Checkpoint as two views of one existing record, not as new state:
+
+- The **Native envelope** contains the GitHub or GitLab native reference and server timestamp, or the Local record position and append timestamp. Read these facts only from the write result and native read-back.
+- The **Prepared Literal Payload** contains the Agent-declared event facts and every dynamic value as literal data. It must not contain a native timestamp or reference that cannot exist before publication.
+
+The Prepared Literal Payload needs only:
 
 ```yaml
 run_id: <stable-id>
 event: <type>
 idempotency_key: <stable-event-specific-key>
 subject_ref: <root|spec|ticket-ref>
-timestamp: <tracker-observed-time>
 ```
 
-Use the Tracker server timestamp for GitHub or GitLab and the append-write time for Local Markdown. Do not use the timestamp as the Claim winner or idempotency identity when a stronger native ordering fact exists.
+Never use a Native envelope timestamp to decide a Claim winner, derive idempotency identity, or compare Payloads.
+
+Before any Tracker write, render the complete Prepared Literal Payload with a file-writing capability that does not interpret shell syntax. Treat Findings, evidence, identifiers, Tracker and Git references, Markdown fences, quotes, backslashes, Unicode, and multiline text as opaque literal data. For remote runtimes, place the temporary Payload outside the repository worktree and clean it up after confirmed read-back or explicit failure.
+
+Never construct or transmit dynamic Payload text through inline `--body` or `--message`, `echo` or `printf`, an unquoted heredoc, `eval`, command substitution, or a manual shell escaping template. Supplying `--body-file` does not make a file safe if an interpreting shell command generated it.
 
 Add only facts needed by that event:
 
@@ -29,9 +37,17 @@ Add only facts needed by that event:
 - Acceptance: level, parent revision, final target Commit, Verdict, Findings, and repair key when needed.
 - Pause, resume, or cancel: reason, current Ticket if any, and recovery evidence.
 
-Build an idempotency key from the stable identity of the write. Include Base/Head, revision, axis or acceptance level, and repair round whenever they can distinguish two valid checkpoints. Before writing, search for the same key and reuse the existing checkpoint. Do not add a sequence chain, parser, serializer, or second state engine.
+Build an idempotency key from the stable identity of the write. Include Base/Head, revision, axis or acceptance level, and repair round whenever they can distinguish two valid checkpoints. Do not add a sequence chain, parser, serializer, or second state engine.
 
-Never edit a published checkpoint. Correct an error with `EVENT_SUPERSEDED` that identifies the original record and replacement evidence.
+## Publish and Confirm
+
+Before publication, query by the existing idempotency key. If there is one record with an identical Payload, reuse it without another write. If there is one different record, or more than one record whether their Payload bodies are identical or different, stop with `RECOVERY_CONFLICT`; never overwrite or choose one.
+
+After publication, use the returned native reference to read back the record. For comparison, normalize CRLF to LF and reduce terminal line breaks to at most one trailing LF; every other byte of text must match the complete Prepared Literal Payload. A matching `run_id`, Event, or idempotency key alone is insufficient. Validate that the Native envelope is unique, but do not mix its reference or timestamp into Payload comparison.
+
+For an ambiguous write result, query before retrying. A unique identical record confirms the write; no record permits a retry; a conflicting or non-unique result stops with `RECOVERY_CONFLICT`. If a reported-success write reads back as missing, truncated, or different, the checkpoint is unconfirmed: keep the Item Open and its Claims recoverable, report the native reference and the body difference, and publish no dependent checkpoint.
+
+Never edit a published checkpoint. Use `EVENT_SUPERSEDED` only to correct a confirmed historical error with replacement evidence. An uncertain transport, failed read-back, or idempotency conflict must not use `EVENT_SUPERSEDED`.
 
 ## Claim and Cancellation
 
