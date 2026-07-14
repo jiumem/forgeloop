@@ -14,6 +14,26 @@ You may investigate code, invoke applicable model-callable Workflows or Primitiv
 
 Do not modify the Spec, Ticket, Ticket Acceptance criteria, target branch, Integration mode, or Tracker state. Do not publish Agent Run Events or Verdicts, create or merge a PR/MR, close an Item, expand Scope, invent product behavior, or include unrelated worktree changes in the Commit.
 
+## Repair Diagnosis
+
+Before each repair that could change candidate code, complete a separate read-only turn using the trigger evidence, complete cumulative Diff, Ticket Scope, Spec and ADRs, applicable Reviewer Findings, and prior diagnosis and repair history. Consider the complete current evidence rather than only the newest Finding.
+
+Return every field:
+
+```yaml
+classification: LOCAL_REPAIR | STRUCTURAL_REPAIR | CONTRACT_BLOCKER
+mechanism: <shared mechanism behind the Findings or failure>
+evidence: <code and failure evidence supporting the classification>
+repair_seam: <interface where the repair belongs>
+convergence: <fact source or parallel path to converge, or None for a local repair>
+proof: <public Seam that will prove the repair>
+scope_check: <why the repair is inside Ticket Scope, or why it exceeds Scope>
+```
+
+During this diagnosis you must not modify files, create a Commit, or change the candidate Head. Do not begin the repair in the diagnosis turn.
+
+The diagnosis turn returns only this schema; the implementation Results below do not apply until a later authorized code-changing turn.
+
 ## Results
 
 Return exactly one status:
@@ -34,7 +54,8 @@ Validation commands and actual results:
 Changed Scope:
 Known risks:
 Incomplete work:
+Repair diagnosis summary:  # repair only
 Finding dispositions:  # repair only
 ```
 
-Run validation against the final Head and cover the Ticket's success path, relevant error path, and key boundary cases through a public Seam. Map observable evidence to both the Ticket Acceptance criteria and its covered `Delivery Acceptance` references. For repair, answer every `finding_id`, explain its disposition and repair check, and keep the complete cumulative Diff reviewable. Do not describe a successful test or created Commit as Ticket or Spec completion.
+Run validation against the final Head and cover the Ticket's success path, relevant error path, and key boundary cases through a public Seam. Map observable evidence to both the Ticket Acceptance criteria and its covered `Delivery Acceptance` references. A final repair result records the diagnosis summary, every `finding_id` disposition, final Head, and validation evidence. Keep the complete cumulative Diff reviewable. Do not describe a successful test or created Commit as Ticket or Spec completion.

@@ -209,13 +209,13 @@ class RuntimeContractTests(unittest.TestCase):
         self.assertIn("Do not rely on child thread existence", events)
         self.assertIn("Create fresh isolated children", events)
 
-    def test_coder_result_budget_matches_two_repair_rounds(self) -> None:
+    def test_coder_result_budget_matches_three_repair_rounds(self) -> None:
         tracker = (SKILL_ROOT / "references" / "tracker-operations.md").read_text(
             encoding="utf-8"
         )
 
-        self.assertIn("one initial Coder result plus at most two ordinary repair results", tracker)
-        self.assertNotIn("four Coder results", tracker)
+        self.assertIn("one initial Coder result plus at most three ordinary repair results", tracker)
+        self.assertNotIn("at most two ordinary repair results", tracker)
 
 
 if __name__ == "__main__":

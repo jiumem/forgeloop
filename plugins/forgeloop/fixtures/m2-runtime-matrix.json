@@ -41,17 +41,38 @@
       "event_trace": ["RUN_CLAIMED", "CODER_RESULT:S1_READY", "REVIEW_RESULT:S1_DUAL_PASS", "INTEGRATION_RESULT:S1", "CODER_RESULT:S2_READY", "REVIEW_RESULT:S2_DUAL_PASS", "INTEGRATION_RESULT:S2", "ACCEPTANCE_RESULT:SPEC_PASS_S1_FINAL", "ACCEPTANCE_RESULT:SPEC_PASS_S2_FINAL", "ACCEPTANCE_RESULT:INITIATIVE_PASS"], "final_native_state": {"root_open": false, "claim_active": false, "member_specs_open": false, "closure_order": ["member_specs", "initiative"]}
     },
     {
+      "id": "repair-diagnosis-github", "group": "repair-diagnosis-equivalent", "tracker": "github",
+      "initial_state": "Reviewer Finding 需要候选代码修改。", "entry_prompt": "继续当前 Run。",
+      "expected_writes": ["原 Coder 先完成只读 LOCAL_REPAIR 诊断", "实际修复消耗一轮", "Coder Result 携带诊断摘要"], "forbidden_writes": ["REPAIR_DIAGNOSIS Event", "诊断修改代码", "诊断消耗预算"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "诊断字段缺失时不得授权修复。", "domain_state": {"diagnosis_writes": 0, "repair_rounds": 1, "classification": "LOCAL_REPAIR"},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:REPAIR_REQUIRED", "CODER_RESULT:REPAIR_1_LOCAL", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "repair-diagnosis-gitlab", "group": "repair-diagnosis-equivalent", "tracker": "gitlab",
+      "initial_state": "Reviewer Finding 需要候选代码修改。", "entry_prompt": "继续当前 Run。",
+      "expected_writes": ["原 Coder 先完成只读 LOCAL_REPAIR 诊断", "实际修复消耗一轮", "Coder Result 携带诊断摘要"], "forbidden_writes": ["REPAIR_DIAGNOSIS Event", "诊断修改代码", "诊断消耗预算"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "诊断字段缺失时不得授权修复。", "domain_state": {"diagnosis_writes": 0, "repair_rounds": 1, "classification": "LOCAL_REPAIR"},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:REPAIR_REQUIRED", "CODER_RESULT:REPAIR_1_LOCAL", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "repair-diagnosis-local", "group": "repair-diagnosis-equivalent", "tracker": "local",
+      "initial_state": "Reviewer Finding 需要候选代码修改。", "entry_prompt": "继续当前 Run。",
+      "expected_writes": ["原 Coder 先完成只读 LOCAL_REPAIR 诊断", "实际修复消耗一轮", "Coder Result 携带诊断摘要"], "forbidden_writes": ["REPAIR_DIAGNOSIS Event", "诊断修改代码", "诊断消耗预算"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "诊断字段缺失时不得授权修复。", "domain_state": {"diagnosis_writes": 0, "repair_rounds": 1, "classification": "LOCAL_REPAIR"},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:REPAIR_REQUIRED", "CODER_RESULT:REPAIR_1_LOCAL", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
       "id": "spec-repair", "group": "spec-repair", "tracker": "local",
       "initial_state": "Spec Reviewer 首轮返回一个稳定 Finding。", "entry_prompt": "继续当前 Run。",
       "expected_writes": ["返回原 Coder thread", "Coder 同时收到两轴 Findings", "两轴对新 Head 重审"], "forbidden_writes": ["只重审失败轴", "改写旧 Verdict", "宿主级 child 配置"],
-      "terminal_state": "COMPLETED", "failure_diagnostic": "重复两次同 Finding 时 PAUSED。", "domain_state": {"repair_axis": "SPEC", "both_reissued": true},
+      "terminal_state": "COMPLETED", "failure_diagnostic": "三轮后同 Finding 仍存在时 PAUSED。", "domain_state": {"repair_axis": "SPEC", "both_reissued": true},
       "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:REPAIR_REQUIRED", "CODER_RESULT:REPAIR_1_READY", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
     },
     {
       "id": "standards-repair", "group": "standards-repair", "tracker": "local",
       "initial_state": "Standards Reviewer 首轮返回一个稳定 Finding。", "entry_prompt": "继续当前 Run。",
       "expected_writes": ["返回原 Coder thread", "Coder 同时收到两轴 Findings", "两轴对新 Head 重审"], "forbidden_writes": ["只重审失败轴", "改写旧 Verdict", "宿主级 child 配置"],
-      "terminal_state": "COMPLETED", "failure_diagnostic": "重复两次同 Finding 时 PAUSED。", "domain_state": {"repair_axis": "STANDARDS", "both_reissued": true},
+      "terminal_state": "COMPLETED", "failure_diagnostic": "三轮后同 Finding 仍存在时 PAUSED。", "domain_state": {"repair_axis": "STANDARDS", "both_reissued": true},
       "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:REPAIR_REQUIRED", "CODER_RESULT:REPAIR_1_READY", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
     },
     {
@@ -63,10 +84,38 @@
     },
     {
       "id": "repair-exhausted", "group": "repair-exhausted", "tracker": "local",
-      "initial_state": "同一 Finding 两次修复仍存在。", "entry_prompt": "继续当前 Run。",
-      "expected_writes": ["两轮普通修复", "RUN_PAUSED 与未解决证据"], "forbidden_writes": ["第三轮普通修复", "伪造 PASS", "宿主级 child 配置"],
-      "terminal_state": "PAUSED", "failure_diagnostic": "明确预算耗尽与用户可选动作。", "domain_state": {"paused": true, "reason": "REPAIR_BUDGET"},
-      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:REPAIR_REQUIRED", "CODER_RESULT:REPAIR_1_READY", "REVIEW_RESULT:REPAIR_REQUIRED", "CODER_RESULT:REPAIR_2_READY", "REVIEW_RESULT:REPAIR_REQUIRED", "RUN_PAUSED:REPAIR_BUDGET"], "final_native_state": {"root_open": true, "claim_active": true}
+      "initial_state": "同一 Finding 三轮修复后仍存在。", "entry_prompt": "继续当前 Run。",
+      "expected_writes": ["三轮普通修复", "RUN_PAUSED 携带诊断分类、证伪假设、未解决 Findings、共同机制和下一动作"], "forbidden_writes": ["第四轮普通修复", "伪造 PASS", "宿主级 child 配置"],
+      "terminal_state": "PAUSED", "failure_diagnostic": "明确预算耗尽与用户可选动作。", "domain_state": {"paused": true, "reason": "REPAIR_BUDGET", "repair_rounds": 3},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:REPAIR_REQUIRED", "CODER_RESULT:REPAIR_1_READY", "REVIEW_RESULT:REPAIR_REQUIRED", "CODER_RESULT:REPAIR_2_READY", "REVIEW_RESULT:REPAIR_REQUIRED", "CODER_RESULT:REPAIR_3_READY", "REVIEW_RESULT:REPAIR_REQUIRED", "RUN_PAUSED:REPAIR_BUDGET"], "final_native_state": {"root_open": true, "claim_active": true}
+    },
+    {
+      "id": "structural-repair", "group": "structural-repair", "tracker": "local",
+      "initial_state": "多个 Findings 来自 Ticket Scope 内的平行事实源。", "entry_prompt": "继续当前 Run。",
+      "expected_writes": ["原 Coder 返回 STRUCTURAL_REPAIR", "修改前调用 codebase-design", "按 convergence 收敛并从公开 Seam 验证"], "forbidden_writes": ["Scheduler 自行分类", "额外 structural budget", "修改 Spec"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "收敛超出 Scope 时转 CONTRACT_BLOCKER。", "domain_state": {"classification": "STRUCTURAL_REPAIR", "codebase_design_used": true, "repair_rounds": 1},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:REPAIR_REQUIRED", "CODER_RESULT:REPAIR_1_STRUCTURAL", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "repair-diagnosis-interrupted", "group": "repair-diagnosis-interrupted", "tracker": "local",
+      "initial_state": "只读诊断完成前 Scheduler 进程中断，Tracker 无诊断记录。", "entry_prompt": "恢复当前 Run。",
+      "expected_writes": ["RUN_RESUMED", "从累计 Diff 与历史重新诊断", "修复结果携带诊断摘要"], "forbidden_writes": ["把临时诊断当 durable state", "跳过重做直接修改", "重复消耗预算"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "固定输入不完整时暂停而非猜测。", "domain_state": {"diagnosis_rerun": true, "diagnosis_writes": 0, "repair_rounds": 1},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:REPAIR_REQUIRED", "RUN_RESUMED", "CODER_RESULT:REPAIR_1_LOCAL", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "third-repair-pass", "group": "third-repair-pass", "tracker": "local",
+      "initial_state": "前两轮修复仍有 Blocking Finding，第三轮产生固定新 Head。", "entry_prompt": "继续当前 Run。",
+      "expected_writes": ["三轮诊断与修复", "第三轮新 Head 双 Reviewer PASS", "正常 Integration"], "forbidden_writes": ["因使用第三轮强制暂停", "伪造 PASS", "第四轮普通修复"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "第三轮后仍失败则 REPAIR_BUDGET。", "domain_state": {"repair_rounds": 3, "third_round_pass": true},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:REPAIR_REQUIRED", "CODER_RESULT:REPAIR_1_READY", "REVIEW_RESULT:REPAIR_REQUIRED", "CODER_RESULT:REPAIR_2_READY", "REVIEW_RESULT:REPAIR_REQUIRED", "CODER_RESULT:REPAIR_3_READY", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
+      "id": "mixed-repair-budget", "group": "mixed-repair-budget", "tracker": "local",
+      "initial_state": "Reviewer Finding、候选 Check 失败和兼容性冲突依次需要代码修改。", "entry_prompt": "继续当前 Run。",
+      "expected_writes": ["三次独立只读诊断", "三类触发共享三轮预算", "第三轮后双 PASS"], "forbidden_writes": ["按触发类型重置预算", "独立 structural budget", "第四轮普通修复"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "任一第四次代码修复请求都暂停 REPAIR_BUDGET。", "domain_state": {"repair_rounds": 3, "shared_budget": true},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:REPAIR_REQUIRED", "CODER_RESULT:REPAIR_1_REVIEW", "REVIEW_RESULT:DUAL_PASS", "CODER_RESULT:REPAIR_2_CHECK", "REVIEW_RESULT:DUAL_PASS", "CODER_RESULT:REPAIR_3_CONFLICT", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
     },
     {
       "id": "contract-blocker", "group": "contract-blocker", "tracker": "local",
@@ -191,7 +240,7 @@
       "id": "candidate-check-repair", "group": "candidate-check-repair", "tracker": "github",
       "initial_state": "双 PASS 后 Required Check 因候选代码失败，仍在 Ticket Scope。", "entry_prompt": "继续当前 Run。",
       "expected_writes": ["原 Coder 收到 Check 证据", "消耗一轮 Repair", "新 Head 双轴重审"], "forbidden_writes": ["直接合并", "创建新 Coder", "额外触发完整 CI"],
-      "terminal_state": "COMPLETED", "failure_diagnostic": "超出两轮预算时暂停。", "domain_state": {"check_repair_rounds": 1, "both_reissued": true},
+      "terminal_state": "COMPLETED", "failure_diagnostic": "超出三轮共享预算时暂停。", "domain_state": {"check_repair_rounds": 1, "both_reissued": true},
       "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:DUAL_PASS", "CODER_RESULT:CHECK_REPAIR_1_READY", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
     },
     {

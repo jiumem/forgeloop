@@ -23,7 +23,7 @@ Use the Tracker server timestamp for GitHub or GitLab and the append-write time 
 Add only facts needed by that event:
 
 - Claim: root revision and multi-Spec confirmation reference when applicable.
-- Coder: result, Base/Head, Spec Revision, repair round, Commit and evidence references.
+- Coder: result, Base/Head, Spec Revision, repair round, diagnosis summary and finding dispositions when repairing, Commit and evidence references.
 - Review: Base/Head, Spec Revision, repair round, and both complete axis Verdicts.
 - Integration: result, target, Commit, PR/MR and native merge or already-present evidence.
 - Acceptance: level, parent revision, final target Commit, Verdict, Findings, and repair key when needed.
@@ -48,5 +48,7 @@ Do not use a short TTL to infer that a long-running task is dead. GitHub and Git
 3. Verify the root Claim owner, current Ticket Claim, Base/Head, Spec Revision, target, multi-Spec revision, confirmation reference, and any existing Verdicts. Treat a closed Ticket with valid Integration or a closed root with final Acceptance as a completed inactive Claim, not a resumable owner.
 4. Publish `RUN_RESUMED` under the original `run_id` and continue after the last verified durable checkpoint. Do not replay a confirmed write.
 5. Create fresh isolated children for the next required role and give each a self-contained Role Task Pack containing only durable role-relevant history.
+
+Repair Diagnosis is a temporary preflight, not a new checkpoint. When recovery finds it was interrupted before the repair result, rerun the diagnosis from current trigger evidence, cumulative Diff, and durable repair history before authorizing further code changes.
 
 Stop with `RECOVERY_CONFLICT` when native facts disagree with checkpoints, duplicate valid root Claims exist, Base/Head or material revision drifted, a retained dirty change cannot be attributed to the current Ticket, or multi-Spec membership changed without confirmation. Require the original Run or explicit user adjudication for takeover.
