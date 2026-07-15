@@ -35,7 +35,7 @@ Return `FAILED_PRECONDITION` without publishing a Claim or creating a child when
 
 ## Serial Scheduler Loop
 
-1. Create or recover the single valid root Scheduler Run and win its deterministic Claim.
+1. Freeze every binding required by the loaded protocols, then create or recover the single valid root Scheduler Run and win its deterministic Claim.
 2. Requery the Frontier from native Tracker facts. Never keep a stale Frontier snapshot.
 3. Claim exactly one Ticket through the configured native mechanism. Do not start another Ticket until this one completes, pauses, or is cancelled.
 4. Refresh the declared target or Integration Branch, freeze the Ticket Base from its current Head, and prepare the Ticket Branch. Create a fresh isolated Coder with a self-contained Role Task Pack. The Coder implements, validates, and creates the candidate Commit.

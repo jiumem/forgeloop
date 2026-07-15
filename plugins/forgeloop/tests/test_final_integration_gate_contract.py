@@ -30,6 +30,8 @@ class FinalIntegrationGateContractTests(unittest.TestCase):
     def test_every_shared_run_loads_one_final_gate_before_the_root_claim(self) -> None:
         skill = (RUN_ROOT / "SKILL.md").read_text(encoding="utf-8")
         protocol = FINAL_GATE.read_text(encoding="utf-8")
+        scheduler = (RUN_ROOT / "references" / "scheduler.md").read_text(encoding="utf-8")
+        events = EVENTS.read_text(encoding="utf-8")
 
         self.assertIn("[final-integration-gate.md]", skill)
         self.assertIn("For any declared `SHARED` topology", skill)
@@ -58,6 +60,11 @@ class FinalIntegrationGateContractTests(unittest.TestCase):
         self.assertLess(read_checks, merge)
         self.assertLess(merge, acceptance)
 
+        self.assertIn("Before publishing the competitive root Claim", protocol)
+        self.assertIn("for each shared Spec", events)
+        self.assertIn("before publishing the competitive root Claim", scheduler)
+        self.assertNotIn("After winning the root Claim, freeze", protocol)
+
     def test_final_gate_finding_has_a_deterministic_pause_contract(self) -> None:
         protocol = FINAL_GATE.read_text(encoding="utf-8")
 
@@ -73,6 +80,30 @@ class FinalIntegrationGateContractTests(unittest.TestCase):
         self.assertIn("`delivery_head` equals the latest Ticket Integration Result's `target_after`", protocol)
         self.assertIn("every mapped Candidate Head has two bound `PASS` Verdicts", protocol)
         self.assertIn("adds no final Reviewer or Spec-level `REVIEW_RESULT`", protocol)
+
+    def test_final_gate_maps_no_change_tickets_without_inventing_commits(self) -> None:
+        protocol = FINAL_GATE.read_text(encoding="utf-8")
+
+        for marker in (
+            "`NO_CHANGE_REQUIRED` Ticket",
+            "result=`ALREADY_PRESENT`",
+            "`Base == Head`",
+            "`target_before == target_after`",
+            "contributes no Commit",
+        ):
+            self.assertIn(marker, protocol)
+
+    def test_final_gate_maps_delivery_commits_by_integration_method(self) -> None:
+        protocol = FINAL_GATE.read_text(encoding="utf-8")
+
+        for marker in (
+            "For `merge`",
+            "For `squash`",
+            "native evidence must bind the reviewed Candidate Head",
+            "For another configured native method",
+            "produced delivery Commit set",
+        ):
+            self.assertIn(marker, protocol)
 
     def test_shared_human_merge_keeps_the_spec_open_without_a_ticket(self) -> None:
         protocol = FINAL_GATE.read_text(encoding="utf-8")
@@ -102,6 +133,20 @@ class FinalIntegrationGateContractTests(unittest.TestCase):
         ):
             self.assertIn(marker, text)
         self.assertNotIn("reopen the completed Ticket", text)
+
+    def test_repair_mode_rejects_every_parent_contract_change(self) -> None:
+        text = TO_TICKETS.read_text(encoding="utf-8")
+        repair_mode = text.split("## Forgeloop Acceptance Repair Mode", 1)[1].split(
+            "## Forgeloop Spec Revision Reconciliation Mode", 1
+        )[0]
+
+        for marker in (
+            "Cross-seam Invariant",
+            "Proof mapping",
+            "Branch Topology",
+            "target",
+        ):
+            self.assertIn(marker, repair_mode)
 
     def test_shared_ticket_completion_hands_delivery_to_the_spec_gate(self) -> None:
         skill = (RUN_ROOT / "SKILL.md").read_text(encoding="utf-8")
