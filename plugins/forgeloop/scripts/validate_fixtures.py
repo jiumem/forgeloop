@@ -95,7 +95,7 @@ CUMULATIVE_PROJECTION_FIELDS = {
     "Limitations",
 }
 CUMULATIVE_MERGE_LIFECYCLE = [
-    "DUAL_PASS",
+    "DELIVERY_HEAD",
     "PR_IDENTITY",
     "REQUIRED_CHECKS",
     "PROJECTION_REFRESH",
@@ -108,10 +108,16 @@ CUMULATIVE_HUMAN_READY_LIFECYCLE = [
     *CUMULATIVE_MERGE_LIFECYCLE[:-2],
     "READY_FOR_HUMAN_MERGE",
 ]
+SHARED_REASONS = {
+    "WIDE_REFACTOR",
+    "NON_GREEN_MIGRATION",
+    "ATOMIC_DELIVERY",
+    "CUMULATIVE_AUDIT",
+}
 
 
 def validate_cumulative_audit_case(case: dict) -> list[str]:
-    """校验累计审计声明、唯一原生投影与合并门槛。"""
+    """校验共享交付门禁，以及累计审计的附加约束。"""
 
     errors: list[str] = []
     case_id = case["id"]
@@ -119,6 +125,130 @@ def validate_cumulative_audit_case(case: dict) -> list[str]:
     selected = state.get("cumulative_selected") is True
     if case["tracker"] == "local" and (selected or state.get("native_pr_claimed")):
         errors.append(f"{case_id}: Local 不得提供或伪造累计 PR/MR")
+    if state.get("topology") == "SHARED":
+        blocked_reason = state.get("blocked_reason")
+        if state.get("reason") not in SHARED_REASONS:
+            errors.append(f"{case_id}: SHARED topology 必须声明一个已批准 reason")
+        if state.get("integration_policy") not in {"auto-merge", "human-merge"}:
+            errors.append(f"{case_id}: SHARED reason 不得替代 Integration Policy")
+        if state.get("approved") is not True:
+            errors.append(f"{case_id}: SHARED 声明必须随完整草案获得用户批准")
+        if blocked_reason == "LEGACY_DECLARATION":
+            if state.get("tracker_writes") != 0:
+                errors.append(f"{case_id}: 旧声明必须以零 Tracker writes 拒绝")
+        else:
+            if state.get("gate_owner") != "SPEC_ROOT":
+                errors.append(f"{case_id}: SHARED Spec 必须声明 SPEC_ROOT Final Integration Gate")
+            if state.get("ceremony_ticket_count", 0) != 0:
+                errors.append(f"{case_id}: 不得创建 ceremony-only final Ticket")
+
+        gate_active = any(
+            state.get(field) is True
+            for field in ("gate_started", "ready_for_human_merge", "merge_attempted")
+        )
+        if gate_active:
+            if state.get("ordinary_tickets_closed") != state.get("implementation_tickets"):
+                errors.append(f"{case_id}: 普通 Ticket 全部关闭前不得进入 Final Integration Gate")
+            if state.get("ticket_integration_results") != state.get("implementation_tickets"):
+                errors.append(f"{case_id}: Ticket Integration Result 不完整时不得进入 Final Integration Gate")
+
+        if blocked_reason == "FINAL_GATE_FINDING":
+            required = ("finding_id", "evidence_ref", "owning_scope")
+            for field in required:
+                if not isinstance(state.get(field), str) or not state[field]:
+                    errors.append(f"{case_id}: Final Gate Finding 缺失 {field}")
+            if state.get("run_paused") is not True:
+                errors.append(f"{case_id}: Final Gate Finding 必须发布 RUN_PAUSED")
+            finding_id = state.get("finding_id")
+            expected_key = (
+                f"final-gate:{state.get('spec_ref')}:{state.get('spec_revision')}:{finding_id}"
+            )
+            if state.get("repair_key") != expected_key:
+                errors.append(f"{case_id}: Final Gate Finding 的 repair_key 不稳定")
+            if state.get("scheduler_created_ticket") is not False:
+                errors.append(f"{case_id}: Scheduler 不得为 Final Gate Finding 创建 Ticket")
+
+        implementation_ticket = state.get("final_implementation_ticket")
+        if implementation_ticket is not None:
+            required = {
+                "ordinary", "implementation_scope", "parent_da_refs", "acceptance_criteria",
+                "owned_csi", "risk_classification",
+            }
+            if not isinstance(implementation_ticket, dict) or required - set(implementation_ticket):
+                errors.append(f"{case_id}: 最终实现工作必须是结构完整的普通 Ticket")
+            else:
+                if implementation_ticket.get("ordinary") is not True:
+                    errors.append(f"{case_id}: 最终实现工作不得成为特殊 Ticket 类型")
+                if not isinstance(implementation_ticket.get("implementation_scope"), str) or not implementation_ticket["implementation_scope"]:
+                    errors.append(f"{case_id}: 最终实现 Ticket 必须有真实 Scope")
+                if (
+                    not isinstance(implementation_ticket.get("parent_da_refs"), list)
+                    or not implementation_ticket["parent_da_refs"]
+                    or not all(isinstance(ref, str) and ref for ref in implementation_ticket["parent_da_refs"])
+                ):
+                    errors.append(f"{case_id}: 最终实现 Ticket 必须引用 Parent Delivery Acceptance")
+                if (
+                    not isinstance(implementation_ticket.get("acceptance_criteria"), list)
+                    or not implementation_ticket["acceptance_criteria"]
+                    or not all(isinstance(criterion, str) and criterion for criterion in implementation_ticket["acceptance_criteria"])
+                ):
+                    errors.append(f"{case_id}: 最终实现 Ticket 必须有可验证 Acceptance criteria")
+                if implementation_ticket.get("risk_classification") not in {"STANDARD", "HIGH_RISK"}:
+                    errors.append(f"{case_id}: 最终实现 Ticket 风险分类无效")
+                owned_csi = implementation_ticket.get("owned_csi")
+                if not (
+                    (isinstance(owned_csi, str) and owned_csi)
+                    or (
+                        isinstance(owned_csi, list) and owned_csi
+                        and all(isinstance(csi, str) and csi for csi in owned_csi)
+                    )
+                ):
+                    errors.append(f"{case_id}: 最终实现 Ticket 必须声明适用的 CSI ownership")
+
+        if blocked_reason == "UNATTRIBUTED_COMMIT":
+            if not state.get("unattributed_commits") or state.get("delivery_range_valid") is not False:
+                errors.append(f"{case_id}: 额外 Commit Finding 必须绑定未归属 Commit 与无效范围")
+            if state.get("merge_attempted") is not False:
+                errors.append(f"{case_id}: 存在未归属 Commit 时不得合并")
+        if blocked_reason == "MISSING_APPROVED_COMMIT":
+            if not state.get("missing_ticket_commits") or state.get("delivery_range_valid") is not False:
+                errors.append(f"{case_id}: 缺失 Commit Finding 必须绑定 Ticket 与无效范围")
+            if state.get("merge_attempted") is not False:
+                errors.append(f"{case_id}: 缺失已批准 Commit 时不得合并")
+        if blocked_reason == "MISSING_TICKET_DELIVERY":
+            if not isinstance(state.get("ticket_integration_results"), int) or state["ticket_integration_results"] >= state.get("implementation_tickets", 0):
+                errors.append(f"{case_id}: 缺失交付证据必须对应不完整 Ticket Integration Result")
+            if state.get("gate_started") is not False or state.get("merge_attempted") is not False:
+                errors.append(f"{case_id}: Gate 前置条件缺失时不得启动 Gate 或合并")
+        if state.get("repair_ticket_reused"):
+            if state.get("explicit_to_tickets") is not True or state.get("matching_unfinished_tickets") != 1:
+                errors.append(f"{case_id}: repair Ticket 仅可在显式调用且唯一未完成匹配时复用")
+            if not isinstance(state.get("repair_key"), str) or not state["repair_key"]:
+                errors.append(f"{case_id}: repair Ticket 复用必须绑定 repair_key")
+        if (
+            state.get("explicit_to_tickets") is True
+            and state.get("matching_unfinished_tickets") == 1
+            and state.get("repair_ticket_reused") is not True
+        ):
+            errors.append(f"{case_id}: 唯一匹配的未完成 repair Ticket 必须复用")
+        affected_scopes = state.get("affected_scopes")
+        if isinstance(affected_scopes, int) and affected_scopes > 1:
+            if state.get("repair_ticket_count") != affected_scopes:
+                errors.append(f"{case_id}: 多 Scope Finding 必须分别路由普通 repair Ticket")
+            if state.get("miscellaneous_ticket") is not False:
+                errors.append(f"{case_id}: 多 Scope Finding 不得创建杂项 Ticket")
+        if state.get("target_drift") and state.get("target_refreshed") is not True:
+            errors.append(f"{case_id}: target drift 后必须刷新当前目标事实")
+        if state.get("target_refreshed"):
+            if state.get("delivery_head_unchanged") is not True or state.get("pr_identities") != 1:
+                errors.append(f"{case_id}: target drift 必须保持 delivery Head 与原 PR/MR identity")
+            if state.get("repair_budget_used") is not False:
+                errors.append(f"{case_id}: target drift 刷新不得消耗 Repair Budget")
+        if blocked_reason == "PROJECTION_DRIFT":
+            if state.get("projection_matches_native") is not False or state.get("exact_readback") is not False:
+                errors.append(f"{case_id}: 投影漂移必须由原生不一致与回读失败证明")
+            if state.get("merge_attempted") is not False:
+                errors.append(f"{case_id}: 投影漂移时不得合并")
     if not selected:
         return errors
     if state.get("topology") != "SHARED" or state.get("reason") != "CUMULATIVE_AUDIT":
@@ -134,13 +264,6 @@ def validate_cumulative_audit_case(case: dict) -> list[str]:
 
     blocked_reason = state.get("blocked_reason")
     member_specs = state.get("member_specs", 1)
-    if state.get("final_ticket_count") != member_specs and blocked_reason != "FINAL_TICKET_MISSING":
-        errors.append(f"{case_id}: 每个适用 Spec 必须恰有一个 integrate-and-verify Ticket")
-    if state.get("final_ticket_high_risk_pass") is not True and blocked_reason not in {
-        "FINAL_TICKET_MISSING", "DESIGN_REVIEW",
-    }:
-        errors.append(f"{case_id}: 最终 Ticket 必须有 HIGH_RISK Design Review PASS")
-
     if member_specs == 1 and state.get("pr_identities", 0) > 1:
         errors.append(f"{case_id}: 单 Spec 最多一个累计 PR/MR identity")
     if member_specs > 1:
@@ -155,12 +278,17 @@ def validate_cumulative_audit_case(case: dict) -> list[str]:
         if state.get("lifecycle") != CUMULATIVE_HUMAN_READY_LIFECYCLE:
             errors.append(f"{case_id}: human-merge 准备时序不完整")
         for field in (
-            "final_dual_pass", "head_revision_unchanged", "required_checks_pass",
+            "gate_validation_pass", "delivery_head_unchanged", "delivery_range_valid",
+            "required_checks_pass",
             "protection_pass", "permissions_pass", "projection_matches_native",
             "exact_readback",
         ):
             if state.get(field) is not True:
                 errors.append(f"{case_id}: READY_FOR_HUMAN_MERGE 缺失门槛 {field}")
+        if state.get("ordinary_tickets_closed") != state.get("implementation_tickets"):
+            errors.append(f"{case_id}: 普通 Ticket 完成前不得进入 human-merge")
+        if state.get("ticket_integration_results") != state.get("implementation_tickets"):
+            errors.append(f"{case_id}: Ticket Integration Result 不完整时不得进入 human-merge")
     if state.get("merge_attempted"):
         if state.get("pr_identities") != member_specs:
             errors.append(f"{case_id}: 合并必须绑定每个 Spec 唯一 PR/MR identity")
@@ -176,19 +304,47 @@ def validate_cumulative_audit_case(case: dict) -> list[str]:
             errors.append(f"{case_id}: 合并前必须完成正文精确回读")
         if state.get("required_checks_pass") is not True:
             errors.append(f"{case_id}: 合并前 Required Checks 必须通过")
-        if state.get("final_dual_pass") is not True:
-            errors.append(f"{case_id}: 合并前最终 Ticket 必须双 PASS")
-        if state.get("head_revision_unchanged") is not True:
-            errors.append(f"{case_id}: 合并前 Head 与 Revision 必须保持固定")
+        if state.get("gate_validation_pass") is not True:
+            errors.append(f"{case_id}: 合并前必须完成 Final Integration Gate 验证")
+        if state.get("delivery_range_valid") is not True:
+            errors.append(f"{case_id}: 合并前完整 delivery range 必须有效")
+        if state.get("delivery_head_unchanged") is not True:
+            errors.append(f"{case_id}: 合并前 delivery_head 必须保持固定")
         if state.get("protection_pass") is not True or state.get("permissions_pass") is not True:
             errors.append(f"{case_id}: 合并前保护规则与权限必须通过")
         if state.get("ordinary_tickets_closed") != state.get("implementation_tickets"):
             errors.append(f"{case_id}: 普通 Ticket 完成前不得最终合并")
+        if state.get("ticket_integration_results") != state.get("implementation_tickets"):
+            errors.append(f"{case_id}: Ticket Integration Result 不完整时不得最终合并")
     if case["terminal_state"] == "COMPLETED":
         if state.get("merge_attempted") is not True:
             errors.append(f"{case_id}: COMPLETED 必须先完成累计 PR/MR 合并")
         if state.get("fresh_spec_acceptance") is not True:
             errors.append(f"{case_id}: 累计合并后必须通过 fresh Spec Acceptance 才能完成")
+        integration_results = state.get("spec_integration_results")
+        required = {
+            "subject_ref", "result", "spec_delivery_base", "delivery_head",
+            "target_before", "target_after", "integration_method", "native_ref",
+            "evidence_refs",
+        }
+        if not isinstance(integration_results, list) or len(integration_results) != member_specs:
+            errors.append(f"{case_id}: 每个 Spec 必须有一个结构化 Spec Integration Result")
+        else:
+            for result in integration_results:
+                if not isinstance(result, dict) or required - set(result):
+                    errors.append(f"{case_id}: Spec Integration Result 字段不完整")
+                    continue
+                if not str(result.get("subject_ref", "")).startswith("spec:"):
+                    errors.append(f"{case_id}: Spec Integration Result 必须以 Spec 为 subject_ref")
+                scalar_fields = required - {"evidence_refs"}
+                if not all(isinstance(result.get(field), str) and result[field] for field in scalar_fields):
+                    errors.append(f"{case_id}: Spec Integration Result 标量字段必须非空")
+                if (
+                    not isinstance(result.get("evidence_refs"), list)
+                    or not result["evidence_refs"]
+                    or not all(isinstance(ref, str) and ref for ref in result["evidence_refs"])
+                ):
+                    errors.append(f"{case_id}: Spec Integration Result 必须绑定最终证据")
     return errors
 
 
@@ -371,21 +527,48 @@ def validate_runtime_case(case: dict) -> list[str]:
             "INITIATIVE_PASS" in event for event in acceptance_passes
         ):
             errors.append(f"{case_id}: 多 Spec COMPLETED 必须包含 Initiative Acceptance PASS")
-        integration_count = event_names.count("INTEGRATION_RESULT")
+        integration_payloads = [
+            payload
+            for event in trace
+            if (payload := event_payload(event, "INTEGRATION_RESULT")) is not None
+        ]
+        integration_count = len(integration_payloads)
         if integration_count == 0:
             errors.append(f"{case_id}: COMPLETED 必须包含 INTEGRATION_RESULT")
+        integration_results = case["domain_state"].get("integration_results")
+        if integration_results is None:
+            ticket_integration_count = integration_count
+        elif not isinstance(integration_results, list) or len(integration_results) != integration_count:
+            errors.append(f"{case_id}: 结构化 Integration Results 必须与事件数量一致")
+            ticket_integration_count = 0
+        else:
+            invalid_results = [
+                result for result in integration_results
+                if not isinstance(result, dict)
+                or not isinstance(result.get("subject_ref"), str)
+                or not result["subject_ref"]
+                or not isinstance(result.get("result"), str)
+                or not result["result"]
+            ]
+            if invalid_results:
+                errors.append(f"{case_id}: Integration Result 必须结构化绑定 subject_ref 与 result")
+            ticket_integration_count = sum(
+                isinstance(result, dict)
+                and result.get("subject_ref", "").startswith("ticket:")
+                for result in integration_results
+            )
         dual_pass_count = sum(
             (payload := event_payload(event, "REVIEW_RESULT")) is not None
             and REVIEW_PASS.fullmatch(payload) is not None
             for event in trace
         )
-        if dual_pass_count < integration_count:
+        if dual_pass_count < ticket_integration_count:
             errors.append(f"{case_id}: 每个 Integration Result 前必须有一个合并后的双轴 PASS")
         expected_tickets = case["domain_state"].get("tickets_complete")
-        if isinstance(expected_tickets, int) and integration_count != expected_tickets:
+        if isinstance(expected_tickets, int) and ticket_integration_count != expected_tickets:
             errors.append(
                 f"{case_id}: 声明完成 {expected_tickets} 张 Ticket，"
-                f"但只有 {integration_count} 个 Integration Result"
+                f"但只有 {ticket_integration_count} 个 Ticket Integration Result"
             )
         if case["domain_state"].get("shared_final_commit"):
             last_integration = max(

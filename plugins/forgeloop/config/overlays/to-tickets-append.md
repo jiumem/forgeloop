@@ -1,4 +1,4 @@
-## Forgeloop Cumulative Audit Declaration
+## Forgeloop Shared Delivery Declaration
 
 Keep three approved facts independent:
 
@@ -6,37 +6,37 @@ Keep three approved facts independent:
 - Shared-branch reason: `WIDE_REFACTOR | NON_GREEN_MIGRATION | ATOMIC_DELIVERY | CUMULATIVE_AUDIT`.
 - Integration policy: `auto-merge | human-merge`.
 
-`CUMULATIVE_AUDIT` extends only the legal reasons for `SHARED`; it does not grant merge authority or change the existing reasons. Offer it only for a Spec with a native PR/MR runtime and at least two implementation Tickets. A single-Ticket Spec remains `INDEPENDENT`. Local runtime must not offer `CUMULATIVE_AUDIT`, while its other approved shared-branch reasons remain available.
+Every `SHARED` Spec uses one Spec Root Final Integration Gate. The Gate coordinates final validation and native integration; it is not a Ticket, Reviewer, Acceptance level, Event, state, or fact source. `CUMULATIVE_AUDIT` only extends legal SHARED reasons; it grants no merge authority and changes no other reason. Offer it only for a Spec with a native PR/MR runtime and at least two implementation Tickets. A single-Ticket cumulative delivery remains `INDEPENDENT`. Local does not offer this reason, while its other legal SHARED reasons remain available.
 
-When eligible, propose this declaration with the complete Ticket and dependency drafts:
+For any proposed `SHARED` topology, show this declaration with the complete Ticket and dependency drafts:
 
 ```text
 Branch topology: SHARED
-Shared-branch reason: CUMULATIVE_AUDIT
+Shared-branch reason: <WIDE_REFACTOR | NON_GREEN_MIGRATION | ATOMIC_DELIVERY | CUMULATIVE_AUDIT>
 Integration branch: <derived Spec branch>
 Target: <declared target>
-Final integration owner: <integrate-and-verify Ticket>
-Final delivery surface: one cumulative PR/MR to <target>
+Final integration gate owner: SPEC_ROOT
+Final delivery surface: <configured target integration>
 ```
 
-Publish nothing until the user explicitly approves this declaration, every Ticket body, and all blocking edges together. Rejection keeps `INDEPENDENT`; `$run-initiative` must never switch modes later.
+Resolve every angle-bracket field before approval. For `CUMULATIVE_AUDIT`, the delivery surface must resolve to one native PR/MR for the Spec revision and target. Require one user approval for the declaration, Ticket bodies, blocking edges, risk classifications, and invariant ownership. Rejection keeps `INDEPENDENT`; `$run-initiative` never switches at runtime.
 
-A cumulative draft has exactly one `integrate-and-verify` Ticket, blocked by every delivery Ticket. Ordinary Tickets remain independently verifiable vertical slices and keep only real dependencies; do not turn them into Stacked PRs. The final Ticket must declare its final integration Scope, public validation Seam, failure semantics, and Acceptance criteria before publication. It re-executes or verifies each existing owner-referenced Proof on the final Head but does not gain Cross-seam Invariant ownership.
+Do not draft a ceremony Ticket that only re-runs parent Validation Entries, owner Proofs, CI, PR/MR creation, or integration. When the final stage has independent implementation work, use an ordinary vertical Ticket and classify its real risk. Final validation reuses the parent Delivery Acceptance, Validation Entries, and existing invariant Owner Proofs without gaining ownership.
 
-Because cumulative delivery depends on cross-stage identity, provenance, and evidence, the final `integrate-and-verify` Ticket must be `HIGH_RISK` and receive the normal bound Adversarial Design Review with the complete draft set. Do not publish it or any ordinary Ticket until that Review returns `PASS`.
+Return `FAILED_PRECONDITION` with zero Tracker writes for a legacy `Final integration owner` field, a missing `Final integration gate owner: SPEC_ROOT`, or a ceremony-only final Ticket. Do not parse, alias, migrate, or fall back to the old declaration.
 
 ## Forgeloop Acceptance Repair Mode
 
-Enter this mode only when the user explicitly invokes `$to-tickets` for a formal `ACCEPTANCE_RESULT` with `REPAIR_REQUIRED` and one stable `repair_key` per Finding. Read the parent Spec or Initiative, the Acceptance Findings, the final Commit, existing Open Tickets, and every Ticket already carrying any of those keys.
+Enter this mode only when the user explicitly invokes `$to-tickets` with either formal input: an `ACCEPTANCE_RESULT` with `REPAIR_REQUIRED` and one stable `repair_key` per Finding; or a formal `RUN_PAUSED` from the Final Integration Gate with `finding_id`, evidence references, owning Scope, and stable `repair_key` for every Final Gate Finding. Read the owning Spec, applicable Initiative, final Commit or `delivery_head`, existing Open Tickets, and every Ticket carrying any key.
 
-- Keep the approved parent contract and completed Ticket history unchanged. If the Findings require changing Scope, `Delivery Acceptance`, Ticket Acceptance criteria, the Spec, an ADR, or confirmed Initiative membership, stop with `CONTRACT_BLOCKER` instead of drafting repair Tickets.
-- For Spec Acceptance, use that Spec as `owning_spec_ref`. For Initiative Acceptance, route each repair slice to an existing member Spec whose approved Scope covers it; use coordinated Tickets under multiple member Specs when necessary. Never create a repair Ticket directly under the Initiative. If no existing member Spec can own a Finding without contract change, return `CONTRACT_BLOCKER`.
-- Query every key before drafting. Reuse the unique valid Open repair Ticket carrying each key; stop when one key has ambiguous or conflicting matches. Multiple keys may point to the same Ticket only when its body lists every key and the Findings form one atomic vertical slice. Do not recreate represented work.
-- For unmatched keys, draft only the smallest vertical Ticket or Tickets needed to satisfy their named Acceptance Findings. Do not decompose the whole Spec again. Preserve the normal user quiz and approval before publication.
-- Put `owning_spec_ref`, the Initiative reference when applicable, Acceptance level, assigned `repair_key` values, final Commit, stable `finding_id` values, observable repair checks, and any genuine blockers in every repair Ticket. Keep each Ticket inside the existing approved Scope and sized for one fresh context.
-- Publish idempotently. If a write result is ambiguous, query by every assigned `repair_key` and verify the body and parent relationship before retrying. Never create a second Ticket merely because the first response was uncertain.
+- Keep the approved parent contract, completed Tickets, and their Checkpoints unchanged. Return `CONTRACT_BLOCKER` instead of drafting repair Tickets when a Finding requires changing Scope, `Delivery Acceptance`, Ticket Acceptance criteria, Spec, ADR, or confirmed Initiative membership.
+- Use the Spec as `owning_spec_ref` for Spec Acceptance or a Final Gate Finding. For Initiative Acceptance, route each repair slice to an existing member Spec whose approved Scope covers it. Never create a repair Ticket directly under the Initiative; return `CONTRACT_BLOCKER` when no member Spec can own the Finding.
+- Query every key before drafting. Reuse the unique matching unfinished repair Ticket; stop on an ambiguous or conflicting key. Multiple keys may share a Ticket only when its body lists every key and the Findings form one atomic vertical slice.
+- For unmatched keys, draft only the smallest vertical Tickets needed for the Findings; do not decompose the whole Spec again. When a Finding traces to a completed Ticket, record `source_ticket_ref` without reopening or modifying it.
+- Record `owning_spec_ref`, applicable Initiative reference, source type, `repair_key`, `finding_id`, final Commit or `delivery_head`, observable repair checks, and genuine blockers in each repair Ticket. Keep it inside approved Scope.
+- Preserve the normal user quiz and approval before idempotent publication. After an ambiguous write, query every `repair_key` and verify body and parent relation before retrying; never create a duplicate because the first response was uncertain.
 
-This mode creates or reuses formal repair Tickets only after the user's explicit invocation. It does not resume `$run-initiative`; the user resumes the original Run separately after the Tracker work is valid.
+This mode creates or reuses formal repair Tickets only after the user explicitly invokes `$to-tickets`. It does not resume `$run-initiative`; the user resumes the original Run separately after the Tracker work is valid.
 
 ## Forgeloop Spec Revision Reconciliation Mode
 

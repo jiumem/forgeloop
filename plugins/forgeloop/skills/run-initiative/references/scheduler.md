@@ -54,6 +54,7 @@ Before repair, validate that every diagnosis field is present, then route the de
 ## Scheduler Responsibilities
 
 - After every Ticket Claim, refresh the declared target or Integration Branch and freeze Base from its current Head before preparing the Ticket Branch.
+- For a SHARED Spec, do not report completion when the Frontier empties. First verify every ordinary Ticket and Integration Result through the loaded Final Integration Gate. Create one fresh isolated, source-read-only validation task only after the Gate prerequisites pass; bind the fixed `delivery_head`, parent Validation Entries, and existing Owner Proofs in its Role Task Pack.
 - Publish idempotent durable checkpoints after validating their references.
 - Do not advance the Frontier, Integration, Acceptance, or Closure until native read-back confirms the complete Prepared Literal Payload.
 - After an Acceptance Reviewer returns `PASS`, refresh the target again before rendering an Acceptance `PASS` Payload.

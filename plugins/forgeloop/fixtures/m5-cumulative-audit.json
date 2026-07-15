@@ -5,89 +5,146 @@
     {
       "id": "approved-github", "group": "approved-native", "tracker": "github",
       "initial_state": "原生 PR runtime、两张实现 Ticket，完整累计草案待批准。", "entry_prompt": "批准累计审计草案。",
-      "expected_writes": ["发布普通 Tickets 与唯一 HIGH_RISK 最终 Ticket"], "forbidden_writes": ["临时切换 policy", "提前 Draft PR"], "terminal_state": "DRAFT_APPROVED", "failure_diagnostic": "任何草案输入变化都重新批准和 Design Review。",
-      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": true, "final_ticket_count": 1, "final_ticket_high_risk_pass": true, "pr_identities": 0, "merge_attempted": false}
+      "expected_writes": ["发布普通 Tickets 与 SPEC_ROOT Gate 声明"], "forbidden_writes": ["ceremony Ticket", "提前 Draft PR"], "terminal_state": "DRAFT_APPROVED", "failure_diagnostic": "草案输入变化后重新批准。",
+      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": true, "gate_owner": "SPEC_ROOT", "ceremony_ticket_count": 0, "pr_identities": 0, "merge_attempted": false}
     },
     {
       "id": "approved-gitlab", "group": "approved-native", "tracker": "gitlab",
       "initial_state": "原生 MR runtime、两张实现 Ticket，完整累计草案待批准。", "entry_prompt": "批准累计审计草案。",
-      "expected_writes": ["发布普通 Tickets 与唯一 HIGH_RISK 最终 Ticket"], "forbidden_writes": ["临时切换 policy", "提前 Draft MR"], "terminal_state": "DRAFT_APPROVED", "failure_diagnostic": "任何草案输入变化都重新批准和 Design Review。",
-      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": true, "final_ticket_count": 1, "final_ticket_high_risk_pass": true, "pr_identities": 0, "merge_attempted": false}
+      "expected_writes": ["发布普通 Tickets 与 SPEC_ROOT Gate 声明"], "forbidden_writes": ["ceremony Ticket", "提前 Draft MR"], "terminal_state": "DRAFT_APPROVED", "failure_diagnostic": "草案输入变化后重新批准。",
+      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": true, "gate_owner": "SPEC_ROOT", "ceremony_ticket_count": 0, "pr_identities": 0, "merge_attempted": false}
     },
     {
       "id": "user-rejects", "group": "user-rejects", "tracker": "github",
-      "initial_state": "累计审计方案已展示但用户拒绝。", "entry_prompt": "按普通模式发布。", "expected_writes": ["保持 independent 草案"], "forbidden_writes": ["CUMULATIVE_AUDIT", "Integration Branch"], "terminal_state": "DRAFT_APPROVED", "failure_diagnostic": "拒绝后不得保留累计声明。",
+      "initial_state": "累计方案已展示但用户拒绝。", "entry_prompt": "按普通模式发布。",
+      "expected_writes": ["保持 INDEPENDENT 草案"], "forbidden_writes": ["CUMULATIVE_AUDIT"], "terminal_state": "DRAFT_APPROVED", "failure_diagnostic": "拒绝后不得保留累计声明。",
       "domain_state": {"topology": "INDEPENDENT", "reason": null, "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": false}
     },
     {
       "id": "single-ticket-ineligible", "group": "single-ticket-ineligible", "tracker": "gitlab",
-      "initial_state": "Spec 只有一张实现 Ticket。", "entry_prompt": "生成 Ticket。", "expected_writes": ["普通 independent Ticket"], "forbidden_writes": ["形式累计 MR", "最终验证 Ticket"], "terminal_state": "DRAFT_APPROVED", "failure_diagnostic": "单 Ticket 不增加累计表面。",
+      "initial_state": "Spec 只有一张实现 Ticket。", "entry_prompt": "生成 Ticket。",
+      "expected_writes": ["普通 INDEPENDENT Ticket"], "forbidden_writes": ["形式累计 MR"], "terminal_state": "DRAFT_APPROVED", "failure_diagnostic": "单 Ticket 不增加累计表面。",
       "domain_state": {"topology": "INDEPENDENT", "reason": null, "integration_policy": "human-merge", "native_pr_runtime": true, "implementation_tickets": 1, "approved": true, "cumulative_selected": false}
     },
     {
       "id": "local-ineligible", "group": "local-ineligible", "tracker": "local",
-      "initial_state": "Local runtime 下存在多个实现 Ticket。", "entry_prompt": "生成 Ticket。", "expected_writes": ["保留其他合法 shared reason"], "forbidden_writes": ["累计 PR", "伪造 native identity"], "terminal_state": "NOT_APPLICABLE", "failure_diagnostic": "Local 明确不提供 CUMULATIVE_AUDIT。",
+      "initial_state": "Local runtime 下存在多个实现 Ticket。", "entry_prompt": "生成 Ticket。",
+      "expected_writes": ["保留其他合法 SHARED reason"], "forbidden_writes": ["累计 PR", "伪造原生 identity"], "terminal_state": "NOT_APPLICABLE", "failure_diagnostic": "Local 不提供 CUMULATIVE_AUDIT。",
       "domain_state": {"topology": "INDEPENDENT", "reason": null, "integration_policy": "auto-merge", "native_pr_runtime": false, "implementation_tickets": 3, "approved": true, "cumulative_selected": false, "native_pr_claimed": false}
     },
     {
-      "id": "serial-shared-delivery", "group": "serial-shared-delivery", "tracker": "github",
-      "initial_state": "累计模式下两张普通 Ticket 尚未进入 Integration Branch。", "entry_prompt": "串行执行普通 Tickets。", "expected_writes": ["每张 Ticket 独立双审与 Integration Result", "普通 Ticket 随集成关闭"], "forbidden_writes": ["并行活动 Ticket", "等待累计 PR 才关闭普通 Ticket"], "terminal_state": "FINAL_TICKET_READY", "failure_diagnostic": "缺少任何 Integration Result 时最终 Ticket 不可开始。",
-      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": true, "final_ticket_count": 1, "final_ticket_high_risk_pass": true, "ordinary_tickets_closed": 2, "serial": true, "pr_identities": 0, "merge_attempted": false}
+      "id": "local-shared-reason", "group": "local-shared-reason", "tracker": "local",
+      "initial_state": "Local runtime 使用合法共享分支完成原子交付。", "entry_prompt": "批准共享交付草案。",
+      "expected_writes": ["声明 SPEC_ROOT Gate", "使用配置的 Git 集成"], "forbidden_writes": ["伪造 PR/MR", "ceremony Ticket"], "terminal_state": "DRAFT_APPROVED", "failure_diagnostic": "Local 只拒绝 CUMULATIVE_AUDIT。",
+      "domain_state": {"topology": "SHARED", "reason": "ATOMIC_DELIVERY", "integration_policy": "auto-merge", "native_pr_runtime": false, "implementation_tickets": 2, "approved": true, "cumulative_selected": false, "gate_owner": "SPEC_ROOT", "ceremony_ticket_count": 0, "native_pr_claimed": false}
     },
     {
-      "id": "final-ticket-missing", "group": "final-ticket-missing", "tracker": "gitlab",
-      "initial_state": "旧声明为累计模式但没有最终 Ticket。", "entry_prompt": "运行 Spec。", "expected_writes": ["报告 FAILED_PRECONDITION"], "forbidden_writes": ["创建 MR", "Scheduler 发明 Ticket"], "terminal_state": "BLOCKED", "failure_diagnostic": "定位 FINAL_TICKET_MISSING。",
-      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": true, "final_ticket_count": 0, "final_ticket_high_risk_pass": false, "blocked_reason": "FINAL_TICKET_MISSING", "pr_identities": 0, "merge_attempted": false}
+      "id": "wide-refactor-gate", "group": "wide-refactor-gate", "tracker": "github",
+      "initial_state": "Wide refactor 必须在共享分支保持最终一致。", "entry_prompt": "批准共享交付草案。",
+      "expected_writes": ["声明 WIDE_REFACTOR 与 SPEC_ROOT Gate"], "forbidden_writes": ["ceremony Ticket"], "terminal_state": "DRAFT_APPROVED", "failure_diagnostic": "共享原因与集成策略保持独立。",
+      "domain_state": {"topology": "SHARED", "reason": "WIDE_REFACTOR", "integration_policy": "human-merge", "native_pr_runtime": true, "implementation_tickets": 3, "approved": true, "cumulative_selected": false, "gate_owner": "SPEC_ROOT", "ceremony_ticket_count": 0}
+    },
+    {
+      "id": "non-green-migration-gate", "group": "non-green-migration-gate", "tracker": "gitlab",
+      "initial_state": "迁移期间单批次无法保持绿色。", "entry_prompt": "批准共享交付草案。",
+      "expected_writes": ["声明 NON_GREEN_MIGRATION 与 SPEC_ROOT Gate"], "forbidden_writes": ["ceremony Ticket"], "terminal_state": "DRAFT_APPROVED", "failure_diagnostic": "共享原因必须显式批准。",
+      "domain_state": {"topology": "SHARED", "reason": "NON_GREEN_MIGRATION", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": false, "gate_owner": "SPEC_ROOT", "ceremony_ticket_count": 0}
+    },
+    {
+      "id": "atomic-delivery-no-ceremony", "group": "atomic-delivery-no-ceremony", "tracker": "github",
+      "initial_state": "多张 Ticket 必须作为一个原子结果交付。", "entry_prompt": "批准共享交付草案。",
+      "expected_writes": ["声明 ATOMIC_DELIVERY 与 SPEC_ROOT Gate"], "forbidden_writes": ["ceremony Ticket"], "terminal_state": "DRAFT_APPROVED", "failure_diagnostic": "最终门禁不是 Ticket。",
+      "domain_state": {"topology": "SHARED", "reason": "ATOMIC_DELIVERY", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": false, "gate_owner": "SPEC_ROOT", "ceremony_ticket_count": 0}
+    },
+    {
+      "id": "serial-shared-delivery", "group": "serial-shared-delivery", "tracker": "github",
+      "initial_state": "两张普通 Ticket 依次进入 Integration Branch。", "entry_prompt": "继续 Final Integration Gate。",
+      "expected_writes": ["每张 Ticket 独立双审与 Integration Result", "普通 Ticket 随集成关闭"], "forbidden_writes": ["并行活动 Ticket", "目标分支提前集成"], "terminal_state": "GATE_READY", "failure_diagnostic": "缺少 Ticket Integration Result 时 Gate 不可开始。",
+      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": true, "gate_owner": "SPEC_ROOT", "ceremony_ticket_count": 0, "ordinary_tickets_closed": 2, "ticket_integration_results": 2, "serial": true, "pr_identities": 0, "merge_attempted": false}
+    },
+    {
+      "id": "legacy-declaration-rejected", "group": "legacy-declaration-rejected", "tracker": "gitlab",
+      "initial_state": "Ticket 图仍声明旧 integration owner 并包含 ceremony Ticket。", "entry_prompt": "运行 Spec。",
+      "expected_writes": ["报告 FAILED_PRECONDITION"], "forbidden_writes": ["RUN_CLAIMED", "自动转换声明"], "terminal_state": "BLOCKED", "failure_diagnostic": "LEGACY_DECLARATION。",
+      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": true, "gate_owner": "TICKET", "ceremony_ticket_count": 1, "blocked_reason": "LEGACY_DECLARATION", "tracker_writes": 0, "pr_identities": 0, "merge_attempted": false}
+    },
+    {
+      "id": "real-final-implementation-ticket", "group": "real-final-implementation-ticket", "tracker": "github",
+      "initial_state": "最终阶段包含独立迁移实现 Scope。", "entry_prompt": "批准 Ticket 草案。",
+      "expected_writes": ["普通实现 Ticket", "SPEC_ROOT Gate 声明"], "forbidden_writes": ["特殊 Ticket 类型"], "terminal_state": "DRAFT_APPROVED", "failure_diagnostic": "仅真实实现工作才能成为 Ticket。",
+      "domain_state": {"topology": "SHARED", "reason": "ATOMIC_DELIVERY", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 3, "approved": true, "cumulative_selected": false, "gate_owner": "SPEC_ROOT", "ceremony_ticket_count": 0, "final_implementation_ticket": {"ordinary": true, "implementation_scope": "数据迁移与公开行为切换", "parent_da_refs": ["DA-4"], "acceptance_criteria": ["迁移后公开读取只返回新格式"], "owned_csi": "None", "risk_classification": "HIGH_RISK"}}
     },
     {
       "id": "unattributed-commit", "group": "unattributed-commit", "tracker": "github",
-      "initial_state": "累计范围包含无法映射到 Ticket 的 Commit。", "entry_prompt": "准备最终 PR。", "expected_writes": ["返回可定位 Finding"], "forbidden_writes": ["可合并 PR", "替正文补归属"], "terminal_state": "BLOCKED", "failure_diagnostic": "UNATTRIBUTED_COMMIT。",
-      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": true, "final_ticket_count": 1, "final_ticket_high_risk_pass": true, "ordinary_tickets_closed": 2, "blocked_reason": "UNATTRIBUTED_COMMIT", "pr_identities": 0, "merge_attempted": false}
+      "initial_state": "累计范围包含无法映射到 Ticket 的 Commit。", "entry_prompt": "准备最终 PR。",
+      "expected_writes": ["返回可定位 Finding"], "forbidden_writes": ["创建可合并 PR"], "terminal_state": "BLOCKED", "failure_diagnostic": "UNATTRIBUTED_COMMIT。",
+      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": true, "gate_owner": "SPEC_ROOT", "ceremony_ticket_count": 0, "ordinary_tickets_closed": 2, "ticket_integration_results": 2, "delivery_range_valid": false, "unattributed_commits": ["sha-extra"], "blocked_reason": "UNATTRIBUTED_COMMIT", "pr_identities": 0, "merge_attempted": false}
+    },
+    {
+      "id": "missing-approved-commit", "group": "missing-approved-commit", "tracker": "gitlab",
+      "initial_state": "完整交付范围缺少一张已批准 Ticket 的 Candidate Commit。", "entry_prompt": "准备最终 MR。",
+      "expected_writes": ["返回缺失 Commit Finding"], "forbidden_writes": ["创建可合并 MR"], "terminal_state": "BLOCKED", "failure_diagnostic": "MISSING_APPROVED_COMMIT。",
+      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": true, "gate_owner": "SPEC_ROOT", "ceremony_ticket_count": 0, "ordinary_tickets_closed": 2, "ticket_integration_results": 2, "delivery_range_valid": false, "missing_ticket_commits": ["ticket:T02"], "blocked_reason": "MISSING_APPROVED_COMMIT", "pr_identities": 0, "merge_attempted": false}
     },
     {
       "id": "missing-ticket-commit", "group": "missing-ticket-commit", "tracker": "gitlab",
-      "initial_state": "一张已完成 Ticket 的 Candidate 不在累计范围。", "entry_prompt": "准备最终 MR。", "expected_writes": ["返回缺失 Ticket Finding"], "forbidden_writes": ["可合并 MR"], "terminal_state": "BLOCKED", "failure_diagnostic": "MISSING_TICKET_DELIVERY。",
-      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "human-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": true, "final_ticket_count": 1, "final_ticket_high_risk_pass": true, "ordinary_tickets_closed": 2, "blocked_reason": "MISSING_TICKET_DELIVERY", "pr_identities": 0, "merge_attempted": false}
+      "initial_state": "一张已关闭 Ticket 缺少可回读 Integration Result。", "entry_prompt": "准备最终 MR。",
+      "expected_writes": ["返回缺失证据 Finding"], "forbidden_writes": ["创建可合并 MR"], "terminal_state": "BLOCKED", "failure_diagnostic": "MISSING_TICKET_DELIVERY。",
+      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "human-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": true, "gate_owner": "SPEC_ROOT", "ceremony_ticket_count": 0, "ordinary_tickets_closed": 2, "ticket_integration_results": 1, "gate_started": false, "blocked_reason": "MISSING_TICKET_DELIVERY", "pr_identities": 0, "merge_attempted": false}
     },
     {
       "id": "human-merge", "group": "human-merge", "tracker": "github",
-      "initial_state": "累计 PR、Checks 与最新正文回读均就绪。", "entry_prompt": "按 human-merge 继续。", "expected_writes": ["RUN_PAUSED READY_FOR_HUMAN_MERGE"], "forbidden_writes": ["自动合并", "关闭最终 Ticket 或 Spec"], "terminal_state": "PAUSED", "failure_diagnostic": "等待用户原生合并后刷新事实。",
-      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "human-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": true, "final_ticket_count": 1, "final_ticket_high_risk_pass": true, "ordinary_tickets_closed": 2, "pr_identities": 1, "final_dual_pass": true, "head_revision_unchanged": true, "required_checks_pass": true, "protection_pass": true, "permissions_pass": true, "projection_matches_native": true, "exact_readback": true, "lifecycle": ["DUAL_PASS", "PR_IDENTITY", "REQUIRED_CHECKS", "PROJECTION_REFRESH", "LITERAL_WRITE", "EXACT_READBACK", "READY_FOR_HUMAN_MERGE"], "ready_for_human_merge": true, "merge_attempted": false}
+      "initial_state": "累计 PR、Checks 与正文回读均就绪。", "entry_prompt": "按 human-merge 继续。",
+      "expected_writes": ["RUN_PAUSED READY_FOR_HUMAN_MERGE"], "forbidden_writes": ["自动合并", "关闭 Spec"], "terminal_state": "PAUSED", "failure_diagnostic": "等待用户原生合并。",
+      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "human-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": true, "gate_owner": "SPEC_ROOT", "ceremony_ticket_count": 0, "ordinary_tickets_closed": 2, "ticket_integration_results": 2, "pr_identities": 1, "gate_validation_pass": true, "delivery_range_valid": true, "delivery_head_unchanged": true, "required_checks_pass": true, "protection_pass": true, "permissions_pass": true, "projection_matches_native": true, "exact_readback": true, "lifecycle": ["DELIVERY_HEAD", "PR_IDENTITY", "REQUIRED_CHECKS", "PROJECTION_REFRESH", "LITERAL_WRITE", "EXACT_READBACK", "READY_FOR_HUMAN_MERGE"], "ready_for_human_merge": true, "merge_attempted": false}
     },
     {
       "id": "auto-merge", "group": "auto-merge", "tracker": "gitlab",
-      "initial_state": "最终双 PASS、Checks、权限、目标和正文回读均有效。", "entry_prompt": "自动合并累计 MR。", "expected_writes": ["最终 Integration Result", "fresh Spec Acceptance"], "forbidden_writes": ["用 MR approval 替代 Acceptance"], "terminal_state": "COMPLETED", "failure_diagnostic": "任一原生事实漂移即停止合并。",
-      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": true, "final_ticket_count": 1, "final_ticket_high_risk_pass": true, "ordinary_tickets_closed": 2, "pr_identities": 1, "final_dual_pass": true, "head_revision_unchanged": true, "protection_pass": true, "permissions_pass": true, "projection_fields": ["Spec", "Delivery range", "Target", "Tickets", "Commit mapping", "Review", "Invariants", "Checks", "Limitations"], "projection_matches_native": true, "exact_readback": true, "required_checks_pass": true, "lifecycle": ["DUAL_PASS", "PR_IDENTITY", "REQUIRED_CHECKS", "PROJECTION_REFRESH", "LITERAL_WRITE", "EXACT_READBACK", "MERGE", "SPEC_ACCEPTANCE"], "merge_attempted": true, "fresh_spec_acceptance": true}
+      "initial_state": "固定 delivery Head、Checks、权限、目标和正文回读均有效。", "entry_prompt": "自动合并累计 MR。",
+      "expected_writes": ["Spec Integration Result", "fresh Spec Acceptance"], "forbidden_writes": ["用 MR approval 替代 Acceptance"], "terminal_state": "COMPLETED", "failure_diagnostic": "任一原生事实漂移即停止合并。",
+      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": true, "gate_owner": "SPEC_ROOT", "ceremony_ticket_count": 0, "ordinary_tickets_closed": 2, "ticket_integration_results": 2, "pr_identities": 1, "gate_validation_pass": true, "delivery_range_valid": true, "delivery_head_unchanged": true, "protection_pass": true, "permissions_pass": true, "projection_fields": ["Spec", "Delivery range", "Target", "Tickets", "Commit mapping", "Review", "Invariants", "Checks", "Limitations"], "projection_matches_native": true, "exact_readback": true, "required_checks_pass": true, "lifecycle": ["DELIVERY_HEAD", "PR_IDENTITY", "REQUIRED_CHECKS", "PROJECTION_REFRESH", "LITERAL_WRITE", "EXACT_READBACK", "MERGE", "SPEC_ACCEPTANCE"], "merge_attempted": true, "spec_integration_results": [{"subject_ref": "spec:S01", "result": "MERGED", "spec_delivery_base": "base-a", "delivery_head": "head-b", "target_before": "target-c", "target_after": "target-d", "integration_method": "auto-merge", "native_ref": "mr:1", "evidence_refs": ["gate:1"]}], "fresh_spec_acceptance": true}
     },
     {
-      "id": "final-conflict-repair", "group": "final-conflict-repair", "tracker": "github",
-      "initial_state": "最终 Ticket 发生冲突并由其 Coder 修复 Head。", "entry_prompt": "继续同一累计 PR。", "expected_writes": ["Repair Diagnosis", "一轮共享预算", "新 Head 双审与正文刷新"], "forbidden_writes": ["Scheduler 改代码", "第二个累计 PR"], "terminal_state": "COMPLETED", "failure_diagnostic": "越出最终 Ticket Scope 时 CONTRACT_BLOCKER。",
-      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": true, "final_ticket_count": 1, "final_ticket_high_risk_pass": true, "ordinary_tickets_closed": 2, "pr_identities": 1, "repair_rounds": 1, "diagnosis": true, "both_reissued": true, "final_dual_pass": true, "head_revision_unchanged": true, "protection_pass": true, "permissions_pass": true, "projection_fields": ["Spec", "Delivery range", "Target", "Tickets", "Commit mapping", "Review", "Invariants", "Checks", "Limitations"], "projection_matches_native": true, "exact_readback": true, "required_checks_pass": true, "lifecycle": ["DUAL_PASS", "PR_IDENTITY", "REQUIRED_CHECKS", "PROJECTION_REFRESH", "LITERAL_WRITE", "EXACT_READBACK", "MERGE", "SPEC_ACCEPTANCE"], "merge_attempted": true, "fresh_spec_acceptance": true}
+      "id": "gate-finding-repair", "group": "gate-finding-repair", "tracker": "github",
+      "initial_state": "Final Gate 发现可定位实现问题。", "entry_prompt": "记录 Finding。",
+      "expected_writes": ["RUN_PAUSED 与 repair_key"], "forbidden_writes": ["重新打开已完成 Ticket", "Scheduler 创建 Ticket"], "terminal_state": "PAUSED", "failure_diagnostic": "等待用户显式调用 to-tickets。",
+      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": true, "gate_owner": "SPEC_ROOT", "ceremony_ticket_count": 0, "ordinary_tickets_closed": 2, "ticket_integration_results": 2, "blocked_reason": "FINAL_GATE_FINDING", "run_paused": true, "spec_ref": "spec-155", "spec_revision": "rev-3", "finding_id": "f-1", "evidence_ref": "gate-evidence-1", "owning_scope": "授权领取", "repair_key": "final-gate:spec-155:rev-3:f-1", "scheduler_created_ticket": false, "pr_identities": 0, "merge_attempted": false}
     },
     {
-      "id": "final-check-repair", "group": "final-check-repair", "tracker": "gitlab",
-      "initial_state": "candidate-caused Check 修复改变最终 Head。", "entry_prompt": "继续同一累计 MR。", "expected_writes": ["Repair Diagnosis", "一轮共享预算", "新 Checks 与正文回读"], "forbidden_writes": ["额外完整 CI", "第二个累计 MR"], "terminal_state": "COMPLETED", "failure_diagnostic": "外部 Check 故障使用 CHECKS_BLOCKED。",
-      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": true, "final_ticket_count": 1, "final_ticket_high_risk_pass": true, "ordinary_tickets_closed": 2, "pr_identities": 1, "repair_rounds": 1, "diagnosis": true, "both_reissued": true, "final_dual_pass": true, "head_revision_unchanged": true, "protection_pass": true, "permissions_pass": true, "projection_fields": ["Spec", "Delivery range", "Target", "Tickets", "Commit mapping", "Review", "Invariants", "Checks", "Limitations"], "projection_matches_native": true, "exact_readback": true, "required_checks_pass": true, "lifecycle": ["DUAL_PASS", "PR_IDENTITY", "REQUIRED_CHECKS", "PROJECTION_REFRESH", "LITERAL_WRITE", "EXACT_READBACK", "MERGE", "SPEC_ACCEPTANCE"], "merge_attempted": true, "fresh_spec_acceptance": true}
+      "id": "matching-repair-ticket-reused", "group": "matching-repair-ticket-reused", "tracker": "gitlab",
+      "initial_state": "用户调用 to-tickets 且 repair_key 已有唯一 Open Ticket。", "entry_prompt": "处理 Final Gate Finding。",
+      "expected_writes": ["复用匹配 repair Ticket"], "forbidden_writes": ["重复 Ticket", "修改已完成 Ticket"], "terminal_state": "REPAIR_READY", "failure_diagnostic": "多个匹配时停止。",
+      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": true, "gate_owner": "SPEC_ROOT", "ceremony_ticket_count": 0, "explicit_to_tickets": true, "repair_ticket_reused": true, "matching_unfinished_tickets": 1, "repair_key": "final-gate:spec-155:rev-3:f-1", "pr_identities": 0, "merge_attempted": false}
+    },
+    {
+      "id": "multi-scope-repair", "group": "multi-scope-repair", "tracker": "github",
+      "initial_state": "一个 Final Gate Finding 涉及两个合法 Scope。", "entry_prompt": "调用 to-tickets。",
+      "expected_writes": ["分别创建两张普通 repair Ticket"], "forbidden_writes": ["跨 Scope 杂项 Ticket"], "terminal_state": "REPAIR_READY", "failure_diagnostic": "每张 Ticket 保持独立 Scope。",
+      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": true, "gate_owner": "SPEC_ROOT", "ceremony_ticket_count": 0, "explicit_to_tickets": true, "affected_scopes": 2, "repair_ticket_count": 2, "miscellaneous_ticket": false, "pr_identities": 0, "merge_attempted": false}
     },
     {
       "id": "target-drift", "group": "target-drift", "tracker": "github",
-      "initial_state": "最终双 PASS 后目标前进而 Candidate 未变。", "entry_prompt": "刷新当前组合并更新同一 PR。", "expected_writes": ["保留 Candidate Review", "刷新 Checks 与正文", "记录 target binding"], "forbidden_writes": ["第二个 PR", "按文件交集猜测"], "terminal_state": "COMPLETED", "failure_diagnostic": "当前组合无法证明时 CHECKS_BLOCKED。",
-      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": true, "final_ticket_count": 1, "final_ticket_high_risk_pass": true, "ordinary_tickets_closed": 2, "pr_identities": 1, "review_inputs_unchanged": true, "projection_refreshed": true, "final_dual_pass": true, "head_revision_unchanged": true, "protection_pass": true, "permissions_pass": true, "projection_fields": ["Spec", "Delivery range", "Target", "Tickets", "Commit mapping", "Review", "Invariants", "Checks", "Limitations"], "projection_matches_native": true, "exact_readback": true, "required_checks_pass": true, "lifecycle": ["DUAL_PASS", "PR_IDENTITY", "REQUIRED_CHECKS", "PROJECTION_REFRESH", "LITERAL_WRITE", "EXACT_READBACK", "MERGE", "SPEC_ACCEPTANCE"], "merge_attempted": true, "fresh_spec_acceptance": true}
+      "initial_state": "Gate 验证后 target 前进但 delivery Head 未变。", "entry_prompt": "刷新当前组合和同一 PR。",
+      "expected_writes": ["刷新 Checks 与投影"], "forbidden_writes": ["第二个 PR", "消耗 Repair Budget"], "terminal_state": "COMPLETED", "failure_diagnostic": "当前组合无法证明时 CHECKS_BLOCKED。",
+      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": true, "gate_owner": "SPEC_ROOT", "ceremony_ticket_count": 0, "ordinary_tickets_closed": 2, "ticket_integration_results": 2, "pr_identities": 1, "target_drift": true, "target_refreshed": true, "repair_budget_used": false, "gate_validation_pass": true, "delivery_range_valid": true, "delivery_head_unchanged": true, "protection_pass": true, "permissions_pass": true, "projection_fields": ["Spec", "Delivery range", "Target", "Tickets", "Commit mapping", "Review", "Invariants", "Checks", "Limitations"], "projection_matches_native": true, "exact_readback": true, "required_checks_pass": true, "lifecycle": ["DELIVERY_HEAD", "PR_IDENTITY", "REQUIRED_CHECKS", "PROJECTION_REFRESH", "LITERAL_WRITE", "EXACT_READBACK", "MERGE", "SPEC_ACCEPTANCE"], "merge_attempted": true, "spec_integration_results": [{"subject_ref": "spec:S01", "result": "MERGED", "spec_delivery_base": "base-a", "delivery_head": "head-b", "target_before": "target-c", "target_after": "target-e", "integration_method": "auto-merge", "native_ref": "pr:1", "evidence_refs": ["gate:2"]}], "fresh_spec_acceptance": true}
     },
     {
       "id": "projection-drift", "group": "projection-drift", "tracker": "gitlab",
-      "initial_state": "累计 MR 正文遗漏最新 Check 且与原生事实不一致。", "entry_prompt": "尝试合并。", "expected_writes": ["从原生事实重新生成正文"], "forbidden_writes": ["使用陈旧正文合并", "用正文覆盖 Checkpoint"], "terminal_state": "BLOCKED", "failure_diagnostic": "PROJECTION_DRIFT。",
-      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": true, "final_ticket_count": 1, "final_ticket_high_risk_pass": true, "ordinary_tickets_closed": 2, "pr_identities": 1, "blocked_reason": "PROJECTION_DRIFT", "projection_matches_native": false, "exact_readback": false, "merge_attempted": false}
+      "initial_state": "累计 MR 正文遗漏最新 Check。", "entry_prompt": "尝试合并。",
+      "expected_writes": ["从原生事实重新生成正文"], "forbidden_writes": ["使用陈旧正文合并"], "terminal_state": "BLOCKED", "failure_diagnostic": "PROJECTION_DRIFT。",
+      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": true, "gate_owner": "SPEC_ROOT", "ceremony_ticket_count": 0, "ordinary_tickets_closed": 2, "ticket_integration_results": 2, "pr_identities": 1, "blocked_reason": "PROJECTION_DRIFT", "projection_matches_native": false, "exact_readback": false, "merge_attempted": false}
     },
     {
       "id": "single-spec-one-pr", "group": "single-spec-one-pr", "tracker": "github",
-      "initial_state": "同一 Spec revision/target 已有唯一累计 PR。", "entry_prompt": "恢复并完成。", "expected_writes": ["复用唯一 PR identity"], "forbidden_writes": ["重复 PR"], "terminal_state": "COMPLETED", "failure_diagnostic": "多匹配时 RECOVERY_CONFLICT。",
-      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": true, "final_ticket_count": 1, "final_ticket_high_risk_pass": true, "ordinary_tickets_closed": 2, "member_specs": 1, "pr_identities": 1, "final_dual_pass": true, "head_revision_unchanged": true, "protection_pass": true, "permissions_pass": true, "projection_fields": ["Spec", "Delivery range", "Target", "Tickets", "Commit mapping", "Review", "Invariants", "Checks", "Limitations"], "projection_matches_native": true, "exact_readback": true, "required_checks_pass": true, "lifecycle": ["DUAL_PASS", "PR_IDENTITY", "REQUIRED_CHECKS", "PROJECTION_REFRESH", "LITERAL_WRITE", "EXACT_READBACK", "MERGE", "SPEC_ACCEPTANCE"], "merge_attempted": true, "fresh_spec_acceptance": true}
+      "initial_state": "同一 Spec revision/target 已有唯一累计 PR。", "entry_prompt": "恢复并完成。",
+      "expected_writes": ["复用唯一 PR identity"], "forbidden_writes": ["重复 PR"], "terminal_state": "COMPLETED", "failure_diagnostic": "多匹配时 RECOVERY_CONFLICT。",
+      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 2, "approved": true, "cumulative_selected": true, "gate_owner": "SPEC_ROOT", "ceremony_ticket_count": 0, "ordinary_tickets_closed": 2, "ticket_integration_results": 2, "member_specs": 1, "pr_identities": 1, "gate_validation_pass": true, "delivery_range_valid": true, "delivery_head_unchanged": true, "protection_pass": true, "permissions_pass": true, "projection_fields": ["Spec", "Delivery range", "Target", "Tickets", "Commit mapping", "Review", "Invariants", "Checks", "Limitations"], "projection_matches_native": true, "exact_readback": true, "required_checks_pass": true, "lifecycle": ["DELIVERY_HEAD", "PR_IDENTITY", "REQUIRED_CHECKS", "PROJECTION_REFRESH", "LITERAL_WRITE", "EXACT_READBACK", "MERGE", "SPEC_ACCEPTANCE"], "merge_attempted": true, "spec_integration_results": [{"subject_ref": "spec:S01", "result": "MERGED", "spec_delivery_base": "base-a", "delivery_head": "head-b", "target_before": "target-c", "target_after": "target-d", "integration_method": "auto-merge", "native_ref": "pr:1", "evidence_refs": ["gate:1"]}], "fresh_spec_acceptance": true}
     },
     {
       "id": "multi-spec-per-spec-pr", "group": "multi-spec-per-spec-pr", "tracker": "gitlab",
-      "initial_state": "两个成员 Spec 分别批准累计审计。", "entry_prompt": "运行 Initiative。", "expected_writes": ["每个 Spec 独立 MR identity"], "forbidden_writes": ["跨 Spec 聚合 MR", "Initiative integration owner"], "terminal_state": "COMPLETED", "failure_diagnostic": "每个 Spec 独立核验其范围。",
-      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 4, "approved": true, "cumulative_selected": true, "final_ticket_count": 2, "final_ticket_high_risk_pass": true, "ordinary_tickets_closed": 4, "member_specs": 2, "pr_identities": 2, "per_spec_pr_identities": [1, 1], "cross_spec_prs": 0, "final_dual_pass": true, "head_revision_unchanged": true, "protection_pass": true, "permissions_pass": true, "projection_fields": ["Spec", "Delivery range", "Target", "Tickets", "Commit mapping", "Review", "Invariants", "Checks", "Limitations"], "projection_matches_native": true, "exact_readback": true, "required_checks_pass": true, "lifecycle": ["DUAL_PASS", "PR_IDENTITY", "REQUIRED_CHECKS", "PROJECTION_REFRESH", "LITERAL_WRITE", "EXACT_READBACK", "MERGE", "SPEC_ACCEPTANCE"], "merge_attempted": true, "fresh_spec_acceptance": true}
+      "initial_state": "两个成员 Spec 分别批准累计审计。", "entry_prompt": "运行 Initiative。",
+      "expected_writes": ["每个 Spec 独立 MR identity"], "forbidden_writes": ["跨 Spec 聚合 MR", "Initiative integration owner"], "terminal_state": "COMPLETED", "failure_diagnostic": "每个 Spec 独立核验其范围。",
+      "domain_state": {"topology": "SHARED", "reason": "CUMULATIVE_AUDIT", "integration_policy": "auto-merge", "native_pr_runtime": true, "implementation_tickets": 4, "approved": true, "cumulative_selected": true, "gate_owner": "SPEC_ROOT", "ceremony_ticket_count": 0, "ordinary_tickets_closed": 4, "ticket_integration_results": 4, "member_specs": 2, "pr_identities": 2, "per_spec_pr_identities": [1, 1], "cross_spec_prs": 0, "gate_validation_pass": true, "delivery_range_valid": true, "delivery_head_unchanged": true, "protection_pass": true, "permissions_pass": true, "projection_fields": ["Spec", "Delivery range", "Target", "Tickets", "Commit mapping", "Review", "Invariants", "Checks", "Limitations"], "projection_matches_native": true, "exact_readback": true, "required_checks_pass": true, "lifecycle": ["DELIVERY_HEAD", "PR_IDENTITY", "REQUIRED_CHECKS", "PROJECTION_REFRESH", "LITERAL_WRITE", "EXACT_READBACK", "MERGE", "SPEC_ACCEPTANCE"], "merge_attempted": true, "spec_integration_results": [{"subject_ref": "spec:S01", "result": "MERGED", "spec_delivery_base": "base-a", "delivery_head": "head-b", "target_before": "target-c", "target_after": "target-d", "integration_method": "auto-merge", "native_ref": "mr:1", "evidence_refs": ["gate:1"]}, {"subject_ref": "spec:S02", "result": "MERGED", "spec_delivery_base": "base-e", "delivery_head": "head-f", "target_before": "target-g", "target_after": "target-h", "integration_method": "auto-merge", "native_ref": "mr:2", "evidence_refs": ["gate:2"]}], "fresh_spec_acceptance": true}
     }
   ]
 }

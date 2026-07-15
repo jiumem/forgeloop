@@ -39,7 +39,7 @@ The review_base is an immutable Commit, not a moving alias. The target reference
 
 ### Integration Result
 
-Bind each non-empty Integration Result to:
+Ticket `INTEGRATION_RESULT` binds one reviewed Candidate to its declared target or Spec Integration Branch:
 
 ```yaml
 candidate_head: <reviewed Candidate commit>
@@ -50,6 +50,19 @@ native_ref: <PR/MR, checks, and merge evidence>
 ```
 
 This binding proves how one reviewed Candidate entered one observed target history. It does not change the Candidate Review binding.
+
+A SHARED Spec Final Integration Gate uses the same Event type to bind the complete delivery range entering the target:
+
+```yaml
+spec_delivery_base: <immutable delivery base commit>
+delivery_head: <validated Integration Branch head>
+target_before: <target commit immediately before final integration>
+target_after: <target commit produced or confirmed by final integration>
+integration_method: <merge | squash | already_present | configured native method>
+native_ref: <PR/MR, checks, merge, and final evidence references>
+```
+
+This record uses the Spec as `subject_ref`, proves only native integration of the fixed `delivery_head`, and never replaces fresh Spec Acceptance.
 
 ### Final Acceptance
 
@@ -74,7 +87,7 @@ This binding is the Acceptance Seal. It proves the approved Delivery Acceptance 
 4. Make the Coder implement and validate, Reviewers judge read-only fixed Commits, and the Scheduler orchestrate integration and state writes.
 5. Hold both Ticket Reviewer results until both finish, then persist one combined review checkpoint. Never expose one axis to the other.
 6. Keep Candidate Review, Integration Result, and Final Acceptance evidence bound to their own immutable inputs; apply each binding's own invalidation rule.
-7. Close a Ticket only after integration. Close a single Spec only after its fresh Acceptance `PASS`. In a multi-Spec Run, keep member Specs Open through Initiative Acceptance; on Initiative `PASS`, close the valid member Specs first and the Initiative parent last.
+7. Close a Ticket only after integration. For a SHARED Spec, the Spec Root Final Integration Gate delivers to the target after every ordinary Ticket enters the Integration Branch. Close a single Spec only after its fresh Acceptance `PASS`. In a multi-Spec Run, keep member Specs Open through Initiative Acceptance; on Initiative `PASS`, close the valid member Specs first and the Initiative parent last.
 8. Keep `PAUSED` Items Open and reserve the Claim for the original Run. On `CANCELLED`, release only that Run's Claims and never represent it as `COMPLETED`.
 9. Keep every `Release Boundary` Tracking reference and Post-delivery action outside the Ticket Frontier, Spec Scope, and Initiative membership.
 

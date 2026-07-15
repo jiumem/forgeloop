@@ -133,10 +133,10 @@
     },
     {
       "id": "shared-integration", "group": "shared-integration", "tracker": "local",
-      "initial_state": "Ticket Graph 预声明共享 Integration Branch 与 integrate-and-verify。", "entry_prompt": "运行 Wide Refactor Spec。",
-      "expected_writes": ["Tickets 进入共享分支", "最终 integrate-and-verify 双审与集成"], "forbidden_writes": ["Coder 临时切换模式", "缺少最终验证 Ticket"],
-      "terminal_state": "COMPLETED", "failure_diagnostic": "缺少声明或验证 Ticket 时预检失败。", "domain_state": {"shared_branch": true, "final_verify": true},
-      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:INTEGRATE_AND_VERIFY", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:SHARED_BRANCH", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+      "initial_state": "Ticket Graph 预声明共享 Integration Branch 与 SPEC_ROOT Final Integration Gate。", "entry_prompt": "运行 Wide Refactor Spec。",
+      "expected_writes": ["Tickets 进入共享分支", "Spec Root Gate 完成最终验证与集成"], "forbidden_writes": ["Coder 临时切换模式", "ceremony-only final Ticket"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "缺少声明或验证 Ticket 时预检失败。", "domain_state": {"shared_branch": true, "final_verify": true, "integration_results": [{"subject_ref": "ticket:T01", "result": "SHARED_BRANCH"}, {"subject_ref": "spec:S01", "result": "MERGED"}]},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:T01", "INTEGRATION_RESULT:S01", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
     },
     {
       "id": "spec-acceptance-fail", "group": "spec-acceptance-fail", "tracker": "local",

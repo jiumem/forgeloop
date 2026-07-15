@@ -122,9 +122,10 @@ class SyncUpstreamTests(unittest.TestCase):
         text = MODULE.expected_files(config, mapping)[Path("SKILL.md")].decode()
 
         self.assertIn("## Forgeloop Acceptance Repair Mode", text)
-        self.assertIn("one stable `repair_key` per Finding", text)
-        self.assertIn("Reuse the unique valid Open repair Ticket", text)
-        self.assertIn("Do not decompose the whole Spec again", text)
+        self.assertIn("Final Gate Finding", text)
+        self.assertIn("stable `repair_key`", text)
+        self.assertIn("Reuse the unique matching unfinished repair Ticket", text)
+        self.assertIn("do not decompose the whole Spec again", text)
         self.assertIn("Never create a repair Ticket directly under the Initiative", text)
         self.assertIn("`owning_spec_ref`", text)
         self.assertIn("does not resume `$run-initiative`", text)

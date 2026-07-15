@@ -41,7 +41,7 @@ class AdversarialDesignContractTests(unittest.TestCase):
                 self.assertIn(risk_property, text)
         self.assertIn("correctness, failure semantics, or evidence credibility materially depends", text)
         self.assertIn("syntax, fields, dependencies, paths, project names, or technology labels", text)
-        self.assertLess(text.index("final integrate-and-verify Ticket"), text.index("Ticket → STANDARD"))
+        self.assertLess(text.index("every ordinary implementation Ticket"), text.index("Ticket → STANDARD"))
         self.assertLess(text.index("Ticket → STANDARD"), text.index("### 4. Quiz the user"))
 
     def test_high_risk_ticket_has_complete_adversarial_design_contract(self) -> None:
