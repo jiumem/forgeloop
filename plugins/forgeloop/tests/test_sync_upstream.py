@@ -64,20 +64,40 @@ class SyncUpstreamTests(unittest.TestCase):
         self.assertNotIn("subagent_type=Explore", text)
         self.assertNotIn("Only write the visualization to an OS temporary directory", text)
 
-    def test_code_review_supports_bounded_code_scopes(self) -> None:
+    def test_code_review_preserves_full_review_rubric_and_adapts_snapshot_scope(self) -> None:
         config = MODULE.load_config()
         mapping = next(
             item for item in config["mappings"] if item["target"] == "code-review"
         )
         text = MODULE.expected_files(config, mapping)[Path("SKILL.md")].decode()
 
-        self.assertIn("Freeze the review scope", text)
-        self.assertIn("change scope", text)
-        self.assertIn("snapshot scope", text)
-        self.assertIn("upstream scope", text)
+        self.assertIn("Pin the review scope", text)
+        self.assertIn("git diff <fixed-point>...HEAD", text)
+        self.assertIn("snapshot review", text)
+        self.assertIn("exact paths and current revision", text)
+        self.assertIn("file/line evidence instead of a diff hunk", text)
+        self.assertIn("Include this substitution in both self-contained Reviewer prompts", text)
+        self.assertIn("Each smell reads *what it is* → *how to fix*", text)
+        for smell in (
+            "Mysterious Name",
+            "Duplicated Code",
+            "Feature Envy",
+            "Data Clumps",
+            "Primitive Obsession",
+            "Repeated Switches",
+            "Shotgun Surgery",
+            "Divergent Change",
+            "Speculative Generality",
+            "Message Chains",
+            "Middle Man",
+            "Refused Bequest",
+        ):
+            self.assertIn(f"**{smell}**", text)
         self.assertIn("two independent child Agents from self-contained prompts", text)
+        self.assertIn("smell baseline from step 3** pasted in full", text)
+        self.assertIn("Quote the spec line for each finding", text)
+        self.assertIn("Do **not** merge or rerank findings", text)
         self.assertNotIn("general-purpose` subagent", text)
-        self.assertNotIn("git diff <fixed-point>...HEAD", text)
 
     def test_to_spec_contract_gates_publishing(self) -> None:
         config = MODULE.load_config()

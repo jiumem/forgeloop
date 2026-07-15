@@ -3,63 +3,95 @@ name: code-review
 description: Load when implemented code needs review against its intended behavior and repository standards; do not load for exploratory code investigation, impact analysis, or debugging.
 ---
 
-# Code Review
+Two-axis review of implemented code within a fixed scope:
 
-Review implemented code on two independent axes:
+- **Standards** — does the code conform to this repo's documented coding standards?
+- **Spec** — does the code faithfully implement the originating issue / PRD / spec?
 
-- **Standards** — does the code follow this repository's documented standards?
-- **Spec** — does the code implement its intended behavior without omissions, mistakes, or scope creep?
+Both axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.
 
-This Skill reviews a bounded implementation. It does not perform open-ended codebase investigation, impact analysis, debugging, or architecture discovery.
+A scope is either a **change review** against a fixed Git point or a **snapshot review** of explicit files, directories, or a module. If another Agent or Workflow supplies a frozen scope and Spec, use them exactly. In later steps, for a snapshot review, "diff command and commit list" means the exact paths and current revision, and "hunk" means file/line evidence instead of a diff hunk. Include this substitution in both self-contained Reviewer prompts.
+
+Issue tracker configuration is only required when the review must fetch its Spec from the configured tracker. If `docs/agents/issue-tracker.md` is missing, do not run `$setup-forgeloop` automatically: use any Spec or PRD the caller supplied, otherwise continue to step 2 without starting another Workflow.
 
 ## Process
 
-### 1. Freeze the review scope
+### 1. Pin the review scope
 
-Use the narrowest scope already established by the caller:
+For a change review, whatever the caller identifies is the fixed point — a commit SHA, branch name, tag, `main`, `HEAD~5`, etc. If they didn't specify one, ask for it.
 
-- **change scope** — a pull request, fixed Base/Head, commit range, staged changes, unstaged changes, or both worktree sets;
-- **snapshot scope** — explicit files, directories, or a module at its current contents;
-- **upstream scope** — the exact frozen candidate and Spec supplied by another Agent or Workflow.
+Capture the diff command once: `git diff <fixed-point>...HEAD` (three-dot, so the comparison is against the merge-base). Also note the list of commits via `git log <fixed-point>..HEAD --oneline`.
 
-Record the scope type, exact refs or paths, exclusions, and the command or entry point that reproduces the evidence. Reuse an upstream frozen scope exactly. Do not choose `main`, review the whole repository, or expand the scope by assumption. If the context does not identify one scope, ask one question whose answer will fix it.
+Before going further, confirm the fixed point resolves (`git rev-parse <fixed-point>`) and the diff is non-empty. A bad ref or empty diff should fail here — not inside two parallel sub-agents.
 
-Validate the scope before creating child Agents. Stop with a locatable error when a ref or path is invalid, the scope is empty or unreadable, or the requested worktree set is ambiguous.
+For a snapshot review, resolve the exact paths, record the current revision, and confirm the scope exists, is readable, and contains code. A missing, unreadable, or empty scope should fail here. If no scope is specified, ask for it; do not default to the whole repository.
 
-### 2. Find the Spec
+### 2. Identify the spec source
 
-Use, in order:
+Look for the originating spec, in this order:
 
-1. the Spec, PRD, or acceptance contract supplied by the caller;
-2. an Issue or PR linked by the frozen scope, read through `docs/agents/issue-tracker.md` when configured;
-3. a matching document under `docs/`, `specs/`, or `.scratch/`.
+1. A Spec, PRD, or acceptance contract the caller or upstream Workflow supplied.
+2. Issue references in the commit messages for a change review (`#123`, `Closes #45`, GitLab `!67`, etc.) — fetch via the workflow in `docs/agents/issue-tracker.md`.
+3. A PRD/spec file under `docs/`, `specs/`, or `.scratch/` matching the branch, feature, or snapshot scope.
+4. If nothing is found, ask the caller where the spec is. If they say there isn't one, skip the **Spec** sub-agent and report `SPEC: NOT_AVAILABLE`.
 
-Tracker configuration is needed only to fetch a linked Spec. Do not start `$setup-forgeloop` automatically. If no Spec is available, skip the Spec Reviewer and report `SPEC: NOT_AVAILABLE`.
+### 3. Identify the standards sources
 
-### 3. Find the Standards
+Anything in the repo that documents how code should be written, such as `CODING_STANDARDS.md` or `CONTRIBUTING.md`.
 
-Load repository instructions and relevant standards such as `AGENTS.md`, `CONTRIBUTING.md`, ADRs, or coding guides. Apply Fowler's Mysterious Name, Duplicated Code, Feature Envy, Data Clumps, Primitive Obsession, Repeated Switches, Shotgun Surgery, Divergent Change, Speculative Generality, Message Chains, Middle Man, and Refused Bequest as judgement-only smell heuristics.
+On top of whatever the repo documents, the Standards axis always carries the **smell baseline** below — a fixed set of Fowler code smells (_Refactoring_, ch.3) that applies even when a repo documents nothing. Two rules bind it:
 
-Repository rules override heuristics. Skip rules already enforced reliably by tooling. Report only evidence inside the frozen review scope.
+- **The repo overrides.** A documented repo standard always wins; where it endorses something the baseline would flag, suppress the smell.
+- **Always a judgement call.** Each smell is a labelled heuristic ("possible Feature Envy"), never a hard violation — and, like any standard here, skip anything tooling already enforces.
 
-### 4. Review in isolated contexts
+Each smell reads *what it is* → *how to fix*; match it against the diff:
 
-When a Spec exists, create two independent child Agents from self-contained prompts and run them in parallel without inheriting the current conversation. Without a Spec, create only the Standards Reviewer.
+- **Mysterious Name** — a function, variable, or type whose name doesn't reveal what it does or holds. → rename it; if no honest name comes, the design's murky.
+- **Duplicated Code** — the same logic shape appears in more than one hunk or file in the change. → extract the shared shape, call it from both.
+- **Feature Envy** — a method that reaches into another object's data more than its own. → move the method onto the data it envies.
+- **Data Clumps** — the same few fields or params keep travelling together (a type wanting to be born). → bundle them into one type, pass that.
+- **Primitive Obsession** — a primitive or string standing in for a domain concept that deserves its own type. → give the concept its own small type.
+- **Repeated Switches** — the same `switch`/`if`-cascade on the same type recurs across the change. → replace with polymorphism, or one map both sites share.
+- **Shotgun Surgery** — one logical change forces scattered edits across many files in the diff. → gather what changes together into one module.
+- **Divergent Change** — one file or module is edited for several unrelated reasons. → split so each module changes for one reason.
+- **Speculative Generality** — abstraction, parameters, or hooks added for needs the spec doesn't have. → delete it; inline back until a real need shows.
+- **Message Chains** — long `a.b().c().d()` navigation the caller shouldn't depend on. → hide the walk behind one method on the first object.
+- **Middle Man** — a class or function that mostly just delegates onward. → cut it, call the real target direct.
+- **Refused Bequest** — a subclass or implementer that ignores or overrides most of what it inherits. → drop the inheritance, use composition.
 
-Give both Reviewers the frozen scope, reproduction command or evidence entry point, exact refs or paths, exclusions, and relevant source files.
+### 4. Spawn both sub-agents in parallel
 
-The **Standards Reviewer** reports actionable violations and possible smells with exact file/line or Diff hunk evidence. It cites the repository rule for hard violations, labels smells as judgement calls, and ignores tooling-enforced or out-of-scope issues.
+Create two independent child Agents from self-contained prompts and let them run in parallel without inheriting the current conversation.
 
-The **Spec Reviewer** reports missing, partial, incorrect, or unrequested behavior. Every Finding cites the requirement. For present code, cite the exact file/line or Diff hunk; for missing behavior, cite the inspected entry point and absence evidence. Do not infer requirements absent from the Spec.
+**Standards sub-agent prompt** — include:
 
-Each Reviewer returns Findings only; when none exist, it returns `PASS`. Keep each report under 400 words.
+- The full diff command and commit list.
+- The list of standards-source files you found in step 3, **plus the smell baseline from step 3** pasted in full — the sub-agent has no other access to it.
+- The brief: "Report — per file/hunk where relevant — (a) every place the diff violates a documented standard: cite the standard (file + the rule); and (b) any baseline smell you spot: name it and quote the hunk. Distinguish hard violations from judgement calls — documented-standard breaches can be hard, but baseline smells are always judgement calls, and a documented repo standard overrides the baseline. Skip anything tooling enforces. Under 400 words."
 
-### 5. Report
+**Spec sub-agent prompt** — include:
 
-State the frozen review scope first. Present the reports under `## Standards` and `## Spec`; use `SPEC: NOT_AVAILABLE` when applicable. Keep the axes separate and do not merge or rerank their Findings.
+- The diff command and commit list.
+- The path or fetched contents of the spec.
+- The brief: "Report: (a) requirements the spec asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep); (c) requirements that look implemented but where the implementation looks wrong. Quote the spec line for each finding. Under 400 words."
 
-End with the Finding count for each axis.
+If the spec is missing, skip the Spec sub-agent and note this in the final report.
 
-## Authorization
+### 5. Aggregate
 
-The entire review is read-only. Do not modify code, tests, Commits, Branches, Specs, Tickets, PRs/MRs, or Tracker state.
+Present the two reports under `## Standards` and `## Spec` headings, verbatim or lightly cleaned. Do **not** merge or rerank findings — the two axes are deliberately separate (see _Why two axes_).
+
+End with a one-line summary: total findings per axis, and the worst issue _within each axis_ (if any). Don't pick a single winner across axes — that's the reranking the separation exists to prevent.
+
+## Why two axes
+
+A change can pass one axis and fail the other:
+
+- Code that follows every standard but implements the wrong thing → **Standards pass, Spec fail.**
+- Code that does exactly what the issue asked but breaks the project's conventions → **Spec pass, Standards fail.**
+
+Reporting them separately stops one axis from masking the other.
+
+## Forgeloop Authorization Boundaries
+
+Read-only by default. Do not modify code, Commits, Branches, Specs, Tickets, PRs/MRs, or Tracker state.
