@@ -49,6 +49,23 @@ class SkillDescriptionTests(unittest.TestCase):
         self.assertTrue((SKILLS_ROOT / "code-review" / "SKILL.md").is_file())
         self.assertFalse((SKILLS_ROOT / "review-change").exists())
 
+    def test_active_prompt_sources_do_not_reference_removed_review_change(self) -> None:
+        paths = [
+            path
+            for root in (SKILLS_ROOT, PLUGIN_ROOT / "config" / "overlays")
+            for path in root.rglob("*")
+            if path.is_file() and path.suffix in {".md", ".yaml", ".yml"}
+        ]
+        paths.extend(
+            [
+                METADATA_PATH,
+                PLUGIN_ROOT / "config" / "upstream-map.json",
+            ]
+        )
+
+        for path in paths:
+            self.assertNotIn("review-change", path.read_text(encoding="utf-8"), str(path))
+
 
 if __name__ == "__main__":
     unittest.main()
