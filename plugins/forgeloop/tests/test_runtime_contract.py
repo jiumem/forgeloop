@@ -175,7 +175,7 @@ class RuntimeContractTests(unittest.TestCase):
             SKILL_ROOT / "references" / "repair-and-integration.md",
             SKILL_ROOT / "references" / "events-and-recovery.md",
             PLUGIN_ROOT / "skills" / "improve-codebase-architecture" / "SKILL.md",
-            PLUGIN_ROOT / "skills" / "review-change" / "SKILL.md",
+            PLUGIN_ROOT / "skills" / "code-review" / "SKILL.md",
         )
         forbidden = (
             "subagent_type=",

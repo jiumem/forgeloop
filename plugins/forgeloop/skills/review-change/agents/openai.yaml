@@ -1,6 +1,0 @@
-interface:
-  display_name: "Review Change"
-  short_description: "Review a fixed diff on independent Spec and Standards axes"
-  default_prompt: "Use $review-change to review this fixed diff on the Spec and Standards axes."
-policy:
-  allow_implicit_invocation: true

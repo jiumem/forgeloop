@@ -11,10 +11,10 @@
     ]
   },
   "development": {
-    "version": "3.2.0-dev.0"
+    "version": "3.3.0-dev.0"
   },
   "release": {
-    "version": "3.2.0",
+    "version": "3.3.0",
     "skills": [
       "ask-forgeloop",
       "codebase-design",
@@ -28,7 +28,7 @@
       "prototype",
       "recommend-initiatives",
       "resolving-merge-conflicts",
-      "review-change",
+      "code-review",
       "run-initiative",
       "setup-forgeloop",
       "tdd",
@@ -58,13 +58,14 @@
       "primary-source-research",
       "prototype",
       "resolving-merge-conflicts",
-      "review-change",
+      "code-review",
       "tdd"
     ]
   },
   "removed": [
     "grill-initiative",
     "plan-initiative",
+    "review-change",
     "run-initiative-sequences"
   ]
 }

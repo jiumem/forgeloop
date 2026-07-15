@@ -64,14 +64,51 @@ class SyncUpstreamTests(unittest.TestCase):
         self.assertNotIn("subagent_type=Explore", text)
         self.assertNotIn("Only write the visualization to an OS temporary directory", text)
 
-    def test_review_change_uses_generic_child_roles(self) -> None:
+    def test_code_review_preserves_full_review_rubric_and_adapts_snapshot_scope(self) -> None:
         config = MODULE.load_config()
         mapping = next(
-            item for item in config["mappings"] if item["target"] == "review-change"
+            item for item in config["mappings"] if item["target"] == "code-review"
         )
         text = MODULE.expected_files(config, mapping)[Path("SKILL.md")].decode()
 
+        self.assertNotIn("overlay", mapping)
+        self.assertIn("file_replacements", mapping)
+        self.assertIn("Pin the review scope", text)
+        self.assertIn("git diff <fixed-point>...HEAD", text)
+        self.assertIn("For a fixed-point change review", text)
+        self.assertIn("Treat the caller-supplied review scope as authoritative", text)
+        self.assertIn("explicit Base/Head pair", text)
+        self.assertIn("staged changes, unstaged changes, both", text)
+        self.assertIn("ask one question whose answer would change the scope", text)
+        self.assertIn("if the resolved scope is empty or unreadable, fail before spawning reviewers", text)
+        self.assertIn("do not replace an explicitly supplied Head", text)
+        self.assertIn("snapshot review", text)
+        self.assertIn("exact paths and current revision", text)
+        self.assertIn("hunk evidence means file/line evidence", text)
+        self.assertIn("include this substitution in both self-contained Reviewer prompts", text)
+        self.assertIn("scope type, resolved Git IDs or paths, exclusions, and evidence entry", text)
+        self.assertIn("file/line or diff-hunk evidence for every finding", text)
+        self.assertEqual(text.count("The frozen review scope and its evidence entry"), 2)
+        self.assertIn("Each smell reads *what it is* → *how to fix*", text)
+        for smell in (
+            "Mysterious Name",
+            "Duplicated Code",
+            "Feature Envy",
+            "Data Clumps",
+            "Primitive Obsession",
+            "Repeated Switches",
+            "Shotgun Surgery",
+            "Divergent Change",
+            "Speculative Generality",
+            "Message Chains",
+            "Middle Man",
+            "Refused Bequest",
+        ):
+            self.assertIn(f"**{smell}**", text)
         self.assertIn("two independent child Agents from self-contained prompts", text)
+        self.assertIn("smell baseline from step 3** pasted in full", text)
+        self.assertIn("Quote the spec line for each finding", text)
+        self.assertIn("Do **not** merge or rerank findings", text)
         self.assertNotIn("general-purpose` subagent", text)
 
     def test_to_spec_contract_gates_publishing(self) -> None:
@@ -186,7 +223,7 @@ class SyncUpstreamTests(unittest.TestCase):
         result = MODULE.apply_required_replacements(
             "run setup automatically",
             [["run setup automatically", "ask the user to run setup"]],
-            "review-change/SKILL.md",
+            "code-review/SKILL.md",
         )
         self.assertEqual(result, "ask the user to run setup")
 
@@ -195,7 +232,7 @@ class SyncUpstreamTests(unittest.TestCase):
             MODULE.apply_required_replacements(
                 "upstream text changed",
                 [["run setup automatically", "ask the user to run setup"]],
-                "review-change/SKILL.md",
+                "code-review/SKILL.md",
             )
 
     def test_wrong_commit_is_rejected(self) -> None:
