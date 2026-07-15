@@ -94,26 +94,119 @@ CUMULATIVE_PROJECTION_FIELDS = {
     "Checks",
     "Limitations",
 }
-CUMULATIVE_MERGE_LIFECYCLE = [
-    "DELIVERY_HEAD",
-    "PR_IDENTITY",
-    "REQUIRED_CHECKS",
-    "PROJECTION_REFRESH",
-    "LITERAL_WRITE",
-    "EXACT_READBACK",
-    "MERGE",
-    "SPEC_ACCEPTANCE",
-]
-CUMULATIVE_HUMAN_READY_LIFECYCLE = [
-    *CUMULATIVE_MERGE_LIFECYCLE[:-2],
-    "READY_FOR_HUMAN_MERGE",
-]
 SHARED_REASONS = {
     "WIDE_REFACTOR",
     "NON_GREEN_MIGRATION",
     "ATOMIC_DELIVERY",
     "CUMULATIVE_AUDIT",
 }
+
+
+def _non_empty_string_list(value: object) -> bool:
+    return (
+        isinstance(value, list)
+        and bool(value)
+        and all(isinstance(item, str) and bool(item) for item in value)
+    )
+
+
+def _validate_shared_declaration(case: dict) -> list[str]:
+    """校验共享声明与 3.2.0 替换边界。"""
+
+    errors: list[str] = []
+    case_id = case["id"]
+    state = case["domain_state"]
+    selected = state.get("cumulative_selected") is True
+    if case["tracker"] == "local" and (selected or state.get("native_pr_claimed")):
+        errors.append(f"{case_id}: Local 不得提供或伪造累计 PR/MR")
+    if state.get("topology") != "SHARED":
+        return errors
+    if state.get("reason") not in SHARED_REASONS:
+        errors.append(f"{case_id}: SHARED topology 必须声明一个已批准 reason")
+    if state.get("integration_policy") not in {"auto-merge", "human-merge"}:
+        errors.append(f"{case_id}: SHARED reason 不得替代 Integration Policy")
+    if state.get("approved") is not True:
+        errors.append(f"{case_id}: SHARED 声明必须随完整草案获得用户批准")
+    legacy_owner_present = bool(state.get("legacy_final_integration_owner"))
+    legacy_rejection = state.get("blocked_reason") == "LEGACY_DECLARATION"
+    if legacy_owner_present != legacy_rejection:
+        errors.append(
+            f"{case_id}: 旧 Final integration owner 字段必须由 LEGACY_DECLARATION 拒绝"
+        )
+    if legacy_owner_present or legacy_rejection:
+        if state.get("tracker_writes") != 0:
+            errors.append(f"{case_id}: 旧声明必须以零 Tracker writes 拒绝")
+        if case.get("terminal_state") != "FAILED_PRECONDITION":
+            errors.append(f"{case_id}: 旧声明必须返回 FAILED_PRECONDITION")
+    else:
+        if state.get("gate_owner") != "SPEC_ROOT":
+            errors.append(f"{case_id}: SHARED Spec 必须声明 SPEC_ROOT Final Integration Gate")
+        if state.get("ceremony_ticket_count", 0) != 0:
+            errors.append(f"{case_id}: 不得创建 ceremony-only final Ticket")
+    if state.get("ready_for_human_merge"):
+        if state.get("spec_open") is not True:
+            errors.append(f"{case_id}: SHARED human-merge 必须保持 Spec Open")
+        if state.get("current_ticket") is not None:
+            errors.append(f"{case_id}: SHARED human-merge 不得保留 current Ticket")
+    return errors
+
+
+def _validate_final_implementation_ticket(case_id: str, ticket: object) -> list[str]:
+    """校验最终阶段的真实实现仍是普通纵向 Ticket。"""
+
+    if ticket is None:
+        return []
+    required = {
+        "ordinary", "implementation_scope", "parent_da_refs", "acceptance_criteria",
+        "owned_csi", "risk_classification",
+    }
+    if not isinstance(ticket, dict) or required - set(ticket):
+        return [f"{case_id}: 最终实现工作必须是结构完整的普通 Ticket"]
+    errors: list[str] = []
+    if ticket.get("ordinary") is not True:
+        errors.append(f"{case_id}: 最终实现工作不得成为特殊 Ticket 类型")
+    if not isinstance(ticket.get("implementation_scope"), str) or not ticket["implementation_scope"]:
+        errors.append(f"{case_id}: 最终实现 Ticket 必须有真实 Scope")
+    if not _non_empty_string_list(ticket.get("parent_da_refs")):
+        errors.append(f"{case_id}: 最终实现 Ticket 必须引用 Parent Delivery Acceptance")
+    if not _non_empty_string_list(ticket.get("acceptance_criteria")):
+        errors.append(f"{case_id}: 最终实现 Ticket 必须有可验证 Acceptance criteria")
+    if ticket.get("risk_classification") not in {"STANDARD", "HIGH_RISK"}:
+        errors.append(f"{case_id}: 最终实现 Ticket 风险分类无效")
+    owned_csi = ticket.get("owned_csi")
+    if not (
+        (isinstance(owned_csi, str) and owned_csi)
+        or _non_empty_string_list(owned_csi)
+    ):
+        errors.append(f"{case_id}: 最终实现 Ticket 必须声明适用的 CSI ownership")
+    return errors
+
+
+def _validate_spec_integration_results(
+    case_id: str, results: object, member_specs: int
+) -> list[str]:
+    """校验每个 Spec 的原生最终集成证据。"""
+
+    if not isinstance(results, list) or len(results) != member_specs:
+        return [f"{case_id}: 每个 Spec 必须有一个结构化 Spec Integration Result"]
+    errors: list[str] = []
+    required = {
+        "subject_ref", "result", "spec_delivery_base", "delivery_head",
+        "target_before", "target_after", "integration_method", "native_ref",
+        "evidence_refs",
+    }
+    for result in results:
+        if not isinstance(result, dict) or required - set(result):
+            errors.append(f"{case_id}: Spec Integration Result 字段不完整")
+            continue
+        if not str(result.get("subject_ref", "")).startswith("spec:"):
+            errors.append(f"{case_id}: Spec Integration Result 必须以 Spec 为 subject_ref")
+        scalar_fields = required - {"evidence_refs"}
+        if not all(isinstance(result.get(field), str) and result[field] for field in scalar_fields):
+            errors.append(f"{case_id}: Spec Integration Result 标量字段必须非空")
+        if not _non_empty_string_list(result.get("evidence_refs")):
+            errors.append(f"{case_id}: Spec Integration Result 必须绑定最终证据")
+    return errors
 
 
 def validate_cumulative_audit_case(case: dict) -> list[str]:
@@ -123,24 +216,9 @@ def validate_cumulative_audit_case(case: dict) -> list[str]:
     case_id = case["id"]
     state = case["domain_state"]
     selected = state.get("cumulative_selected") is True
-    if case["tracker"] == "local" and (selected or state.get("native_pr_claimed")):
-        errors.append(f"{case_id}: Local 不得提供或伪造累计 PR/MR")
+    errors.extend(_validate_shared_declaration(case))
     if state.get("topology") == "SHARED":
         blocked_reason = state.get("blocked_reason")
-        if state.get("reason") not in SHARED_REASONS:
-            errors.append(f"{case_id}: SHARED topology 必须声明一个已批准 reason")
-        if state.get("integration_policy") not in {"auto-merge", "human-merge"}:
-            errors.append(f"{case_id}: SHARED reason 不得替代 Integration Policy")
-        if state.get("approved") is not True:
-            errors.append(f"{case_id}: SHARED 声明必须随完整草案获得用户批准")
-        if blocked_reason == "LEGACY_DECLARATION":
-            if state.get("tracker_writes") != 0:
-                errors.append(f"{case_id}: 旧声明必须以零 Tracker writes 拒绝")
-        else:
-            if state.get("gate_owner") != "SPEC_ROOT":
-                errors.append(f"{case_id}: SHARED Spec 必须声明 SPEC_ROOT Final Integration Gate")
-            if state.get("ceremony_ticket_count", 0) != 0:
-                errors.append(f"{case_id}: 不得创建 ceremony-only final Ticket")
 
         gate_active = any(
             state.get(field) is True
@@ -168,42 +246,11 @@ def validate_cumulative_audit_case(case: dict) -> list[str]:
             if state.get("scheduler_created_ticket") is not False:
                 errors.append(f"{case_id}: Scheduler 不得为 Final Gate Finding 创建 Ticket")
 
-        implementation_ticket = state.get("final_implementation_ticket")
-        if implementation_ticket is not None:
-            required = {
-                "ordinary", "implementation_scope", "parent_da_refs", "acceptance_criteria",
-                "owned_csi", "risk_classification",
-            }
-            if not isinstance(implementation_ticket, dict) or required - set(implementation_ticket):
-                errors.append(f"{case_id}: 最终实现工作必须是结构完整的普通 Ticket")
-            else:
-                if implementation_ticket.get("ordinary") is not True:
-                    errors.append(f"{case_id}: 最终实现工作不得成为特殊 Ticket 类型")
-                if not isinstance(implementation_ticket.get("implementation_scope"), str) or not implementation_ticket["implementation_scope"]:
-                    errors.append(f"{case_id}: 最终实现 Ticket 必须有真实 Scope")
-                if (
-                    not isinstance(implementation_ticket.get("parent_da_refs"), list)
-                    or not implementation_ticket["parent_da_refs"]
-                    or not all(isinstance(ref, str) and ref for ref in implementation_ticket["parent_da_refs"])
-                ):
-                    errors.append(f"{case_id}: 最终实现 Ticket 必须引用 Parent Delivery Acceptance")
-                if (
-                    not isinstance(implementation_ticket.get("acceptance_criteria"), list)
-                    or not implementation_ticket["acceptance_criteria"]
-                    or not all(isinstance(criterion, str) and criterion for criterion in implementation_ticket["acceptance_criteria"])
-                ):
-                    errors.append(f"{case_id}: 最终实现 Ticket 必须有可验证 Acceptance criteria")
-                if implementation_ticket.get("risk_classification") not in {"STANDARD", "HIGH_RISK"}:
-                    errors.append(f"{case_id}: 最终实现 Ticket 风险分类无效")
-                owned_csi = implementation_ticket.get("owned_csi")
-                if not (
-                    (isinstance(owned_csi, str) and owned_csi)
-                    or (
-                        isinstance(owned_csi, list) and owned_csi
-                        and all(isinstance(csi, str) and csi for csi in owned_csi)
-                    )
-                ):
-                    errors.append(f"{case_id}: 最终实现 Ticket 必须声明适用的 CSI ownership")
+        errors.extend(
+            _validate_final_implementation_ticket(
+                case_id, state.get("final_implementation_ticket")
+            )
+        )
 
         if blocked_reason == "UNATTRIBUTED_COMMIT":
             if not state.get("unattributed_commits") or state.get("delivery_range_valid") is not False:
@@ -275,8 +322,6 @@ def validate_cumulative_audit_case(case: dict) -> list[str]:
     if state.get("ready_for_human_merge"):
         if state.get("pr_identities") != member_specs:
             errors.append(f"{case_id}: human-merge 必须绑定每个 Spec 唯一 PR/MR identity")
-        if state.get("lifecycle") != CUMULATIVE_HUMAN_READY_LIFECYCLE:
-            errors.append(f"{case_id}: human-merge 准备时序不完整")
         for field in (
             "gate_validation_pass", "delivery_head_unchanged", "delivery_range_valid",
             "required_checks_pass",
@@ -292,8 +337,6 @@ def validate_cumulative_audit_case(case: dict) -> list[str]:
     if state.get("merge_attempted"):
         if state.get("pr_identities") != member_specs:
             errors.append(f"{case_id}: 合并必须绑定每个 Spec 唯一 PR/MR identity")
-        if state.get("lifecycle") != CUMULATIVE_MERGE_LIFECYCLE:
-            errors.append(f"{case_id}: 累计 PR/MR 生命周期顺序不完整")
         fields = set(state.get("projection_fields", []))
         missing = CUMULATIVE_PROJECTION_FIELDS - fields
         if missing:
@@ -321,30 +364,11 @@ def validate_cumulative_audit_case(case: dict) -> list[str]:
             errors.append(f"{case_id}: COMPLETED 必须先完成累计 PR/MR 合并")
         if state.get("fresh_spec_acceptance") is not True:
             errors.append(f"{case_id}: 累计合并后必须通过 fresh Spec Acceptance 才能完成")
-        integration_results = state.get("spec_integration_results")
-        required = {
-            "subject_ref", "result", "spec_delivery_base", "delivery_head",
-            "target_before", "target_after", "integration_method", "native_ref",
-            "evidence_refs",
-        }
-        if not isinstance(integration_results, list) or len(integration_results) != member_specs:
-            errors.append(f"{case_id}: 每个 Spec 必须有一个结构化 Spec Integration Result")
-        else:
-            for result in integration_results:
-                if not isinstance(result, dict) or required - set(result):
-                    errors.append(f"{case_id}: Spec Integration Result 字段不完整")
-                    continue
-                if not str(result.get("subject_ref", "")).startswith("spec:"):
-                    errors.append(f"{case_id}: Spec Integration Result 必须以 Spec 为 subject_ref")
-                scalar_fields = required - {"evidence_refs"}
-                if not all(isinstance(result.get(field), str) and result[field] for field in scalar_fields):
-                    errors.append(f"{case_id}: Spec Integration Result 标量字段必须非空")
-                if (
-                    not isinstance(result.get("evidence_refs"), list)
-                    or not result["evidence_refs"]
-                    or not all(isinstance(ref, str) and ref for ref in result["evidence_refs"])
-                ):
-                    errors.append(f"{case_id}: Spec Integration Result 必须绑定最终证据")
+        errors.extend(
+            _validate_spec_integration_results(
+                case_id, state.get("spec_integration_results"), member_specs
+            )
+        )
     return errors
 
 

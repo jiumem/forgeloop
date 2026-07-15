@@ -67,6 +67,28 @@ class FinalIntegrationGateContractTests(unittest.TestCase):
             protocol,
         )
 
+    def test_delivery_head_retains_ordinary_ticket_review_bindings(self) -> None:
+        protocol = FINAL_GATE.read_text(encoding="utf-8")
+
+        self.assertIn("`delivery_head` equals the latest Ticket Integration Result's `target_after`", protocol)
+        self.assertIn("every mapped Candidate Head has two bound `PASS` Verdicts", protocol)
+        self.assertIn("adds no final Reviewer or Spec-level `REVIEW_RESULT`", protocol)
+
+    def test_shared_human_merge_keeps_the_spec_open_without_a_ticket(self) -> None:
+        protocol = FINAL_GATE.read_text(encoding="utf-8")
+        integration = REPAIR.read_text(encoding="utf-8")
+
+        marker = "keep the Spec Open with no current Ticket"
+        self.assertIn(marker, protocol)
+        self.assertIn(marker, integration)
+
+    def test_reconciliation_removes_legacy_ceremony_relationships(self) -> None:
+        text = TO_TICKETS.read_text(encoding="utf-8")
+
+        self.assertIn("unfinished ceremony-only Ticket", text)
+        self.assertIn("remove its native parent relation and blocking edges", text)
+        self.assertIn("only after explicit user approval", text)
+
     def test_final_gate_findings_use_the_existing_repair_entry(self) -> None:
         text = TO_TICKETS.read_text(encoding="utf-8")
 

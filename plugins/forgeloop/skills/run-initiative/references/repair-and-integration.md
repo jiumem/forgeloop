@@ -37,7 +37,7 @@ A platform-native merge or squash preserves the dual `PASS` when Candidate Head 
 Target refresh, mergeability and Check refresh, read-only Acceptance, and pre- or post-seal drift consume no repair round. A Candidate code change or Head rewrite enters Repair Diagnosis and consumes one round from the shared three-round budget when authorized.
 
 - `auto-merge`: integrate only after both Verdicts have `PASS`, Base/Head and revision remain unchanged, and existing Required Checks, protection rules, and permissions pass.
-- `human-merge`: persist `RUN_PAUSED` with reason=`READY_FOR_HUMAN_MERGE`, preserve the Branch and PR/MR, keep the Ticket Open, and refresh native facts after user action.
+- `human-merge`: persist `RUN_PAUSED` with reason=`READY_FOR_HUMAN_MERGE` and preserve the Branch and PR/MR. Ticket integration keeps that Ticket Open; a Final Integration Gate must keep the Spec Open with no current Ticket. Refresh native facts after user action.
 - Missing policy prohibits automatic merge. A one-run override requires explicit user confirmation recorded in the Tracker.
 - Automatic integration does not authorize deployment, release, data migration execution, or any other irreversible external action.
 - A closed but unmerged PR/MR is not integrated.

@@ -58,10 +58,17 @@ class CumulativeAuditFixtureTests(unittest.TestCase):
         self.assertEqual(by_id["single-spec-one-pr"]["domain_state"]["pr_identities"], 1)
         self.assertEqual(by_id["multi-spec-per-spec-pr"]["domain_state"]["cross_spec_prs"], 0)
         self.assertEqual(by_id["legacy-declaration-rejected"]["domain_state"]["tracker_writes"], 0)
+        self.assertEqual(by_id["legacy-declaration-rejected"]["terminal_state"], "FAILED_PRECONDITION")
         self.assertIsInstance(
             by_id["real-final-implementation-ticket"]["domain_state"]["final_implementation_ticket"],
             dict,
         )
+
+    def test_cumulative_fixtures_assert_evidence_without_a_lifecycle_dsl(self) -> None:
+        data = json.loads(FIXTURE.read_text(encoding="utf-8"))
+
+        for case in data["cases"]:
+            self.assertNotIn("lifecycle", case["domain_state"], case["id"])
 
     def test_fixture_outcomes_are_enforced_not_only_listed(self) -> None:
         data = json.loads(FIXTURE.read_text(encoding="utf-8"))
@@ -106,6 +113,17 @@ class CumulativeAuditFixtureTests(unittest.TestCase):
             errors = self._validate(integration)
             self.assertTrue(any(diagnostic in error for error in errors), field)
 
+        legacy = json.loads(json.dumps(by_id["legacy-declaration-rejected"]))
+        legacy["terminal_state"] = "BLOCKED"
+        errors = self._validate(legacy)
+        self.assertTrue(any("FAILED_PRECONDITION" in error for error in errors))
+
+        undeclared_legacy = json.loads(json.dumps(by_id["atomic-delivery-no-ceremony"]))
+        undeclared_legacy["domain_state"]["legacy_final_integration_owner"] = "ticket:T99"
+        undeclared_legacy["domain_state"]["tracker_writes"] = 1
+        errors = self._validate(undeclared_legacy)
+        self.assertTrue(any("旧 Final integration owner" in error for error in errors))
+
     def test_every_shared_reason_requires_the_spec_root_without_a_ceremony_ticket(self) -> None:
         for reason in MODULE.SHARED_REASONS:
             state = {
@@ -125,6 +143,30 @@ class CumulativeAuditFixtureTests(unittest.TestCase):
             self.assertTrue(any("SPEC_ROOT" in error for error in errors), reason)
             self.assertTrue(any("ceremony-only" in error for error in errors), reason)
 
+    def test_every_shared_human_merge_keeps_spec_open_without_a_current_ticket(self) -> None:
+        for reason in MODULE.SHARED_REASONS:
+            state = {
+                "topology": "SHARED",
+                "reason": reason,
+                "integration_policy": "human-merge",
+                "native_pr_runtime": reason == "CUMULATIVE_AUDIT",
+                "implementation_tickets": 2,
+                "approved": True,
+                "cumulative_selected": reason == "CUMULATIVE_AUDIT",
+                "gate_owner": "SPEC_ROOT",
+                "ceremony_ticket_count": 0,
+                "ordinary_tickets_closed": 2,
+                "ticket_integration_results": 2,
+                "ready_for_human_merge": True,
+                "spec_open": False,
+                "current_ticket": "ticket:T99",
+            }
+
+            errors = self._validate(self._case(state))
+
+            self.assertTrue(any("Spec Open" in error for error in errors), reason)
+            self.assertTrue(any("current Ticket" in error for error in errors), reason)
+
     def test_final_gate_prerequisites_and_finding_payload_are_validated(self) -> None:
         state = {
             "topology": "SHARED",
@@ -135,7 +177,6 @@ class CumulativeAuditFixtureTests(unittest.TestCase):
             "approved": True,
             "cumulative_selected": False,
             "gate_owner": "SPEC_ROOT",
-            "ceremony_ticket_count": 0,
             "ordinary_tickets_closed": 1,
             "ticket_integration_results": 1,
             "gate_started": True,
@@ -159,10 +200,10 @@ class CumulativeAuditFixtureTests(unittest.TestCase):
                 "integration_policy": "auto-merge",
                 "native_pr_runtime": False,
                 "implementation_tickets": 1,
-            "approved": False,
-            "cumulative_selected": True,
-            "gate_owner": "SPEC_ROOT",
-            "ceremony_ticket_count": 0,
+                "approved": False,
+                "cumulative_selected": True,
+                "gate_owner": "SPEC_ROOT",
+                "ceremony_ticket_count": 0,
             }
         )
 
@@ -230,7 +271,6 @@ class CumulativeAuditFixtureTests(unittest.TestCase):
             "ceremony_ticket_count": 0,
             "pr_identities": 0,
             "ready_for_human_merge": True,
-            "lifecycle": MODULE.CUMULATIVE_HUMAN_READY_LIFECYCLE,
             "gate_validation_pass": True,
             "delivery_head_unchanged": True,
             "delivery_range_valid": True,
