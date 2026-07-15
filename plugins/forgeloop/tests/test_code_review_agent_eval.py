@@ -82,10 +82,9 @@ def output_schema() -> dict:
 
 def evaluation_prompt() -> str:
     requests = [{"id": case["id"], "request": case["request"]} for case in CASES]
-    return f"""Decide whether the `code-review` Skill should load for each request using only its
-trigger description. LOAD only for code review of implemented code. DO_NOT_LOAD when the request
-is investigation, impact analysis, debugging, or architecture exploration rather than review.
-Return one decision for every request. Do not inspect files, call tools, or use the network.
+    return f"""Decide whether the Skill should load for each request using only its trigger
+description. Return one decision for every request. Do not inspect files, call tools, or use the
+network.
 
 <description>
 {code_review_description()}
@@ -103,6 +102,8 @@ class CodeReviewEvalPromptTests(unittest.TestCase):
 
         for case in CASES:
             self.assertNotIn(f'{case["id"]}: {case["expected"]}', prompt)
+        for expected in {case["expected"] for case in CASES}:
+            self.assertNotIn(expected, prompt)
 
 
 @unittest.skipUnless(

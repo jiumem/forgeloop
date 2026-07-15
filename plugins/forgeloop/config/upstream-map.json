@@ -6,7 +6,67 @@
     {
       "source": "skills/engineering/code-review",
       "target": "code-review",
-      "overlay": "config/overlays/code-review.md"
+      "file_replacements": {
+        "SKILL.md": [
+          [
+            "Two-axis review of the diff between `HEAD` and a fixed point the user supplies:",
+            "Two-axis review of implemented code within a fixed scope:"
+          ],
+          [
+            "Both axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.",
+            "Both axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.\n\nTreat the caller-supplied review scope as authoritative. It may be a PR or diff, an explicit Base/Head pair, staged changes, unstaged changes, both, or another concrete change set; it may also be a snapshot of explicit files, directories, or a module. Resolve and validate it once. If the context cannot determine a unique scope, ask one question whose answer would change the scope; if the resolved scope is empty or unreadable, fail before spawning reviewers. Pass the same frozen scope to both reviewers, and do not replace an explicitly supplied Head with the local `HEAD`. If another Agent or Workflow supplies a frozen scope and Spec, use them exactly. For a snapshot review, later references to the diff command and commit list mean the exact paths and current revision, and hunk evidence means file/line evidence; include this substitution in both self-contained Reviewer prompts."
+          ],
+          [
+            "The issue tracker should have been provided to you — run `/setup-forgeloop` if `docs/agents/issue-tracker.md` is missing.",
+            "Issue tracker configuration is only required when the review must fetch its Spec from the configured tracker. If `docs/agents/issue-tracker.md` is missing, do not run `$setup-forgeloop` automatically: use any Spec or PRD the caller supplied, otherwise continue to step 2 without starting another Workflow."
+          ],
+          [
+            "### 1. Pin the fixed point",
+            "### 1. Pin the review scope"
+          ],
+          [
+            "Whatever the user said is the fixed point — a commit SHA, branch name, tag, `main`, `HEAD~5`, etc. If they didn't specify one, ask for it.",
+            "For a fixed-point change review, whatever the caller identifies is the fixed point — a commit SHA, branch name, tag, `main`, `HEAD~5`, etc. If they didn't specify one, ask for it."
+          ],
+          [
+            "Capture the diff command once: `git diff <fixed-point>...HEAD` (three-dot, so the comparison is against the merge-base). Also note the list of commits via `git log <fixed-point>..HEAD --oneline`.",
+            "For a fixed-point change review, capture the diff command once: `git diff <fixed-point>...HEAD` (three-dot, so the comparison is against the merge-base). Also note the list of commits via `git log <fixed-point>..HEAD --oneline`."
+          ],
+          [
+            "Before going further, confirm the fixed point resolves (`git rev-parse <fixed-point>`) and the diff is non-empty. A bad ref or empty diff should fail here — not inside two parallel sub-agents.",
+            "For a fixed-point change review, confirm the fixed point resolves (`git rev-parse <fixed-point>`) and the diff is non-empty. A bad ref or empty diff should fail here — not inside two parallel sub-agents.\n\nFor a snapshot review, resolve the exact paths, record the current revision, and confirm the scope exists, is readable, and contains code. A missing, unreadable, or empty scope should fail here. If no review scope is specified, ask for it; do not default to the whole repository."
+          ],
+          [
+            "1. Issue references in the commit messages (`#123`, `Closes #45`, GitLab `!67`, etc.) — fetch via the workflow in `docs/agents/issue-tracker.md`.\n2. A path the user passed as an argument.\n3. A PRD/spec file under `docs/`, `specs/`, or `.scratch/` matching the branch name or feature.\n4. If nothing is found, ask the user where the spec is. If they say there isn't one, the **Spec** sub-agent will skip and report \"no spec available\".",
+            "1. A Spec, PRD, or acceptance contract the caller or upstream Workflow supplied.\n2. Issue references in the commit messages for a change review (`#123`, `Closes #45`, GitLab `!67`, etc.) — fetch via the workflow in `docs/agents/issue-tracker.md`.\n3. A PRD/spec file under `docs/`, `specs/`, or `.scratch/` matching the branch, feature, or snapshot scope.\n4. If nothing is found, ask the caller where the spec is. If they say there isn't one, skip the **Spec** sub-agent and report `SPEC: NOT_AVAILABLE`."
+          ],
+          [
+            "Send a single message with two `Agent` tool calls. Use the `general-purpose` subagent for both.",
+            "Create two independent child Agents from self-contained prompts and let them run in parallel without inheriting the current conversation."
+          ],
+          [
+            "- The full diff command and commit list.",
+            "- The frozen review scope and its evidence entry: the diff command and commit list for a Git change, or the exact paths and current revision for a snapshot."
+          ],
+          [
+            "- The diff command and commit list.",
+            "- The frozen review scope and its evidence entry: the diff command and commit list for a Git change, or the exact paths and current revision for a snapshot."
+          ],
+          [
+            "The brief: \"Report — per file/hunk where relevant — (a) every place the diff violates a documented standard: cite the standard (file + the rule); and (b) any baseline smell you spot: name it and quote the hunk. Distinguish hard violations from judgement calls — documented-standard breaches can be hard, but baseline smells are always judgement calls, and a documented repo standard overrides the baseline. Skip anything tooling enforces. Under 400 words.\"",
+            "The brief: \"Report — per file/hunk where relevant — (a) every place the diff violates a documented standard: cite the standard (file + the rule); and (b) any baseline smell you spot: name it and quote the hunk. Distinguish hard violations from judgement calls — documented-standard breaches can be hard, but baseline smells are always judgement calls, and a documented repo standard overrides the baseline. Skip anything tooling enforces. Cite file/line or diff-hunk evidence for every finding, and do not report outside the frozen scope. Under 400 words.\""
+          ],
+          [
+            "The brief: \"Report: (a) requirements the spec asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep); (c) requirements that look implemented but where the implementation looks wrong. Quote the spec line for each finding. Under 400 words.\"",
+            "The brief: \"Report: (a) requirements the spec asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep); (c) requirements that look implemented but where the implementation looks wrong. Quote the spec line for each finding. Also cite file/line or diff-hunk evidence, and do not report outside the frozen scope. Under 400 words.\""
+          ],
+          [
+            "Present the two reports under `## Standards` and `## Spec` headings, verbatim or lightly cleaned. Do **not** merge or rerank findings — the two axes are deliberately separate (see _Why two axes_).",
+            "First state the scope type, resolved Git IDs or paths, exclusions, and evidence entry. Then present the two reports under `## Standards` and `## Spec` headings, verbatim or lightly cleaned. Do **not** merge or rerank findings — the two axes are deliberately separate (see _Why two axes_)."
+          ]
+        ]
+      },
+      "appends": {"SKILL.md": "config/overlays/code-review-append.md"}
     },
     {"source": "skills/engineering/codebase-design", "target": "codebase-design"},
     {
