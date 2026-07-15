@@ -18,6 +18,9 @@ SPEC.loader.exec_module(MODULE)
 
 
 class RuntimeContractTests(unittest.TestCase):
+    def test_current_runtime_contract_is_satisfied(self) -> None:
+        self.assertEqual(MODULE.validate(), [])
+
     def test_missing_marker_is_reported(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

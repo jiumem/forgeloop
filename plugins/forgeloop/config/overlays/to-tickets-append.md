@@ -45,6 +45,7 @@ Enter this mode only when the user explicitly invokes `$to-tickets` for a formal
 - Preserve every Completed or Closed Ticket and its history unchanged.
 - Compare the revised contract only with Open Tickets. Present the smallest proposed set of `retain`, `update`, `supersede`, and `create` actions, including dependency changes, and obtain normal user approval before writing.
 - Reuse an Open Ticket when its delivery goal remains valid. Update only the approved contract fields and blockers. Create only missing vertical slices. Do not delete obsolete Open Tickets; mark them superseded and close them only after explicit approval.
+- For an unfinished ceremony-only Ticket from the replaced shared-delivery protocol, mark it superseded, close it, and remove its native parent relation and blocking edges only after explicit user approval. This is approved Tracker reconciliation, not runtime compatibility or automatic migration.
 - Before every write, refresh the current Ticket and search for an already-applied equivalent action. If a write result is ambiguous, query and verify before retrying.
 - Stop with `CONTRACT_BLOCKER` when reconciliation requires a different core Problem, Actor, delivery target, expanded Scope, Spec rewrite, ADR change, or Initiative membership change.
 
