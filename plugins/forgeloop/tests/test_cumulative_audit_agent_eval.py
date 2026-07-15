@@ -19,30 +19,32 @@ def read(path: Path) -> str:
 
 
 CASES = [
-    {"id": "eligible", "evidence": "GitHub Spec has two implementation Tickets; the full SHARED/CUMULATIVE_AUDIT declaration and one complete HIGH_RISK final Ticket are awaiting user approval."},
+    {"id": "eligible", "evidence": "GitHub Spec has two implementation Tickets; the full SHARED/CUMULATIVE_AUDIT declaration binds Final integration gate owner to SPEC_ROOT and awaits user approval."},
     {"id": "rejected", "evidence": "The user rejected CUMULATIVE_AUDIT but approved the ordinary independent Ticket set."},
     {"id": "single-ticket", "evidence": "GitLab Spec has exactly one implementation Ticket."},
     {"id": "local", "evidence": "Configured runtime is Local Markdown and the Spec has three Tickets."},
     {"id": "extra-commit", "evidence": "Final audit range contains one Commit that cannot be attributed to an approved Ticket."},
     {"id": "projection-drift", "evidence": "The unique native MR body omits the latest Required Check, while Tracker and Git facts are readable and unchanged."},
-    {"id": "human-ready", "evidence": "Under human-merge, final dual PASS, native Checks, and exact body read-back are ready; the final Ticket and Spec remain Open."},
-    {"id": "head-rewrite", "evidence": "Conflict repair changed the final Ticket Candidate Head inside its approved writable Scope."},
-    {"id": "target-drift", "evidence": "Target advanced after final dual PASS; final Candidate Review inputs are unchanged, but current-combination Checks and projection need refresh."},
+    {"id": "human-ready", "evidence": "Under human-merge, the fixed delivery Head, Gate evidence, native Checks, and exact body read-back are ready; the Spec remains Open."},
+    {"id": "gate-finding", "evidence": "The Final Integration Gate found an implementation defect after every ordinary Ticket closed; no Open repair Ticket carries its stable repair_key."},
+    {"id": "target-drift", "evidence": "Target advanced after Gate validation; delivery Head is unchanged, but current-combination Checks and projection need refresh."},
     {"id": "multi-spec", "evidence": "Two Initiative member Specs each independently approved CUMULATIVE_AUDIT."},
+    {"id": "legacy", "evidence": "The approved graph still declares Final integration owner as a Ticket and contains a ceremony-only final Ticket."},
 ]
 
 
 EXPECTED = {
-    "eligible": ("PROPOSE_CUMULATIVE", 0),
+    "eligible": ("PROPOSE_CUMULATIVE_GATE", 0),
     "rejected": ("KEEP_INDEPENDENT", 0),
     "single-ticket": ("REJECT_CUMULATIVE", 0),
     "local": ("REJECT_CUMULATIVE", 0),
     "extra-commit": ("BLOCK_FINAL_PR", 0),
     "projection-drift": ("REFRESH_PROJECTION", 0),
     "human-ready": ("PAUSE_HUMAN", 0),
-    "head-rewrite": ("REPAIR_FINAL", 1),
+    "gate-finding": ("PAUSE_REPAIR", 0),
     "target-drift": ("REFRESH_NATIVE", 0),
     "multi-spec": ("PER_SPEC_PRS", 0),
+    "legacy": ("FAILED_PRECONDITION", 0),
 }
 
 
@@ -77,6 +79,7 @@ def prompt() -> str:
     return f"""Apply the planning and runtime protocols to every case. Judge from native Tracker/Git/PR facts. Use KEEP_INDEPENDENT only after explicit user rejection; use REJECT_CUMULATIVE when the Spec or runtime is ineligible. Report only ordinary repair rounds consumed by the immediate action, not the available or remaining budget. Do not invent an Integration Policy, state, Event, parser, Draft phase, or file-overlap gate. Modify nothing.
 
 <to-tickets>{read(PLUGIN_ROOT / "skills" / "to-tickets" / "SKILL.md")}</to-tickets>
+<final-gate>{read(RUN_ROOT / "references" / "final-integration-gate.md")}</final-gate>
 <cumulative>{read(RUN_ROOT / "references" / "cumulative-audit.md")}</cumulative>
 <integration>{read(RUN_ROOT / "references" / "repair-and-integration.md")}</integration>
 <cases>{json.dumps(CASES, indent=2)}</cases>
@@ -86,8 +89,8 @@ def prompt() -> str:
 class CumulativeAuditPromptTests(unittest.TestCase):
     def test_prompt_does_not_embed_expected_mapping(self) -> None:
         text = prompt()
-        self.assertNotIn("eligible: PROPOSE_CUMULATIVE", text)
-        self.assertNotIn("head-rewrite: REPAIR_FINAL", text)
+        self.assertNotIn("eligible: PROPOSE_CUMULATIVE_GATE", text)
+        self.assertNotIn("gate-finding: PAUSE_REPAIR", text)
 
 
 @unittest.skipUnless(RUN_AGENT_EVALS, "set FORGELOOP_RUN_AGENT_EVALS=1 to run Agent eval")

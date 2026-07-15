@@ -237,6 +237,14 @@
           [
             "Work the frontier one ticket at a time with `/run-initiative`, clearing context between tickets.",
             "After publication, return the parent Spec and Ticket references and tell the user they may explicitly invoke `$run-initiative`. Do not start that Workflow automatically."
+          ],
+          [
+            "When even the batches can't stay green alone, keep the sequence but let them share an integration branch that all block a final integrate-and-verify ticket — green is promised only there.",
+            "When even the batches can't stay green alone, keep the sequence on one approved Spec Integration Branch; the Spec root Final Integration Gate proves the final green delivery."
+          ],
+          [
+            "Complete the full draft set before risk screening, including the final integrate-and-verify Ticket and shared-branch reason required by the selected Branch topology.",
+            "Complete the full draft set before risk screening, including every ordinary implementation Ticket and the shared-branch declaration required by the selected Branch topology. When the final stage has independent implementation work, draft it as an ordinary vertical Ticket with real Scope; validation, audit, PR/MR creation, or integration alone never justifies a Ticket."
           ]
         ]
       },

@@ -12,7 +12,7 @@ Treat the configured Tracker as the sole source of truth for Specs, Tickets, dep
 Do not preload every Reference.
 
 1. At entry, read [scheduler.md](references/scheduler.md), [events-and-recovery.md](references/events-and-recovery.md), and the configured runtime through [tracker-operations.md](references/tracker-operations.md).
-2. For a declared `CUMULATIVE_AUDIT`, read [cumulative-audit.md](references/cumulative-audit.md) before the root Claim or any Integration Branch write.
+2. For any declared `SHARED` topology, read [final-integration-gate.md](references/final-integration-gate.md) before the root Claim; when its reason is `CUMULATIVE_AUDIT`, also read [cumulative-audit.md](references/cumulative-audit.md).
 3. Before creating a Coder, read [coder.md](references/coder.md).
 4. Before creating Ticket Reviewers, read [reviewers.md](references/reviewers.md).
 5. When repair, integration, or a merge conflict becomes relevant, read [repair-and-integration.md](references/repair-and-integration.md).
@@ -43,10 +43,11 @@ Return `FAILED_PRECONDITION` without publishing a Claim or creating a child when
 6. Create fresh isolated Spec and Standards Reviewers. They may run concurrently inside the active Ticket, but both remain read-only and review the same fixed Commit range.
 7. Collect both Verdicts privately. Do not publish either result where the other Reviewer could read it. After both finish, validate their bindings and persist one combined `REVIEW_RESULT`. If either returns `REVIEW_BLOCKED`, continue only that Reviewer when access to identical frozen input is restored; if any shared input changes, invalidate both results and continue both original Reviewers. Otherwise pause without consuming a repair round.
 8. On any repair trigger, continue the original Coder for an independent read-only Repair Diagnosis turn with the complete evidence and history. Validate its fields and route its classification without reinterpreting Findings. Only an authorized `LOCAL_REPAIR` or `STRUCTURAL_REPAIR` may enter a subsequent code-changing Coder turn; any changed Head invalidates both previous Verdicts, after which each original Reviewer receives only its own axis history.
-9. After two `PASS` Verdicts for the unchanged Base/Head, integrate through the configured policy. The Scheduler owns remote publication, PR/MR handling, Required Checks, merge, and Tracker closure; it does not modify the implementation.
-10. Record the Integration Result, close the Ticket, release its native Claim according to the configured runtime, stop dispatching to its child threads, and requery the Frontier.
-11. For one Spec, start fresh Spec Acceptance after all its Tickets integrate and close it only on `PASS`. For multiple Specs, wait until every Initiative Ticket integrates, freeze one final target Commit, then run each fresh Spec Acceptance sequentially against that same Commit while keeping every member Spec Open.
-12. After all member Spec Verdicts have `PASS`, run fresh Initiative Acceptance. Only on Initiative `PASS`, close the member Specs and then the Initiative parent last. After root closure, release the root Scheduler Claim according to the configured runtime.
+9. After two `PASS` Verdicts for the unchanged Base/Head, integrate the Candidate into the declared target for `INDEPENDENT`, or into the approved Spec Integration Branch for `SHARED`. The Scheduler owns remote publication, PR/MR handling, Required Checks, integration, and Tracker closure; it does not modify the implementation.
+10. For a SHARED Spec, close an ordinary Ticket after it enters the Integration Branch. Record its Ticket Integration Result, release its native Claim, stop dispatching to its child threads, and requery the Frontier.
+11. For a single-Spec Run, after all ordinary Tickets complete, let the Spec Root Final Integration Gate deliver a `SHARED` Spec to the target; `INDEPENDENT` uses its existing Ticket Integration Results. Then run fresh Spec Acceptance on the actual final Commit and close the Spec only on `PASS`.
+12. For a multi-Spec Run, after all Initiative Tickets complete, execute each SHARED member Spec's Final Integration Gate independently. After every member delivery enters the target, freeze one final Commit and run each Spec Acceptance sequentially against that same Commit while keeping member Specs Open.
+13. After all member Spec Verdicts have `PASS`, run fresh Initiative Acceptance. Only on Initiative `PASS`, close the member Specs and then the Initiative parent last. After root closure, release the root Scheduler Claim according to the configured runtime.
 
 ## Delivery Completion Report
 

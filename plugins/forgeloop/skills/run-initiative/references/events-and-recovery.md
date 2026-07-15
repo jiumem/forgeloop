@@ -33,7 +33,8 @@ Add only facts needed by that event:
 - Claim: root revision and multi-Spec confirmation reference when applicable; for a shared Spec, also its approved topology, reason, Integration Branch, and immutable `spec_delivery_base`.
 - Coder: result, Base/Head, Spec Revision, repair round, diagnosis summary and finding dispositions when repairing, Commit and evidence references.
 - Review: Base/Head, Spec Revision, repair round, and both complete axis Verdicts.
-- Integration: result, candidate_head, target_before, target_after, integration_method, and native_ref for merge or already-present evidence.
+- Ticket Integration: result, candidate_head, target_before, target_after, integration_method, and native_ref for merge or already-present evidence.
+- Spec Final Integration Gate: result, spec_delivery_base, delivery_head, target_before, target_after, integration_method, native_ref, and final evidence references. Use the Spec as `subject_ref`; this is the existing `INTEGRATION_RESULT`, not a new Event.
 - Acceptance: level, parent revision, applicable confirmed membership, final target Commit, Verdict, Findings, and repair key when needed.
 - Pause, resume, or cancel: reason, current Ticket if any, and recovery evidence.
 
