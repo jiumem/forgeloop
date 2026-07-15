@@ -8,6 +8,8 @@ Resolve formal references and read their complete bodies, comments, relationship
 
 Before the root Claim, verify the configured Tracker runtime, CLI, authentication, repository permissions, Integration Policy, formal references, revisions, dependency graph, target branch, Branch Protection or Protected Branch, Required Checks, current Base, and worktree.
 
+For each declared SHARED Spec, refresh and freeze its target Commit as `spec_delivery_base` before publishing the competitive root Claim, and include every binding in the complete `RUN_CLAIMED` Payload. Create an Integration Branch only after the winning Claim passes exact native read-back.
+
 Do not test child availability by creating disposable children. Handle an actual creation failure at the phase where that role is required. Return `FAILED_PRECONDITION` before the root Claim for every other preflight failure.
 
 Do not start a new Ticket when the worktree contains changes not owned by a recoverable current Run. On recovery, bind every retained change to the original Ticket and candidate Branch before continuing.

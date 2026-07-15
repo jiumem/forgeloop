@@ -30,7 +30,7 @@ Never construct or transmit dynamic Payload text through inline `--body` or `--m
 
 Add only facts needed by that event:
 
-- Claim: root revision and multi-Spec confirmation reference when applicable; for a shared Spec, also its approved topology, reason, Integration Branch, and immutable `spec_delivery_base`.
+- Claim: root revision and multi-Spec confirmation reference when applicable; for each shared Spec, also its reference, revision, approved topology, reason, Integration Branch, and immutable `spec_delivery_base`.
 - Coder: result, Base/Head, Spec Revision, repair round, diagnosis summary and finding dispositions when repairing, Commit and evidence references.
 - Review: Base/Head, Spec Revision, repair round, and both complete axis Verdicts.
 - Ticket Integration: result, candidate_head, target_before, target_after, integration_method, and native_ref for merge or already-present evidence.
