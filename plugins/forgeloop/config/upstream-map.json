@@ -5,24 +5,8 @@
     {"source": "skills/engineering/ask-matt", "target": "ask-forgeloop", "overlay": "config/overlays/ask-forgeloop.md"},
     {
       "source": "skills/engineering/code-review",
-      "target": "review-change",
-      "file_replacements": {
-        "SKILL.md": [
-          [
-            "The issue tracker should have been provided to you — run `/setup-forgeloop` if `docs/agents/issue-tracker.md` is missing.",
-            "Issue tracker configuration is only required when the review must fetch its Spec from the configured tracker. If `docs/agents/issue-tracker.md` is missing, do not run `$setup-forgeloop` automatically: use any Spec or PRD the user supplied, otherwise continue to step 2 without starting another Workflow."
-          ],
-          [
-            "4. If nothing is found, ask the user where the spec is. If they say there isn't one, the **Spec** sub-agent will skip and report \"no spec available\".",
-            "4. If nothing is found, ask the user where the spec is. If they say there isn't one, skip the **Spec** sub-agent and report `SPEC: NOT_AVAILABLE`."
-          ],
-          [
-            "Send a single message with two `Agent` tool calls. Use the `general-purpose` subagent for both.",
-            "Create two independent child Agents from self-contained prompts and let them run in parallel without inheriting the current conversation."
-          ]
-        ]
-      },
-      "appends": {"SKILL.md": "config/overlays/review-change-append.md"}
+      "target": "code-review",
+      "overlay": "config/overlays/code-review.md"
     },
     {"source": "skills/engineering/codebase-design", "target": "codebase-design"},
     {
@@ -93,6 +77,12 @@
     {
       "source": "skills/engineering/setup-matt-pocock-skills",
       "target": "setup-forgeloop",
+      "file_replacements": {
+        "SKILL.md": [[
+          "> Explainer: The \"issue tracker\" is where issues live for this repo. Skills like `to-tickets`, `triage`, `to-spec`, and `code-review` read from and write to it — they need to know whether to call `gh issue create`, write a markdown file under `.scratch/`, or follow some other workflow you describe. Pick the place you actually track work for this repo.",
+          "> Explainer: The \"issue tracker\" is where issues live for this repo. Skills such as `to-tickets`, `triage`, and `to-spec` read and write it; `code-review` may read a linked Spec. Choose where this repository actually tracks work."
+        ]]
+      },
       "appends": {
         "SKILL.md": "config/overlays/setup-forgeloop-append.md",
         "issue-tracker-github.md": "config/overlays/tracker-runtime-github-append.md",
@@ -281,9 +271,8 @@
     ["mattpocock/skills", "Forgeloop"],
     ["ask-matt", "ask-forgeloop"],
     ["Ask Matt", "Ask Forgeloop"],
-    ["code-review", "review-change"],
     ["/research", "/primary-source-research"],
     ["/implement", "/run-initiative"],
-    ["`qa`", "`review-change`"]
+    ["`qa`", "`code-review`"]
   ]
 }

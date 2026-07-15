@@ -24,7 +24,7 @@ First identify the user's current stage, then recommend one primary entry point 
 
 ## Model-Level Capabilities
 
-Recommend `$review-change` when the user directly asks to review a fixed Diff, and recommend `$diagnosing-bugs` when the user directly asks to diagnose a difficult defect. Other Primitives (`$grilling`, `$domain-modeling`, `$primary-source-research`, `$prototype`, `$tdd`, `$codebase-design`, and `$resolving-merge-conflicts`) are normally invoked by the workflows above within their existing authorization boundaries, but may also be used when the user explicitly requests the corresponding capability.
+Recommend `$code-review` when implemented code needs review against its intended behavior or repository standards, and recommend `$diagnosing-bugs` when a difficult defect needs diagnosis. Other Primitives (`$grilling`, `$domain-modeling`, `$primary-source-research`, `$prototype`, `$tdd`, `$codebase-design`, and `$resolving-merge-conflicts`) are normally invoked by the workflows above within their existing authorization boundaries, but may also be used when the task requires the corresponding capability.
 
 ## Routing Rules
 

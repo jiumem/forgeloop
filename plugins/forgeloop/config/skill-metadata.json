@@ -71,11 +71,11 @@
     "short_description": "Resolve compatible merge intents and expose blockers",
     "default_prompt": "Use $resolving-merge-conflicts to recover both sides' intent and resolve the conflict safely."
   },
-  "review-change": {
-    "description": "Load when the user asks to review changes relative to a commit, branch, tag, merge base, pull request, or worktree baseline.",
-    "display_name": "Review Change",
-    "short_description": "Review a fixed diff on independent Spec and Standards axes",
-    "default_prompt": "Use $review-change to review this fixed diff on the Spec and Standards axes."
+  "code-review": {
+    "description": "Load when implemented code needs review against its intended behavior and repository standards; do not load for exploratory code investigation, impact analysis, or debugging.",
+    "display_name": "Code Review",
+    "short_description": "Review implemented code on Spec and Standards axes",
+    "default_prompt": "Use $code-review to review this implemented code on the Spec and Standards axes."
   },
   "run-initiative": {
     "description": "Load when the user explicitly wants to execute, resume, recover, or cancel delivery from a formal Tracker Spec or persisted Initiative.",

@@ -7,6 +7,10 @@ from pathlib import Path
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 METADATA_PATH = PLUGIN_ROOT / "config" / "skill-metadata.json"
 SKILLS_ROOT = PLUGIN_ROOT / "skills"
+CODE_REVIEW_DESCRIPTION = (
+    "Load when implemented code needs review against its intended behavior and repository "
+    "standards; do not load for exploratory code investigation, impact analysis, or debugging."
+)
 
 
 def read_description(path: Path) -> str:
@@ -36,6 +40,14 @@ class SkillDescriptionTests(unittest.TestCase):
         descriptions = [values["description"] for values in metadata.values()]
 
         self.assertEqual(len(descriptions), len(set(descriptions)))
+
+    def test_code_review_has_one_unambiguous_model_callable_identity(self) -> None:
+        metadata = json.loads(METADATA_PATH.read_text(encoding="utf-8"))
+
+        self.assertEqual(metadata["code-review"]["description"], CODE_REVIEW_DESCRIPTION)
+        self.assertNotIn("review-change", metadata)
+        self.assertTrue((SKILLS_ROOT / "code-review" / "SKILL.md").is_file())
+        self.assertFalse((SKILLS_ROOT / "review-change").exists())
 
 
 if __name__ == "__main__":
