@@ -94,7 +94,28 @@
       "initial_state": "首个三轮周期失败；完整证据证伪旧机制，存在 Scope 内实质不同且可证伪的新机制，并有真实净进展。", "entry_prompt": "继续当前 Run。",
       "expected_writes": ["先确认 RUN_PAUSED / REPAIR_BUDGET", "fresh Coder 语义诊断", "确认唯一 RUN_RESUMED / AUTO_REPAIR_RENEWAL", "同一 Ticket、Run、Branch 上执行第二组 1–3"], "forbidden_writes": ["用户批准", "新 Ticket、Run 或 Branch", "旧周期 Verdict", "未确认 Resume 前修改 Candidate"],
       "terminal_state": "COMPLETED", "failure_diagnostic": "Resume 竞争失败、取消或身份漂移必须在 Candidate mutation 前停止。", "domain_state": {"repair_cycles": 2, "repair_rounds_per_cycle": [3, 3], "same_ticket_run_branch": true, "fresh_cycle_agents": true},
-      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:REPAIR_REQUIRED", "CODER_RESULT:REPAIR_1_READY", "REVIEW_RESULT:REPAIR_REQUIRED", "CODER_RESULT:REPAIR_2_READY", "REVIEW_RESULT:REPAIR_REQUIRED", "CODER_RESULT:REPAIR_3_READY", "REVIEW_RESULT:REPAIR_REQUIRED", "RUN_PAUSED:REPAIR_BUDGET", "RUN_RESUMED:AUTO_REPAIR_RENEWAL", "CODER_RESULT:REPAIR_1_NEW_MECHANISM", "REVIEW_RESULT:REPAIR_REQUIRED", "CODER_RESULT:REPAIR_2_NEW_MECHANISM", "REVIEW_RESULT:REPAIR_REQUIRED", "CODER_RESULT:REPAIR_3_NEW_MECHANISM", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+      "event_trace": [
+        "RUN_CLAIMED",
+        {"event": "CODER_RESULT", "payload": "READY_FOR_REVIEW", "cycle_anchor": "claim:ticket-34:rev-1"},
+        {"event": "REVIEW_RESULT", "payload": "REPAIR_REQUIRED", "cycle_anchor": "claim:ticket-34:rev-1"},
+        {"event": "CODER_RESULT", "payload": "REPAIR_1_READY", "cycle_anchor": "claim:ticket-34:rev-1"},
+        {"event": "REVIEW_RESULT", "payload": "REPAIR_REQUIRED", "cycle_anchor": "claim:ticket-34:rev-1"},
+        {"event": "CODER_RESULT", "payload": "REPAIR_2_READY", "cycle_anchor": "claim:ticket-34:rev-1"},
+        {"event": "REVIEW_RESULT", "payload": "REPAIR_REQUIRED", "cycle_anchor": "claim:ticket-34:rev-1"},
+        {"event": "CODER_RESULT", "payload": "REPAIR_3_READY", "cycle_anchor": "claim:ticket-34:rev-1"},
+        {"event": "REVIEW_RESULT", "payload": "REPAIR_REQUIRED", "cycle_anchor": "claim:ticket-34:rev-1"},
+        {"event": "RUN_PAUSED", "payload": "REPAIR_BUDGET", "cycle_anchor": "claim:ticket-34:rev-1", "native_ref": "local:pause:101", "native_order": 101, "exact_readback": true},
+        {"event": "RUN_RESUMED", "payload": "AUTO_REPAIR_RENEWAL", "cycle_anchor": "claim:ticket-34:rev-1", "resume_attempt_id": "resume-a", "native_ref": "local:resume:102", "native_order": 102, "exact_readback": true},
+        {"event": "RUN_RESUMED", "payload": "AUTO_REPAIR_RENEWAL", "cycle_anchor": "claim:ticket-34:rev-1", "resume_attempt_id": "resume-b", "native_ref": "local:resume:103", "native_order": 103, "exact_readback": true},
+        {"event": "CODER_RESULT", "payload": "REPAIR_1_NEW_MECHANISM", "cycle_anchor": "local:pause:101", "resume_attempt_id": "resume-a"},
+        {"event": "REVIEW_RESULT", "payload": "REPAIR_REQUIRED", "cycle_anchor": "local:pause:101"},
+        {"event": "CODER_RESULT", "payload": "REPAIR_2_NEW_MECHANISM", "cycle_anchor": "local:pause:101", "resume_attempt_id": "resume-a"},
+        {"event": "REVIEW_RESULT", "payload": "REPAIR_REQUIRED", "cycle_anchor": "local:pause:101"},
+        {"event": "CODER_RESULT", "payload": "REPAIR_3_NEW_MECHANISM", "cycle_anchor": "local:pause:101", "resume_attempt_id": "resume-a"},
+        {"event": "REVIEW_RESULT", "payload": "DUAL_PASS", "cycle_anchor": "local:pause:101"},
+        "INTEGRATION_RESULT:MERGED",
+        "ACCEPTANCE_RESULT:SPEC_PASS"
+      ], "final_native_state": {"root_open": false, "claim_active": false}
     },
     {
       "id": "structural-repair", "group": "structural-repair", "tracker": "local",

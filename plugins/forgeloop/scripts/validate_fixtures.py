@@ -36,6 +36,150 @@ def event_payload(event: str, event_name: str) -> str | None:
     return event[len(prefix):] if event.startswith(prefix) else None
 
 
+def runtime_event_string(event: object) -> str | None:
+    if isinstance(event, str):
+        return event
+    if not isinstance(event, dict):
+        return None
+    name = event.get("event")
+    payload = event.get("payload")
+    if not isinstance(name, str) or not name:
+        return None
+    if payload is None:
+        return name
+    if not isinstance(payload, str) or not payload:
+        return None
+    return f"{name}:{payload}"
+
+
+def validate_repair_cycle_checkpoint_evidence(
+    case_id: str,
+    raw_trace: list[object],
+) -> list[str]:
+    """校验修复周期 Checkpoint 的原生身份与 mutation authority。"""
+
+    errors: list[str] = []
+    pauses: dict[str, dict] = {}
+    resumes: dict[str, list[dict]] = {}
+    mutations: list[dict] = []
+    cancelled = False
+    automatic_renewal_present = any(
+        runtime_event_string(event) == "RUN_RESUMED:AUTO_REPAIR_RENEWAL"
+        for event in raw_trace
+    )
+
+    for event in raw_trace:
+        rendered = runtime_event_string(event)
+        if rendered == "RUN_CANCELLED":
+            cancelled = True
+            continue
+        if automatic_renewal_present and (
+            rendered == "CODER_RESULT"
+            or rendered == "REVIEW_RESULT"
+            or (rendered or "").startswith("CODER_RESULT:")
+            or (rendered or "").startswith("REVIEW_RESULT:")
+        ):
+            if not isinstance(event, dict) or not isinstance(
+                event.get("cycle_anchor"), str
+            ) or not event["cycle_anchor"]:
+                errors.append(
+                    f"{case_id}: 自动续配场景的 Coder 与 Review 必须绑定 cycle_anchor"
+                )
+        if not isinstance(event, dict):
+            continue
+
+        if rendered == "RUN_PAUSED:REPAIR_BUDGET":
+            cycle_anchor = event.get("cycle_anchor")
+            if not isinstance(cycle_anchor, str) or not cycle_anchor:
+                errors.append(f"{case_id}: REPAIR_BUDGET 必须绑定 cycle_anchor")
+                continue
+            if cycle_anchor in pauses:
+                errors.append(
+                    f"{case_id}: 同一 cycle_anchor 不得重复确认 REPAIR_BUDGET"
+                )
+            if not _valid_native_checkpoint(event):
+                errors.append(
+                    f"{case_id}: REPAIR_BUDGET 必须绑定精确回读的原生 envelope"
+                )
+            pauses[cycle_anchor] = event
+            continue
+
+        if rendered == "RUN_RESUMED:AUTO_REPAIR_RENEWAL":
+            cycle_anchor = event.get("cycle_anchor")
+            if cancelled:
+                errors.append(f"{case_id}: 取消确认后不得自动续配")
+            if not isinstance(cycle_anchor, str) or cycle_anchor not in pauses:
+                errors.append(
+                    f"{case_id}: AUTO_REPAIR_RENEWAL 未绑定已确认的耗尽周期"
+                )
+                continue
+            if not _valid_native_checkpoint(event) or not isinstance(
+                event.get("resume_attempt_id"), str
+            ) or not event["resume_attempt_id"]:
+                errors.append(
+                    f"{case_id}: AUTO_REPAIR_RENEWAL 必须绑定 attempt 与精确原生回读"
+                )
+            resumes.setdefault(cycle_anchor, []).append(event)
+            continue
+
+        payload = event_payload(rendered or "", "CODER_RESULT")
+        if payload is not None and REPAIR_ROUND.match(payload):
+            if cancelled and event.get("resume_attempt_id") is not None:
+                errors.append(f"{case_id}: 取消确认后不得修改 Candidate")
+            mutations.append(event)
+
+    renewed_anchors = {
+        pause.get("native_ref"): exhausted_anchor
+        for exhausted_anchor, pause in pauses.items()
+        if isinstance(pause.get("native_ref"), str) and pause["native_ref"]
+    }
+    for exhausted_anchor, attempts in resumes.items():
+        orders = [attempt.get("native_order") for attempt in attempts]
+        attempt_ids = [attempt.get("resume_attempt_id") for attempt in attempts]
+        native_refs = [attempt.get("native_ref") for attempt in attempts]
+        if (
+            not all(isinstance(order, int) for order in orders)
+            or len(set(orders)) != len(orders)
+            or len(set(attempt_ids)) != len(attempt_ids)
+            or len(set(native_refs)) != len(native_refs)
+        ):
+            errors.append(
+                f"{case_id}: AUTO_REPAIR_RENEWAL 必须具有唯一可比较的原生顺序"
+            )
+            continue
+        winner = min(attempts, key=lambda attempt: attempt["native_order"])
+        winner_id = winner.get("resume_attempt_id")
+        renewed_anchor = pauses[exhausted_anchor].get("native_ref")
+        for mutation in mutations:
+            if mutation.get("cycle_anchor") != renewed_anchor:
+                continue
+            if mutation.get("resume_attempt_id") != winner_id:
+                errors.append(
+                    f"{case_id}: Candidate mutation 必须绑定最早有效 Resume attempt"
+                )
+
+    for mutation in mutations:
+        cycle_anchor = mutation.get("cycle_anchor")
+        attempt_id = mutation.get("resume_attempt_id")
+        if attempt_id is None:
+            continue
+        exhausted_anchor = renewed_anchors.get(cycle_anchor)
+        if exhausted_anchor is None or not resumes.get(exhausted_anchor):
+            errors.append(
+                f"{case_id}: renewed Candidate mutation 未绑定已确认的周期 Resume"
+            )
+    return errors
+
+
+def _valid_native_checkpoint(event: dict) -> bool:
+    return (
+        isinstance(event.get("native_ref"), str)
+        and bool(event["native_ref"])
+        and isinstance(event.get("native_order"), int)
+        and event.get("exact_readback") is True
+    )
+
+
 def validate(path: Path) -> list[str]:
     data = json.loads(path.read_text(encoding="utf-8"))
     runtime = data.get("kind") == "run-initiative-runtime"
@@ -498,12 +642,17 @@ def validate_runtime_case(case: dict) -> list[str]:
 
     errors: list[str] = []
     case_id = case["id"]
-    trace = case["event_trace"]
+    raw_trace = case["event_trace"]
     final = case["final_native_state"]
-    if not isinstance(trace, list) or not all(isinstance(event, str) for event in trace):
-        return [f"{case_id}: event_trace 必须是字符串列表"]
+    if not isinstance(raw_trace, list):
+        return [f"{case_id}: event_trace 必须是列表"]
+    trace = [runtime_event_string(event) for event in raw_trace]
+    if any(event is None for event in trace):
+        return [f"{case_id}: event_trace 条目必须是字符串或有效原生 envelope"]
+    trace = [event for event in trace if event is not None]
     if not isinstance(final, dict):
         return [f"{case_id}: final_native_state 必须是对象"]
+    errors.extend(validate_repair_cycle_checkpoint_evidence(case_id, raw_trace))
 
     event_names = [event.split(":", 1)[0] for event in trace]
     unknown_events = sorted(set(event_names) - RUNTIME_EVENTS)
@@ -513,18 +662,22 @@ def validate_runtime_case(case: dict) -> list[str]:
     repair_rounds = []
     current_cycle_rounds: list[int] = []
     repair_budget_paused = False
+    automatic_renewal_confirmed = False
     for event in trace:
         if event.startswith("INTEGRATION_RESULT:"):
             current_cycle_rounds = []
             repair_budget_paused = False
+            automatic_renewal_confirmed = False
             continue
         if event == "RUN_RESUMED:AUTO_REPAIR_RENEWAL":
-            if not repair_budget_paused:
+            if not repair_budget_paused and not automatic_renewal_confirmed:
                 errors.append(
                     f"{case_id}: AUTO_REPAIR_RENEWAL 必须绑定已确认的 REPAIR_BUDGET 暂停"
                 )
-            current_cycle_rounds = []
+            if not automatic_renewal_confirmed:
+                current_cycle_rounds = []
             repair_budget_paused = False
+            automatic_renewal_confirmed = True
             continue
         if event == "RUN_RESUMED" and repair_budget_paused:
             errors.append(
@@ -536,6 +689,7 @@ def validate_runtime_case(case: dict) -> list[str]:
                 if current_cycle_rounds != [1, 2, 3]:
                     errors.append(f"{case_id}: REPAIR_BUDGET 必须在当前周期第三轮修复后")
                 repair_budget_paused = True
+                automatic_renewal_confirmed = False
             continue
         round_number = int(match.group(1))
         repair_rounds.append(round_number)
