@@ -15,7 +15,7 @@ Do not modify files, create commits, repair Findings, write Tracker state, publi
 
 ## Fixed Input
 
-Require the same frozen Base, Head, cumulative Diff, Commit list, Ticket, Spec revision, parent `Delivery Acceptance`, and Coder evidence for both axes. Return `REVIEW_BLOCKED` when any required input cannot be read. Never issue a false `PASS`.
+Require the same frozen Base, Head, cumulative Diff, Commit list, Ticket, effective Spec/Ticket/ADR revisions, current `cycle_anchor`, parent `Delivery Acceptance`, and Coder evidence for both axes. Return `REVIEW_BLOCKED` when any required input cannot be read. Never issue a false `PASS`.
 
 `NO_CHANGE_REQUIRED` is the only valid empty Diff. It requires `Base == Head`; review the current tree, existing observable behavior, and Coder evidence. Reject an empty Diff for `READY_FOR_REVIEW`.
 
@@ -29,6 +29,9 @@ verdict: PASS | REPAIR_REQUIRED | REVIEW_BLOCKED
 base_commit: <sha>
 head_commit: <sha>
 spec_revision: <revision>
+ticket_revision: <revision>
+adr_revisions: <applicable revisions>
+cycle_anchor: <current repair-cycle anchor>
 findings:
   - finding_id: <stable-id>
     disposition: BLOCKING | ADVISORY
@@ -39,4 +42,4 @@ findings:
     repair_check: <observable check>
 ```
 
-Return `REPAIR_REQUIRED` for any Blocking Finding and `PASS` when none exists. Preserve stable `finding_id` values across repair rounds. On every changed Head, inspect the complete cumulative Diff, the repair Diff, and the latest evidence. Return `REVIEW_BLOCKED` only for unreadable or invalid fixed inputs, with a Finding that identifies the missing fact.
+Return `REPAIR_REQUIRED` for any Blocking Finding and `PASS` when none exists. Preserve stable `finding_id` values across repair rounds. On every changed Head, inspect the complete cumulative Diff, the repair Diff, and the latest evidence. Never reuse an old-cycle Verdict for a different `cycle_anchor`. Return `REVIEW_BLOCKED` only for unreadable or invalid fixed inputs, with a Finding that identifies the missing fact.

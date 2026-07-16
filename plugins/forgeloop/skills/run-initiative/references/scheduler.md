@@ -32,6 +32,7 @@ Every first child message must be self-contained because it does not inherit the
 - only the repository instructions, ADRs, dependency conclusions, and evidence needed by that role;
 - writable Scope for a Coder or explicit read-only Scope for a Reviewer;
 - the required result and stop conditions.
+- the current `cycle_anchor` and effective Spec, Ticket, and applicable ADR revisions for a Ticket Coder or Reviewer.
 
 Do not include host-specific child configuration or unrelated Scheduler history. The task message defines the role.
 
@@ -40,7 +41,8 @@ Do not include host-specific child configuration or unrelated Scheduler history.
 - Create one fresh Coder only after the Ticket Claim succeeds.
 - Create the two fresh Reviewers only after a valid Coder result freezes Base/Head.
 - The two Reviewers may run concurrently, but neither may receive or discover the other axis's result.
-- For live repair rounds, continue the same Coder and the same two Reviewer threads so each role retains its own history.
+- For live repair rounds inside one cycle, continue the same Coder and the same two Reviewer threads so each role retains its own history.
+- After confirmed automatic renewal, continue the fresh Coder that performed Exhaustion Diagnosis, create two fresh isolated Reviewers, and reuse those three live contexts only within the renewed cycle.
 - After the Ticket ends, send no further work to those threads and create fresh children for the next Ticket. Do not depend on a host-level close operation.
 - On cancellation, stop dispatching and best-effort interrupt only the currently running children.
 - After Scheduler-task recovery, do not depend on old child availability. Create a fresh child for the required role from durable Tracker and Git facts.
@@ -52,6 +54,14 @@ If a Reviewer returns `REVIEW_BLOCKED`, finish collecting the other axis without
 ## Repair Diagnosis Routing
 
 Before repair, validate that every diagnosis field is present, then route the declared classification under the Repair protocol. The Scheduler must not classify the mechanism itself, merge classifications, or authorize a repair from an incomplete diagnosis. It must not merge, reorder, or rewrite Reviewer Findings.
+
+After a third-round failure, exactly confirm `RUN_PAUSED` with reason=`REPAIR_BUDGET` before creating the fresh Coder for read-only Exhaustion Diagnosis. Candidate mutation is forbidden during diagnosis.
+
+Read the complete diagnosis together with the complete contract, Diff, Findings, repair history, Candidate, and validation evidence. Check that the explanation is complete, references available evidence, and does not contradict current Tracker or Git facts. Route the Coder's declared recommendation without using a parser, regex, keyword, score, Boolean, or field-presence check to decide whether the mechanism is new, work is in Scope, progress is real, or renewal is justified.
+
+For `AUTO_REPAIR_RENEWAL`, publish one independently idempotent Resume attempt and exactly read it back. Requery all Resume records for the same `run_id` and exhausted `cycle_anchor`; the earliest valid native record is the unique winner. Before giving the diagnosing Coder write authority, recheck cancellation, root and Ticket Claims, effective revisions, Candidate Branch, and Head. Every loser, stale attempt, old-cycle Resume, or conflicting native order stops before Candidate mutation.
+
+For `IMPLEMENTATION_BLOCKED`, publish and exactly confirm the existing `RUN_PAUSED` Event type with that reason, current `cycle_anchor`, and the complete diagnosis. Preserve the pause on an unconditional continue. A bound new fact or hypothesis may start another read-only Exhaustion Diagnosis but never grants mutation by itself.
 
 ## Scheduler Responsibilities
 

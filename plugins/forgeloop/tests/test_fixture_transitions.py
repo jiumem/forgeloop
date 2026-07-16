@@ -48,6 +48,7 @@ class FixtureTransitionTests(unittest.TestCase):
                 "repair-diagnosis-interrupted",
                 "third-repair-pass",
                 "mixed-repair-budget",
+                "repair-cycle-renewed",
             }.issubset(ids)
         )
 
@@ -68,7 +69,17 @@ class FixtureTransitionTests(unittest.TestCase):
 
         exhausted = by_id["repair-exhausted"]
         self.assertEqual(exhausted["domain_state"]["repair_rounds"], 3)
+        self.assertEqual(exhausted["domain_state"]["reason"], "IMPLEMENTATION_BLOCKED")
         self.assertIn("第四轮普通修复", exhausted["forbidden_writes"])
+
+        renewed = by_id["repair-cycle-renewed"]
+        self.assertEqual(renewed["domain_state"]["repair_rounds_per_cycle"], [3, 3])
+        self.assertTrue(renewed["domain_state"]["same_ticket_run_branch"])
+        rendered = [
+            MODULE.runtime_event_string(event) for event in renewed["event_trace"]
+        ]
+        self.assertIn("RUN_PAUSED:REPAIR_BUDGET", rendered)
+        self.assertIn("RUN_RESUMED:AUTO_REPAIR_RENEWAL", rendered)
 
     def test_completed_without_acceptance_is_rejected(self) -> None:
         fixture = {
@@ -286,7 +297,153 @@ class FixtureTransitionTests(unittest.TestCase):
 
         errors = self._validate_fixture(fixture)
 
-        self.assertTrue(any("REPAIR_BUDGET 必须在第三轮修复后" in error for error in errors))
+        self.assertTrue(any("REPAIR_BUDGET 必须在当前周期第三轮修复后" in error for error in errors))
+
+    def test_repair_rounds_cannot_reset_without_confirmed_automatic_renewal(self) -> None:
+        fixture = self._repair_fixture(
+            "unbound-round-reset",
+            [
+                "CODER_RESULT:REPAIR_1_READY",
+                "CODER_RESULT:REPAIR_2_READY",
+                "CODER_RESULT:REPAIR_3_READY",
+                "CODER_RESULT:REPAIR_1_RETRY",
+            ],
+        )
+
+        errors = self._validate_fixture(fixture)
+
+        self.assertTrue(any("每个修复周期必须按 1、2、3 顺序" in error for error in errors))
+
+    def test_candidate_mutation_waits_for_confirmed_automatic_renewal(self) -> None:
+        fixture = self._repair_fixture(
+            "mutation-before-renewal",
+            [
+                "CODER_RESULT:REPAIR_1_READY",
+                "CODER_RESULT:REPAIR_2_READY",
+                "CODER_RESULT:REPAIR_3_READY",
+                "RUN_PAUSED:REPAIR_BUDGET",
+                "CODER_RESULT:REPAIR_1_RETRY",
+            ],
+        )
+
+        errors = self._validate_fixture(fixture)
+
+        self.assertTrue(any("AUTO_REPAIR_RENEWAL 确认前修改 Candidate" in error for error in errors))
+
+    def test_automatic_renewal_requires_a_confirmed_budget_pause(self) -> None:
+        fixture = self._repair_fixture(
+            "renewal-without-pause",
+            ["RUN_RESUMED:AUTO_REPAIR_RENEWAL"],
+        )
+
+        errors = self._validate_fixture(fixture)
+
+        self.assertTrue(any("必须绑定已确认的 REPAIR_BUDGET 暂停" in error for error in errors))
+
+    def test_budget_pause_cannot_use_generic_recovery_resume(self) -> None:
+        fixture = self._repair_fixture(
+            "generic-resume-after-budget",
+            [
+                "CODER_RESULT:REPAIR_1_READY",
+                "CODER_RESULT:REPAIR_2_READY",
+                "CODER_RESULT:REPAIR_3_READY",
+                "RUN_PAUSED:REPAIR_BUDGET",
+                "RUN_RESUMED",
+            ],
+        )
+
+        errors = self._validate_fixture(fixture)
+
+        self.assertTrue(any("必须先经过 Exhaustion Diagnosis" in error for error in errors))
+
+    def test_cancelled_run_cannot_renew_or_mutate_candidate(self) -> None:
+        fixture = self._repair_fixture(
+            "cancelled-before-renewal",
+            [
+                *self._exhausted_cycle_events(),
+                "RUN_CANCELLED",
+                self._automatic_resume("attempt-a", native_order=11),
+                self._repair_event(1, "pause:cycle-1", "attempt-a"),
+            ],
+        )
+
+        errors = self._validate_fixture(fixture)
+
+        self.assertTrue(any("取消确认后不得自动续配" in error for error in errors))
+
+    def test_duplicate_budget_pause_for_one_anchor_is_rejected(self) -> None:
+        fixture = self._repair_fixture(
+            "duplicate-budget-pause",
+            [
+                *self._exhausted_cycle_events(),
+                self._budget_pause(native_ref="pause:cycle-1-duplicate", native_order=11),
+            ],
+        )
+
+        errors = self._validate_fixture(fixture)
+
+        self.assertTrue(any("同一 cycle_anchor 不得重复确认 REPAIR_BUDGET" in error for error in errors))
+
+    def test_automatic_resume_must_bind_the_exhausted_cycle_anchor(self) -> None:
+        fixture = self._repair_fixture(
+            "stale-cycle-resume",
+            [
+                *self._exhausted_cycle_events(),
+                self._automatic_resume(
+                    "attempt-a",
+                    native_order=11,
+                    cycle_anchor="claim:old-cycle",
+                ),
+            ],
+        )
+
+        errors = self._validate_fixture(fixture)
+
+        self.assertTrue(any("AUTO_REPAIR_RENEWAL 未绑定已确认的耗尽周期" in error for error in errors))
+
+    def test_only_earliest_resume_attempt_can_authorize_candidate_mutation(self) -> None:
+        fixture = self._repair_fixture(
+            "non-winner-coder",
+            [
+                *self._exhausted_cycle_events(),
+                self._automatic_resume("attempt-a", native_order=11),
+                self._automatic_resume("attempt-b", native_order=12),
+                self._repair_event(1, "pause:cycle-1", "attempt-b"),
+            ],
+        )
+
+        errors = self._validate_fixture(fixture)
+
+        self.assertTrue(any("Candidate mutation 必须绑定最早有效 Resume attempt" in error for error in errors))
+
+    def test_automatic_renewal_requires_cycle_bound_coder_and_review_evidence(self) -> None:
+        fixture = self._repair_fixture(
+            "unbound-renewed-review",
+            [
+                *self._exhausted_cycle_events(),
+                self._automatic_resume("attempt-a", native_order=11),
+                "REVIEW_RESULT:REPAIR_REQUIRED",
+            ],
+        )
+
+        errors = self._validate_fixture(fixture)
+
+        self.assertTrue(any("Coder 与 Review 必须绑定 cycle_anchor" in error for error in errors))
+
+    def test_cancellation_after_resume_still_prevents_candidate_mutation(self) -> None:
+        fixture = self._repair_fixture(
+            "cancelled-after-resume",
+            [
+                *self._exhausted_cycle_events(),
+                self._automatic_resume("attempt-a", native_order=11),
+                "RUN_CANCELLED",
+                self._repair_event(1, "pause:cycle-1", "attempt-a"),
+            ],
+        )
+
+        errors = self._validate_fixture(fixture)
+
+        self.assertTrue(any("取消确认后不得修改 Candidate" in error for error in errors))
 
     def test_contract_blocker_fixture_cannot_claim_zero_budget_after_repair(self) -> None:
         fixture = self._repair_fixture(
@@ -301,7 +458,7 @@ class FixtureTransitionTests(unittest.TestCase):
         self.assertTrue(any("声明未消耗预算但存在修复结果" in error for error in errors))
 
     @staticmethod
-    def _repair_fixture(case_id: str, trace: list[str]) -> dict:
+    def _repair_fixture(case_id: str, trace: list[object]) -> dict:
         return {
             "schema_version": 1,
             "kind": "run-initiative-runtime",
@@ -329,6 +486,62 @@ class FixtureTransitionTests(unittest.TestCase):
             path = Path(directory) / "fixture.json"
             path.write_text(json.dumps(fixture), encoding="utf-8")
             return MODULE.validate(path)
+
+    @staticmethod
+    def _repair_event(
+        round_number: int,
+        cycle_anchor: str,
+        resume_attempt_id: str | None = None,
+    ) -> dict:
+        event = {
+            "event": "CODER_RESULT",
+            "payload": f"REPAIR_{round_number}_READY",
+            "cycle_anchor": cycle_anchor,
+        }
+        if resume_attempt_id is not None:
+            event["resume_attempt_id"] = resume_attempt_id
+        return event
+
+    @staticmethod
+    def _budget_pause(
+        *,
+        native_ref: str = "pause:cycle-1",
+        native_order: int = 10,
+    ) -> dict:
+        return {
+            "event": "RUN_PAUSED",
+            "payload": "REPAIR_BUDGET",
+            "cycle_anchor": "claim:cycle-1",
+            "native_ref": native_ref,
+            "native_order": native_order,
+            "exact_readback": True,
+        }
+
+    @classmethod
+    def _exhausted_cycle_events(cls) -> list[dict]:
+        return [
+            cls._repair_event(1, "claim:cycle-1"),
+            cls._repair_event(2, "claim:cycle-1"),
+            cls._repair_event(3, "claim:cycle-1"),
+            cls._budget_pause(),
+        ]
+
+    @staticmethod
+    def _automatic_resume(
+        attempt_id: str,
+        *,
+        native_order: int,
+        cycle_anchor: str = "claim:cycle-1",
+    ) -> dict:
+        return {
+            "event": "RUN_RESUMED",
+            "payload": "AUTO_REPAIR_RENEWAL",
+            "cycle_anchor": cycle_anchor,
+            "resume_attempt_id": attempt_id,
+            "native_ref": f"resume:{attempt_id}",
+            "native_order": native_order,
+            "exact_readback": True,
+        }
 
 
 if __name__ == "__main__":

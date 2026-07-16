@@ -22,8 +22,9 @@ to-spec → to-tickets → run-initiative
 - Tracker 是 Spec、Ticket、依赖、认领和运行状态的唯一事实来源。
 - Git 是分支、提交、PR 和合并状态的唯一事实来源。
 - Scheduler 每次只推进一个 Ticket；跨 Ticket 不复用子任务上下文。
-- 每个 Ticket 由一个 Coder 实现，再接受相互独立的规范评审和需求评审。
-- 工作流只在可验证的边界暂停；修复后从同一运行状态继续。
+- 每个修复周期由一个 Coder 实现，再接受相互独立的规范评审和需求评审。
+- 每组三轮修复是一次强制诊断边界，不是 Ticket 的永久终点。
+- 周期耗尽后先确认暂停，再由 fresh Coder 语义判断是否在同一 Ticket、Run 和 Branch 上自动续配；字段组织证据，不替代 Agent 判断。
 
 ## 60 秒开始
 

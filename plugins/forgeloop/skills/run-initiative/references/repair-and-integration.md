@@ -1,5 +1,13 @@
 # Repair, Branch, and Integration Protocol
 
+## Repair Cycles
+
+One repair cycle contains at most three ordinary Candidate-changing repair rounds. The initial cycle is anchored by the confirmed native Ticket Claim and effective Spec, Ticket, and applicable ADR revisions. A renewed cycle is anchored by the exact native `RUN_PAUSED / REPAIR_BUDGET` record that ended the preceding cycle.
+
+Use the same Ticket, Run, and Branch across cycles. Bind Coder results, combined Review results, repair rounds, pauses, diagnoses, and resumes to the current `cycle_anchor`. Old-cycle evidence may inform diagnosis but cannot authorize a new-cycle Candidate or Verdict.
+
+Use one Coder and two isolated Reviewers throughout an active cycle. After automatic renewal, continue the fresh Coder that performed Exhaustion Diagnosis and create two fresh isolated Reviewers for the renewed cycle. Child identity remains live orchestration context, not durable state.
+
 ## Repair Loop
 
 For Reviewer Findings, a candidate-caused Required Check failure, or compatibility or merge-conflict resolution, continue the original Coder for a separate read-only Coder turn that follows the Repair Diagnosis protocol. Complete it before authorizing any candidate code change; the Scheduler then validates its structure and routes the declared classification.
@@ -14,11 +22,21 @@ Route the complete diagnosis as follows:
 
 When either axis returns `REPAIR_REQUIRED`, wait for the other axis, then continue the original Coder with both complete Finding sets. Do not merge, reorder, or reinterpret Findings. Continue each original Reviewer with the new fixed Head and only that Reviewer's own axis history.
 
-Allow at most three ordinary repair rounds per Ticket. Count every authorized Candidate code change or Head rewrite against this one budget, whether triggered by Reviewer Findings, a candidate-caused Required Check failure, rebase, or compatibility or merge-conflict resolution. Diagnosis turns do not consume this budget. A contract blocker or external infrastructure failure also consumes no round.
+Allow at most three ordinary repair rounds per `cycle_anchor`. Count every authorized Candidate code change or Head rewrite against this cycle budget, whether triggered by Reviewer Findings, a candidate-caused Required Check failure, rebase, or compatibility or merge-conflict resolution. Diagnosis turns do not consume this budget. A contract blocker or external infrastructure failure also consumes no round.
 
 The second and third diagnoses must compare current evidence with prior diagnosis and repair history, state whether the prior mechanism hypothesis was falsified, and identify whether different `finding_id` values share one mechanism. New evidence may escalate `LOCAL_REPAIR` to `STRUCTURAL_REPAIR` or `STRUCTURAL_REPAIR` to `CONTRACT_BLOCKER`; it must not downgrade `STRUCTURAL_REPAIR` to `LOCAL_REPAIR` without new evidence.
 
-After the third repair, a fixed Head with two fresh `PASS` Verdicts may integrate normally. If any Blocking Finding, candidate-caused failure, or unresolved compatibility or merge conflict remains, persist `RUN_PAUSED` with reason=`REPAIR_BUDGET`; do not start a fourth repair. Record the three diagnosis classifications, falsified hypotheses, unresolved Findings, current shared mechanism, and next legal action. Never rewrite `REPAIR_REQUIRED` as `PASS`.
+After the third repair, a fixed Head with two fresh `PASS` Verdicts may integrate normally. If any Blocking Finding, candidate-caused failure, or unresolved compatibility or merge conflict remains, publish and exactly confirm `RUN_PAUSED` with reason=`REPAIR_BUDGET`; do not start a fourth repair in that cycle. Preserve the Run, Ticket Claim, Branch, Candidate, Findings, validation evidence, diagnosis history, and the cycle's start and end evidence.
+
+Only after that pause is confirmed may the Scheduler create a fresh Coder for the read-only Exhaustion Diagnosis defined in [coder.md](coder.md). Give it the complete semantic context; do not ask it to infer missing evidence from field names or summaries.
+
+The Coder owns the semantic recommendation. The Scheduler checks completeness and contradiction against the same context and current native facts, but does not parse, score, keyword-match, or independently recompute mechanism, Scope, progress, or recommendation:
+
+- `AUTO_REPAIR_RENEWAL`: when the Agent concludes that the old mechanism is falsified, a materially different in-Scope hypothesis is credible and falsifiable, and real net progress exists. Compete to publish and exactly confirm `RUN_RESUMED` with reason=`AUTO_REPAIR_RENEWAL`; only the winning native Resume may authorize Candidate mutation.
+- `IMPLEMENTATION_BLOCKED`: publish and exactly confirm `RUN_PAUSED` with reason=`IMPLEMENTATION_BLOCKED`, preserving the complete diagnosis. An unconditional continue is insufficient. Only a bound new fact or hypothesis, contract reclassification, or cancellation may re-enter read-only Exhaustion Diagnosis.
+- `CONTRACT_BLOCKER`: keep the Run paused with zero Candidate mutation and zero repair-budget effect when correct work requires changing the formal contract.
+
+Automatic repair has no fixed total-cycle ceiling. Every renewed cycle repeats the same three-round boundary and semantic exhaustion gate without creating a replacement Ticket, Run, or Branch.
 
 Any code change, rebase, replacement of the frozen review Base, or conflict resolution invalidates both prior Verdicts. Target movement alone does not. Require the Coder to validate the new Head and both Reviewers to issue fresh Verdicts for the complete cumulative Diff.
 
@@ -34,7 +52,7 @@ If the target moves after Review, retain dual `PASS` only while the Candidate Re
 
 A platform-native merge or squash preserves the dual `PASS` when Candidate Head is unchanged, no unreviewed conflict repair occurred, and native evidence binds that Candidate to `target_after`. A rebase, target merge into the Candidate Branch, manual conflict resolution, or any other Head rewrite returns through Repair Diagnosis, Coder validation, and dual Review.
 
-Target refresh, mergeability and Check refresh, read-only Acceptance, and pre- or post-seal drift consume no repair round. A Candidate code change or Head rewrite enters Repair Diagnosis and consumes one round from the shared three-round budget when authorized.
+Target refresh, mergeability and Check refresh, read-only Acceptance, and pre- or post-seal drift consume no repair round. A Candidate code change or Head rewrite enters Repair Diagnosis and consumes one round from the current cycle's three-round budget when authorized.
 
 - `auto-merge`: integrate only after both Verdicts have `PASS`, Base/Head and revision remain unchanged, and existing Required Checks, protection rules, and permissions pass.
 - `human-merge`: persist `RUN_PAUSED` with reason=`READY_FOR_HUMAN_MERGE` and preserve the Branch and PR/MR. Ticket integration keeps that Ticket Open; a Final Integration Gate must keep the Spec Open with no current Ticket. Refresh native facts after user action.
