@@ -36,7 +36,7 @@ Lead each section with the recommended answer so the user can accept it in a wor
 
 **Section A — Issue tracker.**
 
-> Explainer: The "issue tracker" is where issues live for this repo. Skills such as `to-tickets`, `triage`, and `to-spec` read and write it; `code-review` may read a linked Spec. Choose where this repository actually tracks work.
+> Explainer: The "issue tracker" is where issues live for this repo. Skills such as `to-tickets`, `triage`, and `to-spec` read and write it; `spec-standards-review` may read a linked Spec. Choose where this repository actually tracks work.
 
 Default posture: these skills were designed for GitHub. If a `git remote` points at GitHub, propose that. If a `git remote` points at GitLab (`gitlab.com` or a self-hosted host), propose GitLab. Otherwise (or if the user prefers), offer:
 

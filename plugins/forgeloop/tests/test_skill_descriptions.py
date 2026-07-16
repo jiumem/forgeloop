@@ -7,7 +7,7 @@ from pathlib import Path
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 METADATA_PATH = PLUGIN_ROOT / "config" / "skill-metadata.json"
 SKILLS_ROOT = PLUGIN_ROOT / "skills"
-CODE_REVIEW_DESCRIPTION = (
+SPEC_STANDARDS_REVIEW_DESCRIPTION = (
     "Load when implemented code needs review against its intended behavior and repository "
     "standards; do not load for exploratory code investigation, impact analysis, or debugging."
 )
@@ -41,15 +41,20 @@ class SkillDescriptionTests(unittest.TestCase):
 
         self.assertEqual(len(descriptions), len(set(descriptions)))
 
-    def test_code_review_has_one_unambiguous_model_callable_identity(self) -> None:
+    def test_spec_standards_review_has_one_unambiguous_model_callable_identity(self) -> None:
         metadata = json.loads(METADATA_PATH.read_text(encoding="utf-8"))
 
-        self.assertEqual(metadata["code-review"]["description"], CODE_REVIEW_DESCRIPTION)
+        self.assertEqual(
+            metadata["spec-standards-review"]["description"],
+            SPEC_STANDARDS_REVIEW_DESCRIPTION,
+        )
+        self.assertNotIn("code-review", metadata)
         self.assertNotIn("review-change", metadata)
-        self.assertTrue((SKILLS_ROOT / "code-review" / "SKILL.md").is_file())
+        self.assertTrue((SKILLS_ROOT / "spec-standards-review" / "SKILL.md").is_file())
+        self.assertFalse((SKILLS_ROOT / "code-review").exists())
         self.assertFalse((SKILLS_ROOT / "review-change").exists())
 
-    def test_active_prompt_sources_do_not_reference_removed_review_change(self) -> None:
+    def test_active_prompt_sources_do_not_reference_removed_review_names(self) -> None:
         paths = [
             path
             for root in (SKILLS_ROOT, PLUGIN_ROOT / "config" / "overlays")
@@ -64,7 +69,9 @@ class SkillDescriptionTests(unittest.TestCase):
         )
 
         for path in paths:
-            self.assertNotIn("review-change", path.read_text(encoding="utf-8"), str(path))
+            text = path.read_text(encoding="utf-8")
+            self.assertNotIn("review-change", text, str(path))
+            self.assertNotIn("$code-review", text, str(path))
 
 
 if __name__ == "__main__":

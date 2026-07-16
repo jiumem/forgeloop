@@ -57,9 +57,9 @@ CASES = [
 ]
 
 
-def code_review_description() -> str:
+def spec_standards_review_description() -> str:
     metadata = json.loads(METADATA_PATH.read_text(encoding="utf-8"))
-    return metadata["code-review"]["description"]
+    return metadata["spec-standards-review"]["description"]
 
 
 def output_schema() -> dict:
@@ -87,7 +87,7 @@ description. Return one decision for every request. Do not inspect files, call t
 network.
 
 <description>
-{code_review_description()}
+{spec_standards_review_description()}
 </description>
 
 <requests>
@@ -96,7 +96,7 @@ network.
 """
 
 
-class CodeReviewEvalPromptTests(unittest.TestCase):
+class SpecStandardsReviewEvalPromptTests(unittest.TestCase):
     def test_prompt_does_not_embed_expected_decisions(self) -> None:
         prompt = evaluation_prompt()
 
@@ -110,7 +110,7 @@ class CodeReviewEvalPromptTests(unittest.TestCase):
     RUN_AGENT_EVALS,
     "set FORGELOOP_RUN_AGENT_EVALS=1 to run the authenticated Codex Agent eval",
 )
-class CodeReviewAgentEvalTests(unittest.TestCase):
+class SpecStandardsReviewAgentEvalTests(unittest.TestCase):
     def test_description_routes_review_without_absorbing_investigation(self) -> None:
         codex = shutil.which("codex")
         self.assertIsNotNone(codex, "Codex CLI is required for Agent evals")
