@@ -42,6 +42,7 @@ Forgeloop 不再维护 `PLAN.md`、`LEDGER.md` 或同义的第二状态系统。
 - 每个修复周期使用一个 Coder 和两个隔离 Reviewer；周期内复用上下文，跨周期和跨 Ticket 使用 fresh Agent。
 - 每个周期最多三轮 Candidate-changing 修复；三轮耗尽后必须先确认 `RUN_PAUSED / REPAIR_BUDGET`。
 - fresh Coder 基于完整契约、Candidate、Findings 和历史证据执行语义化 Exhaustion Diagnosis；可信的新方向自动续配，无可信方向保持 `IMPLEMENTATION_BLOCKED`，需要改变契约时进入 `CONTRACT_BLOCKER`。
+- `CONTRACT_BLOCKER` 由协调 Agent 先完成一个完整调和包和内部语义 Review；用户一次选择拒绝、批准后暂停或批准后继续，既有 Skill 随后按各自事实所有权完成发布与原 Run 恢复，不重复索要批准。
 - 诊断字段用于 Agent 组织、比较和恢复语义，不构成 parser、正则、布尔门禁或第二状态机。
 - Scheduler 不替子角色实现代码，也不替 Reviewer 改写评审结论。
 

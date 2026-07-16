@@ -60,7 +60,7 @@ Do not use a short TTL to infer that a long-running task is dead. GitHub and Git
 
 ## Competitive Automatic Repair Resume
 
-For `RUN_RESUMED` with reason=`AUTO_REPAIR_RENEWAL`, each recovery executor derives one stable `resume_attempt_id` from the original `run_id`, exhausted `cycle_anchor`, and its durable attempt identity. Competing attempts intentionally use different idempotency keys; retrying one attempt reuses its unique identical record.
+For `RUN_RESUMED` with reason=`AUTO_REPAIR_RENEWAL` or reason=`CONTRACT_RECONCILED`, each recovery executor derives one stable `resume_attempt_id` from the original `run_id`, confirmed pause `cycle_anchor`, and its durable attempt identity. Competing attempts intentionally use different idempotency keys; retrying one attempt reuses its unique identical record.
 
 Read every confirmed Resume for the same `run_id` and `cycle_anchor`. The earliest valid native record wins: GitHub Comment ID, GitLab Note ID, or Local atomic append position. Never use a client timestamp, observation order, diagnosis wording, or semantic field to select the winner. Duplicate or conflicting records, an incomparable order, or a non-unique winner stop at `RECOVERY_CONFLICT`.
 
@@ -71,7 +71,7 @@ Winning the Resume competition proves only mutation authority. It does not prove
 1. Read native Tracker state, valid checkpoints, Branch, Commit, PR/MR, checks, and merge facts.
 2. Reconstruct only the last checkpoint whose native references still agree. Do not rely on child thread existence or conversation memory.
 3. Verify the root Claim owner, current Ticket Claim, Base/Head, Spec Revision, multi-Spec revision, confirmation reference, and any existing Verdicts. Before an Acceptance Seal, also verify the current target. After a Seal, verify its immutable binding and native read-back instead; later target movement does not conflict with it. Treat a closed Ticket with valid Integration or a closed root with final Acceptance as a completed inactive Claim, not a resumable owner.
-4. Except for the diagnostic pauses below, publish `RUN_RESUMED` under the original `run_id` and continue after the last verified durable checkpoint. Automatic repair renewal must use the competitive Resume fence above. Do not replay a confirmed write.
+4. Except for the diagnostic and contract-reconciliation pauses below, publish `RUN_RESUMED` under the original `run_id` and continue after the last verified durable checkpoint. Automatic repair renewal and `CONTRACT_RECONCILED` recovery must use the competitive Resume fence above. Do not replay a confirmed write.
 5. Create fresh isolated children for the next required role and give each a self-contained Role Task Pack containing only durable role-relevant history.
 
 When a confirmed root Acceptance `PASS` is an Acceptance Seal, resume unfinished closure and Claim release from that Seal. Target movement after the Seal does not invalidate it or require another Reviewer.
@@ -81,5 +81,7 @@ Repair Diagnosis is a temporary preflight, not a new checkpoint. When recovery f
 When recovery stops at confirmed `RUN_PAUSED / REPAIR_BUDGET`, preserve the pause and create the fresh read-only Exhaustion Diagnosis Coder; do not publish a generic Resume first.
 
 When recovery stops at confirmed `RUN_PAUSED / IMPLEMENTATION_BLOCKED`, preserve the Candidate, Claims, complete diagnosis, and pause. An unconditional continue cannot Resume. A bound new fact or hypothesis may re-enter only read-only Exhaustion Diagnosis; contract reclassification and cancellation use their existing routes.
+
+When recovery stops at confirmed `RUN_PAUSED / CONTRACT_BLOCKER` or `RUN_PAUSED / CONTRACT_RECONCILED`, load `contract-reconciliation.md`. Reconstruct the package, approval, and completed native facts from Tracker and Git; never infer authorization from conversation memory or publish a generic Resume.
 
 Stop with `RECOVERY_CONFLICT` when native facts disagree with checkpoints, duplicate valid root Claims exist, Base/Head or material revision drifted, a retained dirty change cannot be attributed to the current Ticket, or multi-Spec membership changed without confirmation. Require the original Run or explicit user adjudication for takeover.

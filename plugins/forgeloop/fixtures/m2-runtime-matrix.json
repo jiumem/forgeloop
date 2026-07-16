@@ -153,6 +153,16 @@
       "event_trace": ["RUN_CLAIMED", "CODER_RESULT:CONTRACT_BLOCKER", "RUN_PAUSED:CONTRACT_BLOCKER"], "final_native_state": {"root_open": true, "claim_active": true}
     },
     {
+      "id": "contract-reconciliation-approve-continue", "group": "contract-reconciliation", "tracker": "local",
+      "initial_state": "CONTRACT_BLOCKER 已确认；完整调和包通过内部 Review，用户一次选择 APPROVE_CONTINUE。", "entry_prompt": "按已批准的完整调和包继续原 Run。",
+      "expected_writes": ["一次原生批准记录", "canonical Spec/ADR/Ticket Revisions", "RUN_PAUSED:CONTRACT_RECONCILED", "竞争 RUN_RESUMED"],
+      "forbidden_writes": ["分别要求调用 to-spec、domain-modeling 或 to-tickets", "再次请求批准", "完整原生回读前恢复", "新增契约状态机"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "任何批准包漂移、部分写入或竞争失败都保持暂停。",
+      "domain_state": {"single_approval": true, "contract_reconciled": true, "resume_winners": 1, "repair_budget_used": false},
+      "event_trace": ["RUN_CLAIMED", "CODER_RESULT:CONTRACT_BLOCKER", "RUN_PAUSED:CONTRACT_BLOCKER", "RUN_PAUSED:CONTRACT_RECONCILED", "RUN_RESUMED:CONTRACT_RECONCILED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"],
+      "final_native_state": {"root_open": false, "claim_active": false}
+    },
+    {
       "id": "human-merge", "group": "human-merge", "tracker": "github",
       "initial_state": "双 PASS，策略 human-merge，PR 尚未合并。", "entry_prompt": "继续并等待人工合并后恢复。",
       "expected_writes": ["READY_FOR_HUMAN_MERGE", "沿原 Run ID 恢复", "合并后 Integration Result"], "forbidden_writes": ["合并前关闭 Ticket", "新 Run ID"],
