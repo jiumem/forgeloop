@@ -48,6 +48,7 @@ class FixtureTransitionTests(unittest.TestCase):
                 "repair-diagnosis-interrupted",
                 "third-repair-pass",
                 "mixed-repair-budget",
+                "repair-cycle-renewed",
             }.issubset(ids)
         )
 
@@ -68,7 +69,14 @@ class FixtureTransitionTests(unittest.TestCase):
 
         exhausted = by_id["repair-exhausted"]
         self.assertEqual(exhausted["domain_state"]["repair_rounds"], 3)
+        self.assertEqual(exhausted["domain_state"]["reason"], "IMPLEMENTATION_BLOCKED")
         self.assertIn("第四轮普通修复", exhausted["forbidden_writes"])
+
+        renewed = by_id["repair-cycle-renewed"]
+        self.assertEqual(renewed["domain_state"]["repair_rounds_per_cycle"], [3, 3])
+        self.assertTrue(renewed["domain_state"]["same_ticket_run_branch"])
+        self.assertIn("RUN_PAUSED:REPAIR_BUDGET", renewed["event_trace"])
+        self.assertIn("RUN_RESUMED:AUTO_REPAIR_RENEWAL", renewed["event_trace"])
 
     def test_completed_without_acceptance_is_rejected(self) -> None:
         fixture = {
@@ -286,7 +294,64 @@ class FixtureTransitionTests(unittest.TestCase):
 
         errors = self._validate_fixture(fixture)
 
-        self.assertTrue(any("REPAIR_BUDGET 必须在第三轮修复后" in error for error in errors))
+        self.assertTrue(any("REPAIR_BUDGET 必须在当前周期第三轮修复后" in error for error in errors))
+
+    def test_repair_rounds_cannot_reset_without_confirmed_automatic_renewal(self) -> None:
+        fixture = self._repair_fixture(
+            "unbound-round-reset",
+            [
+                "CODER_RESULT:REPAIR_1_READY",
+                "CODER_RESULT:REPAIR_2_READY",
+                "CODER_RESULT:REPAIR_3_READY",
+                "CODER_RESULT:REPAIR_1_RETRY",
+            ],
+        )
+
+        errors = self._validate_fixture(fixture)
+
+        self.assertTrue(any("每个修复周期必须按 1、2、3 顺序" in error for error in errors))
+
+    def test_candidate_mutation_waits_for_confirmed_automatic_renewal(self) -> None:
+        fixture = self._repair_fixture(
+            "mutation-before-renewal",
+            [
+                "CODER_RESULT:REPAIR_1_READY",
+                "CODER_RESULT:REPAIR_2_READY",
+                "CODER_RESULT:REPAIR_3_READY",
+                "RUN_PAUSED:REPAIR_BUDGET",
+                "CODER_RESULT:REPAIR_1_RETRY",
+            ],
+        )
+
+        errors = self._validate_fixture(fixture)
+
+        self.assertTrue(any("AUTO_REPAIR_RENEWAL 确认前修改 Candidate" in error for error in errors))
+
+    def test_automatic_renewal_requires_a_confirmed_budget_pause(self) -> None:
+        fixture = self._repair_fixture(
+            "renewal-without-pause",
+            ["RUN_RESUMED:AUTO_REPAIR_RENEWAL"],
+        )
+
+        errors = self._validate_fixture(fixture)
+
+        self.assertTrue(any("必须绑定已确认的 REPAIR_BUDGET 暂停" in error for error in errors))
+
+    def test_budget_pause_cannot_use_generic_recovery_resume(self) -> None:
+        fixture = self._repair_fixture(
+            "generic-resume-after-budget",
+            [
+                "CODER_RESULT:REPAIR_1_READY",
+                "CODER_RESULT:REPAIR_2_READY",
+                "CODER_RESULT:REPAIR_3_READY",
+                "RUN_PAUSED:REPAIR_BUDGET",
+                "RUN_RESUMED",
+            ],
+        )
+
+        errors = self._validate_fixture(fixture)
+
+        self.assertTrue(any("必须先经过 Exhaustion Diagnosis" in error for error in errors))
 
     def test_contract_blocker_fixture_cannot_claim_zero_budget_after_repair(self) -> None:
         fixture = self._repair_fixture(

@@ -7,7 +7,8 @@
 - **Ticket**: the smallest vertical slice that a fresh Coder can implement and two fresh Reviewers can verify through a public Seam.
 - **Frontier**: the Ticket Frontier of all Open, Unblocked, Unclaimed Tickets inside the authorized scope.
 - **Agent Run**: the durable execution evidence for one Ticket: Coder result, fixed candidate Commit, two independent Verdicts, repair rounds, and Integration Result. Child thread identity is not durable state.
-- **Review Verdict**: one axis's `PASS`, `REPAIR_REQUIRED`, or `REVIEW_BLOCKED`, bound to a fixed Base, Head, and Spec Revision.
+- **Repair Cycle**: at most three Candidate-changing repair rounds under one durable `cycle_anchor`; renewal keeps the Ticket, Run, and Branch but starts a new cycle after confirmed `REPAIR_BUDGET` pause and semantic Exhaustion Diagnosis.
+- **Review Verdict**: one axis's `PASS`, `REPAIR_REQUIRED`, or `REVIEW_BLOCKED`, bound to fixed Candidate and effective contract inputs for one repair cycle.
 - **Branch Topology**: `INDEPENDENT` or user-approved `SHARED`; it describes where Ticket Candidates integrate, not who may merge.
 - **Shared-branch Reason**: `WIDE_REFACTOR`, `NON_GREEN_MIGRATION`, `ATOMIC_DELIVERY`, or `CUMULATIVE_AUDIT`; it justifies `SHARED` without replacing Integration Policy.
 - **Integration Policy**: `auto-merge` or `human-merge`; it alone governs merge authority under the configured runtime.
@@ -32,10 +33,13 @@ Bind each Ticket Review to immutable inputs:
 review_base: <frozen reviewed Base commit>
 candidate_head: <reviewed Head commit>
 spec_revision: <formal Spec revision>
+ticket_revision: <effective Ticket revision>
+adr_revisions: <applicable ADR revisions>
+cycle_anchor: <current repair-cycle anchor>
 coder_evidence: <bound shared evidence references>
 ```
 
-The review_base is an immutable Commit, not a moving alias. The target reference moving alone does not invalidate unchanged dual `PASS` Verdicts. Invalidate both Verdicts only when candidate code, review_base, candidate_head, Spec Revision, or bound shared Coder evidence changes. A rebase, target merge into the Candidate Branch, or conflict repair changes the Candidate Head and therefore requires renewed Coder validation and dual Review.
+The review_base is an immutable Commit, not a moving alias. The target reference moving alone does not invalidate unchanged dual `PASS` Verdicts. Changing any listed binding invalidates both Verdicts. A renewed cycle always requires fresh dual Verdicts; an old-cycle Verdict cannot certify its Candidate.
 
 ### Integration Result
 
@@ -83,7 +87,7 @@ This binding is the Acceptance Seal. It proves the approved Delivery Acceptance 
 
 1. Allow one valid root Scheduler Run and at most one active Ticket per Initiative.
 2. Keep the root Run Claim on the Spec or Initiative parent. Express the current Ticket Claim through the configured native Tracker mechanism, not a duplicate Event.
-3. Use a fresh Coder and two fresh isolated Reviewers for every Ticket. Reuse those live threads only for repair of that Ticket; create fresh children after Scheduler-task recovery.
+3. Use a fresh Coder and two fresh isolated Reviewers for every initial or renewed repair cycle. Reuse those live threads only inside that cycle; create fresh children after Scheduler-task recovery. Never persist child identity as workflow state.
 4. Make the Coder implement and validate, Reviewers judge read-only fixed Commits, and the Scheduler orchestrate integration and state writes.
 5. Hold both Ticket Reviewer results until both finish, then persist one combined review checkpoint. Never expose one axis to the other.
 6. Keep Candidate Review, Integration Result, and Final Acceptance evidence bound to their own immutable inputs; apply each binding's own invalidation rule.

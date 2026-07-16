@@ -511,17 +511,46 @@ def validate_runtime_case(case: dict) -> list[str]:
         errors.append(f"{case_id}: 包含未声明的运行事件 {unknown_events}")
 
     repair_rounds = []
+    current_cycle_rounds: list[int] = []
+    repair_budget_paused = False
     for event in trace:
+        if event.startswith("INTEGRATION_RESULT:"):
+            current_cycle_rounds = []
+            repair_budget_paused = False
+            continue
+        if event == "RUN_RESUMED:AUTO_REPAIR_RENEWAL":
+            if not repair_budget_paused:
+                errors.append(
+                    f"{case_id}: AUTO_REPAIR_RENEWAL 必须绑定已确认的 REPAIR_BUDGET 暂停"
+                )
+            current_cycle_rounds = []
+            repair_budget_paused = False
+            continue
+        if event == "RUN_RESUMED" and repair_budget_paused:
+            errors.append(
+                f"{case_id}: REPAIR_BUDGET 恢复必须先经过 Exhaustion Diagnosis 和 AUTO_REPAIR_RENEWAL"
+            )
         payload = event_payload(event, "CODER_RESULT")
         if payload is None or (match := REPAIR_ROUND.match(payload)) is None:
+            if event == "RUN_PAUSED:REPAIR_BUDGET":
+                if current_cycle_rounds != [1, 2, 3]:
+                    errors.append(f"{case_id}: REPAIR_BUDGET 必须在当前周期第三轮修复后")
+                repair_budget_paused = True
             continue
-        repair_rounds.append(int(match.group(1)))
+        round_number = int(match.group(1))
+        repair_rounds.append(round_number)
+        if repair_budget_paused:
+            errors.append(
+                f"{case_id}: REPAIR_BUDGET 后不得在 AUTO_REPAIR_RENEWAL 确认前修改 Candidate"
+            )
+        expected_round = len(current_cycle_rounds) + 1
+        if round_number != expected_round:
+            errors.append(
+                f"{case_id}: 每个修复周期必须按 1、2、3 顺序使用普通修复轮次"
+            )
+        current_cycle_rounds.append(round_number)
     if any(round_number > 3 for round_number in repair_rounds):
         errors.append(f"{case_id}: 不得超过三轮普通修复")
-    if "RUN_PAUSED:REPAIR_BUDGET" in trace and (
-        not repair_rounds or max(repair_rounds) != 3
-    ):
-        errors.append(f"{case_id}: REPAIR_BUDGET 必须在第三轮修复后")
     if case["domain_state"].get("repair_budget_used") is False and repair_rounds:
         errors.append(f"{case_id}: 声明未消耗预算但存在修复结果")
     state = case["domain_state"]

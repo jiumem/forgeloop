@@ -67,28 +67,27 @@ class RepairDiagnosisContractTests(unittest.TestCase):
         self.assertIn("must not classify the mechanism itself", scheduler)
         self.assertIn("must not merge, reorder, or rewrite Reviewer Findings", scheduler)
 
-    def test_three_round_budget_is_shared_and_has_a_hard_fourth_round_stop(self) -> None:
+    def test_three_round_budget_is_per_cycle_and_exhaustion_stays_semantic(self) -> None:
         repair = reference("repair-and-integration.md")
         tracker = reference("tracker-operations.md")
 
         for contract in (
-            "at most three ordinary repair rounds per Ticket",
+            "at most three ordinary repair rounds per `cycle_anchor`",
             "Reviewer Findings, a candidate-caused Required Check failure, or compatibility or merge-conflict resolution",
             "Diagnosis turns do not consume this budget",
             "After the third repair",
             "two fresh `PASS` Verdicts",
             "do not start a fourth repair",
             "reason=`REPAIR_BUDGET`",
-            "three diagnosis classifications",
-            "falsified hypotheses",
-            "unresolved Findings",
-            "current shared mechanism",
-            "next legal action",
+            "fresh Coder for the read-only Exhaustion Diagnosis",
+            "Coder owns the semantic recommendation",
+            "does not parse, score, keyword-match",
+            "Automatic repair has no fixed total-cycle ceiling",
         ):
             with self.subTest(contract=contract):
                 self.assertIn(contract, repair)
         self.assertIn(
-            "one initial Coder result plus at most three ordinary repair results",
+            "one initial Coder result plus at most three ordinary repair results per repair cycle",
             tracker,
         )
         self.assertNotIn("at most two ordinary repair", tracker)
@@ -141,7 +140,9 @@ class RepairDiagnosisContractTests(unittest.TestCase):
             "at most three ordinary repair rounds",
             "Repair Diagnosis",
             "zero-write, zero-budget preflight",
-            "one initial Coder result plus at most three ordinary repair results",
+            "Exhaustion Diagnosis",
+            "AUTO_REPAIR_RENEWAL",
+            "per repair cycle",
         ):
             with self.subTest(marker=marker):
                 self.assertIn(marker, contract)

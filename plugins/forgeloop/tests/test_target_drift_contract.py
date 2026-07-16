@@ -22,10 +22,14 @@ class TargetDriftContractTests(unittest.TestCase):
             "review_base: <frozen reviewed Base commit>",
             "candidate_head: <reviewed Head commit>",
             "spec_revision: <formal Spec revision>",
+            "ticket_revision: <effective Ticket revision>",
+            "adr_revisions: <applicable ADR revisions>",
+            "cycle_anchor: <current repair-cycle anchor>",
             "coder_evidence: <bound shared evidence references>",
             "target reference moving alone does not invalidate",
             "review_base is an immutable Commit, not a moving alias",
-            "Invalidate both Verdicts only when candidate code, review_base, candidate_head, Spec Revision, or bound shared Coder evidence changes",
+            "Changing any listed binding invalidates both Verdicts",
+            "old-cycle Verdict cannot certify",
         ):
             self.assertIn(marker, domain)
         self.assertNotIn("or final target changes", domain)
@@ -97,7 +101,7 @@ class TargetDriftContractTests(unittest.TestCase):
             "Target refresh, mergeability and Check refresh, read-only Acceptance, and pre- or post-seal drift consume no repair round",
             "A Candidate code change or Head rewrite enters Repair Diagnosis",
             "consumes one round",
-            "shared three-round budget",
+            "current cycle's three-round budget",
         ):
             self.assertIn(marker, integration)
 
