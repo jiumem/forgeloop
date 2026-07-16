@@ -25,6 +25,7 @@ to-spec → to-tickets → run-initiative
 - 每个修复周期由一个 Coder 实现，再接受相互独立的规范评审和需求评审。
 - 每组三轮修复是一次强制诊断边界，不是 Ticket 的永久终点。
 - 周期耗尽后先确认暂停，再由 fresh Coder 语义判断是否在同一 Ticket、Run 和 Branch 上自动续配；字段组织证据，不替代 Agent 判断。
+- `CONTRACT_BLOCKER` 先形成完整调和包并完成内部语义 Review；用户一次决定即可授权 Spec/ADR/Ticket 调和与原 Run 恢复，不必分别调用工作流。
 
 ## 60 秒开始
 

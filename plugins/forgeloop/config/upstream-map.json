@@ -101,7 +101,11 @@
         ]
       }
     },
-    {"source": "skills/engineering/domain-modeling", "target": "domain-modeling"},
+    {
+      "source": "skills/engineering/domain-modeling",
+      "target": "domain-modeling",
+      "appends": {"SKILL.md": "config/overlays/domain-modeling-append.md"}
+    },
     {"source": "skills/engineering/grill-with-docs", "target": "grill-with-docs", "appends": {"SKILL.md": "config/overlays/grill-with-docs-append.md"}},
     {
       "source": "skills/engineering/improve-codebase-architecture",
@@ -154,6 +158,7 @@
     {
       "source": "skills/engineering/to-spec",
       "target": "to-spec",
+      "appends": {"SKILL.md": "config/overlays/to-spec-append.md"},
       "file_replacements": {
         "SKILL.md": [
           [

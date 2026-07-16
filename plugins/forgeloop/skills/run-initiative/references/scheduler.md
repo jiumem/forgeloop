@@ -63,6 +63,8 @@ For `AUTO_REPAIR_RENEWAL`, publish one independently idempotent Resume attempt a
 
 For `IMPLEMENTATION_BLOCKED`, publish and exactly confirm the existing `RUN_PAUSED` Event type with that reason, current `cycle_anchor`, and the complete diagnosis. Preserve the pause on an unconditional continue. A bound new fact or hypothesis may start another read-only Exhaustion Diagnosis but never grants mutation by itself.
 
+For `CONTRACT_BLOCKER`, load the Contract Reconciliation protocol. The Scheduler coordinates one complete reviewed package and one native user decision, then delegates only the approved Spec, ADR, and Ticket facts to their existing owning Skills. It does not reinterpret the package, ask for piecemeal approvals, or resume before complete native read-back.
+
 ## Scheduler Responsibilities
 
 - After every Ticket Claim, refresh the declared target or Integration Branch and freeze Base from its current Head before preparing the Ticket Branch.
