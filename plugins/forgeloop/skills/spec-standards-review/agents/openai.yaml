@@ -1,0 +1,6 @@
+interface:
+  display_name: "Spec & Standards Review"
+  short_description: "Review implemented code on Spec and Standards axes"
+  default_prompt: "Use $spec-standards-review to review this implemented code on the Spec and Standards axes."
+policy:
+  allow_implicit_invocation: true

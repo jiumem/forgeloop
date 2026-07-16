@@ -64,10 +64,12 @@ class SyncUpstreamTests(unittest.TestCase):
         self.assertNotIn("subagent_type=Explore", text)
         self.assertNotIn("Only write the visualization to an OS temporary directory", text)
 
-    def test_code_review_preserves_full_review_rubric_and_adapts_snapshot_scope(self) -> None:
+    def test_spec_standards_review_preserves_full_rubric_and_adapts_snapshot_scope(self) -> None:
         config = MODULE.load_config()
         mapping = next(
-            item for item in config["mappings"] if item["target"] == "code-review"
+            item
+            for item in config["mappings"]
+            if item["target"] == "spec-standards-review"
         )
         text = MODULE.expected_files(config, mapping)[Path("SKILL.md")].decode()
 
@@ -223,7 +225,7 @@ class SyncUpstreamTests(unittest.TestCase):
         result = MODULE.apply_required_replacements(
             "run setup automatically",
             [["run setup automatically", "ask the user to run setup"]],
-            "code-review/SKILL.md",
+            "spec-standards-review/SKILL.md",
         )
         self.assertEqual(result, "ask the user to run setup")
 
@@ -232,7 +234,7 @@ class SyncUpstreamTests(unittest.TestCase):
             MODULE.apply_required_replacements(
                 "upstream text changed",
                 [["run setup automatically", "ask the user to run setup"]],
-                "code-review/SKILL.md",
+                "spec-standards-review/SKILL.md",
             )
 
     def test_wrong_commit_is_rejected(self) -> None:
