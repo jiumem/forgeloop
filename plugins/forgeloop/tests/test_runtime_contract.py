@@ -39,6 +39,35 @@ class RuntimeContractTests(unittest.TestCase):
         self.assertIn("`NO_CHANGE_REQUIRED` is the only valid empty Diff", reviewers)
         self.assertIn("an empty Diff for `READY_FOR_REVIEW`", reviewers)
 
+    def test_coder_invokes_tdd_only_for_reproducible_behavior_change(self) -> None:
+        coder = (SKILL_ROOT / "references" / "coder.md").read_text(encoding="utf-8")
+        tdd = (PLUGIN_ROOT / "skills" / "tdd" / "SKILL.md").read_text(encoding="utf-8")
+
+        self.assertIn("invoke `$tdd`", coder)
+        self.assertIn("before modifying production code", coder)
+        self.assertIn("same repo-root command", coder)
+        self.assertIn("Do not manufacture a Red", coder)
+        self.assertIn("approved Validation Entry", coder)
+        self.assertIn("already-approved public Seam", tdd)
+        self.assertIn("Base production code plus only the new test", tdd)
+
+    def test_scheduler_validates_the_approved_strategy_without_a_universal_red_gate(self) -> None:
+        scheduler = (SKILL_ROOT / "references" / "scheduler.md").read_text(encoding="utf-8")
+
+        self.assertIn("approved validation strategy", scheduler)
+        self.assertIn("Do not require Red/Green unconditionally", scheduler)
+        self.assertIn("does not judge evidence credibility", scheduler)
+        self.assertIn("do not create Reviewers", scheduler)
+
+    def test_reviewers_judge_product_evidence_instead_of_harness_claims(self) -> None:
+        reviewers = (SKILL_ROOT / "references" / "reviewers.md").read_text(encoding="utf-8")
+
+        self.assertIn("same repo-root command", reviewers)
+        self.assertIn("behavior-preserving", reviewers)
+        self.assertIn("product boundary", reviewers)
+        self.assertIn("harness or adapter", reviewers)
+        self.assertIn("must not issue the product conclusion", reviewers)
+
     def test_spec_acceptance_always_uses_a_fresh_read_only_child(self) -> None:
         acceptance = (SKILL_ROOT / "references" / "acceptance.md").read_text(encoding="utf-8")
         scheduler = (SKILL_ROOT / "references" / "scheduler.md").read_text(encoding="utf-8")

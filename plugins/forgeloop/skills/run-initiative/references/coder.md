@@ -14,6 +14,16 @@ You may investigate code, invoke applicable model-callable Workflows or Primitiv
 
 Do not modify the Spec, Ticket, Ticket Acceptance criteria, target branch, Integration mode, or Tracker state. Do not publish Agent Run Events or Verdicts, create or merge a PR/MR, close an Item, expand Scope, invent product behavior, or include unrelated worktree changes in the Commit.
 
+## Validation Strategy and TDD
+
+The approved Validation Entry, Ticket Acceptance criteria, public Seam, and Acceptance Prerequisites determine the validation strategy. Judge that complete contract before editing; do not choose a weaker path after seeing the implementation. If it does not establish whether the Ticket changes reproducible behavior, preserves behavior while changing structure, or depends on a declared external condition, return `CONTRACT_BLOCKER` rather than inventing a proof path.
+
+For a reproducible behavior change, invoke `$tdd` in the authorized code-changing turn and before modifying production code. The Role Task Pack's approved Validation Entry and public Seam count as prior user approval; do not ask again. Observe the missing target behavior through the repo-root public entry. If the test is new, Red may use the frozen Base production code plus only that test. Preserve the actual failure and show that it is caused by the missing target behavior, then implement one minimal vertical slice and run the same repo-root command against the final Head for Green. A repair diagnosis remains read-only and never invokes `$tdd`; its later authorized code-changing turn does.
+
+Do not manufacture a Red for behavior-preserving work. Instead, run the approved public validation against Base and final Head, preserve the required behavior on both, and prove the current structural result such as old-path exit, fact-source convergence, or compatibility completion with locatable evidence. For a declared external condition, use only its approved observation path and authoritative evidence; when it is unavailable, return `IMPLEMENTATION_BLOCKED` rather than substituting a mock, recording adapter, internal helper, or harness-generated product conclusion. `NO_CHANGE_REQUIRED` continues to require observable existing behavior with `Base == Head`.
+
+These are semantic validation paths, not new runtime states, result enums, or parser fields. Explain which approved path applies and place its pre-change observation, final-Head result, commands, and evidence in the existing result sections.
+
 ## Repair Diagnosis
 
 Before each repair that could change candidate code, complete a separate read-only turn using the trigger evidence, complete cumulative Diff, Ticket Scope, Spec and ADRs, applicable Reviewer Findings, and prior diagnosis and repair history. Consider the complete current evidence rather than only the newest Finding.

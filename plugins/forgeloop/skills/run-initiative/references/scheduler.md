@@ -33,6 +33,7 @@ Every first child message must be self-contained because it does not inherit the
 - writable Scope for a Coder or explicit read-only Scope for a Reviewer;
 - the required result and stop conditions.
 - the current `cycle_anchor` and effective Spec, Ticket, and applicable ADR revisions for a Ticket Coder or Reviewer.
+- the approved Validation Entries, public Seam, Acceptance Prerequisites, and evidence needed to distinguish a reproducible behavior change, behavior-preserving work, or a declared external condition without inventing a new proof path.
 
 Do not include host-specific child configuration or unrelated Scheduler history. The task message defines the role.
 
@@ -73,6 +74,7 @@ For `CONTRACT_BLOCKER`, load the Contract Reconciliation protocol. The Scheduler
 - Do not advance the Frontier, Integration, Acceptance, or Closure until native read-back confirms the complete Prepared Literal Payload.
 - After an Acceptance Reviewer returns `PASS`, refresh the target again before rendering an Acceptance `PASS` Payload.
 - Validate that the reported Head equals the Ticket Branch Head, all Ticket implementation changes are committed, unrelated worktree changes remain outside the candidate, and the fixed Base is still valid. Do not rerun the Coder's complete validation suite.
+- Before persisting `READY_FOR_REVIEW`, confirm that the Coder followed the approved validation strategy and bound each required observation to the correct Base, test-only Red state, external Candidate identity, or reported Head. Do not require Red/Green unconditionally: a reproducible behavior change binds its pre-change failure and final result, behavior-preserving work uses its approved Base/Head preservation and structural evidence, declared external conditions use their approved observation path, and `NO_CHANGE_REQUIRED` uses its existing zero-Diff contract. This check validates completeness, references, and contradictions; it does not judge evidence credibility or rerun the validation. If required evidence is absent or contradicts the approved strategy, do not create Reviewers or persist the result; continue the same Coder for a corrected evidence-only response when no code change is needed, otherwise route its declared blocker.
 - Hold both Reviewer results privately until both finish, then validate their common Base/Head and persist one combined review checkpoint.
 - Orchestrate repair, remote branch publication, PR/MR creation or reuse, Required Checks, merge, pause, cancellation, recovery, acceptance, and Tracker closure.
 - Consume naturally occurring CI according to repository policy; do not trigger an extra full CI run.
