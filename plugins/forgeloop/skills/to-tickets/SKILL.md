@@ -19,7 +19,7 @@ Require a reference to one approved formal Tracker Spec, fetch it, and read its 
 
 Explore the code relevant to this Spec and retain locatable evidence for design decisions. Complete this exploration before drafting or risk screening. Ticket titles and descriptions should use the project's domain glossary vocabulary and respect relevant ADRs.
 
-Look for opportunities to prefactor the code to make the implementation easier. "Make the change easy, then make the easy change."
+Look for necessary prefactoring only when code evidence shows it makes the approved current result easier to deliver. Keep necessary prefactoring inside the first vertical Ticket that consumes it unless it independently provides a currently required and observable system guarantee.
 
 ### 3. Draft vertical slices
 
@@ -29,6 +29,16 @@ When the parent states `None — no Cross-seam Invariants.`, retain `Invariant o
 
 If no proposed ordinary vertical slice can own the complete Contract, reshape the slices or add an ordinary vertical Ticket that closes the real behavior. Never create a Ticket that only adds an integration test. Later integration, cumulative audit, or Final Acceptance may re-run or inspect the owner's Proof on a bound Head but gains no ownership. If decomposition reveals a required invariant absent from the approved Spec, or requires changing a parent Contract or Proof mapping, return `CONTRACT_BLOCKER`; do not invent or write back the contract, and keep Tracker writes at zero.
 
+Apply Ticket Minimality to the complete candidate graph before sizing or approval. This is a thin decomposition gate: implement the approved Spec faithfully and do not reopen the approved solution design or repeat its Necessity Review.
+
+- Default to one to three minimal complete vertical Tickets. This is a strong default, not a hard limit.
+- Every Ticket must produce a current observable user or system result when integrated. Do not publish a future-only infrastructure Ticket, an internal helper with no current consumer, or work justified only by possible later use.
+- Keep an enabling change with its current consumer as one acceptable vertical result unless the enabling change independently provides a currently required and observable system guarantee.
+- For more than three Tickets, explain what current result every extra Ticket closes and which approved Delivery Acceptance outcome, Cross-seam Invariant, or required failure behavior would fail if that Ticket were omitted. Evidence-backed structural work remains valid.
+- If the smallest honest Ticket graph requires changing the approved Problem, Actor, Scope, Delivery Acceptance, Cross-seam Invariant, ADR, product behavior, or public interface, return `CONTRACT_BLOCKER`; do not hide the change in decomposition.
+
+Judge these rules from the complete Spec, code evidence, and candidate graph. Do not use a fixed count, keyword, field-presence check, or score as a substitute for semantic judgment.
+
 Break the work into **tracer bullet** tickets.
 
 <vertical-slice-rules>
@@ -36,7 +46,7 @@ Break the work into **tracer bullet** tickets.
 - Each slice cuts a narrow but COMPLETE path through every layer (schema, API, UI, tests) — vertical, NOT a horizontal slice of one layer
 - A completed slice is demoable or verifiable on its own
 - Each slice is sized to fit in a single fresh context window
-- Any prefactoring should be done first
+- Apply Ticket Minimality to necessary prefactoring; do not add a separate prefactoring step
 
 </vertical-slice-rules>
 

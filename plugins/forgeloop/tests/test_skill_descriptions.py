@@ -8,8 +8,8 @@ PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 METADATA_PATH = PLUGIN_ROOT / "config" / "skill-metadata.json"
 SKILLS_ROOT = PLUGIN_ROOT / "skills"
 SPEC_STANDARDS_REVIEW_DESCRIPTION = (
-    "Load when implemented code needs review against its intended behavior and repository "
-    "standards; do not load for exploratory code investigation, impact analysis, or debugging."
+    "Load when implemented code needs review against its intended behavior, repository standards, "
+    "or both; do not load for exploratory code investigation, impact analysis, or debugging."
 )
 
 
