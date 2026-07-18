@@ -1,6 +1,6 @@
 ---
 name: spec-standards-review
-description: Load when implemented code needs review against its intended behavior and repository standards; do not load for exploratory code investigation, impact analysis, or debugging.
+description: Load when implemented code needs review against its intended behavior, repository standards, or both; do not load for exploratory code investigation, impact analysis, or debugging.
 ---
 
 Two-axis review of implemented code within a fixed scope:
