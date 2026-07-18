@@ -1,5 +1,5 @@
 interface:
-  display_name: "Spec & Standards Review"
+  display_name: "spec-standards-review"
   short_description: "Review implemented code on Spec and Standards axes"
   default_prompt: "Use $spec-standards-review to review this implemented code on the Spec and Standards axes."
 policy:

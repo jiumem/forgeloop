@@ -1,5 +1,5 @@
 interface:
-  display_name: "Diagnose Bugs"
+  display_name: "diagnosing-bugs"
   short_description: "Build a tight feedback loop and diagnose root causes"
   default_prompt: "Use $diagnosing-bugs to build a feedback loop and identify the root cause."
 policy:

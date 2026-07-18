@@ -1,5 +1,5 @@
 interface:
-  display_name: "Session Handoff"
+  display_name: "handoff"
   short_description: "Create a compact temporary handoff for a fresh session"
   default_prompt: "Use $handoff to prepare a compact temporary handoff for a fresh session."
 policy:

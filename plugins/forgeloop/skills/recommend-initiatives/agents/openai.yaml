@@ -1,5 +1,5 @@
 interface:
-  display_name: "Recommend Initiatives"
+  display_name: "recommend-initiatives"
   short_description: "Recommend evidence backed high value engineering initiatives"
   default_prompt: "Use $recommend-initiatives to identify the next high-value engineering initiatives."
 policy:

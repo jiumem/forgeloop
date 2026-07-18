@@ -1,5 +1,5 @@
 interface:
-  display_name: "Grill with Docs"
+  display_name: "grill-with-docs"
   short_description: "Grill a design while maintaining domain documents"
   default_prompt: "Use $grill-with-docs to clarify this design and maintain its domain documents."
 policy:

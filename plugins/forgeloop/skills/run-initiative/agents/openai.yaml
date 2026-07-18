@@ -1,5 +1,5 @@
 interface:
-  display_name: "Run Initiative"
+  display_name: "run-initiative"
   short_description: "Run Tracker tickets through coder and dual reviewer gates"
   default_prompt: "Use $run-initiative to run the Tracker-driven delivery loop from this formal Spec."
 policy:

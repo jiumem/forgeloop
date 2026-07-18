@@ -1,5 +1,5 @@
 interface:
-  display_name: "Codebase Design"
+  display_name: "codebase-design"
   short_description: "Design deep modules with clear testable seams"
   default_prompt: "Use $codebase-design to design a deep module with a clear seam."
 policy:

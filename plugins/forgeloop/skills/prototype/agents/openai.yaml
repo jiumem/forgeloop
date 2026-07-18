@@ -1,5 +1,5 @@
 interface:
-  display_name: "Throwaway Prototype"
+  display_name: "prototype"
   short_description: "Build a throwaway prototype to answer one design question"
   default_prompt: "Use $prototype to build a disposable experiment for this design question."
 policy:

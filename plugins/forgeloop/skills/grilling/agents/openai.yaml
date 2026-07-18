@@ -1,5 +1,5 @@
 interface:
-  display_name: "Grilling"
+  display_name: "grilling"
   short_description: "Ask one high impact design question at a time"
   default_prompt: "Use $grilling to ask one high-impact design question at a time."
 policy:

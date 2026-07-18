@@ -1,5 +1,5 @@
 interface:
-  display_name: "Split into Tickets"
+  display_name: "to-tickets"
   short_description: "Split an approved Spec into blocked vertical slices"
   default_prompt: "Use $to-tickets to split the approved Spec into dependent vertical Tickets."
 policy:
