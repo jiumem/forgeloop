@@ -85,12 +85,14 @@ tdd                      codebase-design             resolving-merge-conflicts
 
 在仓库根目录运行：
 
+`plugins/forgeloop/` 是 Codex 实际安装的运行包，只包含插件清单与 Skills。生成配置、Fixture、维护脚本和测试统一位于 `tooling/forgeloop/`，不会进入插件缓存。
+
 ```bash
-python3 plugins/forgeloop/scripts/validate_suite.py \
+python3 tooling/forgeloop/scripts/validate_suite.py \
   --mode release \
   --plugin-root plugins/forgeloop
 python3 -m unittest discover \
-  -s plugins/forgeloop/tests \
+  -s tooling/forgeloop/tests \
   -p 'test_*.py'
 ```
 
