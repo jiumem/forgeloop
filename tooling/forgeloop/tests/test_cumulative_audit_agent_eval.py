@@ -9,7 +9,6 @@ import unittest
 from pathlib import Path
 
 
-TOOLING_ROOT = Path(__file__).resolve().parents[1]
 PLUGIN_ROOT = Path(__file__).resolve().parents[3] / "plugins" / "forgeloop"
 RUN_ROOT = PLUGIN_ROOT / "skills" / "run-initiative"
 RUN_AGENT_EVALS = os.environ.get("FORGELOOP_RUN_AGENT_EVALS") == "1"

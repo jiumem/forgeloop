@@ -94,6 +94,8 @@ def validate_tree(
 ) -> tuple[list[str], list[str]]:
     errors: list[str] = []
     notices: list[str] = []
+    if not plugin_root.is_dir():
+        return [f"缺失插件根目录：{plugin_root}"], notices
     if mode != "baseline":
         allowed_entries = {".codex-plugin", "skills"}
         actual_entries = {path.name for path in plugin_root.iterdir()}

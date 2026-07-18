@@ -8,7 +8,6 @@ import unittest
 from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "validate_runtime_contract.py"
-TOOLING_ROOT = Path(__file__).resolve().parents[1]
 PLUGIN_ROOT = Path(__file__).resolve().parents[3] / "plugins" / "forgeloop"
 SKILL_ROOT = PLUGIN_ROOT / "skills" / "run-initiative"
 SPEC = importlib.util.spec_from_file_location("validate_runtime_contract", SCRIPT)

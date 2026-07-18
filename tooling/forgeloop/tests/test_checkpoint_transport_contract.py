@@ -4,7 +4,6 @@ import unittest
 from pathlib import Path
 
 
-TOOLING_ROOT = Path(__file__).resolve().parents[1]
 PLUGIN_ROOT = Path(__file__).resolve().parents[3] / "plugins" / "forgeloop"
 REPO_ROOT = PLUGIN_ROOT.parents[1]
 SKILL_ROOT = PLUGIN_ROOT / "skills" / "run-initiative"

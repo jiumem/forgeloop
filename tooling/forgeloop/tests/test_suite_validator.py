@@ -62,6 +62,13 @@ class SuiteValidatorTests(unittest.TestCase):
 
         self.assertTrue(any("插件运行包只能包含" in error for error in errors))
 
+    def test_missing_plugin_root_is_reported(self) -> None:
+        missing_root = self.root / "missing"
+
+        errors, _ = MODULE.validate_tree(missing_root, "release", self.config)
+
+        self.assertEqual(errors, [f"缺失插件根目录：{missing_root}"])
+
     def test_missing_skill_md_is_reported(self) -> None:
         (self.root / "skills" / "alpha").mkdir()
         errors, _ = MODULE.validate_tree(self.root, "release", self.config)
