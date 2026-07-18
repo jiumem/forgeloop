@@ -36,10 +36,11 @@ CASES = [
         "evidence": """
             The user needs a settings read immediately after save to return the saved value. Code
             evidence shows the write updates the authoritative repository while the read handler
-            uses a stale cache entry. The existing repository and public API seam can express and
-            prove the complete fix. The candidate Spec instead adds a version token, lease service,
-            cache registry, recovery lifecycle, and global migration. No observed or contracted
-            permission, concurrency, recovery, or compatibility failure requires those concepts.
+            uses a stale cache entry. The existing repository, cache invalidation hook, and public
+            API seam can express and prove the complete fix without retiring any mechanism. The
+            candidate Spec instead adds a version token, lease service, cache registry, recovery
+            lifecycle, and global migration. No observed or contracted permission, concurrency,
+            recovery, or compatibility failure requires those concepts.
         """,
     },
     {
@@ -120,6 +121,16 @@ EXPECTED_ACTIONS = {
     "tickets-simple-five": "SIMPLIFY",
     "tickets-structural-five": "KEEP",
     "tickets-contract-drift": "CONTRACT_BLOCKER",
+}
+
+EXPECTED_OLD_MECHANISM_SCOPES = {
+    "spec-simple-overbuilt": "NOT_APPLICABLE",
+    "spec-structural-evidence": "NOT_APPLICABLE",
+    "spec-missing-decision": "NOT_APPLICABLE",
+    "spec-affected-path": "AFFECTED_PATH",
+    "tickets-simple-five": "NOT_APPLICABLE",
+    "tickets-structural-five": "GLOBAL_RETIREMENT",
+    "tickets-contract-drift": "NOT_APPLICABLE",
 }
 
 
@@ -237,13 +248,18 @@ class NecessityReviewAgentEvalTests(unittest.TestCase):
             )
             actual = json.loads(result_path.read_text(encoding="utf-8"))["results"]
 
+        self.assertEqual(len(actual), len(EXPECTED_ACTIONS))
         self.assertEqual({item["id"] for item in actual}, set(EXPECTED_ACTIONS))
+        self.assertEqual(len({item["id"] for item in actual}), len(actual))
         by_id = {item["id"]: item for item in actual}
         for case_id, expected_action in EXPECTED_ACTIONS.items():
             with self.subTest(case=case_id):
                 self.assertEqual(by_id[case_id]["action"], expected_action)
                 self.assertTrue(by_id[case_id]["reason"].strip())
-        self.assertEqual(by_id["spec-affected-path"]["old_mechanism_scope"], "AFFECTED_PATH")
+                self.assertEqual(
+                    by_id[case_id]["old_mechanism_scope"],
+                    EXPECTED_OLD_MECHANISM_SCOPES[case_id],
+                )
 
 
 if __name__ == "__main__":

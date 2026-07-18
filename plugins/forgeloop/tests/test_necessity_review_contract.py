@@ -69,6 +69,48 @@ class NecessityReviewContractTests(unittest.TestCase):
         self.assertIn("Do not invent future actors, variants, or capabilities", text)
         self.assertIn("Record only implementation decisions supported", text)
 
+    def test_to_spec_restarts_all_publication_gates_after_simplification(self) -> None:
+        text = generated_skill("to-spec")
+
+        review = text.index("semantic Necessity Review")
+        publish = text.index("After all gates pass")
+        gate_program = text[review:publish]
+        for behavior in (
+            "restart the complete candidate publication gates",
+            "user-approved test Seam",
+            "`Delivery Acceptance`",
+            "`Validation Entries`",
+            "`Acceptance Prerequisites`",
+            "`Cross-seam Invariants`",
+            "Do not reuse an earlier gate result",
+        ):
+            with self.subTest(behavior=behavior):
+                self.assertIn(behavior, gate_program)
+        self.assertIn("return `CONTEXT_INSUFFICIENT`", gate_program)
+
+    def test_to_tickets_keeps_prefactoring_with_its_current_consumer(self) -> None:
+        text = generated_skill("to-tickets")
+
+        self.assertNotIn("Any prefactoring should be done first", text)
+        self.assertIn(
+            "Keep necessary prefactoring inside the first vertical Ticket that consumes it",
+            text,
+        )
+        self.assertIn(
+            "independently provides a currently required and observable system guarantee",
+            text,
+        )
+        self.assertEqual(
+            text.count(
+                "Keep necessary prefactoring inside the first vertical Ticket that consumes it"
+            ),
+            1,
+        )
+        self.assertIn(
+            "Apply Ticket Minimality to necessary prefactoring; do not add a separate prefactoring step",
+            text,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

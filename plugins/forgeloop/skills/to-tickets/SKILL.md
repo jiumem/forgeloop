@@ -19,7 +19,7 @@ Require a reference to one approved formal Tracker Spec, fetch it, and read its 
 
 Explore the code relevant to this Spec and retain locatable evidence for design decisions. Complete this exploration before drafting or risk screening. Ticket titles and descriptions should use the project's domain glossary vocabulary and respect relevant ADRs.
 
-Look for opportunities to prefactor the code to make the implementation easier. "Make the change easy, then make the easy change."
+Look for necessary prefactoring only when code evidence shows it makes the approved current result easier to deliver. Keep necessary prefactoring inside the first vertical Ticket that consumes it unless it independently provides a currently required and observable system guarantee.
 
 ### 3. Draft vertical slices
 
@@ -46,7 +46,7 @@ Break the work into **tracer bullet** tickets.
 - Each slice cuts a narrow but COMPLETE path through every layer (schema, API, UI, tests) — vertical, NOT a horizontal slice of one layer
 - A completed slice is demoable or verifiable on its own
 - Each slice is sized to fit in a single fresh context window
-- Any prefactoring should be done first
+- Apply Ticket Minimality to necessary prefactoring; do not add a separate prefactoring step
 
 </vertical-slice-rules>
 
