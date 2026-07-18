@@ -144,8 +144,10 @@ def evaluation_prompt() -> str:
     return f"""Apply the contract-reconciliation protocols to every case. Judge the complete
 semantic evidence rather than matching keywords. Preserve fact ownership: prompts may organize the
 answer, but they are not a parser-driven workflow. `REVISE_AND_RESUME` means reconcile the same Spec
-and original Run, while still forbidding Resume before complete native read-back. Modify nothing and
-do not use network.
+and original Run, while still forbidding Resume before complete native read-back. In the output,
+`new_initial_cycle` asks only whether the original Run starts a fresh initial repair cycle as part of
+the selected action; a future separate Spec and Run do not count. Modify nothing and do not use
+network.
 
 <contract-reconciliation>
 {reference("contract-reconciliation.md")}

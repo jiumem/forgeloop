@@ -11,10 +11,10 @@
     ]
   },
   "development": {
-    "version": "3.6.0-dev.0"
+    "version": "3.6.1-dev.0"
   },
   "release": {
-    "version": "3.6.0",
+    "version": "3.6.1",
     "skills": [
       "ask-forgeloop",
       "codebase-design",

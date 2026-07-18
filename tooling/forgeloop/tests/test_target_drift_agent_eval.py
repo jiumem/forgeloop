@@ -111,6 +111,10 @@ def schema() -> dict:
 def prompt() -> str:
     return f"""Apply the evidence-binding, Integration, Acceptance, and repair-budget protocols to every case. Judge only immutable bindings and native evidence; do not invent file-overlap or timing gates. PUBLISH nothing and modify no files.
 
+In the output, `rerun_acceptance` means rerun Acceptance immediately against the current state,
+before any repair Ticket or Candidate change; eventual Acceptance after a completed repair does not
+count.
+
 <domain>{reference("domain-and-state.md")}</domain>
 <integration>{reference("repair-and-integration.md")}</integration>
 <acceptance>{reference("acceptance.md")}</acceptance>
