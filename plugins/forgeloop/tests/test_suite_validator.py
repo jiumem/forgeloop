@@ -44,7 +44,7 @@ class SuiteValidatorTests(unittest.TestCase):
         if yaml:
             (root / "agents").mkdir()
             (root / "agents" / "openai.yaml").write_text(
-                f'interface:\n  display_name: "Alpha"\n  short_description: "Validate a complete skill suite fixture"\n  default_prompt: "Use ${name} for this task."\npolicy:\n  allow_implicit_invocation: false\n',
+                f'interface:\n  display_name: "{name}"\n  short_description: "Validate a complete skill suite fixture"\n  default_prompt: "Use ${name} for this task."\npolicy:\n  allow_implicit_invocation: false\n',
                 encoding="utf-8",
             )
         return root
@@ -63,6 +63,21 @@ class SuiteValidatorTests(unittest.TestCase):
         self.add_skill(name="beta")
         errors, _ = MODULE.validate_tree(self.root, "release", self.config)
         self.assertTrue(any("Frontmatter name" in error for error in errors))
+
+    def test_display_name_must_equal_skill_name(self) -> None:
+        root = self.add_skill()
+        yaml_path = root / "agents" / "openai.yaml"
+        yaml_path.write_text(
+            yaml_path.read_text(encoding="utf-8").replace(
+                'display_name: "alpha"',
+                'display_name: "Publish Alpha"',
+            ),
+            encoding="utf-8",
+        )
+
+        errors, _ = MODULE.validate_tree(self.root, "release", self.config)
+
+        self.assertTrue(any("display_name 必须与 Skill 名称一致" in error for error in errors))
 
     def test_invocation_policy_is_reported(self) -> None:
         root = self.add_skill()

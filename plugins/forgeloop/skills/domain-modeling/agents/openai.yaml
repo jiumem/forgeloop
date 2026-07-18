@@ -1,5 +1,5 @@
 interface:
-  display_name: "Domain Modeling"
+  display_name: "domain-modeling"
   short_description: "Sharpen domain language and durable decisions"
   default_prompt: "Use $domain-modeling to clarify domain terms and durable decisions."
 policy:

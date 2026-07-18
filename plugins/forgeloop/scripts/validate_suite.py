@@ -67,6 +67,10 @@ def validate_openai_yaml(skill: Skill, explicit_only: set[str], final_names: set
     if not yaml_path.exists():
         return [f"{skill.name}: 缺失 agents/openai.yaml"]
     text = yaml_path.read_text(encoding="utf-8")
+    display = re.search(r'(?m)^\s*display_name:\s*["\'](.+)["\']\s*$', text)
+    if not display or display.group(1) != skill.name:
+        actual = display.group(1) if display else "<缺失>"
+        errors.append(f"{skill.name}: display_name 必须与 Skill 名称一致；实际为 {actual}")
     prompt = re.search(r'(?m)^\s*default_prompt:\s*["\'](.+)["\']\s*$', text)
     if not prompt or f"${skill.name}" not in prompt.group(1):
         errors.append(f"{skill.name}: default_prompt 必须显式包含 ${skill.name}")

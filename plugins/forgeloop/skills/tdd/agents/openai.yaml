@@ -1,5 +1,5 @@
 interface:
-  display_name: "Test-Driven Development"
+  display_name: "tdd"
   short_description: "Drive vertical behavior slices through red and green"
   default_prompt: "Use $tdd to complete a red-green vertical slice through a public seam."
 policy:

@@ -1,5 +1,5 @@
 interface:
-  display_name: "Set Up Forgeloop"
+  display_name: "setup-forgeloop"
   short_description: "Configure Tracker integration and domain documentation"
   default_prompt: "Use $setup-forgeloop to configure Tracker integration and domain documentation for this repository."
 policy:

@@ -1,5 +1,5 @@
 interface:
-  display_name: "Improve Codebase Architecture"
+  display_name: "improve-codebase-architecture"
   short_description: "Find evidence backed deepening opportunities"
   default_prompt: "Use $improve-codebase-architecture to find evidence-backed deepening opportunities."
 policy:

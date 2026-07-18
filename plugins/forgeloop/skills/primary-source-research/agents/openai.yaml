@@ -1,5 +1,5 @@
 interface:
-  display_name: "Primary Source Research"
+  display_name: "primary-source-research"
   short_description: "Research questions using cited primary sources"
   default_prompt: "Use $primary-source-research to investigate this question using cited primary sources."
 policy:
