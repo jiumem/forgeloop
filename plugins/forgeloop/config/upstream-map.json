@@ -154,7 +154,11 @@
         "issue-tracker-local.md": "config/overlays/tracker-runtime-local-append.md"
       }
     },
-    {"source": "skills/engineering/tdd", "target": "tdd"},
+    {
+      "source": "skills/engineering/tdd",
+      "target": "tdd",
+      "appends": {"SKILL.md": "config/overlays/tdd-append.md"}
+    },
     {
       "source": "skills/engineering/to-spec",
       "target": "to-spec",

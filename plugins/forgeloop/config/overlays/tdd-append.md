@@ -1,0 +1,7 @@
+## Forgeloop Orchestrated Invocation
+
+When an owning Workflow supplies an approved Validation Entry, public Seam, Scope, and stop conditions, treat that as the already-approved public Seam. Do not ask the user to approve it again, choose a different Seam, or expand the contract from inside the child task. Return control to the owning Workflow when the supplied strategy is missing or contradictory.
+
+Use this Skill for a reproducible behavior change: new behavior, a defect repair, or a recovery behavior whose missing result can be observed through the approved public Seam. Run the public entry from the repository root before modifying production code. The Red must fail because the target behavior is absent, not because of a syntax error, unavailable unrelated service, or deliberately broken fixture. When the test does not exist at Base, the valid Red state is the frozen Base production code plus only the new test. Preserve the actual command and failure, implement the smallest vertical change, then run the same repo-root command against the final Head and observe Green.
+
+Do not manufacture a Red for behavior-preserving work, `NO_CHANGE_REQUIRED`, or an external condition that the current environment cannot legally establish. Those cases follow the owning contract's approved baseline, structural, or external validation path. If a required behavior-changing Red cannot be reproduced through the approved Seam, return the blocker; do not substitute an internal helper, mock-only path, recording adapter, or harness-generated conclusion.

@@ -19,6 +19,16 @@ Require the same frozen Base, Head, cumulative Diff, Commit list, Ticket, effect
 
 `NO_CHANGE_REQUIRED` is the only valid empty Diff. It requires `Base == Head`; review the current tree, existing observable behavior, and Coder evidence. Reject an empty Diff for `READY_FOR_REVIEW`.
 
+## Validation Evidence
+
+Judge the Coder's evidence against the approved Validation Entry, Ticket Acceptance criteria, public Seam, and Acceptance Prerequisites; do not accept the Coder's chosen label as proof that the right path was used.
+
+- For a reproducible behavior change, verify that the pre-change observation used the approved public entry and failed because the target behavior was absent, and that the same repo-root command passed against the fixed Head after the minimal implementation. A new test may be applied to Base production code for Red, but unrelated implementation changes may not enter that observation.
+- For behavior-preserving work, do not demand an artificial Red. Verify the approved public behavior on Base and Head and inspect the promised structural evidence, such as old-path exit, fact-source convergence, or compatibility completion.
+- For a declared external condition, require the approved real observation and evidence bound to this Candidate. Missing access may block review; it does not authorize a local substitute.
+
+A harness or adapter may carry a challenge, launch the product, or read an opaque result, but it must not issue the product conclusion that the test later accepts. Require the decisive fact to originate at the product boundary and reach the approved public Seam. Treat mock-only success, caller-shaped evidence, an internal helper, or a recording adapter that derives expected evidence from the request as a Blocking Finding when it cannot prove the contracted behavior.
+
 ## Verdict
 
 Return this compact block:

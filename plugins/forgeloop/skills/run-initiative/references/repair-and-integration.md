@@ -22,6 +22,8 @@ Route the complete diagnosis as follows:
 
 When either axis returns `REPAIR_REQUIRED`, wait for the other axis, then continue the original Coder with both complete Finding sets. Do not merge, reorder, or reinterpret Findings. Continue each original Reviewer with the new fixed Head and only that Reviewer's own axis history.
 
+Every later authorized code-changing repair returns to the Validation Strategy and TDD rules in [coder.md](coder.md). Repair Diagnosis and Exhaustion Diagnosis are read-only and do not invoke `$tdd`; when the approved repair changes reproducible public behavior, the subsequent code-changing turn invokes it before production edits.
+
 Allow at most three ordinary repair rounds per `cycle_anchor`. Count every authorized Candidate code change or Head rewrite against this cycle budget, whether triggered by Reviewer Findings, a candidate-caused Required Check failure, rebase, or compatibility or merge-conflict resolution. Diagnosis turns do not consume this budget. A contract blocker or external infrastructure failure also consumes no round.
 
 The second and third diagnoses must compare current evidence with prior diagnosis and repair history, state whether the prior mechanism hypothesis was falsified, and identify whether different `finding_id` values share one mechanism. New evidence may escalate `LOCAL_REPAIR` to `STRUCTURAL_REPAIR` or `STRUCTURAL_REPAIR` to `CONTRACT_BLOCKER`; it must not downgrade `STRUCTURAL_REPAIR` to `LOCAL_REPAIR` without new evidence.
