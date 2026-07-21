@@ -79,26 +79,24 @@ class TargetDriftContractTests(unittest.TestCase):
         for marker in (
             "each Ticket's complete Integration binding",
             "Integration `target_after` is an ancestor of or equal to the final target Commit",
-            "Ancestry alone is not behavior proof",
-            "force-push or history rewrite removes an integrated target_after",
+            "exactly the Commit covered by the latest applicable delivery validation",
             "## Acceptance Seal",
-            "After an Acceptance Reviewer returns `PASS`, refresh the target before rendering its Payload",
+            "refresh the target immediately before rendering the Payload",
             "last successful target refresh is the Seal eligibility linearization point",
-            "literal-safe transport and exact native read-back",
-            "Drift after that successful refresh counts as post-seal",
-            "counts as post-seal",
-            "must not invalidate the Seal, rerun Acceptance, rewrite history, or reopen the Run",
+            "literal-safe publication and exact native read-back",
+            "is post-seal",
+            "must not invalidate the Seal, rewrite history, or reopen the Run",
             "member Spec results remain provisional",
         ):
             self.assertIn(marker, acceptance)
         self.assertIn("refresh the target again before rendering an Acceptance `PASS` Payload", scheduler)
         self.assertIn("resume unfinished closure and Claim release from that Seal", events)
 
-    def test_target_refresh_and_acceptance_rerun_do_not_spend_repair_budget(self) -> None:
+    def test_target_refresh_and_seal_evaluation_do_not_spend_repair_budget(self) -> None:
         integration = reference("repair-and-integration.md")
 
         for marker in (
-            "Target refresh, mergeability and Check refresh, read-only Acceptance, and pre- or post-seal drift consume no repair round",
+            "Target refresh, mergeability and Check refresh, Seal Eligibility evaluation, and pre- or post-seal drift consume no repair round",
             "A Candidate code change or Head rewrite enters Repair Diagnosis",
             "consumes one round",
             "current cycle's three-round budget",

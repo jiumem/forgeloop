@@ -68,14 +68,14 @@ class RuntimeContractTests(unittest.TestCase):
         self.assertIn("harness or adapter", reviewers)
         self.assertIn("must not issue the product conclusion", reviewers)
 
-    def test_spec_acceptance_always_uses_a_fresh_read_only_child(self) -> None:
+    def test_spec_acceptance_is_a_scheduler_owned_seal_without_a_child(self) -> None:
         acceptance = (SKILL_ROOT / "references" / "acceptance.md").read_text(encoding="utf-8")
         scheduler = (SKILL_ROOT / "references" / "scheduler.md").read_text(encoding="utf-8")
 
-        self.assertIn("Always create a fresh isolated, read-only Acceptance Reviewer", acceptance)
+        self.assertIn("Scheduler owns Seal Eligibility", acceptance)
         self.assertIn("final target Commit", acceptance)
-        self.assertIn("Do not retain or reuse a Ticket Reviewer", acceptance)
-        self.assertNotIn("retain the original Spec Reviewer", scheduler)
+        self.assertIn("does not judge product correctness", acceptance + scheduler)
+        self.assertNotIn("Acceptance Reviewer", acceptance + scheduler)
 
     def test_pause_cancel_and_claim_lifecycle_are_explicit(self) -> None:
         events = (SKILL_ROOT / "references" / "events-and-recovery.md").read_text(encoding="utf-8")
@@ -99,8 +99,8 @@ class RuntimeContractTests(unittest.TestCase):
 
         self.assertIn("reason=`REVIEW_BLOCKED`", scheduler)
         self.assertIn("Do not send blocked input to the Coder", scheduler)
-        self.assertIn("reason=`ACCEPTANCE_BLOCKED`", acceptance)
-        self.assertIn("Do not derive a repair key", acceptance)
+        self.assertIn("RUN_PAUSED reason=ACCEPTANCE_BLOCKED", acceptance)
+        self.assertNotIn("repair_key", acceptance)
 
     def test_required_check_failures_are_classified(self) -> None:
         integration = (SKILL_ROOT / "references" / "repair-and-integration.md").read_text(encoding="utf-8")
@@ -113,9 +113,9 @@ class RuntimeContractTests(unittest.TestCase):
     def test_multi_spec_acceptance_uses_one_final_commit(self) -> None:
         acceptance = (SKILL_ROOT / "references" / "acceptance.md").read_text(encoding="utf-8")
 
-        self.assertIn("defer every Spec Acceptance", acceptance)
-        self.assertIn("same Commit", acceptance)
-        self.assertIn("restart the sequence", acceptance)
+        self.assertIn("evaluate each member Spec sequentially", acceptance)
+        self.assertIn("same final Commit", acceptance)
+        self.assertIn("reevaluate eligibility", acceptance)
 
     def test_entry_always_loads_checkpoint_contract(self) -> None:
         skill = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
@@ -130,15 +130,15 @@ class RuntimeContractTests(unittest.TestCase):
         self.assertIn("keeping all member Specs Open", acceptance)
         self.assertIn("Only on Initiative `PASS`", acceptance)
         self.assertIn("close the member Specs", acceptance)
-        self.assertIn("keep member Specs Open through Initiative Acceptance", domain)
+        self.assertIn("keep member Specs Open through the Initiative Seal", domain)
 
-    def test_initiative_repairs_route_to_existing_member_specs_without_reopen(self) -> None:
+    def test_final_acceptance_cannot_create_initiative_repairs(self) -> None:
         acceptance = (SKILL_ROOT / "references" / "acceptance.md").read_text(encoding="utf-8")
 
-        self.assertIn("existing member Spec", acceptance)
-        self.assertIn("Do not create a Ticket directly under the Initiative", acceptance)
-        self.assertIn("do not introduce a reopen state", acceptance)
-        self.assertIn("repeat the complete Spec Acceptance sequence", acceptance)
+        self.assertIn("cannot create a new implementation Finding", acceptance)
+        self.assertIn("create repair work", acceptance)
+        self.assertNotIn("Acceptance Repair Boundary", acceptance)
+        self.assertNotIn("repair_key", acceptance)
 
     def test_shared_review_input_changes_invalidate_both_axes(self) -> None:
         scheduler = (SKILL_ROOT / "references" / "scheduler.md").read_text(encoding="utf-8")
@@ -187,14 +187,15 @@ class RuntimeContractTests(unittest.TestCase):
         acceptance = (SKILL_ROOT / "references" / "acceptance.md").read_text(encoding="utf-8")
 
         self.assertIn("user explicitly invokes `$to-tickets`", acceptance)
-        self.assertIn("Do not let `run-initiative` create, delete, rewrite", acceptance)
+        self.assertIn("Final Acceptance changes no contract fact", acceptance)
 
-    def test_acceptance_repair_work_is_idempotent(self) -> None:
+    def test_acceptance_seal_publication_is_idempotent(self) -> None:
         acceptance = (SKILL_ROOT / "references" / "acceptance.md").read_text(encoding="utf-8")
 
-        self.assertIn("repair_key", acceptance)
-        self.assertIn("Search for an existing formal Open repair Ticket", acceptance)
-        self.assertIn("Route to `CONTRACT_BLOCKER`", acceptance)
+        self.assertIn("idempotency_key", acceptance)
+        self.assertIn("exact native read-back", acceptance)
+        self.assertIn("retry the same literal-safe write with the same idempotency key", acceptance)
+        self.assertNotIn("repair_key", acceptance)
 
     def test_skills_do_not_encode_unavailable_subagent_runtime_metadata(self) -> None:
         paths = (
@@ -241,7 +242,8 @@ class RuntimeContractTests(unittest.TestCase):
         events = (SKILL_ROOT / "references" / "events-and-recovery.md").read_text(encoding="utf-8")
 
         self.assertIn("Do not rely on child thread existence", events)
-        self.assertIn("Create fresh isolated children", events)
+        self.assertIn("Reuse a still-valid live child when possible", events)
+        self.assertIn("Recovery never requires an old child to exist", events)
 
     def test_coder_result_budget_matches_three_repair_rounds(self) -> None:
         tracker = (SKILL_ROOT / "references" / "tracker-operations.md").read_text(
@@ -258,8 +260,8 @@ class RuntimeContractTests(unittest.TestCase):
 
         self.assertIn("target reference moving alone does not invalidate", domain)
         self.assertIn("current target", integration)
-        self.assertIn("not a new Event or state", acceptance)
-        self.assertIn("Drift after that successful refresh counts as post-seal", acceptance)
+        self.assertIn("not a new Event, state, Reviewer type", acceptance)
+        self.assertIn("post-seal", acceptance)
         for invented_state in ("SEAL_PENDING", "SEAL_CONFIRMED", "TARGET_DRIFTED"):
             self.assertNotIn(invented_state, domain + acceptance + integration)
 
@@ -272,7 +274,7 @@ class RuntimeContractTests(unittest.TestCase):
         self.assertIn("[cumulative-audit.md]", skill)
         self.assertIn("audit projection, not a source of truth", cumulative)
         self.assertIn("adds no Event, parser, or fact source", cumulative)
-        self.assertIn("fresh Spec Acceptance", cumulative)
+        self.assertIn("evaluate Spec Seal Eligibility", cumulative)
 
 
 if __name__ == "__main__":

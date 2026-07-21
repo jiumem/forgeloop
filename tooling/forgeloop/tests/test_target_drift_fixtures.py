@@ -56,16 +56,17 @@ class TargetDriftFixtureTests(unittest.TestCase):
         self.assertFalse(clean_states[0]["review_rerun"])
 
         for case_id in ("candidate-rebase", "conflict-repair"):
+            self.assertTrue(by_id[case_id]["domain_state"]["effective_tree_changed"])
             self.assertTrue(by_id[case_id]["domain_state"]["both_reissued"])
             self.assertEqual(by_id[case_id]["domain_state"]["repair_rounds"], 1)
 
         self.assertFalse(by_id["stale-checks-current-target"]["domain_state"]["advance"])
-        self.assertTrue(by_id["single-spec-preseal-drift"]["domain_state"]["acceptance_rerun"])
+        self.assertTrue(by_id["single-spec-preseal-drift"]["domain_state"]["seal_reevaluated"])
         self.assertFalse(
-            by_id["eligibility-refresh-before-readback-drift"]["domain_state"]["acceptance_rerun"]
+            by_id["eligibility-refresh-before-readback-drift"]["domain_state"]["seal_reevaluated"]
         )
         self.assertTrue(by_id["multi-spec-acceptance-drift"]["domain_state"]["sequence_restarted"])
-        self.assertFalse(by_id["post-seal-drift"]["domain_state"]["acceptance_rerun"])
+        self.assertFalse(by_id["post-seal-drift"]["domain_state"]["seal_reevaluated"])
         self.assertTrue(
             by_id["post-seal-partial-close-recovery"]["domain_state"]["resumed_from_seal"]
         )
@@ -93,14 +94,14 @@ class TargetDriftFixtureTests(unittest.TestCase):
 
         self.assertTrue(any("目标漂移不得使未变 Candidate Review 失效" in error for error in errors))
 
-    def test_post_seal_drift_cannot_rerun_acceptance(self) -> None:
+    def test_post_seal_drift_cannot_reevaluate_seal(self) -> None:
         case = self._case(
-            {"seal_confirmed": True, "post_seal_drift": True, "acceptance_rerun": True}
+            {"seal_confirmed": True, "post_seal_drift": True, "seal_reevaluated": True}
         )
 
         errors = self._validate(case)
 
-        self.assertTrue(any("Seal 后漂移不得重跑 Acceptance" in error for error in errors))
+        self.assertTrue(any("Seal 后漂移不得重新评估 Seal Eligibility" in error for error in errors))
 
     def test_seal_requires_exact_readback_and_complete_bindings(self) -> None:
         evidence = {
@@ -119,7 +120,7 @@ class TargetDriftFixtureTests(unittest.TestCase):
                 "native_readback": {"exact_match": False, "native_ref": "local:1"},
             },
         }
-        case = self._case({"seal_confirmed": True, "acceptance_rerun": False})
+        case = self._case({"seal_confirmed": True, "seal_reevaluated": False})
 
         errors = MODULE.validate_evidence_cases([evidence], {"invalid-drift"}, [case])
 

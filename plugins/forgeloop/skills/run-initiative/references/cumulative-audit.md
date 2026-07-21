@@ -37,7 +37,7 @@ A Head change invalidates old Gate evidence, Checks, and projection. Complete th
 
 Under `human-merge`, use the existing `RUN_PAUSED reason=READY_FOR_HUMAN_MERGE` only after Checks and the latest exact body read-back pass, keeping the Spec Open. Under `auto-merge`, require the fixed Head, current target combination, Required Checks, protection, permissions, and projection.
 
-The cumulative PR/MR proves only Git delivery eligibility. After merge, record Spec-level `target_before / target_after`, then run fresh Spec Acceptance on the actual `target_after`; PR/MR readability, approval, or mergeability never substitutes for Acceptance.
+The cumulative PR/MR proves only Git delivery eligibility. After merge, record Spec-level `target_before / target_after`, then let the Scheduler evaluate Spec Seal Eligibility on the actual `target_after`; PR/MR readability, approval, or mergeability never substitutes for the Acceptance Seal.
 
 ## Scope
 

@@ -21,17 +21,20 @@ def protocol(name: str) -> str:
 
 CASES = [
     {
-        "id": "credible-new-mechanism",
+        "id": "credible-scale-correction",
+        "cycle_position": "CYCLE_1_EXHAUSTED",
         "evidence": """
-            The exhausted cycle tried to repair three callers independently. Its final evidence
-            proves that a shared normalization owner already exists inside Ticket Scope and that
-            the caller-level mechanism cannot remain consistent. Two of three public failures are
-            now eliminated. The next intervention moves the remaining caller to that owner; its
-            prediction and failure condition are observable through the same public conformance test.
+            The initial reviewed Candidate satisfied five of seven public outcomes through the
+            existing backend resolver. Three repairs added a second store, a reconciliation layer,
+            and internal read-count tests, none required by an approved criterion; the two original
+            failures remain. The correction removes those unsupported mechanisms and repairs the
+            remaining resolver path through the existing owner. The same public conformance test
+            makes both the prediction and failure condition observable.
         """,
     },
     {
         "id": "wording-only-retry",
+        "cycle_position": "CYCLE_1_EXHAUSTED",
         "evidence": """
             The proposed next direction renames the previous mechanism and repeats the same edits.
             The public failure, Blocking Findings, shared mechanism, and authoritative uncertainty
@@ -40,6 +43,7 @@ CASES = [
     },
     {
         "id": "logging-without-new-fact",
+        "cycle_position": "CYCLE_1_EXHAUSTED",
         "evidence": """
             The cycle added logs but they did not answer the declared uncertainty. The next proposal
             is to add more logs without naming a new causal intervention, prediction, or fact that
@@ -48,14 +52,16 @@ CASES = [
     },
     {
         "id": "different-mechanism-zero-progress",
+        "cycle_position": "CYCLE_1_EXHAUSTED",
         "evidence": """
             A materially different in-Scope intervention is conceivable, but the exhausted cycle
-            ended with every original public failure and Blocking Finding unchanged. It resolved no
-            authoritative uncertainty and met none of its declared predictions.
+            cannot map it to an exact approved criterion, does not name unsupported mechanisms to
+            remove, and offers no public prediction that distinguishes it from the failed approach.
         """,
     },
     {
         "id": "progress-regressed",
+        "cycle_position": "CYCLE_1_EXHAUSTED",
         "evidence": """
             A public test passed temporarily during the cycle, then failed again at the final Head.
             The cycle-end Candidate has the same Blocking Findings and shared mechanism as the cycle
@@ -64,22 +70,33 @@ CASES = [
     },
     {
         "id": "contract-change-required",
+        "cycle_position": "CYCLE_1_EXHAUSTED",
         "evidence": """
             The only correct implementation needs a new user-visible outcome that is absent from the
             effective Spec, Ticket Acceptance criteria, and approved interface. No implementation
             inside the current contract can honestly express the required result.
         """,
     },
+    {
+        "id": "cycle-two-exhausted",
+        "cycle_position": "CYCLE_2_EXHAUSTED",
+        "evidence": """
+            The correction cycle used all three effective repair rounds. One approved public
+            outcome still fails, and satisfying it needs no contract change. A further local idea
+            exists, but the protocol permits no third cycle or second automatic renewal.
+        """,
+    },
 ]
 
 
 EXPECTED = {
-    "credible-new-mechanism": "AUTO_REPAIR_RENEWAL",
+    "credible-scale-correction": "AUTO_REPAIR_RENEWAL",
     "wording-only-retry": "IMPLEMENTATION_BLOCKED",
     "logging-without-new-fact": "IMPLEMENTATION_BLOCKED",
     "different-mechanism-zero-progress": "IMPLEMENTATION_BLOCKED",
     "progress-regressed": "IMPLEMENTATION_BLOCKED",
     "contract-change-required": "CONTRACT_BLOCKER",
+    "cycle-two-exhausted": "IMPLEMENTATION_BLOCKED",
 }
 
 
@@ -96,6 +113,10 @@ def output_schema() -> dict:
                     "CONTRACT_BLOCKER",
                 ],
             },
+            "cycle_position": {
+                "type": "string",
+                "enum": ["CYCLE_1_EXHAUSTED", "CYCLE_2_EXHAUSTED"],
+            },
             "prior_mechanism": {"type": "string"},
             "falsifying_evidence": {"type": "string"},
             "new_causal_hypothesis": {"type": "string"},
@@ -103,10 +124,14 @@ def output_schema() -> dict:
             "falsification_condition": {"type": "string"},
             "scope_assessment": {"type": "string"},
             "observed_progress": {"type": "string"},
+            "initial_candidate_comparison": {"type": "string"},
+            "unsupported_mechanisms": {"type": "string"},
+            "correction_plan": {"type": "string"},
         },
         "required": [
             "id",
             "recommendation",
+            "cycle_position",
             "prior_mechanism",
             "falsifying_evidence",
             "new_causal_hypothesis",
@@ -114,6 +139,9 @@ def output_schema() -> dict:
             "falsification_condition",
             "scope_assessment",
             "observed_progress",
+            "initial_candidate_comparison",
+            "unsupported_mechanisms",
+            "correction_plan",
         ],
         "additionalProperties": False,
     }
@@ -127,14 +155,19 @@ def output_schema() -> dict:
 
 def evaluation_prompt() -> str:
     cases = [
-        {"id": case["id"], "evidence": textwrap.dedent(case["evidence"]).strip()}
+        {
+            "id": case["id"],
+            "cycle_position": case["cycle_position"],
+            "evidence": textwrap.dedent(case["evidence"]).strip(),
+        }
         for case in CASES
     ]
     return f"""Apply the Exhaustion Diagnosis and repair-cycle protocols to every case.
-Read each case as semantic evidence, not as keywords or Boolean flags. Recommend automatic renewal
-only when the old mechanism is evidence-falsified, a materially different in-Scope intervention is
-credible and falsifiable, and the exhausted cycle produced sustainable net progress. Explain every
-field even when the recommendation is blocked. Modify nothing and do not use network.
+Read each case as semantic evidence, not as keywords or Boolean flags. Recommend the one automatic
+correction cycle only after Cycle 1, when an authority-bound violation remains and a materially
+different, in-Scope, falsifiable correction converges or reduces the design. Never recommend renewal
+after Cycle 2. Explain every field even when the recommendation is blocked. Modify nothing and do not
+use network.
 
 <coder-protocol>
 {protocol("coder.md")}

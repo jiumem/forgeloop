@@ -33,7 +33,7 @@ CASES = [
     },
     {
         "id": "candidate-rebase",
-        "evidence": "The Candidate Branch was rebased after PASS and now has a different Head.",
+        "evidence": "The Candidate Branch was rebased after PASS and now has a different Head and a different effective cumulative code tree.",
     },
     {
         "id": "force-push",
@@ -45,7 +45,7 @@ CASES = [
     },
     {
         "id": "preseal-drift",
-        "evidence": "Acceptance Reviewer returned PASS, then target changed before Payload rendering or publication.",
+        "evidence": "Seal Eligibility passed, then target changed before Payload rendering or publication.",
     },
     {
         "id": "postseal-recovery",
@@ -59,15 +59,15 @@ CASES = [
 
 
 EXPECTED = {
-    "clean-target-drift": {"action": "INTEGRATE_NATIVE", "keep_review": True, "rerun_acceptance": False, "repair_diagnosis": False, "budget": "ZERO"},
-    "stale-checks": {"action": "PAUSE_CHECKS", "keep_review": True, "rerun_acceptance": False, "repair_diagnosis": False, "budget": "ZERO"},
-    "native-squash": {"action": "INTEGRATE_NATIVE", "keep_review": True, "rerun_acceptance": False, "repair_diagnosis": False, "budget": "ZERO"},
-    "candidate-rebase": {"action": "REPAIR_CANDIDATE", "keep_review": False, "rerun_acceptance": False, "repair_diagnosis": True, "budget": "ONE"},
-    "force-push": {"action": "ACCEPTANCE_REPAIR", "keep_review": True, "rerun_acceptance": False, "repair_diagnosis": False, "budget": "ZERO"},
-    "revert": {"action": "ACCEPTANCE_REPAIR", "keep_review": True, "rerun_acceptance": False, "repair_diagnosis": False, "budget": "ZERO"},
-    "preseal-drift": {"action": "RERUN_ACCEPTANCE", "keep_review": True, "rerun_acceptance": True, "repair_diagnosis": False, "budget": "ZERO"},
-    "postseal-recovery": {"action": "RESUME_ADMIN", "keep_review": True, "rerun_acceptance": False, "repair_diagnosis": False, "budget": "ZERO"},
-    "eligibility-refresh-drift": {"action": "RESUME_ADMIN", "keep_review": True, "rerun_acceptance": False, "repair_diagnosis": False, "budget": "ZERO"},
+    "clean-target-drift": {"action": "INTEGRATE_NATIVE", "keep_review": True, "repair_diagnosis": False, "budget": "ZERO"},
+    "stale-checks": {"action": "PAUSE_CHECKS", "keep_review": True, "repair_diagnosis": False, "budget": "ZERO"},
+    "native-squash": {"action": "INTEGRATE_NATIVE", "keep_review": True, "repair_diagnosis": False, "budget": "ZERO"},
+    "candidate-rebase": {"action": "REPAIR_CANDIDATE", "keep_review": False, "repair_diagnosis": True, "budget": "ONE"},
+    "force-push": {"action": "RETURN_TO_GATE", "keep_review": True, "repair_diagnosis": False, "budget": "ZERO"},
+    "revert": {"action": "RETURN_TO_GATE", "keep_review": True, "repair_diagnosis": False, "budget": "ZERO"},
+    "preseal-drift": {"action": "RETURN_TO_GATE", "keep_review": True, "repair_diagnosis": False, "budget": "ZERO"},
+    "postseal-recovery": {"action": "RESUME_ADMIN", "keep_review": True, "repair_diagnosis": False, "budget": "ZERO"},
+    "eligibility-refresh-drift": {"action": "RESUME_ADMIN", "keep_review": True, "repair_diagnosis": False, "budget": "ZERO"},
 }
 
 
@@ -82,13 +82,11 @@ def schema() -> dict:
                     "INTEGRATE_NATIVE",
                     "PAUSE_CHECKS",
                     "REPAIR_CANDIDATE",
-                    "ACCEPTANCE_REPAIR",
-                    "RERUN_ACCEPTANCE",
+                    "RETURN_TO_GATE",
                     "RESUME_ADMIN",
                 ],
             },
             "keep_review": {"type": "boolean"},
-            "rerun_acceptance": {"type": "boolean"},
             "repair_diagnosis": {"type": "boolean"},
             "budget": {"type": "string", "enum": ["ZERO", "ONE"]},
             "reason": {"type": "string"},
@@ -97,7 +95,6 @@ def schema() -> dict:
             "id",
             "action",
             "keep_review",
-            "rerun_acceptance",
             "repair_diagnosis",
             "budget",
             "reason",
@@ -110,9 +107,8 @@ def schema() -> dict:
 def prompt() -> str:
     return f"""Apply the evidence-binding, Integration, Acceptance, and repair-budget protocols to every case. Judge only immutable bindings and native evidence; do not invent file-overlap or timing gates. PUBLISH nothing and modify no files.
 
-In the output, `rerun_acceptance` means rerun Acceptance immediately against the current state,
-before any repair Ticket or Candidate change; eventual Acceptance after a completed repair does not
-count.
+Final Acceptance never creates an implementation Finding. Select the current owning action; a
+successful Integration or Final Integration Gate may hand Seal Eligibility to the Scheduler later.
 
 <domain>{reference("domain-and-state.md")}</domain>
 <integration>{reference("repair-and-integration.md")}</integration>
@@ -170,7 +166,11 @@ class TargetDriftAgentEvalTests(unittest.TestCase):
         for case_id, expected in EXPECTED.items():
             with self.subTest(case=case_id):
                 for field, value in expected.items():
-                    self.assertEqual(by_id[case_id][field], value, field)
+                    self.assertEqual(
+                        by_id[case_id][field],
+                        value,
+                        f"{field}: {by_id[case_id]}",
+                    )
                 self.assertTrue(by_id[case_id]["reason"])
 
 

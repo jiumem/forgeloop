@@ -1,82 +1,83 @@
-# Final Acceptance
+# Final Acceptance Seal
 
-## Ticket Gate
+## Ticket Delivery Prerequisite
 
-Close a Ticket only after the Coder supplied Acceptance evidence and final-Head validation, both Ticket Reviewers returned `PASS` for the same unchanged Base/Head and Spec Revision, the candidate entered the declared branch according to Integration Policy, required native checks passed, and the Tracker records the candidate and Integration Result.
+Close a Ticket only after the Coder supplied Acceptance evidence and final-Head validation, both Ticket Reviewers returned `PASS` for the same unchanged Base/Head and effective revisions, the Candidate entered the declared branch according to Integration Policy, required native checks passed, and the Tracker records its Integration Result.
 
 Two Ticket Verdicts without integration mean only `READY_FOR_MERGE`. A closed but unmerged PR/MR is not complete. `NO_CHANGE_REQUIRED` completes through an `ALREADY_PRESENT` Integration Result after the same dual review.
 
-## Acceptance Reviewer
+## Seal Eligibility
 
-Always create a fresh isolated, read-only Acceptance Reviewer after integration. Do not retain or reuse a Ticket Reviewer for final acceptance.
+The Scheduler owns Seal Eligibility after integration. It creates no final Reviewer, runs no new semantic review or end-to-end journey, and does not judge product correctness. Final Acceptance only proves that existing semantic evidence and native delivery facts still form one complete, internally consistent delivery bound to the final target Commit.
 
-Give the Acceptance Reviewer a self-contained Role Task Pack containing:
+For a Spec, require all of the following before publishing `PASS`:
 
-- `level: SPEC | INITIATIVE` and the formal parent reference and revision;
-- the final target Commit and target branch;
-- member Specs or Tickets and their native completion facts plus each Ticket's complete Integration binding;
-- the applicable formal Spec or member Specs' `Delivery Acceptance` with stable references, cross-item Dependencies, delivery evidence, validation entry points, known limitations, and any `Release Boundary` for reporting only;
-- explicit read-only permissions and the required Verdict.
+- every Ticket in confirmed Scope is Closed with two bound Ticket `PASS` Verdicts under the effective Spec, Ticket, ADR, and repair-cycle revisions;
+- every Ticket has one valid Ticket Integration Result, and every reviewed Candidate is bound through its declared integration method to the delivered history;
+- every stable `Delivery Acceptance` reference has an Owning Ticket and existing semantic evidence already judged by that Ticket's Spec Reviewer;
+- every Cross-seam Proof has its approved Owning Ticket evidence, and every `SHARED` delivery also has passing Final Integration Gate evidence;
+- no Open, Blocked, repair, pending human-merge, missing-check, or unresolved Final Gate Finding remains;
+- every Integration `target_after` is an ancestor of or equal to the final target Commit, and the final target Commit is exactly the Commit covered by the latest applicable delivery validation;
+- the Spec Revision, Scope, target identity, Integration Policy, and any required `Release Boundary` reference remain unchanged.
 
-The Reviewer must inspect the final target tree and return:
+Use cross-Spec invariants only as evidence for the Delivery Acceptance items that reference them, never as a second Acceptance source. Read each Ticket's complete Integration binding; summaries or ancestry alone cannot substitute for the native provenance required above.
 
-```yaml
-level: SPEC | INITIATIVE
-verdict: PASS | REPAIR_REQUIRED | ACCEPTANCE_BLOCKED
-subject_ref: <ref>
-revision: <revision>
-final_commit: <sha>
-findings:
-  - finding_id: <stable-id>
-    evidence: <observable evidence>
-    observed: <actual>
-    expected: <required>
-    repair_check: <observable check>
-```
+For an `INDEPENDENT` topology, the approved Ticket graph must assign every combined or Cross-seam behavior to an Owning Ticket whose Base includes its declared dependencies. Seal Eligibility does not invent a missing final proof owner. For `SHARED`, the Final Integration Gate is the last workflow stage permitted to produce an implementation Finding; Final Acceptance cannot create a new implementation Finding, rewrite a Ticket Verdict, or create repair work.
 
-The Reviewer judges only `Delivery Acceptance` and does not execute or validate any Post-delivery Release Action. It must not edit code, Tracker items, Specs, Tickets, or acceptance criteria, and must not create repair work. Return `ACCEPTANCE_BLOCKED` only when the frozen parent, revision, final Commit, membership, or required evidence cannot be read or validated; explain the missing input in Findings.
+## Blocked Routes
 
-Before `PASS`, verify that every Integration `target_after` is an ancestor of or equal to the final target Commit. If a force-push or history rewrite removes an integrated target_after, return `REPAIR_REQUIRED` through the existing Acceptance Repair Boundary with the missing integration evidence. Ancestry alone is not behavior proof: a later revert may preserve ancestry, so still inspect the final tree, public Seams, and observable `Delivery Acceptance` behavior.
+Return `ACCEPTANCE_BLOCKED` only for an incomplete, stale, unreadable, or contradictory Seal input. Persist `ACCEPTANCE_RESULT result=ACCEPTANCE_BLOCKED` and then `RUN_PAUSED reason=ACCEPTANCE_BLOCKED` only when the owning action cannot finish immediately. Do not consume a repair round.
+
+Every blocker has one existing owner and action:
+
+- For failed or ambiguous checkpoint publication or read-back, refresh the target and retry the same literal-safe write with the same idempotency key; do not recompute product judgment.
+- For target drift before the Seal, publish no `PASS` and return to the applicable Integration or Final Integration Gate on the new target facts. Reuse still-valid Ticket Verdicts only under their existing invalidation rules.
+- For Spec Revision or confirmed membership drift, use the existing Spec Change or Contract Reconciliation path; Final Acceptance changes no contract fact.
+- When Delivery Acceptance or Cross-seam Proof lacks an Owning Ticket or existing semantic proof, report that the upstream planning contract is incomplete and pause without inventing an owner, test, or repair item.
+- When a Ticket Integration Result is missing or invalid, return to that Ticket's integration path; do not reinterpret review evidence as delivery.
+- For pending Required Checks, protection, permissions, mergeability, or human merge, return to the existing integration path that owns that fact.
+
+Final Acceptance has no implementation Finding, repair-ticket, or contract-writing path. A genuinely new product defect observed after delivery is new tracked work outside this completed Run, not a late mutation of its historical Verdicts.
 
 ## Acceptance Seal
 
-After an Acceptance Reviewer returns `PASS`, refresh the target before rendering its Payload. If it no longer equals `final_commit`, publish no `PASS`; rerun the applicable Acceptance on the new final Commit. The last successful target refresh is the Seal eligibility linearization point.
+After all eligibility checks pass, refresh the target immediately before rendering the Payload. If it no longer equals the eligible final target Commit, publish no `PASS` and follow the target-drift route above. This last successful target refresh is the Seal eligibility linearization point.
 
-The Acceptance Seal is a name for the existing confirmed root `ACCEPTANCE_RESULT: PASS`, not a new Event or state. It gains durable existence only after #12 literal-safe transport and exact native read-back confirm the complete Payload. A failed, ambiguous, missing, truncated, or mismatched write forms no Seal; recovery or retry must refresh the target again. The Seal binds the acceptance level, subject and revision, applicable confirmed membership, final target Commit, idempotency key, and native checkpoint reference. CLI success, a `PASS` substring, or partial-field matching is insufficient.
+Publish the existing `ACCEPTANCE_RESULT` with:
 
-For a single Spec, its confirmed final Spec `PASS` is the root Seal. In a multi-Spec Run, member Spec results remain provisional, must all bind the same final Commit, and form a root Seal only when the matching Initiative `PASS` is confirmed. Target drift before the eligibility refresh invalidates current Acceptance and restarts the applicable same-Commit sequence. Drift after that successful refresh counts as post-seal when the pending Payload later passes exact read-back, even if the Scheduler observes the drift before confirmation; it must not invalidate the Seal, rerun Acceptance, rewrite history, or reopen the Run. If publication is not confirmed, no Seal exists and recovery must refresh again.
+```yaml
+level: SPEC | INITIATIVE
+result: PASS
+subject_ref: <ref>
+revision: <effective revision>
+membership: <confirmed member refs and revisions when applicable>
+final_commit: <final target Commit>
+integration_refs: <complete Integration Result references>
+evidence_refs: <existing Ticket and Final Gate semantic evidence>
+limitations: <known approved limitations>
+idempotency_key: <stable key>
+```
 
-After the Seal exists, Tracker closure and Claim release are administrative. Recovery resumes any unfinished member closure, root closure, or Claim release from the Seal even if the target has since advanced.
+The Acceptance Seal is the confirmed root `ACCEPTANCE_RESULT: PASS`, not a new Event, state, Reviewer type, or product judgment. It exists only after literal-safe publication and exact native read-back confirm the complete Payload. A failed, ambiguous, missing, truncated, or mismatched write forms no Seal. CLI success, a `PASS` substring, or partial-field matching is insufficient.
 
-## Spec Gate
+For a single Spec, its confirmed Spec `PASS` is the root Seal. In a multi-Spec Run, member Spec results remain provisional, must all bind the same final Commit, and form a root Seal only when the Initiative `PASS` binds that same final Commit and confirmed membership. Target drift before the eligibility refresh invalidates the pending result. Drift after the successful eligibility refresh is post-seal when the already-rendered Payload later passes exact read-back; it must not invalidate the Seal, rewrite history, or reopen the Run.
 
-Run fresh Spec Acceptance only when every Ticket in the current Scope is integrated, no Open, Blocked, repair, or pending human-merge Ticket remains, confirmed Scope has not drifted, and the final target Commit is known. Verify every `Delivery Acceptance` reference against the final target and persist `ACCEPTANCE_RESULT level=SPEC` with the delivery summary, validation entry point, evidence, limitations, and final references. For a single-Spec Run, close the Spec only on `PASS`.
+After the Seal exists, Tracker closure and Claim release are administrative. Recovery resumes unfinished member closure, root closure, or Claim release from the Seal even if the target has since advanced.
 
-For a multi-Spec Initiative, defer every Spec Acceptance until all Initiative Tickets are integrated. Freeze one final target Commit, then run each member Spec Acceptance sequentially against that same Commit while keeping all member Specs Open. If the target changes during this sequence, invalidate completed Acceptance Verdicts and restart the sequence from the new final Commit.
+## Spec and Initiative Closure
 
-## Initiative Gate
+Evaluate Spec Seal Eligibility only when every Ticket in that Spec is integrated and no delivery blocker remains. For a single-Spec Run, publish the confirmed Spec `PASS`, close the Spec, then release its root Claim.
 
-A single-Spec Initiative completes with its Spec. For multiple Specs, create a fresh Initiative Acceptance Reviewer only after every member Spec passed, cross-Spec Dependencies are resolved, the confirmed member set and Initiative Revision remain valid, and all delivery entered the final target. Judge only the member Specs' `Delivery Acceptance`; use cross-Spec invariants only as evidence for the Delivery Acceptance items that reference them, never as a parallel completion standard. Persist `ACCEPTANCE_RESULT level=INITIATIVE` and record cross-Spec evidence and limitations. Only on Initiative `PASS`, close the member Specs whose Acceptance still binds to the frozen final Commit, then close the Initiative parent last.
+For a multi-Spec Initiative, wait until all Initiative Tickets are integrated. Freeze one final target Commit, evaluate each member Spec sequentially against that same final Commit, publish provisional member Spec `PASS` results, keeping all member Specs Open. If the target changes before the Initiative Seal, invalidate the pending sequence and reevaluate eligibility against the new final Commit through the blocked route.
 
-An unexecuted Post-delivery Release Action is not an Acceptance failure and must not return `REPAIR_REQUIRED`. When a Spec has a `Release Boundary`, preserve its Tracking reference verbatim in the completion report. `run-initiative` must not mutate the referenced item's Open/Closed state, assignee, labels, or comments; they must remain unchanged.
+Evaluate Initiative Seal Eligibility only after every member Spec has a provisional `PASS`, cross-Spec Dependencies are resolved, confirmed membership and Initiative Revision remain valid, and all results bind the same final Commit. Publish `ACCEPTANCE_RESULT level=INITIATIVE result=PASS`. Only on Initiative `PASS` with exact read-back may the Scheduler close the member Specs, then close the Initiative parent last.
 
-For `ACCEPTANCE_BLOCKED`, correct a Scheduler-supplied frozen input and continue the same Acceptance Reviewer when possible. Otherwise persist `ACCEPTANCE_RESULT`, then `RUN_PAUSED` with reason=`ACCEPTANCE_BLOCKED`. Do not derive a repair key, create repair work, or consume an ordinary repair round.
+## Release Boundary
 
-## Acceptance Repair Boundary
-
-On `REPAIR_REQUIRED`, keep every affected parent Open and derive a stable `repair_key` from the Acceptance level, parent reference, revision, final Commit, and `finding_id`. Search for an existing formal Open repair Ticket with that key.
-
-- If `$to-tickets` already created a matching in-scope Ticket, reuse it through the ordinary Frontier after validating its relationship and revision.
-- If no matching Ticket exists, persist `RUN_PAUSED` with reason=`ACCEPTANCE_REPAIR`, report the Findings and repair key, and tell the user to invoke `$to-tickets` explicitly.
-- For Spec Acceptance, use that Spec as `owning_spec_ref`. For Initiative Acceptance, give every repair slice one existing member Spec `owning_spec_ref` whose approved Scope covers it; use coordinated Tickets under multiple member Specs when genuinely required. Do not create a Ticket directly under the Initiative.
-- Route to `CONTRACT_BLOCKER` when repair changes Scope, Spec, ADR, or confirmed Initiative membership.
-
-After an Initiative repair changes the final target Commit, invalidate all member Spec Acceptance Verdicts and repeat the complete Spec Acceptance sequence before Initiative Acceptance. Because member Specs remain Open until Initiative `PASS`, do not introduce a reopen state.
-
-Do not let `run-initiative` create, delete, rewrite, or implicitly invoke work that belongs to `$to-tickets`. Do not rewrite historical Ticket Verdicts.
+Final Acceptance does not execute or validate any Post-delivery Release Action. An unexecuted action does not block Seal Eligibility. Preserve every `Release Boundary` Tracking reference verbatim in the completion report. `run-initiative` must not mutate the referenced item's Open/Closed state, assignee, labels, or comments; they must remain unchanged.
 
 ## Material Revisions
 
 Treat spelling, formatting, links, behavior-preserving clarification, and movement of the declared target branch Head as non-material. Treat changes to the Problem, Actor, goal, `Delivery Acceptance`, Ticket Acceptance criteria, failure states, permissions, Scope, interface, Schema, migration, Seam, declared delivery target identity or policy, or Initiative membership as material.
 
-For a material change, require user confirmation, persist `RUN_PAUSED` with reason=`SPEC_CHANGE`, and expose `PAUSED_FOR_SPEC_CHANGE`. Resume only after the user explicitly invokes `$to-tickets` to reconcile Open Tickets and the Scheduler validates the new revision. Preserve completed history and invalidate affected Verdicts and Acceptance eligibility. When the core Problem, Actor, or delivery target is replaced, require a new Spec and mark the old one `SUPERSEDED` through the appropriate planning workflow.
+For a material change, require user confirmation, persist `RUN_PAUSED` with reason=`SPEC_CHANGE`, and expose `PAUSED_FOR_SPEC_CHANGE`. Resume only after the user explicitly invokes `$to-tickets` to reconcile Open Tickets and the Scheduler validates the new revision. Preserve completed history and invalidate affected Verdicts and Seal Eligibility. When the core Problem, Actor, or delivery target is replaced, require a new Spec and mark the old one `SUPERSEDED` through the appropriate planning workflow.

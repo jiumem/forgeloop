@@ -239,7 +239,7 @@ class CumulativeAuditFixtureTests(unittest.TestCase):
         self.assertTrue(any("Final Integration Gate 验证" in error for error in errors))
         self.assertTrue(any("保护规则与权限" in error for error in errors))
 
-    def test_completed_delivery_requires_fresh_spec_acceptance(self) -> None:
+    def test_completed_delivery_requires_confirmed_seal_eligibility(self) -> None:
         state = {
             "topology": "SHARED",
             "reason": "CUMULATIVE_AUDIT",
@@ -257,7 +257,7 @@ class CumulativeAuditFixtureTests(unittest.TestCase):
         errors = self._validate(case)
 
         self.assertTrue(any("必须先完成累计 PR/MR 合并" in error for error in errors))
-        self.assertTrue(any("fresh Spec Acceptance" in error for error in errors))
+        self.assertTrue(any("确认 Seal Eligibility" in error for error in errors))
 
     def test_human_ready_requires_one_native_identity_per_spec(self) -> None:
         state = {

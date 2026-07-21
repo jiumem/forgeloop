@@ -21,9 +21,9 @@ class RepairCycleContractTests(unittest.TestCase):
 
         self.assertIn("## Exhaustion Diagnosis", coder)
         self.assertIn("exactly confirmed `RUN_PAUSED` with reason=`REPAIR_BUDGET`", coder)
-        self.assertIn("Only after that pause is confirmed", repair)
-        self.assertIn("fresh Coder for the read-only Exhaustion Diagnosis", repair)
-        self.assertIn("before creating the fresh Coder", scheduler)
+        self.assertIn("only after that pause is confirmed", repair)
+        self.assertIn("fresh Correction Coder for the read-only Exhaustion Diagnosis", repair)
+        self.assertIn("before creating the fresh Correction Coder", scheduler)
         self.assertIn("Candidate mutation is forbidden during diagnosis", scheduler)
 
     def test_semantic_fields_serve_agents_not_a_runtime_classifier(self) -> None:
@@ -55,11 +55,13 @@ class RepairCycleContractTests(unittest.TestCase):
         domain = reference("domain-and-state.md")
 
         self.assertIn("same Ticket, Run, and Branch across cycles", repair)
-        self.assertIn("fresh Coder that performed Exhaustion Diagnosis", repair)
+        self.assertIn("fresh Correction Coder that performed Exhaustion Diagnosis", repair)
         self.assertIn("two fresh isolated Reviewers", repair)
         self.assertIn("Child identity remains live orchestration context, not durable state", repair)
-        self.assertIn("Never persist child identity as workflow state", domain)
-        self.assertIn("reuse those three live contexts only within the renewed cycle", scheduler)
+        self.assertIn("Never create a third-cycle set or persist child identity as workflow state", domain)
+        self.assertIn("reuse them throughout Cycle 2", scheduler)
+        self.assertIn("only when entering Cycle 2", scheduler)
+        self.assertIn("do not create a third-cycle set", scheduler)
 
     def test_cycle_anchor_binds_candidate_and_review_authority(self) -> None:
         domain = reference("domain-and-state.md")

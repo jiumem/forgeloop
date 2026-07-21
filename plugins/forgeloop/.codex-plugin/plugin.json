@@ -1,6 +1,6 @@
 {
   "name": "forgeloop",
-  "version": "3.6.1",
+  "version": "4.0.0",
   "description": "Tracker-driven engineering workflows with Specs, Tickets, dual review, repair, integration, and acceptance gates.",
   "author": {
     "name": "Forgeloop",

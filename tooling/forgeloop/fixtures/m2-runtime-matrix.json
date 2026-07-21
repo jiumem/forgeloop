@@ -178,17 +178,17 @@
     },
     {
       "id": "spec-acceptance-fail", "group": "spec-acceptance-fail", "tracker": "local",
-      "initial_state": "多 Ticket 已完成，全新 Spec Acceptance 失败。", "entry_prompt": "完成 Spec 验收。",
-      "expected_writes": ["Spec 保持 Open", "ACCEPTANCE_RESULT 与 repair_key", "提示显式调用 to-tickets"], "forbidden_writes": ["创建或改写 Repair Ticket", "隐式调用 to-tickets", "关闭 Spec"],
-      "terminal_state": "PAUSED", "failure_diagnostic": "列出失败行为、repair_key 与显式修复入口。", "domain_state": {"spec_open": true, "repair_work_created": false},
-      "event_trace": ["RUN_CLAIMED", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_REPAIR_REQUIRED", "RUN_PAUSED:ACCEPTANCE_REPAIR"], "final_native_state": {"root_open": true, "claim_active": true}
+      "initial_state": "多 Ticket 已完成，Spec Root Final Integration Gate 发现一个绑定到父合同的实现缺口。", "entry_prompt": "完成 Final Integration Gate。",
+      "expected_writes": ["Spec 保持 Open", "Final Gate Finding 与 repair_key", "提示显式调用 to-tickets"], "forbidden_writes": ["创建或改写 Repair Ticket", "隐式调用 to-tickets", "进入 Acceptance Seal"],
+      "terminal_state": "PAUSED", "failure_diagnostic": "列出失败行为、父合同依据、repair_key 与显式修复入口。", "domain_state": {"spec_open": true, "repair_work_created": false},
+      "event_trace": ["RUN_CLAIMED", "RUN_PAUSED:FINAL_GATE_FINDING"], "final_native_state": {"root_open": true, "claim_active": true}
     },
     {
       "id": "initiative-acceptance-fail", "group": "initiative-acceptance-fail", "tracker": "local",
-      "initial_state": "成员 Specs 已对同一 Commit Acceptance PASS 但仍保持 Open，Initiative Acceptance 失败。", "entry_prompt": "完成多 Spec Initiative 验收。",
-      "expected_writes": ["父 Item 与成员 Specs 保持 Open", "ACCEPTANCE_RESULT 与逐 Finding repair_key", "提示显式调用 to-tickets"], "forbidden_writes": ["Initiative 直属 Repair Ticket", "关闭成员 Spec", "隐式调用 to-tickets", "伪造 COMPLETED"],
-      "terminal_state": "PAUSED", "failure_diagnostic": "列出失败约束、repair_key 与 owning Spec 选择要求。", "domain_state": {"initiative_open": true, "member_specs_open": true, "repair_work_created": false},
-      "event_trace": ["RUN_CLAIMED", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS_S1_FINAL", "ACCEPTANCE_RESULT:SPEC_PASS_S2_FINAL", "ACCEPTANCE_RESULT:INITIATIVE_REPAIR_REQUIRED", "RUN_PAUSED:ACCEPTANCE_REPAIR"], "final_native_state": {"root_open": true, "member_specs_open": true, "claim_active": true}
+      "initial_state": "成员 Specs 尚未全部具备同一最终 Commit 的完整 Integration binding。", "entry_prompt": "评估 Initiative Seal Eligibility。",
+      "expected_writes": ["父 Item 与成员 Specs 保持 Open", "ACCEPTANCE_RESULT:ACCEPTANCE_BLOCKED", "返回缺失 Integration binding 的既有集成环节"], "forbidden_writes": ["Initiative 直属 Repair Ticket", "repair_key", "关闭成员 Spec", "伪造 COMPLETED"],
+      "terminal_state": "PAUSED", "failure_diagnostic": "列出缺失事实、事实责任主体与既有恢复动作。", "domain_state": {"initiative_open": true, "member_specs_open": true, "repair_work_created": false},
+      "event_trace": ["RUN_CLAIMED", "INTEGRATION_RESULT:S1", "ACCEPTANCE_RESULT:ACCEPTANCE_BLOCKED", "RUN_PAUSED:ACCEPTANCE_BLOCKED"], "final_native_state": {"root_open": true, "member_specs_open": true, "claim_active": true}
     },
     {
       "id": "empty-frontier", "group": "empty-frontier", "tracker": "local",
@@ -248,10 +248,10 @@
     },
     {
       "id": "repair-work-idempotent", "group": "repair-work-idempotent", "tracker": "local",
-      "initial_state": "Spec Acceptance 失败后已暂停；用户显式调用 to-tickets 创建了带同一 repair_key 的正式 Ticket。", "entry_prompt": "恢复当前 Run。",
-      "expected_writes": ["复用已有 repair_key Ticket", "RUN_RESUMED", "普通 Ticket 闭环与 renewed Acceptance"], "forbidden_writes": ["创建第二张修复 Ticket", "隐式调用 to-tickets", "扩大 Spec Scope"],
+      "initial_state": "Final Integration Gate 失败后已暂停；用户显式调用 to-tickets 创建了带同一 repair_key 的正式 Ticket。", "entry_prompt": "恢复当前 Run。",
+      "expected_writes": ["复用已有 repair_key Ticket", "RUN_RESUMED", "普通 Ticket 闭环、Final Gate 重验与 Acceptance Seal"], "forbidden_writes": ["创建第二张修复 Ticket", "隐式调用 to-tickets", "扩大 Spec Scope"],
       "terminal_state": "COMPLETED", "failure_diagnostic": "repair_key 或 Scope 冲突时停止并报告 RECOVERY_CONFLICT。", "domain_state": {"repair_tickets": 1, "same_repair_key": true},
-      "event_trace": ["RUN_CLAIMED", "ACCEPTANCE_RESULT:SPEC_REPAIR_REQUIRED", "RUN_PAUSED:ACCEPTANCE_REPAIR", "RUN_RESUMED", "CODER_RESULT:REPAIR_TICKET_READY", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
+      "event_trace": ["RUN_CLAIMED", "RUN_PAUSED:FINAL_GATE_FINDING", "RUN_RESUMED", "CODER_RESULT:REPAIR_TICKET_READY", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
     },
     {
       "id": "initiative-revision-drift", "group": "initiative-revision-drift", "tracker": "local",
@@ -269,7 +269,7 @@
     },
     {
       "id": "acceptance-input-blocked", "group": "acceptance-input-blocked", "tracker": "local",
-      "initial_state": "所有 Tickets 已集成，但 Acceptance Reviewer 无法验证最终目标 Commit。", "entry_prompt": "完成 Spec Acceptance。",
+      "initial_state": "所有 Tickets 已集成，但 Scheduler 无法从既有事实确认最终目标 Commit。", "entry_prompt": "评估 Spec Seal Eligibility。",
       "expected_writes": ["ACCEPTANCE_RESULT:ACCEPTANCE_BLOCKED", "RUN_PAUSED:ACCEPTANCE_BLOCKED"], "forbidden_writes": ["生成 repair_key", "调用 to-tickets", "关闭 Spec"],
       "terminal_state": "PAUSED", "failure_diagnostic": "指出缺失的最终 Commit 事实。", "domain_state": {"acceptance_blocked": true, "repair_work_created": false},
       "event_trace": ["RUN_CLAIMED", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:ACCEPTANCE_BLOCKED", "RUN_PAUSED:ACCEPTANCE_BLOCKED"], "final_native_state": {"root_open": true, "claim_active": true}
@@ -311,10 +311,10 @@
     },
     {
       "id": "initiative-repair-owned", "group": "initiative-repair-owned", "tracker": "local",
-      "initial_state": "Initiative Acceptance 失败；成员 Specs 仍 Open，用户显式调用 to-tickets 将 Findings 路由到现有 owning Specs。", "entry_prompt": "恢复原 Initiative Run。",
-      "expected_writes": ["无 Initiative 直属 Ticket", "复用 owning Spec 下 repair_key Tickets", "Repair 后所有 Spec 对新 Commit 重验", "Initiative PASS 后统一关闭"], "forbidden_writes": ["reopen Spec", "扩大成员 Scope", "只重验 owning Spec", "提前关闭成员 Spec"],
-      "terminal_state": "COMPLETED", "failure_diagnostic": "Finding 无合法 owning Spec 时 CONTRACT_BLOCKER。", "domain_state": {"owning_specs_assigned": true, "member_specs_reopened": false, "all_spec_acceptance_rerun": true, "delayed_member_closure": true},
-      "event_trace": ["RUN_CLAIMED", "ACCEPTANCE_RESULT:SPEC_PASS_S1_OLD", "ACCEPTANCE_RESULT:SPEC_PASS_S2_OLD", "ACCEPTANCE_RESULT:INITIATIVE_REPAIR_REQUIRED", "RUN_PAUSED:ACCEPTANCE_REPAIR", "RUN_RESUMED", "CODER_RESULT:REPAIR_TICKET_READY", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS_S1_FINAL", "ACCEPTANCE_RESULT:SPEC_PASS_S2_FINAL", "ACCEPTANCE_RESULT:INITIATIVE_PASS"], "final_native_state": {"root_open": false, "member_specs_open": false, "closure_order": ["member_specs", "initiative"], "claim_active": false}
+      "initial_state": "一个成员 Spec 的 Final Integration Gate 失败；成员 Specs 仍 Open，用户显式调用 to-tickets 将 Finding 路由到 owning Spec。", "entry_prompt": "恢复原 Initiative Run。",
+      "expected_writes": ["无 Initiative 直属 Ticket", "复用 owning Spec 下 repair_key Ticket", "Repair 后重跑该 Spec Final Gate", "所有 Seal 绑定同一最终 Commit", "Initiative PASS 后统一关闭"], "forbidden_writes": ["reopen Spec", "扩大成员 Scope", "在 Acceptance 阶段新增 Finding", "提前关闭成员 Spec"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "Final Gate Finding 无合法 owning Spec 时 CONTRACT_BLOCKER。", "domain_state": {"owning_specs_assigned": true, "member_specs_reopened": false, "all_spec_seals_same_commit": true, "delayed_member_closure": true},
+      "event_trace": ["RUN_CLAIMED", "RUN_PAUSED:FINAL_GATE_FINDING", "RUN_RESUMED", "CODER_RESULT:REPAIR_TICKET_READY", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS_S1_FINAL", "ACCEPTANCE_RESULT:SPEC_PASS_S2_FINAL", "ACCEPTANCE_RESULT:INITIATIVE_PASS"], "final_native_state": {"root_open": false, "member_specs_open": false, "closure_order": ["member_specs", "initiative"], "claim_active": false}
     }
   ]
 }

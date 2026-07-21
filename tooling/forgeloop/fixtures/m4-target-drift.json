@@ -119,16 +119,16 @@
     },
     {
       "id": "candidate-rebase", "group": "candidate-rebase", "tracker": "github",
-      "initial_state": "双 PASS 后 Candidate Branch 被 rebase 并产生新 Head。", "entry_prompt": "继续集成。",
+      "initial_state": "双 PASS 后 Candidate Branch 被 rebase，产生新 Head 且有效累计代码树发生变化。", "entry_prompt": "继续集成。",
       "expected_writes": ["Repair Diagnosis", "一轮共享修复", "新 Head Coder 验证与双审"], "forbidden_writes": ["复用旧 PASS"],
-      "terminal_state": "COMPLETED", "failure_diagnostic": "Head 改写必须重审。", "domain_state": {"head_rewritten": true, "both_reissued": true, "repair_rounds": 1},
+      "terminal_state": "COMPLETED", "failure_diagnostic": "有效代码树变化必须计入修复并重审。", "domain_state": {"head_rewritten": true, "effective_tree_changed": true, "both_reissued": true, "repair_rounds": 1},
       "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:DUAL_PASS", "CODER_RESULT:REPAIR_1_REBASE", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
     },
     {
       "id": "conflict-repair", "group": "conflict-repair", "tracker": "local",
       "initial_state": "目标前进产生冲突，人工修复改变 Candidate Head。", "entry_prompt": "继续集成。",
       "expected_writes": ["Repair Diagnosis", "一轮共享修复", "新 Head Coder 验证与双审"], "forbidden_writes": ["沿用旧 PASS", "Scheduler 自行选边"],
-      "terminal_state": "COMPLETED", "failure_diagnostic": "冲突修复改变 Head 必须重审。", "domain_state": {"head_rewritten": true, "both_reissued": true, "repair_rounds": 1},
+      "terminal_state": "COMPLETED", "failure_diagnostic": "冲突修复改变有效代码树必须计入修复并重审。", "domain_state": {"head_rewritten": true, "effective_tree_changed": true, "both_reissued": true, "repair_rounds": 1},
       "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:DUAL_PASS", "CODER_RESULT:REPAIR_1_CONFLICT", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
     },
     {
@@ -142,28 +142,28 @@
       "id": "integration-fast-forward", "group": "integration-fast-forward", "tracker": "gitlab",
       "initial_state": "Ticket 集成后目标继续 fast-forward，集成 target_after 仍在最终历史。", "entry_prompt": "执行 Final Acceptance。",
       "expected_writes": ["验证 target_after ancestry", "验证最终行为", "确认 Seal"], "forbidden_writes": ["只凭 ancestry PASS"],
-      "terminal_state": "COMPLETED", "failure_diagnostic": "行为失败仍须 REPAIR_REQUIRED。", "domain_state": {"integration_ancestor": true, "behavior_pass": true},
+      "terminal_state": "COMPLETED", "failure_diagnostic": "最终目标缺少适用验证时必须返回 Final Integration Gate。", "domain_state": {"integration_ancestor": true, "behavior_pass": true},
       "event_trace": ["RUN_CLAIMED", "CODER_RESULT:READY_FOR_REVIEW", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
     },
     {
       "id": "force-push-removes-integration", "group": "force-push-removes-integration", "tracker": "github",
       "initial_state": "force-push 使已记录 target_after 不再属于最终目标历史。", "entry_prompt": "执行 Final Acceptance。",
-      "expected_writes": ["ACCEPTANCE_RESULT REPAIR_REQUIRED", "报告缺失集成证据", "保持根 Open"], "forbidden_writes": ["Acceptance PASS", "新恢复状态"],
-      "terminal_state": "PAUSED", "failure_diagnostic": "通过 Acceptance Repair Boundary 定位缺失交付。", "domain_state": {"integration_ancestor": false, "repair_budget_used": false},
-      "event_trace": ["RUN_CLAIMED", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_REPAIR_REQUIRED", "RUN_PAUSED:ACCEPTANCE_REPAIR"], "final_native_state": {"root_open": true, "claim_active": true}
+      "expected_writes": ["ACCEPTANCE_RESULT:ACCEPTANCE_BLOCKED", "报告失效的集成绑定", "返回 Integration 或 Final Gate", "保持根 Open"], "forbidden_writes": ["Acceptance PASS", "repair_key", "新实现 Finding"],
+      "terminal_state": "PAUSED", "failure_diagnostic": "由既有 Integration 或 Final Gate 重新建立有效绑定。", "domain_state": {"integration_ancestor": false, "repair_budget_used": false},
+      "event_trace": ["RUN_CLAIMED", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:ACCEPTANCE_BLOCKED", "RUN_PAUSED:ACCEPTANCE_BLOCKED"], "final_native_state": {"root_open": true, "claim_active": true}
     },
     {
       "id": "revert-preserves-ancestry", "group": "revert-preserves-ancestry", "tracker": "local",
       "initial_state": "后续 revert 保留 target_after ancestry，但公开行为已破坏。", "entry_prompt": "执行 Final Acceptance。",
-      "expected_writes": ["行为验收失败", "ACCEPTANCE_RESULT REPAIR_REQUIRED"], "forbidden_writes": ["仅凭 ancestry PASS"],
-      "terminal_state": "PAUSED", "failure_diagnostic": "报告可观察行为回归。", "domain_state": {"integration_ancestor": true, "behavior_pass": false, "repair_budget_used": false},
-      "event_trace": ["RUN_CLAIMED", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_REPAIR_REQUIRED", "RUN_PAUSED:ACCEPTANCE_REPAIR"], "final_native_state": {"root_open": true, "claim_active": true}
+      "expected_writes": ["返回 Final Integration Gate", "Final Gate Finding"], "forbidden_writes": ["仅凭 ancestry PASS", "Acceptance 阶段新增 Finding"],
+      "terminal_state": "PAUSED", "failure_diagnostic": "Final Gate 在新目标上报告可观察行为回归及其合同依据。", "domain_state": {"integration_ancestor": true, "behavior_pass": false, "repair_budget_used": false},
+      "event_trace": ["RUN_CLAIMED", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "RUN_PAUSED:FINAL_GATE_FINDING"], "final_native_state": {"root_open": true, "claim_active": true}
     },
     {
       "id": "single-spec-preseal-drift", "group": "single-spec-preseal-drift", "tracker": "github",
-      "initial_state": "Spec Reviewer PASS 后、Seal Payload 渲染前目标已移动。", "entry_prompt": "完成 Spec。",
-      "expected_writes": ["重新读取 target", "不发布旧 PASS", "新 Commit 重新 Acceptance", "确认新 Seal"], "forbidden_writes": ["旧 Commit Seal", "消耗 repair budget"],
-      "terminal_state": "COMPLETED", "failure_diagnostic": "Seal 前漂移使当前资格失效。", "domain_state": {"pre_seal_drift": true, "acceptance_rerun": true, "repair_budget_used": false, "seal_confirmed": true},
+      "initial_state": "Final Gate 证据就绪后、Seal Payload 渲染前目标已移动。", "entry_prompt": "完成 Spec。",
+      "expected_writes": ["重新读取 target", "不发布旧 PASS", "新 Commit 返回既有 Final Gate", "重新评估 Seal Eligibility", "确认新 Seal"], "forbidden_writes": ["旧 Commit Seal", "新建 Acceptance Reviewer", "消耗 repair budget"],
+      "terminal_state": "COMPLETED", "failure_diagnostic": "Seal 前漂移使当前资格失效。", "domain_state": {"pre_seal_drift": true, "seal_reevaluated": true, "repair_budget_used": false, "seal_confirmed": true},
       "event_trace": ["RUN_CLAIMED", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
     },
     {
@@ -178,21 +178,21 @@
       "id": "eligibility-refresh-before-readback-drift", "group": "eligibility-refresh-before-readback-drift", "tracker": "github",
       "initial_state": "目标在成功 eligibility refresh 后前进，但旧 Commit 的 Seal Payload 随后精确回读成功。", "entry_prompt": "完成 Spec。",
       "expected_writes": ["确认旧 Commit Seal", "按 post-seal drift 继续行政关闭"], "forbidden_writes": ["重新 Acceptance", "废弃已确认 Payload", "消耗 repair budget"],
-      "terminal_state": "COMPLETED", "failure_diagnostic": "线性化点后的漂移由最终精确回读决定；回读失败才重新 refresh。", "domain_state": {"seal_confirmed": true, "post_seal_drift": true, "acceptance_rerun": false, "repair_budget_used": false},
+      "terminal_state": "COMPLETED", "failure_diagnostic": "线性化点后的漂移由最终精确回读决定；回读失败才重新 refresh。", "domain_state": {"seal_confirmed": true, "post_seal_drift": true, "seal_reevaluated": false, "repair_budget_used": false},
       "event_trace": ["RUN_CLAIMED", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
     },
     {
       "id": "post-seal-drift", "group": "post-seal-drift", "tracker": "github",
       "initial_state": "Spec Seal 已原生回读确认，随后目标分支前进。", "entry_prompt": "完成行政关闭。",
       "expected_writes": ["沿已确认 Seal 关闭并释放 Claim"], "forbidden_writes": ["重新 Acceptance", "废弃 Seal", "重开 Run"],
-      "terminal_state": "COMPLETED", "failure_diagnostic": "Seal 证明其绑定 Commit，不承诺未来提交。", "domain_state": {"seal_confirmed": true, "post_seal_drift": true, "acceptance_rerun": false, "repair_budget_used": false},
+      "terminal_state": "COMPLETED", "failure_diagnostic": "Seal 证明其绑定 Commit，不承诺未来提交。", "domain_state": {"seal_confirmed": true, "post_seal_drift": true, "seal_reevaluated": false, "repair_budget_used": false},
       "event_trace": ["RUN_CLAIMED", "REVIEW_RESULT:DUAL_PASS", "INTEGRATION_RESULT:MERGED", "ACCEPTANCE_RESULT:SPEC_PASS"], "final_native_state": {"root_open": false, "claim_active": false}
     },
     {
       "id": "post-seal-partial-close-recovery", "group": "post-seal-partial-close-recovery", "tracker": "local",
       "initial_state": "Initiative Seal 已确认，但成员关闭后根关闭与 Claim 释放中断，目标随后前进。", "entry_prompt": "恢复原 Run。",
       "expected_writes": ["从 Seal 恢复", "完成剩余关闭", "释放原 Claim"], "forbidden_writes": ["重跑 Acceptance", "新 Seal", "重开成员"],
-      "terminal_state": "COMPLETED", "failure_diagnostic": "行政恢复只消费既有 Seal。", "domain_state": {"initiative_acceptance": "PASS", "seal_confirmed": true, "resumed_from_seal": true, "acceptance_rerun": false},
+      "terminal_state": "COMPLETED", "failure_diagnostic": "行政恢复只消费既有 Seal。", "domain_state": {"initiative_acceptance": "PASS", "seal_confirmed": true, "resumed_from_seal": true, "seal_reevaluated": false},
       "event_trace": ["RUN_CLAIMED", "REVIEW_RESULT:S1_DUAL_PASS", "INTEGRATION_RESULT:S1", "REVIEW_RESULT:S2_DUAL_PASS", "INTEGRATION_RESULT:S2", "ACCEPTANCE_RESULT:SPEC_PASS_S1_FINAL", "ACCEPTANCE_RESULT:SPEC_PASS_S2_FINAL", "ACCEPTANCE_RESULT:INITIATIVE_PASS", "RUN_RESUMED"],
       "final_native_state": {"root_open": false, "claim_active": false, "member_specs_open": false, "closure_order": ["member_specs", "initiative"]}
     }

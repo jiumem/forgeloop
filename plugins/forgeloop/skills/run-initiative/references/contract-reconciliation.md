@@ -2,19 +2,23 @@
 
 ## One Adjudication Boundary
 
-Use this protocol only for a confirmed `RUN_PAUSED / CONTRACT_BLOCKER`. Keep ordinary repair budget unchanged and prohibit Candidate, Spec, ADR, and Ticket contract mutation until one user decision is published and exactly read back.
+Use this protocol only for a confirmed `RUN_PAUSED / CONTRACT_BLOCKER` whose exact approved outcome cannot be satisfied by any smaller in-Scope implementation without a new user or irreversible architecture decision. Reviewer preference, optional hardening, a theoretical deployment or storage topology, and a larger implementation mechanism are not contract gaps. Keep ordinary repair budget unchanged and prohibit Candidate, Spec, ADR, and Ticket contract mutation until one user decision is published and exactly read back.
 
-The coordinating Agent first synthesizes one complete reconciliation package from the effective contract, blocker evidence, Candidate and Verdict history, and current Tracker/Git facts. It must state:
+The coordinating Agent first synthesizes one delta-scoped reconciliation package from the effective contract, blocker evidence, and current Tracker/Git facts. It must state:
 
 - the old Run and pause, predecessor Spec/Ticket/ADR Revisions, and exact contract conflict;
-- the complete proposed Spec and ADR content;
-- each Open Ticket's target complete body and relationships as `retain`, `update`, `supersede`, or `create`, including allowed equivalent outcomes;
+- the exact missing user or irreversible architecture decision and why no smaller implementation can satisfy the current authority;
+- only the affected Spec, ADR, and Open Ticket changes, with complete target content only for an item that actually changes;
+- stable references to unaffected items instead of copied bodies or history;
+- each affected Open Ticket's target body and relationships as `retain`, `update`, `supersede`, or `create`, including allowed equivalent outcomes;
 - Candidate and Verdict disposition, repair-budget effect, Repair Lineage, and the recovery result;
 - `REJECT`, `APPROVE_PAUSE`, and `APPROVE_CONTINUE` as the only user choices.
 
+Do not copy every unaffected Open Ticket body, unchanged Spec or ADR content, or complete Candidate and Verdict history into the package. Reference immutable native facts and include only the evidence needed to understand and authorize the change.
+
 Derive `package_id` from the exact rendered package. The identity supports authorization, idempotency, and drift detection; it does not replace Agent judgment about Scope, materiality, equivalence, or contract meaning.
 
-Before asking the user, create one fresh isolated read-only Agent for internal Design Review, bound to the entire package and current native facts. It checks contract completeness, Ticket coverage, fact ownership, forward recovery, Candidate invalidation, and whether the core Problem, primary Actor, or observable delivery outcome changed. This is a temporary semantic review task, not a new durable Reviewer type or Verdict.
+Before asking the user, create one fresh isolated read-only Agent for internal Design Review, bound to the affected package and current native facts. It checks contract necessity, completeness, affected Ticket coverage, fact ownership, forward recovery, Candidate invalidation, and whether the core Problem, primary Actor, or observable delivery outcome changed. It must reject changes justified only by Reviewer preference or a stronger unapproved guarantee. This is a temporary semantic review task, not a new durable Reviewer type or Verdict.
 
 Require one semantic result:
 
@@ -22,7 +26,7 @@ Require one semantic result:
 - `DESIGN_GAPS`: every Finding states evidence, the missing decision or clarification, required proof, and `contract_impact: NONE | SPEC | ADR`;
 - `REVIEW_BLOCKED`: required fixed input is unreadable or contradictory, with the missing fact identified.
 
-Resolve `contract_impact=NONE` gaps autonomously and repeat internal Design Review on the complete revised package. Fold every genuine Spec or ADR choice into that same final package and repeat Review so the user is asked exactly once. Ask the user only after a `PASS`; `DESIGN_GAPS` or `REVIEW_BLOCKED` keeps contract writes at zero and does not count as user adjudication.
+Allow at most one automatic package correction for `contract_impact=NONE`, then continue the same internal Design Review Agent once more on the affected package. Do not start another correction or review loop. Fold every genuine Spec or ADR choice into that same final package so the user is asked exactly once. Ask the user only after a `PASS`; a second `DESIGN_GAPS` or any `REVIEW_BLOCKED` keeps contract writes at zero and pauses with the unresolved evidence.
 
 ## Record the Decision
 

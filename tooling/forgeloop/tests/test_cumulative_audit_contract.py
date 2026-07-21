@@ -75,7 +75,7 @@ class CumulativeAuditContractTests(unittest.TestCase):
             "exact native read-back",
             "fixed `delivery_head` → create or reuse PR/MR → Required Checks → refresh projection → literal-safe write → exact read-back → merge",
             "READY_FOR_HUMAN_MERGE",
-            "fresh Spec Acceptance",
+            "evaluate Spec Seal Eligibility",
             "must not aggregate multiple Specs into one PR/MR",
             "Local has no cumulative PR/MR surface",
         ):

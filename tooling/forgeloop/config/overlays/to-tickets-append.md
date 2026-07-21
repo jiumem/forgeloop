@@ -1,3 +1,7 @@
+## Forgeloop Planning Contract Gap Handoff
+
+When normal decomposition discovers that the approved parent contract must change, return `CONTRACT_BLOCKER` with the existing Spec reference, locatable evidence, affected contract sections, and the smallest proposed revision summary. Keep Tracker writes at zero and tell the user to invoke `$to-spec` explicitly for an in-place Planning Revision. `$to-tickets` must not edit the parent itself and must not create a replacement Spec. After the same existing Spec has a confirmed effective Revision, a later explicit `$to-tickets` invocation may restart decomposition from that Revision.
+
 ## Forgeloop Shared Delivery Declaration
 
 Keep three approved facts independent:
@@ -25,12 +29,12 @@ Do not draft a ceremony Ticket that only re-runs parent Validation Entries, owne
 
 Return `FAILED_PRECONDITION` with zero Tracker writes for a legacy `Final integration owner` field, a missing `Final integration gate owner: SPEC_ROOT`, or a ceremony-only final Ticket. Do not parse, alias, migrate, or fall back to the old declaration.
 
-## Forgeloop Acceptance Repair Mode
+## Forgeloop Final Gate Repair Mode
 
-Enter this mode only when the user explicitly invokes `$to-tickets` with either formal input: an `ACCEPTANCE_RESULT` with `REPAIR_REQUIRED` and one stable `repair_key` per Finding; or a formal `RUN_PAUSED` from the Final Integration Gate with `finding_id`, evidence references, owning Scope, and stable `repair_key` for every Final Gate Finding. Read the owning Spec, applicable Initiative, final Commit or `delivery_head`, existing Open Tickets, and every Ticket carrying any key.
+Enter this mode only when the user explicitly invokes `$to-tickets` with a formal `RUN_PAUSED` from the Final Integration Gate containing `finding_id`, evidence references, owning Scope, and a stable `repair_key` for every Final Gate Finding. Read the owning Spec, applicable Initiative, `delivery_head`, existing Open Tickets, and every Ticket carrying any key.
 
 - Keep the approved parent contract, completed Tickets, and their Checkpoints unchanged. Return `CONTRACT_BLOCKER` instead of drafting repair Tickets when a Finding requires changing the Spec, `Delivery Acceptance`, Cross-seam Invariant, Proof mapping, ADR, Scope, Ticket Acceptance criteria, confirmed Initiative membership, Branch Topology, or target.
-- Use the Spec as `owning_spec_ref` for Spec Acceptance or a Final Gate Finding. For Initiative Acceptance, route each repair slice to an existing member Spec whose approved Scope covers it. Never create a repair Ticket directly under the Initiative; return `CONTRACT_BLOCKER` when no member Spec can own the Finding.
+- Use the affected Spec as `owning_spec_ref` for every Final Gate Finding. Never create a repair Ticket directly under an Initiative; return `CONTRACT_BLOCKER` when no member Spec can own the Finding.
 - Query every key before drafting. Reuse the unique matching unfinished repair Ticket; stop on an ambiguous or conflicting key. Multiple keys may share a Ticket only when its body lists every key and the Findings form one atomic vertical slice.
 - For unmatched keys, draft only the smallest vertical Tickets needed for the Findings; do not decompose the whole Spec again. When a Finding traces to a completed Ticket, record `source_ticket_ref` without reopening or modifying it.
 - Record `owning_spec_ref`, applicable Initiative reference, source type, `repair_key`, `finding_id`, final Commit or `delivery_head`, observable repair checks, and genuine blockers in each repair Ticket. Keep it inside approved Scope.
@@ -55,3 +59,15 @@ Enter this mode either when the user explicitly invokes `$to-tickets` for a form
 - Stop with `CONTRACT_BLOCKER` when reconciliation requires a different core Problem, Actor, delivery target, expanded Scope, Spec rewrite, ADR change, or Initiative membership change.
 
 Do not modify the Spec, ADRs, parent Initiative, Completed Tickets, Run Claim, or Run checkpoints. This mode reconciles Tracker Tickets only; it does not resume `$run-initiative`. The Scheduler alone decides whether the fully reconciled Run remains paused or competes to resume.
+
+## Forgeloop Formal Design Document Contract
+
+In normal decomposition mode, read the parent Spec's referenced Formal Design Document when present and verify its current repository content before drafting. Treat the Spec and applicable ADRs as higher-level authority. The Formal Design Document refines their confirmed implementation design but cannot expand Scope, add product behavior, or strengthen delivery guarantees.
+
+After code exploration and before drafting, semantically determine whether multiple modules, Tickets, implementation sessions, or Reviewers would otherwise have to repeat or independently invent the same interface, authority rule, data model, state transition, transaction, recovery, security, or compatibility decision. Do not require a Formal Design Document merely because the feature is large, important, or `HIGH_RISK`; do not use a score, keyword list, field-presence check, or fixed count.
+
+If the shared decisions are unresolved, the necessary document is missing, or the document conflicts with the Spec or applicable ADRs, return `DESIGN_DOCUMENT_REQUIRED`, identify the exact shared decisions and locatable code or contract evidence, keep Tracker writes at zero, and recommend that the user explicitly invoke `$grill-with-docs` to create or revise the same document in place. Do not distribute the missing design across Ticket bodies, modify the Formal Design Document, edit the parent Spec, create a replacement Spec, or automatically invoke another Workflow. `DESIGN_DOCUMENT_REQUIRED` is an Agent-readable planning result, not Tracker state. Use the existing `CONTRACT_BLOCKER` path instead only when the product contract, Scope, acceptance, irreversible architecture decision, or approved public interface must change.
+
+When the Formal Design Document is complete, add an optional `## Design Document` section to each affected Ticket containing only the stable document reference and relevant section references. Do not copy the shared design into Ticket bodies. Omit the section for unaffected Tickets and for Specs that need no separate document.
+
+Bind every applicable Design Reviewer to the same confirmed document and relevant sections. An exact Design Document clause may support a concern, but it does not replace the required binding to an approved Delivery Acceptance, Cross-seam Invariant, applicable ADR, or approved failure behavior, and it cannot create a stronger acceptance standard. The Reviewer must not author or revise the document. A newly exposed shared implementation question returns `DESIGN_DOCUMENT_REQUIRED` to `$grill-with-docs`; a missing product or architecture decision follows the existing `CONTRACT_BLOCKER` path.

@@ -45,8 +45,8 @@ CASES = [
             T1 interprets an extensible expression supplied by an untrusted caller. Its approved
             Adversarial Design bounds the grammar and rejection rules, references the parent
             authorization invariant, lists malformed and privilege-escalation counterexamples,
-            and proves results through the public command seam. A fresh bound Reviewer returned
-            PASS with no Findings.
+            and proves results through the public command seam. Its initial fresh bound Reviewer
+            returned PASS with no admitted BLOCKING_GAP concerns.
         """,
     },
     {
@@ -82,27 +82,43 @@ CASES = [
         """,
     },
     {
-        "id": "design-gaps-none",
+        "id": "contract-bound-gap",
         "candidate": """
-            T1 recovers a partially committed operation. A fresh bound Reviewer returns
-            DESIGN_GAPS because retry can double-finalize; contract_impact is NONE and all Finding
-            fields are present.
+            T1 recovers a partially committed operation. Its Reviewer returns BLOCKING_GAP because
+            retry can double-finalize. The Finding binds authority_ref to parent DA-3, names the
+            observable duplicate result, gives a reachable retry counterexample inside the approved
+            failure model, explains why the current smaller design fails, and names public proof.
         """,
     },
     {
-        "id": "design-gaps-spec",
+        "id": "contract-question",
         "candidate": """
-            T1 discovers that safe recovery requires a new user-visible conflict outcome absent
-            from the approved Spec. The Reviewer returns DESIGN_GAPS with contract_impact SPEC and
-            complete Findings.
+            Parent DA-3 requires concurrent retry to preserve one stable terminal result through
+            the public command, but the Spec does not decide whether a reachable ownership conflict
+            is rejected or retried. The Reviewer returns CONTRACT_QUESTION with authority_ref DA-3,
+            the observable ambiguity, a reachable concurrent-retry counterexample, why no smaller
+            Ticket-local choice can satisfy DA-3 without inventing product behavior, the missing
+            product decision, and the required public proof.
         """,
     },
     {
-        "id": "mixed-contract-impact",
+        "id": "unbound-contract-question",
         "candidate": """
-            T1 handles a migration. Its fresh Reviewer returns DESIGN_GAPS with one local Finding
-            carrying contract_impact NONE and another Finding requiring an ADR decision. Every
-            Finding contains the required fields.
+            T1 already satisfies every approved recovery outcome. The Reviewer asks whether the
+            product should expose a new conflict status but supplies no authority_ref, approved
+            failure behavior, reachable counterexample, observable violation, necessity, or public
+            proof. The owning Agent rejects the unbound question as Scope expansion; there are no
+            other admitted concerns and the same Reviewer inputs remain fixed.
+        """,
+    },
+    {
+        "id": "hardening-does-not-block",
+        "candidate": """
+            T1 atomically publishes an immutable result and startup recovery deletes unreferenced
+            temporary directories. The parent contract requires no invalid durable product fact but
+            does not require zero physical residue at every crash instruction. The Reviewer suggests
+            global blob refcounts as HARDENING_RECOMMENDATION. The owning Agent adjudicates DEFER,
+            and the same Reviewer returns PASS with no admitted BLOCKING_GAP.
         """,
     },
     {
@@ -119,6 +135,14 @@ CASES = [
             Reviewer has examined the changed draft.
         """,
     },
+    {
+        "id": "third-round-scale-review",
+        "candidate": """
+            T1 has completed three consecutive non-PASS review rounds. Each repair added another
+            storage owner or cleanup lifecycle, and no scale review has compared those mechanisms
+            with the initially approved draft and parent authority.
+        """,
+    },
 ]
 
 
@@ -129,11 +153,13 @@ EXPECTED = {
     "missing-field": ("HIGH_RISK", "RETURN_FINDINGS"),
     "unfalsifiable-model": ("HIGH_RISK", "RETURN_FINDINGS"),
     "internal-proof": ("HIGH_RISK", "RETURN_FINDINGS"),
-    "design-gaps-none": ("HIGH_RISK", "RETURN_FINDINGS"),
-    "design-gaps-spec": ("HIGH_RISK", "CONTRACT_BLOCKER"),
-    "mixed-contract-impact": ("HIGH_RISK", "CONTRACT_BLOCKER"),
+    "contract-bound-gap": ("HIGH_RISK", "RETURN_FINDINGS"),
+    "contract-question": ("HIGH_RISK", "CONTRACT_BLOCKER"),
+    "unbound-contract-question": ("HIGH_RISK", "PUBLISH"),
+    "hardening-does-not-block": ("HIGH_RISK", "PUBLISH"),
     "review-blocked": ("HIGH_RISK", "REPORT_REVIEW_BLOCKED"),
-    "draft-changed": ("HIGH_RISK", "RERUN_REVIEW"),
+    "draft-changed": ("HIGH_RISK", "CONTINUE_SAME_REVIEWER"),
+    "third-round-scale-review": ("HIGH_RISK", "SCALE_REVIEW"),
 }
 
 
@@ -150,7 +176,8 @@ def output_schema() -> dict:
                     "RETURN_FINDINGS",
                     "CONTRACT_BLOCKER",
                     "REPORT_REVIEW_BLOCKED",
-                    "RERUN_REVIEW",
+                    "CONTINUE_SAME_REVIEWER",
+                    "SCALE_REVIEW",
                 ],
             },
             "gaps": {"type": "array", "items": {"type": "string"}},
@@ -174,9 +201,10 @@ def evaluation_prompt() -> str:
     return f"""Evaluate each complete to-tickets draft using only the Skill below. Assume every
 unmentioned gate and permission passes. Return the Skill-required risk classification and choose
 the next action that faithfully represents its required disposition. Use PUBLISH only when the
-complete Ticket set may now be published, RETURN_FINDINGS for locally clarifiable design gaps,
-CONTRACT_BLOCKER for upstream contract impact, REPORT_REVIEW_BLOCKED for invalid fixed inputs,
-and RERUN_REVIEW when an earlier verdict no longer binds the current draft.
+complete Ticket set may now be published, RETURN_FINDINGS for an admitted contract-bound local gap,
+CONTRACT_BLOCKER for a missing upstream decision, REPORT_REVIEW_BLOCKED for invalid fixed inputs,
+CONTINUE_SAME_REVIEWER when an earlier Verdict no longer binds a changed draft, and SCALE_REVIEW
+after the third consecutive non-PASS round.
 
 A mock Tracker exists at `tracker/`. Create one empty `tracker/<id>.published` only for PUBLISH.
 For every other action, write nothing. List concrete gaps when not publishing and return an empty
@@ -200,8 +228,8 @@ class AdversarialDesignEvalPromptTests(unittest.TestCase):
         prompt = evaluation_prompt()
 
         self.assertNotIn("all-standard: STANDARD", prompt)
-        self.assertNotIn("design-gaps-spec: CONTRACT_BLOCKER", prompt)
-        self.assertNotIn("draft-changed: RERUN_REVIEW", prompt)
+        self.assertNotIn("contract-question: CONTRACT_BLOCKER", prompt)
+        self.assertNotIn("draft-changed: CONTINUE_SAME_REVIEWER", prompt)
 
     def test_tracker_observation_includes_every_entry(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
