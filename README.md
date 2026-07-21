@@ -2,9 +2,9 @@
 
 Forgeloop 是一套面向 Codex 的 Tracker 驱动交付插件。它把模糊需求收敛为 Spec 和 Ticket，再由一个轻量 Scheduler 严格串行地组织实现、双重评审、验收与集成。
 
-> 当前版本：`3.6.1` · 20 个正式 Skill · 11 个用户入口 · 9 个模型可调用能力
+> 当前版本：`4.0.0` · 20 个正式 Skill · 11 个用户入口 · 9 个模型可调用能力
 
-[完整中文手册](README.zh-CN.md) · [3.6.1 发布说明](docs/releases/3.6.1-release-notes.md) · [3.3.0 → 3.3.1 迁移指南](docs/migrations/3.3.0-to-3.3.1.md)
+[完整中文手册](README.zh-CN.md) · [4.0.0 发布说明](docs/releases/4.0.0-release-notes.md) · [3.6.1 → 4.0.0 迁移指南](docs/migrations/3.6.1-to-4.0.0.md)
 
 ## 它解决什么问题
 
@@ -21,11 +21,13 @@ to-spec → to-tickets → run-initiative
 
 - Tracker 是 Spec、Ticket、依赖、认领和运行状态的唯一事实来源。
 - Git 是分支、提交、PR 和合并状态的唯一事实来源。
-- `to-spec` 在发布前审计候选方案的必要性，删除无证据复杂度；`to-tickets` 只把已批准方案拆成最小、可观察的 Ticket 图。
+- `to-spec` 在发布前审计候选方案的必要性并原位维护 Planning Revision；`to-tickets` 只把已批准方案拆成最小、可观察的 Ticket 图。
+- 跨 Ticket 共享的系统设计进入正式 Design Document；`grill-with-docs` 负责判断和维护，ADR 只承载长期架构决策。
 - Scheduler 每次只推进一个 Ticket；跨 Ticket 不复用子任务上下文。
 - 每个修复周期由一个 Coder 实现，再接受相互独立的规范评审和需求评审。
-- 每组三轮修复是一次强制诊断边界，不是 Ticket 的永久终点。
-- 周期耗尽后先确认暂停，再由 fresh Coder 语义判断是否在同一 Ticket、Run 和 Branch 上自动续配；字段组织证据，不替代 Agent 判断。
+- 每个 Ticket 最多两个修复周期，每个周期最多三轮实际改变候选代码或测试的普通修复。
+- Cycle 1 耗尽后先确认暂停，再由 fresh Correction Coder 做只读语义诊断；只有可信的 `AUTO_REPAIR_RENEWAL` 才进入唯一一次自动纠偏周期 Cycle 2。Cycle 2 耗尽后停止自动修改并报告阻塞；字段组织证据，不替代 Agent 判断。
+- `SHARED` 交付的 Final Integration Gate 是最后一个实现 Finding 来源；Final Acceptance 不再新建 Reviewer，只由 Scheduler 封存已有证据和最终交付事实。
 - `CONTRACT_BLOCKER` 先形成完整调和包并完成内部语义 Review；用户一次决定即可授权 Spec/ADR/Ticket 调和与原 Run 恢复，不必分别调用工作流。
 
 ## 60 秒开始

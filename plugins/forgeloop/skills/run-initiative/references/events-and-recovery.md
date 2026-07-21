@@ -35,7 +35,7 @@ Add only facts needed by that event:
 - Review: Base/Head, effective Spec/Ticket/ADR revisions, `cycle_anchor`, repair round, and both complete axis Verdicts.
 - Ticket Integration: result, candidate_head, target_before, target_after, integration_method, and native_ref for merge or already-present evidence.
 - Spec Final Integration Gate: result, spec_delivery_base, delivery_head, target_before, target_after, integration_method, native_ref, and final evidence references. Use the Spec as `subject_ref`; this is the existing `INTEGRATION_RESULT`, not a new Event.
-- Acceptance: level, parent revision, applicable confirmed membership, final target Commit, Verdict, Findings, and repair key when needed.
+- Acceptance: level, parent revision, applicable confirmed membership, final target Commit, integration references, evidence references, approved limitations, result, and idempotency key.
 - Pause, resume, or cancel: reason, current Ticket if any, `cycle_anchor` when Ticket-scoped, and recovery evidence.
 
 Build an idempotency key from the stable identity of the write. Include Base/Head, revision, axis or acceptance level, and repair round whenever they can distinguish two valid checkpoints. Do not add a sequence chain, parser, serializer, or second state engine.
@@ -72,15 +72,15 @@ Winning the Resume competition proves only mutation authority. It does not prove
 2. Reconstruct only the last checkpoint whose native references still agree. Do not rely on child thread existence or conversation memory.
 3. Verify the root Claim owner, current Ticket Claim, Base/Head, Spec Revision, multi-Spec revision, confirmation reference, and any existing Verdicts. Before an Acceptance Seal, also verify the current target. After a Seal, verify its immutable binding and native read-back instead; later target movement does not conflict with it. Treat a closed Ticket with valid Integration or a closed root with final Acceptance as a completed inactive Claim, not a resumable owner.
 4. Except for the diagnostic and contract-reconciliation pauses below, publish `RUN_RESUMED` under the original `run_id` and continue after the last verified durable checkpoint. Automatic repair renewal and `CONTRACT_RECONCILED` recovery must use the competitive Resume fence above. Do not replay a confirmed write.
-5. Create fresh isolated children for the next required role and give each a self-contained Role Task Pack containing only durable role-relevant history.
+5. Reconstruct the next role from durable facts and give any child a self-contained Role Task Pack containing only role-relevant history. Reuse a still-valid live child when possible; create a fresh child only when the existing child is unavailable, has lost its required context or read-only independence, or its contract authority materially changed. Recovery never requires an old child to exist.
 
-When a confirmed root Acceptance `PASS` is an Acceptance Seal, resume unfinished closure and Claim release from that Seal. Target movement after the Seal does not invalidate it or require another Reviewer.
+When a confirmed root Acceptance `PASS` is an Acceptance Seal, resume unfinished closure and Claim release from that Seal. Target movement after the Seal does not invalidate it or require new semantic validation.
 
 Repair Diagnosis is a temporary preflight, not a new checkpoint. When recovery finds it was interrupted before the repair result, rerun the diagnosis from current trigger evidence, cumulative Diff, and durable repair history before authorizing further code changes.
 
 When recovery stops at confirmed `RUN_PAUSED / REPAIR_BUDGET`, preserve the pause and create the fresh read-only Exhaustion Diagnosis Coder; do not publish a generic Resume first.
 
-When recovery stops at confirmed `RUN_PAUSED / IMPLEMENTATION_BLOCKED`, preserve the Candidate, Claims, complete diagnosis, and pause. An unconditional continue cannot Resume. A bound new fact or hypothesis may re-enter only read-only Exhaustion Diagnosis; contract reclassification and cancellation use their existing routes.
+When recovery stops at confirmed `RUN_PAUSED / IMPLEMENTATION_BLOCKED`, preserve the Candidate, Claims, complete diagnosis, and pause. An unconditional continue cannot Resume. A later user-supplied material fact may re-enter only read-only diagnosis; it cannot authorize another automatic renewal or any mutation after Cycle 2. Contract reclassification and cancellation use their existing routes.
 
 When recovery stops at confirmed `RUN_PAUSED / CONTRACT_BLOCKER` or `RUN_PAUSED / CONTRACT_RECONCILED`, load `contract-reconciliation.md`. Reconstruct the package, approval, and completed native facts from Tracker and Git; never infer authorization from conversation memory or publish a generic Resume.
 

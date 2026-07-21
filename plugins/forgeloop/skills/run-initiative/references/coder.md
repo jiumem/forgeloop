@@ -31,14 +31,19 @@ Before each repair that could change candidate code, complete a separate read-on
 Return every field:
 
 ```yaml
-classification: LOCAL_REPAIR | STRUCTURAL_REPAIR | CONTRACT_BLOCKER
+classification: NO_REPAIR | LOCAL_REPAIR | STRUCTURAL_REPAIR | CONTRACT_BLOCKER
 mechanism: <shared mechanism behind the Findings or failure>
 evidence: <code and failure evidence supporting the classification>
+authority_ref: <exact approved contract or standard, or why the Finding has none>
 repair_seam: <interface where the repair belongs>
 convergence: <fact source or parallel path to converge, or None for a local repair>
 proof: <public Seam that will prove the repair>
 scope_check: <why the repair is inside Ticket Scope, or why it exceeds Scope>
+smallest_complete_repair: <minimum Candidate change that satisfies the authority, or None>
+new_mechanisms: <new owner, fact source, lifecycle, state model, store, coordination mechanism, or harness, with authority for each; or None>
 ```
+
+Do not accept the Reviewer's proposed mechanism as the repair contract. First verify the Finding against its exact authority and reachable counterexample, then select the smallest complete repair. `NO_REPAIR` is legal only for Spec-axis Findings and only when all remaining Blocking Findings are Spec-axis Findings. Return it when their counterexample is outside the approved product or deployment model, they lack authority, or the Candidate already satisfies the required result. A Standards-axis Finding remains under the unchanged Standards Reviewer contract; if any admitted Standards repair remains, classify the combined turn as `LOCAL_REPAIR`, `STRUCTURAL_REPAIR`, or `CONTRACT_BLOCKER` and never route that Finding through Spec reconsideration. For every new owner, fact source, lifecycle, state model, store, coordination mechanism, or harness, identify the exact approved authority that requires it; without one, do not add it. Use `STRUCTURAL_REPAIR` only when the approved behavior cannot honestly be satisfied through an existing interface, not merely because a different architecture might be cleaner or safer later.
 
 During this diagnosis you must not modify files, create a Commit, or change the candidate Head. Do not begin the repair in the diagnosis turn.
 
@@ -53,6 +58,7 @@ Judge the complete semantic evidence. Use the fields below to explain reasoning 
 ```yaml
 recommendation: AUTO_REPAIR_RENEWAL | IMPLEMENTATION_BLOCKED | CONTRACT_BLOCKER
 cycle_anchor: <confirmed exhausted-cycle anchor>
+cycle_position: CYCLE_1_EXHAUSTED | CYCLE_2_EXHAUSTED
 prior_mechanism: <the causal mechanism attempted in the exhausted cycle>
 falsifying_evidence: <why that mechanism no longer explains a viable repair>
 new_causal_hypothesis: <materially different intervention, or why none is credible>
@@ -62,9 +68,12 @@ scope_assessment: <why work remains inside Ticket Scope, or which contract must 
 observed_progress: <sustainable change from cycle start to cycle end, or why none exists>
 unresolved_findings: <remaining blocking finding_id values>
 candidate_state: <current Branch, Head, and preserved evidence>
+initial_candidate_comparison: <current Candidate compared with the initial reviewed Candidate>
+unsupported_mechanisms: <new owner, fact source, lifecycle, state model, store, coordination mechanism, or harness lacking exact authority>
+correction_plan: <how the smallest credible in-Scope correction removes unsupported mechanisms and converges or reduces the design>
 ```
 
-Recommend `AUTO_REPAIR_RENEWAL` only when the prior mechanism is evidence-falsified, the new hypothesis is materially different and falsifiable, the work remains in Scope, and the exhausted cycle produced real net progress. Wording changes, equivalent retries, extra logging without new facts, hypothesis rotation, incidental Head movement, one flaky pass, or a temporary improvement that regressed before cycle end are insufficient. Recommend `IMPLEMENTATION_BLOCKED` when no credible mechanism or net progress remains. Recommend `CONTRACT_BLOCKER` when correct work requires changing the Spec, Scope, Ticket Acceptance criteria, an ADR, or an approved interface.
+For `CYCLE_1_EXHAUSTED`, recommend `AUTO_REPAIR_RENEWAL` only when the prior mechanism is evidence-falsified, at least one authority-bound violation remains, and the correction plan is materially different, falsifiable, inside Scope, and converges or reduces the design. Compare the current Candidate with the initial reviewed Candidate and remove or reject every unsupported mechanism before proposing the smallest credible in-Scope correction. Wording changes, equivalent retries, extra logging without new facts, hypothesis rotation, incidental Head movement, one flaky pass, a temporary improvement that regressed, or another layer beside the failed mechanism are insufficient. For `CYCLE_2_EXHAUSTED`, never recommend automatic renewal: return `IMPLEMENTATION_BLOCKED` unless a genuine contract decision requires `CONTRACT_BLOCKER`. Recommend `CONTRACT_BLOCKER` only when correct work requires changing the Spec, Scope, Ticket Acceptance criteria, an ADR, or an approved interface.
 
 Do not modify files, create a Commit, change Candidate Head, publish Tracker state, or consume a repair round. Return only the diagnosis above; diagnosis alone never grants Candidate mutation authority.
 

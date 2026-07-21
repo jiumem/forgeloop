@@ -506,8 +506,8 @@ def validate_cumulative_audit_case(case: dict) -> list[str]:
     if case["terminal_state"] == "COMPLETED":
         if state.get("merge_attempted") is not True:
             errors.append(f"{case_id}: COMPLETED 必须先完成累计 PR/MR 合并")
-        if state.get("fresh_spec_acceptance") is not True:
-            errors.append(f"{case_id}: 累计合并后必须通过 fresh Spec Acceptance 才能完成")
+        if state.get("seal_eligibility_confirmed") is not True:
+            errors.append(f"{case_id}: 累计合并后必须确认 Seal Eligibility 才能完成")
         errors.extend(
             _validate_spec_integration_results(
                 case_id, state.get("spec_integration_results"), member_specs
@@ -607,7 +607,7 @@ def validate_evidence_cases(
         if after_refresh is not None and (
             seal is None
             or after_refresh.get("observed_later_target") == seal.get("final_target_commit")
-            or states.get(case_id, {}).get("acceptance_rerun") is not False
+            or states.get(case_id, {}).get("seal_reevaluated") is not False
         ):
             errors.append(f"{case_id}: eligibility refresh 后漂移不得废弃精确确认的 Seal")
     return errors
@@ -715,8 +715,8 @@ def validate_runtime_case(case: dict) -> list[str]:
     ):
         errors.append(f"{case_id}: 目标漂移不得使未变 Candidate Review 失效")
     if state.get("seal_confirmed") and state.get("post_seal_drift"):
-        if state.get("acceptance_rerun") is not False:
-            errors.append(f"{case_id}: Seal 后漂移不得重跑 Acceptance")
+        if state.get("seal_reevaluated") is not False:
+            errors.append(f"{case_id}: Seal 后漂移不得重新评估 Seal Eligibility")
 
     terminal = case["terminal_state"]
     if terminal == "COMPLETED":

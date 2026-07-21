@@ -7,7 +7,7 @@
 - **Ticket**: the smallest vertical slice that a fresh Coder can implement and two fresh Reviewers can verify through a public Seam.
 - **Frontier**: the Ticket Frontier of all Open, Unblocked, Unclaimed Tickets inside the authorized scope.
 - **Agent Run**: the durable execution evidence for one Ticket: Coder result, fixed candidate Commit, two independent Verdicts, repair rounds, and Integration Result. Child thread identity is not durable state.
-- **Repair Cycle**: at most three Candidate-changing repair rounds under one durable `cycle_anchor`; renewal keeps the Ticket, Run, and Branch but starts a new cycle after confirmed `REPAIR_BUDGET` pause and semantic Exhaustion Diagnosis.
+- **Repair Cycle**: at most three Candidate-changing repair rounds under one durable `cycle_anchor`. Each Ticket has at most two repair cycles: Cycle 1 is the ordinary repair cycle and Cycle 2 is the single automatic correction cycle after a confirmed `REPAIR_BUDGET` pause and semantic Exhaustion Diagnosis. No third cycle is legal.
 - **Review Verdict**: one axis's `PASS`, `REPAIR_REQUIRED`, or `REVIEW_BLOCKED`, bound to fixed Candidate and effective contract inputs for one repair cycle.
 - **Branch Topology**: `INDEPENDENT` or user-approved `SHARED`; it describes where Ticket Candidates integrate, not who may merge.
 - **Shared-branch Reason**: `WIDE_REFACTOR`, `NON_GREEN_MIGRATION`, `ATOMIC_DELIVERY`, or `CUMULATIVE_AUDIT`; it justifies `SHARED` without replacing Integration Policy.
@@ -66,7 +66,7 @@ integration_method: <merge | squash | already_present | configured native method
 native_ref: <PR/MR, checks, merge, and final evidence references>
 ```
 
-This record uses the Spec as `subject_ref`, proves only native integration of the fixed `delivery_head`, and never replaces fresh Spec Acceptance.
+This record uses the Spec as `subject_ref`, proves only native integration of the fixed `delivery_head`, and is one required input to Spec Seal Eligibility; it never replaces the Acceptance Seal.
 
 ### Final Acceptance
 
@@ -87,11 +87,11 @@ This binding is the Acceptance Seal. It proves the approved Delivery Acceptance 
 
 1. Allow one valid root Scheduler Run and at most one active Ticket per Initiative.
 2. Keep the root Run Claim on the Spec or Initiative parent. Express the current Ticket Claim through the configured native Tracker mechanism, not a duplicate Event.
-3. Use a fresh Coder and two fresh isolated Reviewers for every initial or renewed repair cycle. Reuse those live threads only inside that cycle; create fresh children after Scheduler-task recovery. Never persist child identity as workflow state.
+3. Use a fresh Coder and two fresh isolated Reviewers for Cycle 1, reuse those live threads throughout that cycle, then use the Correction Coder and two fresh isolated Reviewers when a valid renewal enters Cycle 2 and reuse that set throughout Cycle 2. After Scheduler-task recovery, create a fresh child only when the existing child is unavailable, has lost its required context or read-only independence, or its contract authority materially changed. Never create a third-cycle set or persist child identity as workflow state.
 4. Make the Coder implement and validate, Reviewers judge read-only fixed Commits, and the Scheduler orchestrate integration and state writes.
 5. Hold both Ticket Reviewer results until both finish, then persist one combined review checkpoint. Never expose one axis to the other.
 6. Keep Candidate Review, Integration Result, and Final Acceptance evidence bound to their own immutable inputs; apply each binding's own invalidation rule.
-7. Close a Ticket only after integration. For a SHARED Spec, the Spec Root Final Integration Gate delivers to the target after every ordinary Ticket enters the Integration Branch. Close a single Spec only after its fresh Acceptance `PASS`. In a multi-Spec Run, keep member Specs Open through Initiative Acceptance; on Initiative `PASS`, close the valid member Specs first and the Initiative parent last.
+7. Close a Ticket only after integration. For a SHARED Spec, the Spec Root Final Integration Gate delivers to the target after every ordinary Ticket enters the Integration Branch. Close a single Spec only after its confirmed Spec Acceptance Seal. In a multi-Spec Run, keep member Specs Open through the Initiative Seal; on Initiative `PASS`, close the valid member Specs first and the Initiative parent last.
 8. Keep `PAUSED` Items Open and reserve the Claim for the original Run. On `CANCELLED`, release only that Run's Claims and never represent it as `COMPLETED`.
 9. Keep every `Release Boundary` Tracking reference and Post-delivery action outside the Ticket Frontier, Spec Scope, and Initiative membership.
 

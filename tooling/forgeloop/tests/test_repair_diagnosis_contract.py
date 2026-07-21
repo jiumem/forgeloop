@@ -51,6 +51,7 @@ class RepairDiagnosisContractTests(unittest.TestCase):
         scheduler = reference("scheduler.md")
 
         for contract in (
+            "`NO_REPAIR`",
             "`LOCAL_REPAIR`",
             "existing interface can honestly express the correct behavior",
             "one authoritative fact source",
@@ -80,10 +81,12 @@ class RepairDiagnosisContractTests(unittest.TestCase):
             "two fresh `PASS` Verdicts",
             "do not start a fourth repair",
             "reason=`REPAIR_BUDGET`",
-            "fresh Coder for the read-only Exhaustion Diagnosis",
+            "fresh Correction Coder for the read-only Exhaustion Diagnosis",
             "Coder owns the semantic recommendation",
             "does not parse, score, keyword-match",
-            "Automatic repair has no fixed total-cycle ceiling",
+            "at most two repair cycles",
+            "Cycle 2 is the single automatic correction cycle",
+            "No third cycle",
         ):
             with self.subTest(contract=contract):
                 self.assertIn(contract, repair)
@@ -93,16 +96,16 @@ class RepairDiagnosisContractTests(unittest.TestCase):
         )
         self.assertNotIn("at most two ordinary repair", tracker)
 
-    def test_later_diagnoses_compare_history_without_unsupported_downgrade(self) -> None:
+    def test_later_diagnoses_compare_history_without_architecture_ratchet(self) -> None:
         repair = reference("repair-and-integration.md")
 
         for contract in (
             "second and third diagnoses",
             "whether the prior mechanism hypothesis was falsified",
             "different `finding_id` values share one mechanism",
-            "`LOCAL_REPAIR` to `STRUCTURAL_REPAIR`",
-            "`STRUCTURAL_REPAIR` to `CONTRACT_BLOCKER`",
-            "must not downgrade `STRUCTURAL_REPAIR` to `LOCAL_REPAIR` without new evidence",
+            "Earlier classifications create no architecture floor",
+            "may escalate or downgrade the classification",
+            "prefer the smallest complete repair",
         ):
             with self.subTest(contract=contract):
                 self.assertIn(contract, repair)

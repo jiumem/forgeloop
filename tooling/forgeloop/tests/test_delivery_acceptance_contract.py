@@ -112,7 +112,8 @@ class DeliveryAcceptanceContractTests(unittest.TestCase):
 
         self.assertIn("Delivery Acceptance", acceptance)
         self.assertIn("does not execute or validate any Post-delivery Release Action", acceptance)
-        self.assertIn("must not return `REPAIR_REQUIRED`", acceptance)
+        self.assertIn("does not block Seal Eligibility", acceptance)
+        self.assertNotIn("verdict: PASS | REPAIR_REQUIRED", acceptance)
         self.assertIn("Delivery is complete", skill)
         self.assertIn("Release was not executed by this Run", skill)
         self.assertIn("Tracking reference", skill)

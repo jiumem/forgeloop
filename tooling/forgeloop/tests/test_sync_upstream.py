@@ -153,19 +153,20 @@ class SyncUpstreamTests(unittest.TestCase):
             for prefix in ("[Initiative]", "[Spec]", "[Ticket]"):
                 self.assertNotIn(prefix, text, target)
 
-    def test_to_tickets_accepts_idempotent_acceptance_repairs(self) -> None:
+    def test_to_tickets_accepts_idempotent_final_gate_repairs(self) -> None:
         config = MODULE.load_config()
         mapping = next(
             item for item in config["mappings"] if item["target"] == "to-tickets"
         )
         text = MODULE.expected_files(config, mapping)[Path("SKILL.md")].decode()
 
-        self.assertIn("## Forgeloop Acceptance Repair Mode", text)
+        self.assertIn("## Forgeloop Final Gate Repair Mode", text)
         self.assertIn("Final Gate Finding", text)
+        self.assertNotIn("`ACCEPTANCE_RESULT` with `REPAIR_REQUIRED`", text)
         self.assertIn("stable `repair_key`", text)
         self.assertIn("Reuse the unique matching unfinished repair Ticket", text)
         self.assertIn("do not decompose the whole Spec again", text)
-        self.assertIn("Never create a repair Ticket directly under the Initiative", text)
+        self.assertIn("Never create a repair Ticket directly under an Initiative", text)
         self.assertIn("`owning_spec_ref`", text)
         self.assertIn("does not resume `$run-initiative`", text)
 

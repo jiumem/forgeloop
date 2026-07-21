@@ -82,11 +82,11 @@ class AdversarialDesignContractTests(unittest.TestCase):
 
         approval = text[text.index("### 4. Quiz the user") : text.index("### 5. Publish")]
         for contract in (
-            "Show the complete Ticket bodies",
+            "one complete draft document",
             "risk classification",
             "blocking edges",
             "Adversarial Design",
-            "one fresh, isolated, read-only Design Reviewer for each approved `HIGH_RISK` Ticket",
+            "one initial fresh, isolated, read-only Design Reviewer for each approved `HIGH_RISK` Ticket",
             "parent Spec revision",
             "relevant ADRs",
             "complete Ticket draft",
@@ -94,14 +94,76 @@ class AdversarialDesignContractTests(unittest.TestCase):
             "code evidence",
             "referenced invariants",
             "must not modify files, the Spec, ADRs, draft Tickets, or Tracker state",
-            "PASS | DESIGN_GAPS | REVIEW_BLOCKED",
-            "PASS only with no Findings",
-            "If any Finding has `SPEC` or `ADR` impact",
+            "BLOCKING_GAP | CONTRACT_QUESTION | HARDENING_RECOMMENDATION | REVIEW_BLOCKED",
+            "PASS means there is no unresolved admitted `BLOCKING_GAP`",
+            "A `CONTRACT_QUESTION` that exposes a missing approved decision",
             "evidence",
             "counterexample",
-            "missing_decision",
             "required_proof",
-            "contract_impact: NONE | SPEC | ADR",
+        ):
+            with self.subTest(contract=contract):
+                self.assertIn(contract, approval)
+
+    def test_conversation_references_one_versioned_draft_without_repeating_bodies(self) -> None:
+        text = generated_to_tickets()
+        approval = text[text.index("### 4. Quiz the user") : text.index("### 5. Publish")]
+
+        self.assertIn("one complete draft document", approval)
+        self.assertIn("exact draft version", approval)
+        self.assertIn("show only the changed Tickets and fields", approval)
+        self.assertIn("Do not repeat the complete Ticket bodies in the conversation", approval)
+        self.assertNotIn("Show the complete Ticket bodies", approval)
+
+    def test_changed_drafts_refresh_verdicts_in_the_same_reviewer_thread(self) -> None:
+        text = generated_to_tickets()
+        approval = text[text.index("### 4. Quiz the user") : text.index("### 5. Publish")]
+
+        self.assertIn("initial fresh, isolated, read-only Design Reviewer", approval)
+        self.assertIn("continue the same Design Reviewer thread", approval)
+        self.assertIn("invalidate the old Verdict, not the Reviewer identity", approval)
+        self.assertIn("unavailable, has lost read-only independence, or the review authority is replaced", approval)
+        self.assertNotIn("discard the affected PASS and run a new Reviewer", approval)
+
+    def test_blocking_findings_are_contract_bound_and_adjudicated(self) -> None:
+        text = generated_to_tickets()
+        approval = text[text.index("### 4. Quiz the user") : text.index("### 5. Publish")]
+
+        for contract in (
+            "BLOCKING_GAP | CONTRACT_QUESTION | HARDENING_RECOMMENDATION | REVIEW_BLOCKED",
+            "authority_ref",
+            "observable_violation",
+            "reachable_counterexample",
+            "necessity",
+            "required_proof",
+            "Delivery Acceptance, Cross-seam Invariant, applicable ADR, or approved failure behavior",
+            "cannot block publication",
+            "ACCEPT | NARROW | DEFER | REJECT | CONTRACT_BLOCKER",
+            "no unresolved admitted `BLOCKING_GAP`",
+            "non-binding implementation suggestion",
+            "A completely bound `CONTRACT_QUESTION` stops publication through `CONTRACT_BLOCKER`",
+            "Only a `HARDENING_RECOMMENDATION` cannot block publication",
+        ):
+            with self.subTest(contract=contract):
+                self.assertIn(contract, approval)
+        self.assertIn("Every `CONTRACT_QUESTION` must contain", approval)
+        self.assertIn("`missing_decision`", approval)
+        self.assertIn("An unbound `CONTRACT_QUESTION` cannot block publication", approval)
+        self.assertIn(
+            "`CONTRACT_BLOCKER` may follow only a completely bound `CONTRACT_QUESTION`",
+            approval,
+        )
+        self.assertNotIn("Return PASS only with no Findings", approval)
+
+    def test_third_gap_round_forces_scale_review_before_any_fourth_round(self) -> None:
+        text = generated_to_tickets()
+        approval = text[text.index("### 4. Quiz the user") : text.index("### 5. Publish")]
+
+        for contract in (
+            "third consecutive non-PASS review round",
+            "do not start a fourth ordinary review round",
+            "compare the current draft with the initially approved draft",
+            "remove or defer every unsupported mechanism",
+            "new contract authority or materially new evidence",
         ):
             with self.subTest(contract=contract):
                 self.assertIn(contract, approval)
@@ -111,9 +173,9 @@ class AdversarialDesignContractTests(unittest.TestCase):
 
         for contract in (
             "skip Design Reviewers for `STANDARD` Tickets",
-            "discard the affected PASS and run a new Reviewer",
-            "Do not create an automatic design repair loop",
-            "design clarification entry point",
+            "invalidate the old Verdict, not the Reviewer identity",
+            "third consecutive non-PASS review round",
+            "do not start a fourth ordinary review round",
             "unreadable or invalid fixed input",
             "do not treat missing evidence as PASS",
             "publish the complete Ticket set in one batch",

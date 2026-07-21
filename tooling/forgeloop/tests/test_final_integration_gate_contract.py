@@ -47,7 +47,7 @@ class FinalIntegrationGateContractTests(unittest.TestCase):
             "exact native read-back",
             "subject_ref=<spec-ref>",
             "target_after",
-            "fresh Spec Acceptance",
+            "hand Seal Eligibility to the Scheduler",
             "adds no Event, state, Reviewer type, Acceptance level, parser, or fact source",
         ):
             self.assertIn(marker, protocol)
@@ -55,7 +55,7 @@ class FinalIntegrationGateContractTests(unittest.TestCase):
         create_pr = protocol.index("creates or reuses the one valid native PR/MR identity")
         read_checks = protocol.index("read Required Checks")
         merge = protocol.index("integrate through the configured Integration Policy")
-        acceptance = protocol.index("Run fresh Spec Acceptance")
+        acceptance = protocol.index("hand Seal Eligibility to the Scheduler")
         self.assertLess(create_pr, read_checks)
         self.assertLess(read_checks, merge)
         self.assertLess(merge, acceptance)
@@ -136,7 +136,7 @@ class FinalIntegrationGateContractTests(unittest.TestCase):
 
     def test_repair_mode_rejects_every_parent_contract_change(self) -> None:
         text = TO_TICKETS.read_text(encoding="utf-8")
-        repair_mode = text.split("## Forgeloop Acceptance Repair Mode", 1)[1].split(
+        repair_mode = text.split("## Forgeloop Final Gate Repair Mode", 1)[1].split(
             "## Forgeloop Spec Revision Reconciliation Mode", 1
         )[0]
 
