@@ -164,7 +164,7 @@ def evaluation_prompt() -> str:
     ]
     return f"""Apply the Exhaustion Diagnosis and repair-cycle protocols to every case.
 Read each case as semantic evidence, not as keywords or Boolean flags. Recommend the one automatic
-correction cycle only after Cycle 1, when an authority-bound violation remains and a materially
+correction cycle only after Cycle 1, when an authority-and-necessity-bound violation remains and a materially
 different, in-Scope, falsifiable correction converges or reduces the design. Never recommend renewal
 after Cycle 2. Explain every field even when the recommendation is blocked. Modify nothing and do not
 use network.

@@ -1,6 +1,6 @@
 ## Forgeloop Boundaries
 
-Ask only one high-impact question at a time and provide a recommended answer. Maintain the single source of truth through `$domain-modeling` only when domain information actually changes:
+Follow `$grilling`'s bounded, dependency-aware rounds and provide a recommended answer for every question. Ask a high-impact, hard-to-reverse, or framing decision alone; otherwise ask 3–5 independent questions, never more than 5. Maintain the single source of truth through `$domain-modeling` only when domain information actually changes:
 
 - Write settled domain terminology only to `CONTEXT.md`, with no implementation details;
 - Write a long-term decision to an ADR only after it satisfies all three ADR thresholds and the user confirms it;

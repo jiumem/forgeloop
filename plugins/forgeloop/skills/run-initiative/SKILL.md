@@ -13,12 +13,13 @@ Do not preload every Reference.
 
 1. At entry, read [scheduler.md](references/scheduler.md), [events-and-recovery.md](references/events-and-recovery.md), and the configured runtime through [tracker-operations.md](references/tracker-operations.md).
 2. For any declared `SHARED` topology, read [final-integration-gate.md](references/final-integration-gate.md) before the root Claim; when its reason is `CUMULATIVE_AUDIT`, also read [cumulative-audit.md](references/cumulative-audit.md).
-3. Before creating a Coder, read [coder.md](references/coder.md).
-4. Before creating Ticket Reviewers, read [reviewers.md](references/reviewers.md).
-5. When repair, integration, or a merge conflict becomes relevant, read [repair-and-integration.md](references/repair-and-integration.md).
-6. When a Spec becomes eligible for final acceptance, read [acceptance.md](references/acceptance.md).
-7. For a multi-Spec run or a state conflict, also read [domain-and-state.md](references/domain-and-state.md).
-8. When `CONTRACT_BLOCKER` requires user adjudication, read [contract-reconciliation.md](references/contract-reconciliation.md) before asking the user or changing any contract fact.
+3. Before creating any Ticket Coder or Reviewer, read [delivery-judgment.md](references/delivery-judgment.md) and include it unchanged in every self-contained Role Task Pack for those roles.
+4. Before creating a Coder, read [coder.md](references/coder.md).
+5. Before creating Ticket Reviewers, read [reviewers.md](references/reviewers.md).
+6. When repair, integration, or a merge conflict becomes relevant, read [repair-and-integration.md](references/repair-and-integration.md).
+7. When a Spec becomes eligible for final acceptance, read [acceptance.md](references/acceptance.md).
+8. For a multi-Spec run or a state conflict, also read [domain-and-state.md](references/domain-and-state.md).
+9. When `CONTRACT_BLOCKER` requires user adjudication, read [contract-reconciliation.md](references/contract-reconciliation.md) before asking the user or changing any contract fact.
 
 Follow the selected Reference completely. Do not invent unloaded protocol details.
 

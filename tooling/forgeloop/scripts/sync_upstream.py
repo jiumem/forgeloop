@@ -7,7 +7,6 @@ import argparse
 import json
 import re
 import shutil
-import subprocess
 import sys
 from pathlib import Path
 
@@ -27,15 +26,38 @@ def load_metadata() -> dict:
 
 
 def upstream_head(root: Path) -> str:
-    result = subprocess.run(
-        ["git", "-C", str(root), "rev-parse", "HEAD"],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    if result.returncode != 0:
-        raise RuntimeError(f"无法读取上游 Commit：{result.stderr.strip()}")
-    return result.stdout.strip()
+    git_dir = root / ".git"
+    if git_dir.is_file():
+        marker = git_dir.read_text(encoding="utf-8").strip()
+        if not marker.startswith("gitdir: "):
+            raise RuntimeError(f"无法读取上游 Commit：无效 .git 文件 {git_dir}")
+        candidate = Path(marker.removeprefix("gitdir: "))
+        git_dir = candidate if candidate.is_absolute() else (root / candidate).resolve()
+    if not git_dir.is_dir():
+        raise RuntimeError(f"无法读取上游 Commit：缺失 {git_dir}")
+
+    head = (git_dir / "HEAD").read_text(encoding="utf-8").strip()
+    if re.fullmatch(r"[0-9a-f]{40}", head):
+        return head
+    if not head.startswith("ref: "):
+        raise RuntimeError(f"无法读取上游 Commit：无效 HEAD {head!r}")
+
+    ref = head.removeprefix("ref: ")
+    loose_ref = git_dir / ref
+    if loose_ref.is_file():
+        commit = loose_ref.read_text(encoding="utf-8").strip()
+        if re.fullmatch(r"[0-9a-f]{40}", commit):
+            return commit
+
+    packed_refs = git_dir / "packed-refs"
+    if packed_refs.is_file():
+        for line in packed_refs.read_text(encoding="utf-8").splitlines():
+            if not line or line.startswith(("#", "^")):
+                continue
+            commit, packed_ref = line.split(" ", 1)
+            if packed_ref == ref and re.fullmatch(r"[0-9a-f]{40}", commit):
+                return commit
+    raise RuntimeError(f"无法读取上游 Commit：引用 {ref} 未解析")
 
 
 def require_upstream_commit(actual: str, expected: str) -> None:
@@ -82,11 +104,20 @@ def expected_files(config: dict, mapping: dict) -> dict[Path, bytes]:
     upstream = REPO_ROOT / config["upstream_root"] / mapping["source"]
     if not upstream.is_dir():
         raise RuntimeError(f"缺失上游目录：{upstream}")
+    excluded_files = {
+        Path(relative)
+        for relative in config.get("exclude_files", [])
+    } | {
+        Path(relative)
+        for relative in mapping.get("exclude_files", [])
+    }
     expected: dict[Path, bytes] = {}
     for source in sorted(upstream.rglob("*")):
         if not source.is_file() or ".git" in source.parts:
             continue
         relative = source.relative_to(upstream)
+        if relative in excluded_files:
+            continue
         data = source.read_bytes()
         try:
             transformed_text = transform_text(
@@ -187,6 +218,11 @@ def main() -> int:
             adaptations.append(
                 f"FileReplacements={','.join(mapping['file_replacements'])}"
             )
+        excluded_files = config.get("exclude_files", []) + mapping.get(
+            "exclude_files", []
+        )
+        if excluded_files:
+            adaptations.append(f"ExcludeFiles={','.join(excluded_files)}")
         adaptations.append("TriggerDescription=config/skill-metadata.json")
         print(
             f"{source} -> skills/{mapping['target']}；"

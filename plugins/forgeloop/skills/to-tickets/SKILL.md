@@ -183,6 +183,8 @@ Omit this section for `STANDARD`. For `HIGH_RISK`, include complete Risk surface
 
 In either form, avoid specific file paths or code snippets — they go stale fast. Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it and note briefly that it came from a prototype. Trim to the decision-rich parts — not a working demo, just the important bits.
 
+## Forgeloop Completion Boundary
+
 After publication, return the parent Spec and Ticket references and tell the user they may explicitly invoke `$run-initiative`. Do not start that Workflow automatically.
 
 ## Forgeloop Planning Contract Gap Handoff

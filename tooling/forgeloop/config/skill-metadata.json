@@ -32,8 +32,8 @@
   "grilling": {
     "description": "Load when a plan or design needs focused adversarial questioning without the document-maintenance workflow.",
     "display_name": "grilling",
-    "short_description": "Ask one high impact design question at a time",
-    "default_prompt": "Use $grilling to ask one high-impact design question at a time."
+    "short_description": "Clarify independent decisions in bounded rounds",
+    "default_prompt": "Use $grilling to clarify this design in small dependency-aware rounds."
   },
   "handoff": {
     "description": "Load when the user explicitly wants another session or agent to continue unfinished work without replaying the full conversation.",
@@ -116,7 +116,7 @@
   "wayfinder": {
     "description": "Load when the user explicitly wants to explore a large ambiguous objective that requires multiple investigation sessions before implementation planning.",
     "display_name": "wayfinder",
-    "short_description": "Map and resolve one investigation ticket at a time",
-    "default_prompt": "Use $wayfinder to map this large ambiguous objective into investigation Tickets."
+    "short_description": "Map and resolve one decision ticket at a time",
+    "default_prompt": "Use $wayfinder to map this large ambiguous objective into Decision Tickets."
   }
 }

@@ -1,8 +1,9 @@
 {
-  "upstream_commit": "391a2701dd948f94f56a39f7533f8eea9a859c87",
+  "upstream_commit": "6acc160e4e0cd062dbbbd7a1b26ae92855edf07e",
   "upstream_root": "references/mattpocock-skills",
+  "exclude_files": ["agents/openai.yaml"],
   "mappings": [
-    {"source": "skills/engineering/ask-matt", "target": "ask-forgeloop", "overlay": "config/overlays/ask-forgeloop.md"},
+    {"source": "skills/engineering/ask-matt", "target": "ask-forgeloop", "overlay": "config/overlays/ask-forgeloop.md", "exclude_files": ["PHASE-BOUNDARIES.md"]},
     {
       "source": "skills/engineering/code-review",
       "target": "spec-standards-review",
@@ -37,12 +38,8 @@
             "For a fixed-point change review, confirm the fixed point resolves (`git rev-parse <fixed-point>`) and the diff is non-empty. A bad ref or empty diff should fail here — not inside two parallel sub-agents.\n\nFor a snapshot review, resolve the exact paths, record the current revision, and confirm the scope exists, is readable, and contains code. A missing, unreadable, or empty scope should fail here. If no review scope is specified, ask for it; do not default to the whole repository."
           ],
           [
-            "1. Issue references in the commit messages (`#123`, `Closes #45`, GitLab `!67`, etc.) — fetch via the workflow in `docs/agents/issue-tracker.md`.\n2. A path the user passed as an argument.\n3. A PRD/spec file under `docs/`, `specs/`, or `.scratch/` matching the branch name or feature.\n4. If nothing is found, ask the user where the spec is. If they say there isn't one, the **Spec** sub-agent will skip and report \"no spec available\".",
+            "1. Issue references in the commit messages (`#123`, `Closes #45`, GitLab `!67`, etc.) — fetch via the workflow in `docs/agents/issue-tracker.md`.\n2. A path the user passed as an argument.\n3. A spec file under `docs/`, `specs/`, or `.scratch/` matching the branch name or feature.\n4. If nothing is found, ask the user where the spec is. If they say there isn't one, the **Spec** sub-agent will skip and report \"no spec available\".",
             "1. A Spec, PRD, or acceptance contract the caller or upstream Workflow supplied.\n2. Issue references in the commit messages for a change review (`#123`, `Closes #45`, GitLab `!67`, etc.) — fetch via the workflow in `docs/agents/issue-tracker.md`.\n3. A PRD/spec file under `docs/`, `specs/`, or `.scratch/` matching the branch, feature, or snapshot scope.\n4. If nothing is found, ask the caller where the spec is. If they say there isn't one, skip the **Spec** sub-agent and report `SPEC: NOT_AVAILABLE`."
-          ],
-          [
-            "Send a single message with two `Agent` tool calls. Use the `general-purpose` subagent for both.",
-            "Create two independent child Agents from self-contained prompts and let them run in parallel without inheriting the current conversation."
           ],
           [
             "- The full diff command and commit list.",
@@ -59,6 +56,10 @@
           [
             "The brief: \"Report: (a) requirements the spec asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep); (c) requirements that look implemented but where the implementation looks wrong. Quote the spec line for each finding. Under 400 words.\"",
             "The brief: \"Report: (a) requirements the spec asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep); (c) requirements that look implemented but where the implementation looks wrong. Quote the spec line for each finding. Also cite file/line or diff-hunk evidence, and do not report outside the frozen scope. Under 400 words.\""
+          ],
+          [
+            "### 4. Spawn both sub-agents in parallel",
+            "### 4. Spawn both sub-agents in parallel\n\nCreate two independent child Agents from self-contained prompts and let them run in parallel without inheriting the current conversation."
           ],
           [
             "Present the two reports under `## Standards` and `## Spec` headings, verbatim or lightly cleaned. Do **not** merge or rerank findings — the two axes are deliberately separate (see _Why two axes_).",
@@ -117,7 +118,7 @@
             "- The domain language in `CONTEXT.md` gives names to good seams; ADRs in `docs/adr/` record decisions this command should not re-litigate.\n\n## Forgeloop Scope\n\nThe Explore and Report phases remain read-only. Outside the project, this run may only generate its HTML in an OS temporary directory. Do not create a Spec, Ticket, or Initiative, and do not modify production code. After the user selects a candidate, Phase 3 writes to domain documentation require a separate authorization seam. That authorization covers only adjudicated `CONTEXT.md` terms or an ADR confirmed by the user and does not extend to other project files."
           ],
           [
-            "Then use the Agent tool with `subagent_type=Explore` to walk the codebase. Don't follow rigid heuristics — explore organically and note where you experience friction:",
+            "Then spawn a sub-agent to walk the codebase. Don't follow rigid heuristics — explore organically and note where you experience friction:",
             "Then delegate the read-only scan to an isolated child Agent with a self-contained brief. Don't follow rigid heuristics — explore organically and note where you experience friction:"
           ],
           [
@@ -135,7 +136,32 @@
         ]
       }
     },
-    {"source": "skills/engineering/prototype", "target": "prototype"},
+    {
+      "source": "skills/engineering/prototype",
+      "target": "prototype",
+      "file_replacements": {
+        "SKILL.md": [[
+          "- **\"Does this logic / state model feel right?\"** → [LOGIC.md](LOGIC.md). Build a single shareable HTML file — free-play buttons plus tabbed guided walkthroughs — that pushes the state machine through cases that are hard to reason about on paper, and that a non-developer can drive.\n- **\"What should this look like?\"** → [UI.md](UI.md). Generate several radically different UI variations on a single route, switchable via a URL search param and a floating bottom bar.",
+          "- **\"Does this domain logic / state model feel right?\"** → [LOGIC.md](LOGIC.md). Build a single shareable HTML file — free-play buttons plus tabbed guided walkthroughs — that pushes the state machine through cases that are hard to reason about on paper, and that a non-developer can drive.\n- **\"Does this depend on language, concurrency, database, framework, or runtime semantics?\"** → Build the smallest host-native executable probe behind one command. Do not translate the behavior into browser JavaScript when that would change what is being tested.\n- **\"What should this look like?\"** → [UI.md](UI.md). Generate several radically different UI variations on a single route, switchable via a URL search param and a floating bottom bar."
+        ], [
+          "The two branches produce very different artifacts — getting this wrong wastes the whole prototype.",
+          "The three branches produce very different artifacts — getting this wrong wastes the whole prototype."
+        ], [
+          "If the question is genuinely ambiguous and the user isn't reachable, default to whichever branch better matches the surrounding code (a backend module → logic; a page or component → UI) and state the assumption at the top of the prototype.",
+          "If the question is genuinely ambiguous and the user is not reachable, choose the host-native probe whenever validity depends on real runtime semantics; otherwise use the domain-logic HTML for a backend state model and the UI branch for a page or component. State the assumption at the top of the prototype."
+        ], [
+          "## Rules that apply to both",
+          "## Rules that apply to every branch"
+        ], [
+          "2. **Trivial to run.** A UI prototype starts from one command in the project's task runner — `pnpm <name>`, `python <path>`, `bun <path>`, etc. A logic demo is a single HTML file the user double-clicks. Either way, no thinking required to start it.",
+          "2. **Trivial to run.** A UI prototype starts from one command in the project's task runner — `pnpm <name>`, `python <path>`, `bun <path>`, etc. A domain-logic demo is a single HTML file the user double-clicks. A runtime-specific probe also starts from one repository-native command and introduces no new runtime or package manager. In every branch, no thinking is required to start it."
+        ], [
+          "5. **Surface the state.** After every action (logic) or on every variant switch (UI), print or render the full relevant state so the user can see what changed.",
+          "5. **Surface the state.** After every action (domain logic or runtime probe) or on every variant switch (UI), print or render the full relevant state so the user can see what changed."
+        ]]
+      },
+      "appends": {"SKILL.md": "config/overlays/prototype-append.md"}
+    },
     {"source": "skills/engineering/research", "target": "primary-source-research"},
     {"source": "skills/engineering/resolving-merge-conflicts", "target": "resolving-merge-conflicts", "overlay": "config/overlays/resolving-merge-conflicts.md"},
     {
@@ -143,7 +169,7 @@
       "target": "setup-forgeloop",
       "file_replacements": {
         "SKILL.md": [[
-          "> Explainer: The \"issue tracker\" is where issues live for this repo. Skills like `to-tickets`, `triage`, `to-spec`, and `spec-standards-review` read from and write to it — they need to know whether to call `gh issue create`, write a markdown file under `.scratch/`, or follow some other workflow you describe. Pick the place you actually track work for this repo.",
+          "> Explainer: The \"issue tracker\" is where issues live for this repo. Skills like `to-tickets`, `triage`, and `to-spec` read from and write to it — they need to know whether to call `gh issue create`, write a markdown file under `.scratch/`, or follow some other workflow you describe. Pick the place you actually track work for this repo.",
           "> Explainer: The \"issue tracker\" is where issues live for this repo. Skills such as `to-tickets`, `triage`, and `to-spec` read and write it; `spec-standards-review` may read a linked Spec. Choose where this repository actually tracks work."
         ]]
       },
@@ -338,10 +364,6 @@
             "After every applicable Design Reviewer returns a bound PASS, publish the complete Ticket set in one batch. Build every new Ticket's canonical tracker title as `[Ticket] <outcome-oriented title>` and render the `[Ticket]` prefix exactly once, even when the supplied title already contains a canonical or legacy prefix. Use that canonical title for conflict checks, duplicate queries, and publication. **How** depends on the tracker `/setup-forgeloop` configured — the tickets are the same either way, only the shape of the blocking edges changes:"
           ],
           [
-            "Work the frontier one ticket at a time with `/run-initiative`, clearing context between tickets.",
-            "After publication, return the parent Spec and Ticket references and tell the user they may explicitly invoke `$run-initiative`. Do not start that Workflow automatically."
-          ],
-          [
             "When even the batches can't stay green alone, keep the sequence but let them share an integration branch that all block a final integrate-and-verify ticket — green is promised only there.",
             "When even the batches can't stay green alone, keep the sequence on one approved Spec Integration Branch; the Spec root Final Integration Gate proves the final green delivery."
           ],
@@ -371,13 +393,46 @@
       "source": "skills/engineering/wayfinder",
       "target": "wayfinder",
       "file_replacements": {
-        "SKILL.md": [[
-          "**Where the map, its child tickets, blocking, and frontier queries physically live is tracker-specific.** The issue tracker should have been provided to you — run `/setup-forgeloop` if not. Consult the tracker doc's \"Wayfinding operations\" section for how _this_ repo expresses them. If no tracker has been provided, default to the local-markdown tracker.",
-          "**Where the map, its child tickets, blocking, and frontier queries physically live is tracker-specific.** A configured Issue Tracker must already exist. If `docs/agents/issue-tracker.md` is missing, return `FAILED_PRECONDITION` and instruct the user to invoke `$setup-forgeloop` explicitly. Do not invoke it or fall back to Local. Otherwise consult the tracker doc's \"Wayfinding operations\" section for how _this_ repo expresses them."
-        ]]
+        "SKILL.md": [
+          [
+            "**Where the map, its child tickets, blocking, and frontier queries physically live is tracker-specific.** The issue tracker should have been provided to you — run `/setup-forgeloop` if not. Consult the tracker doc's \"Wayfinding operations\" section for how _this_ repo expresses them. If no tracker has been provided, default to the local-markdown tracker.",
+            "**Where the map, its child tickets, blocking, and frontier queries physically live is tracker-specific.** A configured Issue Tracker must already exist. If `docs/agents/issue-tracker.md` is missing, return `FAILED_PRECONDITION` and instruct the user to invoke `$setup-forgeloop` explicitly. Do not invoke it or fall back to Local. Otherwise consult the tracker doc's \"Wayfinding operations\" section for how _this_ repo expresses them."
+          ],
+          [
+            "Two modes. Either way, **never resolve more than one ticket per session** — with the exception of research tickets.",
+            "Two modes. Either way, **never resolve more than one Decision Ticket per session**. Research tickets receive no automatic exception."
+          ],
+          [
+            "5. **Fire the research subagents.** For each `research` ticket you just created, spin up a `/primary-source-research` subagent to resolve it in parallel, capturing its findings on a throwaway `research/<name>` branch with a context pointer from the ticket.\n6. Stop — charting is one session's work; it hand-resolves nothing.",
+            "5. Leave every Research Ticket on the map as an ordinary Decision Ticket and stop. Do not automatically spawn research Agents, create `research/<name>` branches, or update Ticket state. The user may explicitly start independent research work later.\n6. Stop — charting is one session's work; it resolves nothing."
+          ]
+        ]
       }
     },
-    {"source": "skills/productivity/grilling", "target": "grilling"},
+    {
+      "source": "skills/productivity/grilling",
+      "target": "grilling",
+      "file_replacements": {
+        "SKILL.md": [
+          [
+            "Work the tree in **rounds**. The **frontier** is every decision whose prerequisites are already settled — the questions you can ask _now_ without guessing at answers you haven't heard yet. Ask the whole frontier in one round: number each question and give your recommended answer. Then wait for the user's answers before the next round.",
+            "Work the tree in **rounds**. The **frontier** is every decision whose prerequisites are already settled — the questions you can ask _now_ without guessing at answers you have not heard yet. Ask a bounded slice of the frontier in each round: normally 3–5 independent questions, never more than 5. Ask fewer when a question is high-impact, hard to reverse, or cognitively heavy; ask it alone when its answer is needed to frame the others. Number every question, give your recommended answer, then wait for the user's answers before the next round."
+          ],
+          [
+            "Each round the user answers reshapes the tree — settled decisions push the frontier outward and unblock questions that depended on them. Recompute the frontier and ask the next round. A question whose answer depends on another question still open in this round belongs to a _later_ round, not this one.",
+            "Each round the user answers reshapes the tree — settled decisions push the frontier outward and unblock questions that depended on them. Summarize the decisions just settled, recompute the frontier, and ask the next bounded round. A question whose answer depends on another question still open in this round belongs to a _later_ round, not this one. Make recommendations explicit enough that the user can answer in bulk, for example: `accept all recommendations except Q3`. If the user asks for lower density, return to one question at a time."
+          ],
+          [
+            "Finding _facts_ is your job, never the user's. When a frontier question needs a fact from the environment (filesystem, tools, etc.), dispatch a sub-agent to find it — don't ask the user for anything you could look up yourself. Don't block on it: a running exploration is an unsettled prerequisite, so only the questions downstream of it wait for the sub-agent to report — ask the rest of the frontier now. The _decisions_ are the user's — put each to them and wait.",
+            "Finding _facts_ is your job, never the user's. When a frontier question needs a fact from the environment, look it up directly or delegate only when doing so is useful and authorized; do not ask the user for anything you can discover yourself. Treat any unfinished exploration as an unsettled prerequisite, so dependent questions wait while the rest of the bounded frontier may proceed. The _decisions_ are the user's — put each to them and wait."
+          ],
+          [
+            "The session is done when the frontier is empty: every branch of the design tree visited, nothing left silently assumed. Do not act on it until the user confirms you have reached a shared understanding.",
+            "The session is done when the remaining uncertainty no longer changes the smallest complete design, or when the frontier is empty. Do not continue into low-value preferences merely to exhaust the theoretical tree. Do not act on the result until the user confirms you have reached a shared understanding."
+          ]
+        ]
+      }
+    },
     {"source": "skills/productivity/handoff", "target": "handoff"}
   ],
   "replacements": [
