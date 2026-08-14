@@ -11,7 +11,7 @@ First identify the user's current stage, then recommend one primary entry point 
 
 - Configure the Tracker, integration policy, and domain documentation for the first time: `$setup-forgeloop`.
 - Find 1–3 candidates for what to tackle next from repository evidence: `$recommend-initiatives`.
-- Clarify a design one item at a time within a single session while maintaining domain documentation: `$grill-with-docs`.
+- Clarify a design in small dependency-aware rounds within a single session while maintaining domain documentation: `$grill-with-docs`.
 - For a large ambiguous problem spanning multiple sessions, first create an exploration Map: `$wayfinder`.
 - Publish sufficiently discussed context as a Spec: `$to-spec`.
 - Split an approved Spec into independently verifiable vertical Tickets: `$to-tickets`.

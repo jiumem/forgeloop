@@ -20,6 +20,11 @@ The Explore and Report phases remain read-only. Outside the project, this run ma
 
 ### 1. Explore
 
+**Scope before you scan — YAGNI.** Deepening a module pays off by making future changes to it easier, so put extra weight on the parts of the codebase that have recently changed. Decide *where* to look before you look:
+
+- If the user named a direction — a module, a subsystem, a pain point — take it, and skip the inference below.
+- Otherwise, walk back a good stretch of the commit history (`git log --oneline`) to find the codebase's hot spots — the files and areas that keep coming up — and let those paths pull your attention first. If the changes are scattered with no clear hot spot, widen the net.
+
 Read the project's domain glossary (`CONTEXT.md`) and any ADRs in the area you're touching first.
 
 Then delegate the read-only scan to an isolated child Agent with a self-contained brief. Don't follow rigid heuristics — explore organically and note where you experience friction:
@@ -61,7 +66,7 @@ Do NOT propose interfaces yet. After the file is written, ask the user: "Which o
 
 ### 3. Grilling loop
 
-Once the user picks a candidate, run the `/grilling` skill to walk the design tree with them — constraints, dependencies, the shape of the deepened module, what sits behind the seam, what tests survive.
+Once the user picks a candidate, run the `/grilling` skill to walk the decision tree with them — constraints, dependencies, the shape of the deepened module, what sits behind the seam, what tests survive.
 
 Writing domain documentation is a separate authorization seam. Before the first write, list the target files and the adjudicated terms or durable decisions to be recorded, and obtain explicit user authorization. Without authorization, return only the proposed text in the conversation, do not modify the project, and do not invoke `$domain-modeling` to perform writes. Invoke `$domain-modeling` only after authorization is granted, while continuing to follow its `CONTEXT.md` and ADR rules:
 

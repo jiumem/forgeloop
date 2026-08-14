@@ -2,9 +2,9 @@
 
 Forgeloop 是一套面向 Codex 的 Tracker 驱动交付插件。它不替代 Codex，也不建立第二套项目管理系统；它把 Codex 已有的任务、子任务、Git 与 Tracker 能力组织成一条可恢复、可评审、可验收的工程交付路径。
 
-> 当前版本：`4.0.0` · 20 个正式 Skill · 11 个用户入口 · 9 个模型可调用能力
+> 当前版本：`4.1.0` · 20 个正式 Skill · 11 个用户入口 · 9 个模型可调用能力
 
-[快速开始](README.md) · [4.0.0 发布说明](docs/releases/4.0.0-release-notes.md) · [3.6.1 → 4.0.0 迁移指南](docs/migrations/3.6.1-to-4.0.0.md)
+[快速开始](README.md) · [4.1.0 发布说明](docs/releases/4.1.0-release-notes.md) · [3.6.1 → 4.0.0 迁移指南](docs/migrations/3.6.1-to-4.0.0.md)
 
 ## 目录
 
@@ -203,6 +203,12 @@ FAIL：本周期 Coder 修复，再重新双审
 
 - Standards Reviewer 判断代码是否符合仓库标准和工程约束。
 - Spec Reviewer 判断实现是否满足 Ticket 和所属 Spec。
+
+Coder 与双 Reviewer 同时收到一份统一交付价值函数。它按固定顺序判断：先完整满足批准结果及其必要约束，再验证证据是否真实可信，最后才在所有完整方案中选择最小语义扰动。最小语义扰动不是最少代码，而是尽量不新增领域概念、事实来源、状态、接口、生命周期、协调机制、失败模式和持续维护责任。
+
+Spec Reviewer 遵循“广泛检查、克制阻塞”：权限、失败、恢复、并发、跨模块不变量和证据生产路径仍需深入检查，但 Blocking Finding 必须形成完整必要性链条，即“批准的可观察结果或明确约束 → 该结果必需的不变量 → 已批准模型内可达的反例 → Candidate 的可观察失败或不可信证据”。仅引用宽泛 ADR、架构原则、内部一致性、未来拓扑或更强技术保证不能阻塞交付；反过来，批准结果必然推出的权限、幂等、恢复和证据约束不会因为 Spec 没写实现术语而被裁剪。
+
+Repair Diagnosis 把 Spec Finding 视为可证伪的主张。必要性链条断裂且 Candidate 已满足批准结果时，Coder 使用现有 `NO_REPAIR`；链条完整时仍选择能够诚实满足结果的最小 Local 或 Structural repair。该判断不新增角色、Verdict、Event、Tracker 状态或修复预算。
 
 Scheduler 必须在评审前验证候选变更已经形成真实提交，并冻结 Branch Head、Base、Head 和任务输入。如果任何共享输入发生变化，两项评审都必须重跑，不能拼接不同版本的结论。
 

@@ -28,6 +28,7 @@ Every first child message must be self-contained because it does not inherit the
 
 - the role and objective;
 - the resolved path to the applicable role protocol;
+- the complete [Delivery Judgment Contract](delivery-judgment.md), included unchanged for every Ticket Coder and Reviewer so implementation, review, and repair use one value function;
 - frozen Ticket, Spec, revision, Base, Head or target, and Integration mode;
 - only the repository instructions, ADRs, dependency conclusions, and evidence needed by that role;
 - writable Scope for a Coder or explicit read-only Scope for a Reviewer;
@@ -35,7 +36,7 @@ Every first child message must be self-contained because it does not inherit the
 - the current `cycle_anchor` and effective Spec, Ticket, and applicable ADR revisions for a Ticket Coder or Reviewer.
 - the approved Validation Entries, public Seam, Acceptance Prerequisites, and evidence needed to distinguish a reproducible behavior change, behavior-preserving work, or a declared external condition without inventing a new proof path.
 
-Do not include host-specific child configuration or unrelated Scheduler history. The task message defines the role.
+Do not include host-specific child configuration or unrelated Scheduler history. The task message defines the role. The Scheduler transports the Delivery Judgment Contract and evidence without summarizing, scoring, parsing, or turning it into a new gate.
 
 ## Child Continuity
 
@@ -56,7 +57,7 @@ If a Reviewer returns `REVIEW_BLOCKED`, finish collecting the other axis without
 
 Before repair, validate that every diagnosis field is present, then route the declared classification under the Repair protocol. The Scheduler must not judge the technical merits. It must not classify the mechanism itself, merge classifications, or authorize a repair from an incomplete diagnosis. It must not merge, reorder, or rewrite Reviewer Findings.
 
-For `NO_REPAIR`, first require that all remaining Blocking Findings are Spec-axis Findings. Make no Candidate change; the route consumes no repair round. A Standards-axis Finding must never be sent to the Spec Reviewer. Send the complete Spec-axis diagnosis once to the same Spec Reviewer for one evidence-only reconsideration on the unchanged Head; this does not involve the Standards Reviewer. The Spec Reviewer must either bind the same `finding_id` to materially new exact authority and reachable evidence, downgrade it to Advisory, or return `PASS`. Do not repeat this reconsideration for the same `finding_id`, Head, and authority. If the Reviewer maintains a completely bound Finding, return it to the same Coder for an ordinary diagnosis; the Scheduler still must not decide whether the Finding is technically correct.
+For `NO_REPAIR`, first require that all remaining Blocking Findings are Spec-axis Findings. Make no Candidate change; the route consumes no repair round. A Standards-axis Finding must never be sent to the Spec Reviewer. Send the complete Spec-axis diagnosis once to the same Spec Reviewer for one evidence-only reconsideration on the unchanged Head; this does not involve the Standards Reviewer. The Spec Reviewer must either rebuild the same `finding_id` as a complete necessity chain using materially new exact authority or evidence, downgrade it to Advisory, or return `PASS`; a new citation alone cannot maintain the Finding. Do not repeat this reconsideration for the same `finding_id`, Head, and authority. If the Reviewer maintains a completely bound Finding, return it to the same Coder for an ordinary diagnosis; the Scheduler still must not decide whether the Finding is technically correct.
 
 After a Cycle 1 third-round failure, exactly confirm `RUN_PAUSED` with reason=`REPAIR_BUDGET` before creating the fresh Correction Coder for read-only Exhaustion Diagnosis. Candidate mutation is forbidden during diagnosis. After Cycle 2 exhausts, confirm `IMPLEMENTATION_BLOCKED` or a genuine `CONTRACT_BLOCKER`; do not create another Coder, Reviewer set, or renewal attempt.
 
@@ -68,7 +69,7 @@ For `IMPLEMENTATION_BLOCKED`, publish and exactly confirm the existing `RUN_PAUS
 
 For `CONTRACT_BLOCKER`, load the Contract Reconciliation protocol. The Scheduler coordinates one complete reviewed package and one native user decision, then delegates only the approved Spec, ADR, and Ticket facts to their existing owning Skills. It does not reinterpret the package, ask for piecemeal approvals, or resume before complete native read-back.
 
-After each combined Review or repair result, publish a concise non-blocking progress update containing the Ticket, current Cycle and repair round, approved outcomes already satisfied, remaining authority-bound Findings, current Candidate change, mechanisms introduced or removed, and next automatic action. Announce entry into Cycle 2 without asking for approval. These updates do not create Tracker state or interrupt automatic progress.
+After each combined Review or repair result, publish a concise non-blocking progress update containing the Ticket, current Cycle and repair round, approved outcomes already satisfied, remaining authority-and-necessity-bound Findings, current Candidate change, mechanisms introduced or removed, and next automatic action. Announce entry into Cycle 2 without asking for approval. These updates do not create Tracker state or interrupt automatic progress.
 
 ## Scheduler Responsibilities
 

@@ -27,6 +27,32 @@ class SyncUpstreamTests(unittest.TestCase):
         self.assertIn(f"description: {metadata['codebase-design']['description']}", text)
         self.assertTrue(metadata["codebase-design"]["description"].startswith("Load when "))
 
+    def test_upstream_head_reads_detached_and_symbolic_refs_without_git_cli(self) -> None:
+        commit = "6acc160e4e0cd062dbbbd7a1b26ae92855edf07e"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            git_dir = root / ".git"
+            git_dir.mkdir()
+            (git_dir / "HEAD").write_text(commit, encoding="utf-8")
+            self.assertEqual(MODULE.upstream_head(root), commit)
+
+            (git_dir / "HEAD").write_text("ref: refs/heads/main\n", encoding="utf-8")
+            branch = git_dir / "refs" / "heads" / "main"
+            branch.parent.mkdir(parents=True)
+            branch.write_text(commit, encoding="utf-8")
+            self.assertEqual(MODULE.upstream_head(root), commit)
+
+    def test_upstream_codex_metadata_and_unused_router_reference_are_excluded(self) -> None:
+        config = MODULE.load_config()
+        for mapping in config["mappings"]:
+            expected = MODULE.expected_files(config, mapping)
+            self.assertNotIn(Path("agents/openai.yaml"), expected, mapping["target"])
+
+        ask_mapping = next(
+            item for item in config["mappings"] if item["target"] == "ask-forgeloop"
+        )
+        self.assertNotIn(Path("PHASE-BOUNDARIES.md"), MODULE.expected_files(config, ask_mapping))
+
     def test_grill_with_docs_routes_domain_facts_and_closes_each_exit(self) -> None:
         config = MODULE.load_config()
         mapping = next(
@@ -61,6 +87,8 @@ class SyncUpstreamTests(unittest.TestCase):
         self.assertIn("Without authorization, return only the proposed text", text)
         self.assertIn("Do not create a Spec, Ticket, or Initiative, and do not modify production code", text)
         self.assertIn("delegate the read-only scan to an isolated child Agent", text)
+        self.assertIn("Scope before you scan — YAGNI", text)
+        self.assertIn("codebase's hot spots", text)
         self.assertNotIn("subagent_type=Explore", text)
         self.assertNotIn("Only write the visualization to an OS temporary directory", text)
 
@@ -209,6 +237,9 @@ class SyncUpstreamTests(unittest.TestCase):
 
         self.assertLess(text.index("## Forgeloop Authorization Mode"), text.index("## Phase 1"))
         for required in (
+            "## Redact",
+            "<REDACTED>",
+            "credential stays in the environment",
             "default mode is diagnostic-only",
             "diagnostic-write authorization does not grant repair authorization",
             "OS temporary directory",
@@ -221,6 +252,50 @@ class SyncUpstreamTests(unittest.TestCase):
         ):
             self.assertIn(required, text)
         self.assertNotIn("Diagnostic-only mode may create a minimal reproduction in the workspace", text)
+
+    def test_grilling_uses_bounded_dependency_aware_rounds(self) -> None:
+        config = MODULE.load_config()
+        mapping = next(
+            item for item in config["mappings"] if item["target"] == "grilling"
+        )
+        text = MODULE.expected_files(config, mapping)[Path("SKILL.md")].decode()
+
+        self.assertIn("normally 3–5 independent questions, never more than 5", text)
+        self.assertIn("ask it alone when its answer is needed to frame the others", text)
+        self.assertIn("belongs to a _later_ round", text)
+        self.assertIn("accept all recommendations except Q3", text)
+        self.assertIn("return to one question at a time", text)
+        self.assertIn("smallest complete design", text)
+        self.assertNotIn("Ask the whole frontier in one round", text)
+
+    def test_prototype_selects_runtime_probe_and_preserves_external_authority(self) -> None:
+        config = MODULE.load_config()
+        mapping = next(
+            item for item in config["mappings"] if item["target"] == "prototype"
+        )
+        text = MODULE.expected_files(config, mapping)[Path("SKILL.md")].decode()
+
+        self.assertIn("single shareable HTML file", text)
+        self.assertIn("smallest host-native executable probe", text)
+        self.assertIn("Do not translate the behavior into browser JavaScript", text)
+        self.assertIn("choose the host-native probe whenever validity depends on real runtime semantics", text)
+        self.assertIn("domain logic or runtime probe", text)
+        self.assertIn("requires separate explicit authorization", text)
+        self.assertIn("do not perform the capture step automatically", text)
+
+    def test_wayfinder_names_decision_tickets_without_automatic_research(self) -> None:
+        config = MODULE.load_config()
+        mapping = next(
+            item for item in config["mappings"] if item["target"] == "wayfinder"
+        )
+        text = MODULE.expected_files(config, mapping)[Path("SKILL.md")].decode()
+
+        self.assertIn("decision tickets", text)
+        self.assertIn("Research tickets receive no automatic exception", text)
+        self.assertIn("Do not automatically spawn research Agents", text)
+        self.assertIn("The user may explicitly start independent research work later", text)
+        self.assertNotIn("Fire the research subagents", text)
+        self.assertNotIn("throwaway `research/<name>` branch", text)
 
     def test_required_replacements_are_applied(self) -> None:
         result = MODULE.apply_required_replacements(
@@ -239,7 +314,7 @@ class SyncUpstreamTests(unittest.TestCase):
             )
 
     def test_wrong_commit_is_rejected(self) -> None:
-        expected = "391a2701dd948f94f56a39f7533f8eea9a859c87"
+        expected = "6acc160e4e0cd062dbbbd7a1b26ae92855edf07e"
         actual = "0" * 40
         with self.assertRaisesRegex(RuntimeError, "上游 Commit 不匹配"):
             MODULE.require_upstream_commit(actual, expected)

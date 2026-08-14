@@ -2,9 +2,9 @@
 
 Forgeloop 是一套面向 Codex 的 Tracker 驱动交付插件。它把模糊需求收敛为 Spec 和 Ticket，再由一个轻量 Scheduler 严格串行地组织实现、双重评审、验收与集成。
 
-> 当前版本：`4.0.0` · 20 个正式 Skill · 11 个用户入口 · 9 个模型可调用能力
+> 当前版本：`4.1.0` · 20 个正式 Skill · 11 个用户入口 · 9 个模型可调用能力
 
-[完整中文手册](README.zh-CN.md) · [4.0.0 发布说明](docs/releases/4.0.0-release-notes.md) · [3.6.1 → 4.0.0 迁移指南](docs/migrations/3.6.1-to-4.0.0.md)
+[完整中文手册](README.zh-CN.md) · [4.1.0 发布说明](docs/releases/4.1.0-release-notes.md) · [3.6.1 → 4.0.0 迁移指南](docs/migrations/3.6.1-to-4.0.0.md)
 
 ## 它解决什么问题
 
@@ -25,6 +25,7 @@ to-spec → to-tickets → run-initiative
 - 跨 Ticket 共享的系统设计进入正式 Design Document；`grill-with-docs` 负责判断和维护，ADR 只承载长期架构决策。
 - Scheduler 每次只推进一个 Ticket；跨 Ticket 不复用子任务上下文。
 - 每个修复周期由一个 Coder 实现，再接受相互独立的规范评审和需求评审。
+- Coder 与双 Reviewer 共享统一交付价值函数：正确性与证据可信度是硬约束，在完整可行方案中选择最小语义扰动；Spec Finding 必须形成从批准结果到可达失败的必要性链条。
 - 每个 Ticket 最多两个修复周期，每个周期最多三轮实际改变候选代码或测试的普通修复。
 - Cycle 1 耗尽后先确认暂停，再由 fresh Correction Coder 做只读语义诊断；只有可信的 `AUTO_REPAIR_RENEWAL` 才进入唯一一次自动纠偏周期 Cycle 2。Cycle 2 耗尽后停止自动修改并报告阻塞；字段组织证据，不替代 Agent 判断。
 - `SHARED` 交付的 Final Integration Gate 是最后一个实现 Finding 来源；Final Acceptance 不再新建 Reviewer，只由 Scheduler 封存已有证据和最终交付事实。

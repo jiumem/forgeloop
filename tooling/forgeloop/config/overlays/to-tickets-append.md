@@ -1,3 +1,7 @@
+## Forgeloop Completion Boundary
+
+After publication, return the parent Spec and Ticket references and tell the user they may explicitly invoke `$run-initiative`. Do not start that Workflow automatically.
+
 ## Forgeloop Planning Contract Gap Handoff
 
 When normal decomposition discovers that the approved parent contract must change, return `CONTRACT_BLOCKER` with the existing Spec reference, locatable evidence, affected contract sections, and the smallest proposed revision summary. Keep Tracker writes at zero and tell the user to invoke `$to-spec` explicitly for an in-place Planning Revision. `$to-tickets` must not edit the parent itself and must not create a replacement Spec. After the same existing Spec has a confirmed effective Revision, a later explicit `$to-tickets` invocation may restart decomposition from that Revision.
