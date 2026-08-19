@@ -122,8 +122,6 @@ def validate_tree(
             errors.append(f"{skill.directory}: Frontmatter 只允许 name、description")
         if not skill.description:
             errors.append(f"{skill.directory}: description 为空")
-        elif not skill.description.startswith("Load when "):
-            errors.append(f"{skill.directory}: description 必须以 Load when 开头并只描述触发条件")
         elif descriptions is not None and skill.description != descriptions.get(skill.name):
             errors.append(f"{skill.directory}: description 与 config/skill-metadata.json 不一致")
         if len((skill.path / "SKILL.md").read_text(encoding="utf-8").splitlines()) >= 500:

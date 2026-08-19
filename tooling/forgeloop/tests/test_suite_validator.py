@@ -101,18 +101,18 @@ class SuiteValidatorTests(unittest.TestCase):
         errors, _ = MODULE.validate_tree(self.root, "release", self.config)
         self.assertTrue(any("allow_implicit_invocation" in error for error in errors))
 
-    def test_description_without_load_when_is_reported(self) -> None:
+    def test_upstream_style_trigger_description_is_accepted(self) -> None:
         root = self.add_skill()
         skill_path = root / "SKILL.md"
         skill_path.write_text(
             skill_path.read_text(encoding="utf-8").replace(
                 "Load when the user asks for the alpha capability.",
-                "Runs an internal alpha workflow and writes its result.",
+                "Review changes since a fixed point on two independent axes.",
             ),
             encoding="utf-8",
         )
         errors, _ = MODULE.validate_tree(self.root, "release", self.config)
-        self.assertTrue(any("description 必须以 Load when 开头" in error for error in errors))
+        self.assertEqual(errors, [])
 
     def test_non_english_skill_content_is_reported(self) -> None:
         root = self.add_skill()

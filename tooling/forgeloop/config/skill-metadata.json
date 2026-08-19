@@ -72,10 +72,10 @@
     "default_prompt": "Use $resolving-merge-conflicts to recover both sides' intent and resolve the conflict safely."
   },
   "spec-standards-review": {
-    "description": "Load when implemented code needs review against its intended behavior, repository standards, or both; do not load for exploratory code investigation, impact analysis, or debugging.",
+    "description": "Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes — Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/spec asked for?). Runs both reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to \"review since X\".",
     "display_name": "spec-standards-review",
-    "short_description": "Review implemented code on Spec and Standards axes",
-    "default_prompt": "Use $spec-standards-review to review this implemented code on the Spec and Standards axes."
+    "short_description": "Review bounded changes on two independent axes",
+    "default_prompt": "Use $spec-standards-review to review changes since this fixed point on the Spec and Standards axes."
   },
   "run-initiative": {
     "description": "Load when the user explicitly wants to execute, resume, recover, or cancel delivery from a formal Tracker Spec or persisted Initiative.",
