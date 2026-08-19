@@ -21,19 +21,24 @@ CASES = [
         "expected": "LOAD",
     },
     {
-        "id": "review-module",
-        "request": "Review the implemented authentication module against docs/auth-spec.md and repository standards.",
+        "id": "review-since",
+        "request": "Review changes since v4.1.0 against the originating issue and repository standards.",
         "expected": "LOAD",
     },
     {
-        "id": "agent-review",
-        "request": "Implementation is complete. Review the frozen candidate files against the supplied Spec and standards.",
+        "id": "run-initiative-review",
+        "request": "The active run-initiative workflow froze Base abc123 and Head def456. Review that candidate commit range against the supplied Spec and standards.",
         "expected": "LOAD",
     },
     {
-        "id": "standards-only",
-        "request": "Review src/cache.py for repository standards. No originating Spec exists.",
-        "expected": "LOAD",
+        "id": "implementation-self-check",
+        "request": "I just implemented password reset. Check the code and tests before continuing.",
+        "expected": "DO_NOT_LOAD",
+    },
+    {
+        "id": "single-file-inspection",
+        "request": "Inspect src/cache.py for repository-standard violations. No code-review request or originating Spec exists.",
+        "expected": "DO_NOT_LOAD",
     },
     {
         "id": "investigate-trigger",

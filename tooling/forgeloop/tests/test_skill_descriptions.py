@@ -9,8 +9,11 @@ PLUGIN_ROOT = Path(__file__).resolve().parents[3] / "plugins" / "forgeloop"
 METADATA_PATH = TOOLING_ROOT / "config" / "skill-metadata.json"
 SKILLS_ROOT = PLUGIN_ROOT / "skills"
 SPEC_STANDARDS_REVIEW_DESCRIPTION = (
-    "Load when implemented code needs review against its intended behavior, repository standards, "
-    "or both; do not load for exploratory code investigation, impact analysis, or debugging."
+    "Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes — "
+    "Standards (does the code follow this repo's documented coding standards?) and Spec (does the "
+    "code match what the originating issue/spec asked for?). Runs both reviews in parallel sub-agents "
+    "and reports them side by side. Use when the user wants to review a branch, a PR, "
+    "work-in-progress changes, or asks to \"review since X\"."
 )
 
 
@@ -22,7 +25,7 @@ def read_description(path: Path) -> str:
 
 
 class SkillDescriptionTests(unittest.TestCase):
-    def test_all_descriptions_are_centralized_trigger_sentences(self) -> None:
+    def test_all_descriptions_are_centralized_single_line_text(self) -> None:
         metadata = json.loads(METADATA_PATH.read_text(encoding="utf-8"))
         paths = sorted(SKILLS_ROOT.glob("*/SKILL.md"))
 
@@ -32,8 +35,7 @@ class SkillDescriptionTests(unittest.TestCase):
             name = path.parent.name
             description = read_description(path)
             self.assertEqual(description, metadata[name]["description"], name)
-            self.assertTrue(description.startswith("Load when "), name)
-            self.assertLessEqual(len(description), 240, name)
+            self.assertTrue(description, name)
             self.assertNotIn("\n", description, name)
 
     def test_descriptions_are_unique(self) -> None:

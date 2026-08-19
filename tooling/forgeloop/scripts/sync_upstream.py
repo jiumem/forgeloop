@@ -87,8 +87,8 @@ def apply_required_replacements(
 
 
 def replace_trigger_description(text: str, description: str, context: str) -> str:
-    if not description.startswith("Load when "):
-        raise RuntimeError(f"触发描述必须以 Load when 开头：{context}")
+    if not description.strip() or "\n" in description:
+        raise RuntimeError(f"触发描述必须为非空单行文本：{context}")
     result, count = re.subn(
         r"(?m)^description: [^\n]+$",
         f"description: {description}",
@@ -203,7 +203,7 @@ def main() -> int:
         return 2
 
     print(f"上游 Commit：{actual_commit}")
-    print("允许转换：删除 Claude invocation 字段；固定品牌、Skill 名称、路径引用；集中覆盖 Load when 触发描述；Router 选集适配；封板边界与 Tracker Runtime 声明式扩展。")
+    print("允许转换：删除 Claude invocation 字段；固定品牌、Skill 名称、路径引用；集中覆盖触发描述；Router 选集适配；封板边界与 Tracker Runtime 声明式扩展。")
     all_errors: list[str] = []
     for mapping in config["mappings"]:
         source = mapping["source"]
