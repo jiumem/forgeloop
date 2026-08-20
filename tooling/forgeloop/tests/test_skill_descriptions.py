@@ -9,11 +9,11 @@ PLUGIN_ROOT = Path(__file__).resolve().parents[3] / "plugins" / "forgeloop"
 METADATA_PATH = TOOLING_ROOT / "config" / "skill-metadata.json"
 SKILLS_ROOT = PLUGIN_ROOT / "skills"
 SPEC_STANDARDS_REVIEW_DESCRIPTION = (
-    "Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes — "
-    "Standards (does the code follow this repo's documented coding standards?) and Spec (does the "
-    "code match what the originating issue/spec asked for?). Runs both reviews in parallel sub-agents "
-    "and reports them side by side. Use when the user wants to review a branch, a PR, "
-    "work-in-progress changes, or asks to \"review since X\"."
+    "Use only when the user explicitly requests review of a bounded change set, or an active "
+    "workflow explicitly directs a two-axis review for a frozen Base/Head, fixed point, or snapshot. "
+    "Review the supplied changes against repository standards and the originating issue/spec; run both "
+    "axes in parallel. Do not load for implementation self-checks, generic inspection, exploration, "
+    "impact analysis, or debugging."
 )
 
 

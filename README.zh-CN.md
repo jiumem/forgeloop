@@ -2,9 +2,9 @@
 
 Forgeloop 是一套面向 Codex 的 Tracker 驱动交付插件。它不替代 Codex，也不建立第二套项目管理系统；它把 Codex 已有的任务、子任务、Git 与 Tracker 能力组织成一条可恢复、可评审、可验收的工程交付路径。
 
-> 当前版本：`4.2.0` · 20 个正式 Skill · 11 个用户入口 · 9 个模型可调用能力
+> 当前版本：`4.2.1` · 20 个正式 Skill · 11 个用户入口 · 9 个模型可调用能力
 
-[快速开始](README.md) · [4.2.0 发布说明](docs/releases/4.2.0-release-notes.md) · [3.6.1 → 4.0.0 迁移指南](docs/migrations/3.6.1-to-4.0.0.md)
+[快速开始](README.md) · [4.2.1 发布说明](docs/releases/4.2.1-release-notes.md) · [3.6.1 → 4.0.0 迁移指南](docs/migrations/3.6.1-to-4.0.0.md)
 
 ## 目录
 
@@ -129,7 +129,7 @@ $run-initiative 执行这个 Spec
 - `$triage`：整理一组待办、故障或反馈并决定下一步。
 - `$handoff`：把当前工作压缩成另一个任务可以继续的交接包。
 
-其中 `spec-standards-review` 和 `diagnosing-bugs` 也允许在其他 Workflow 中按需复用，因此不是仅用户调用入口。
+其中 `spec-standards-review` 可在其他 Workflow 明确指派双轴审查且冻结范围后复用，`diagnosing-bugs` 也可按其既有授权边界复用；它们都不是仅用户调用入口。
 
 ## 20 个正式 Skill
 
