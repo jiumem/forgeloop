@@ -10,6 +10,15 @@ Two-axis review of implemented code within a fixed scope:
 
 Both axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.
 
+## Review stance
+
+Inspect comprehensively and report selectively:
+
+- **Comprehensive inspection.** Examine the entire frozen scope against every relevant part of the originating Spec and repository standards, including success, failure, boundary interactions, and the credibility of the available evidence. Do not stop after the first issue, and do not omit a material current-delivery problem merely because it is subtle, rare, technical, or expensive to fix.
+- **High-value findings.** Report only concerns that can change the current delivery judgment. Omit cosmetic naming, formatting, or style preferences; refactoring preferences and code smells without a concrete current risk; issues already enforced reliably by tooling; speculative hardening; and product behavior, scale, topology, extensibility, or failure modes outside the current approved Spec and operating model. A mandatory documented repository standard can itself make a concern reportable; a heuristic or personal preference cannot. Technical depth is valuable only when it establishes a concrete consequence for the current change.
+
+A clean report is a valid result. Completeness means no material issue was missed, not that every possible observation became a finding.
+
 Treat the caller-supplied review scope as authoritative. It may be a PR or diff, an explicit Base/Head pair, staged changes, unstaged changes, both, or another concrete change set; it may also be a snapshot of explicit files, directories, or a module. Resolve and validate it once. If the context cannot determine a unique scope, ask one question whose answer would change the scope; if the resolved scope is empty or unreadable, fail before spawning reviewers. Pass the same frozen scope to both reviewers, and do not replace an explicitly supplied Head with the local `HEAD`. If another Agent or Workflow supplies a frozen scope and Spec, use them exactly. For a snapshot review, later references to the diff command and commit list mean the exact paths and current revision, and hunk evidence means file/line evidence; include this substitution in both self-contained Reviewer prompts.
 
 Issue tracker configuration is only required when the review must fetch its Spec from the configured tracker. If `docs/agents/issue-tracker.md` is missing, do not run `$setup-forgeloop` automatically: use any Spec or PRD the caller supplied, otherwise continue to step 2 without starting another Workflow.
@@ -67,13 +76,15 @@ Create two independent child Agents from self-contained prompts and let them run
 
 - The frozen review scope and its evidence entry: the diff command and commit list for a Git change, or the exact paths and current revision for a snapshot.
 - The list of standards-source files you found in step 3, **plus the smell baseline from step 3** pasted in full — the sub-agent has no other access to it.
-- The brief: "Report — per file/hunk where relevant — (a) every place the diff violates a documented standard: cite the standard (file + the rule); and (b) any baseline smell you spot: name it and quote the hunk. Distinguish hard violations from judgement calls — documented-standard breaches can be hard, but baseline smells are always judgement calls, and a documented repo standard overrides the baseline. Skip anything tooling enforces. Cite file/line or diff-hunk evidence for every finding, and do not report outside the frozen scope. Under 400 words."
+- The **Review stance** above, pasted in full.
+- The brief: "Inspect — per file/hunk where relevant — (a) every place the diff violates a documented standard; and (b) every baseline smell relevant to the current change. Report only issues that pass the Review stance's high-value Finding threshold. For each reported standard violation, cite the standard (file + the rule); for each reported smell, name it and quote the hunk. Distinguish hard violations from judgement calls — documented-standard breaches can be hard, but baseline smells are always judgement calls, and a documented repo standard overrides the baseline. Skip anything tooling enforces. Cite file/line or diff-hunk evidence for every finding, and do not report outside the frozen scope."
 
 **Spec sub-agent prompt** — include:
 
 - The frozen review scope and its evidence entry: the diff command and commit list for a Git change, or the exact paths and current revision for a snapshot.
 - The path or fetched contents of the spec.
-- The brief: "Report: (a) requirements the spec asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep); (c) requirements that look implemented but where the implementation looks wrong. Quote the spec line for each finding. Also cite file/line or diff-hunk evidence, and do not report outside the frozen scope. Under 400 words."
+- The **Review stance** above, pasted in full.
+- The brief: "Inspect all requirements for: (a) missing or partial implementation; (b) behaviour in the diff that wasn't asked for (scope creep); and (c) requirements that look implemented but where the implementation looks wrong. Report every issue that passes the Review stance's high-value Finding threshold, and omit concerns about product behavior or future conditions outside the current approved Spec and operating model. Quote the spec line for each finding. Also cite file/line or diff-hunk evidence, and do not report outside the frozen scope."
 
 If the spec is missing, skip the Spec sub-agent and note this in the final report.
 

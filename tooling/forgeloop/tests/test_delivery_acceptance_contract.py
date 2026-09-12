@@ -66,37 +66,6 @@ class DeliveryAcceptanceContractTests(unittest.TestCase):
         self.assertIn("ordinary Spec must omit `Release Boundary`", text)
         self.assertIn("Do not create a Release Item", text)
 
-    def test_agent_scenarios_cover_delivery_and_release_decisions(self) -> None:
-        to_spec = generated_skill("to-spec")
-        run_skill = (SKILL_ROOT / "run-initiative" / "SKILL.md").read_text()
-        acceptance = (SKILL_ROOT / "run-initiative" / "references" / "acceptance.md").read_text()
-
-        expected_to_spec_scenarios = (
-            "An ordinary Spec must omit `Release Boundary`",
-            "Delivering release capability, a release pipeline, or release readiness is valid",
-            "If a title or body claims an external action already happened",
-            "evidence only proves release readiness",
-            "existing external item or `None`",
-            "`None` does not mean the action is covered",
-        )
-        for scenario in expected_to_spec_scenarios:
-            self.assertIn(scenario, to_spec)
-        self.assertIn("must not mutate the referenced item's Open/Closed state", acceptance)
-        self.assertIn("Delivery is complete; Release was not executed by this Run", run_skill)
-
-    def test_delivery_acceptance_is_shared_without_replacing_ticket_criteria(self) -> None:
-        to_tickets = generated_skill("to-tickets")
-        domain = (SKILL_ROOT / "run-initiative" / "references" / "domain-and-state.md").read_text()
-        coder = (SKILL_ROOT / "run-initiative" / "references" / "coder.md").read_text()
-        reviewers = (SKILL_ROOT / "run-initiative" / "references" / "reviewers.md").read_text()
-        acceptance = (SKILL_ROOT / "run-initiative" / "references" / "acceptance.md").read_text()
-
-        for text in (to_tickets, domain, coder, reviewers, acceptance):
-            self.assertIn("Delivery Acceptance", text)
-        self.assertIn("Ticket Acceptance criteria", to_tickets)
-        self.assertIn("stable Delivery Acceptance references", to_tickets)
-        self.assertNotIn("Spec Acceptance Criteria", to_tickets)
-
     def test_to_tickets_declares_parent_references_before_both_templates(self) -> None:
         text = generated_skill("to-tickets")
         local_template = text[text.index("<local-ticket-template>") : text.index("</local-ticket-template>")]
@@ -106,50 +75,18 @@ class DeliveryAcceptanceContractTests(unittest.TestCase):
         self.assertIn("Parent Delivery Acceptance references", local_template)
         self.assertIn("Parent Delivery Acceptance references", issue_template)
 
-    def test_run_accepts_delivery_without_performing_or_claiming_release(self) -> None:
-        skill = (SKILL_ROOT / "run-initiative" / "SKILL.md").read_text()
-        acceptance = (SKILL_ROOT / "run-initiative" / "references" / "acceptance.md").read_text()
+    def test_run_completes_delivery_without_claiming_release_authority(self) -> None:
+        skill = (SKILL_ROOT / "run-initiative" / "SKILL.md").read_text(encoding="utf-8")
 
-        self.assertIn("Delivery Acceptance", acceptance)
-        self.assertIn("does not execute or validate any Post-delivery Release Action", acceptance)
-        self.assertIn("does not block Seal Eligibility", acceptance)
-        self.assertNotIn("verdict: PASS | REPAIR_REQUIRED", acceptance)
-        self.assertIn("Delivery is complete", skill)
-        self.assertIn("Release was not executed by this Run", skill)
+        self.assertIn("`Release Boundary`", skill)
+        self.assertIn("Post-delivery action", skill)
         self.assertIn("Tracking reference", skill)
-        self.assertIn("must not create, claim, update, or close", skill)
+        self.assertIn("Do not execute that action", skill)
+        self.assertIn("create, claim, update, or close the referenced external item", skill)
+        self.assertIn("release and deployment remain outside this Skill's authority", skill)
 
-    def test_release_tracking_reference_stays_outside_delivery_scope(self) -> None:
-        domain = (SKILL_ROOT / "run-initiative" / "references" / "domain-and-state.md").read_text()
-        acceptance = (SKILL_ROOT / "run-initiative" / "references" / "acceptance.md").read_text()
-
-        for term in ("Ticket Frontier", "Spec Scope", "Initiative membership"):
-            self.assertIn(term, domain)
-        self.assertIn("Open/Closed state, assignee, labels, or comments", acceptance)
-        self.assertIn("remain unchanged", acceptance)
-
-    def test_initiative_invariants_are_evidence_not_a_second_acceptance_source(self) -> None:
-        acceptance = (SKILL_ROOT / "run-initiative" / "references" / "acceptance.md").read_text()
-
-        self.assertIn(
-            "cross-Spec invariants only as evidence for the Delivery Acceptance items that reference them",
-            acceptance,
-        )
-        self.assertNotIn("`Delivery Acceptance` and cross-Spec invariants", acceptance)
-
-    def test_parent_and_ticket_acceptance_terms_are_unambiguous(self) -> None:
-        to_tickets = generated_skill("to-tickets")
-        coder = (SKILL_ROOT / "run-initiative" / "references" / "coder.md").read_text()
-
-        self.assertNotIn("changing Scope, Acceptance Criteria", to_tickets)
-        self.assertNotIn("Acceptance Criteria", coder)
-        self.assertNotIn("every Acceptance Criterion", coder)
-
-    def test_release_boundary_does_not_add_runtime_schema(self) -> None:
-        text = "\n".join(
-            path.read_text()
-            for path in (SKILL_ROOT / "run-initiative").rglob("*.md")
-        )
+    def test_release_boundary_adds_no_runtime_schema(self) -> None:
+        text = (SKILL_ROOT / "run-initiative" / "SKILL.md").read_text(encoding="utf-8")
 
         self.assertNotIn("Release Reviewer", text)
         self.assertNotIn("level=RELEASE", text)

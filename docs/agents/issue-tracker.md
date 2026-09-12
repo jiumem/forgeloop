@@ -47,24 +47,21 @@ PRs as a request surface：`no`。
 - Branch Protection、Required Checks 和仓库权限始终优先。
 - 缺少 Integration Policy 时禁止自动集成。
 
-只有在以下条件全部满足时，Scheduler 才能自动合并：
+只有在以下条件全部满足时，Delivery Worker 才能自动合并：
 
-1. Spec Reviewer 与 Standards Reviewer 均为 `PASS`；
-2. 候选 Head 没有变化；
+1. 当前交付分支的 Findings 已逐项处置并写入 Issue Comment；
+2. 实际待合并 Head 已通过最终 Gate；
 3. 分支保护与 Required Checks 满足；
 4. 当前身份拥有所需权限；
-5. PR 仍然指向经过评审的 Base/Head。
+5. PR 仍然指向当前交付分支和目标分支。
 
-代码导致的检查失败返回原 Coder，并计入共享修复预算。权限、基础设施或无关检查失败时暂停并提供可恢复诊断。
+代码导致的检查失败由 Delivery Worker 诊断并修复，不重新启动双轴 Review。权限、基础设施或无关检查失败时暂停并提供可恢复诊断。
 
-## Tracker Runtime Operations
+## Delivery Runtime Operations
 
-- Frontier：查询 Spec 下 Open 子 Issue，排除仍被阻塞、已有有效 Claim 或超出授权 Scope 的项；每次推进后重新查询。
-- Claim：在 Spec 或 Initiative 根 Issue 发布 `RUN_CLAIMED`；最早的有效服务端 Claim 获胜。获胜 Scheduler 每次只能认领一个当前 Ticket。
-- Checkpoint：使用 Issue Comment 追加最小、幂等的运行记录。两个 Reviewer 结论独立收集后，合并写入一个 `REVIEW_RESULT`。
-- 修正：不修改已经发布的事件；使用 `EVENT_SUPERSEDED` 追加修正。
-- Candidate：记录 Ticket Branch、Commit 和 PR。关闭但未合并的 PR 不算完成。
-- Integration：Scheduler 独占 push、PR、检查与合并操作。
-- Closure：确认原生合并事实后写入 `INTEGRATION_RESULT`，再关闭 Ticket。
-- Multi-Spec：成员 Spec 在 Initiative Acceptance 前保持 Open；通过后先关闭成员 Spec，最后关闭父 Initiative。
-- Failure：认证、权限、分支保护或外部检查阻塞时，工作项保持 Open，并返回可定位、可恢复的诊断。
+- Delivery unit：启动前完整读取所选大 Ticket、Spec 或有界 Initiative 的正文、评论、关系、状态和目标；不得只从标签推断运行状态。
+- Branches and commits：每个大 Ticket 或 Spec 使用一个分支。Spec 的 Tickets 是该分支上的实现 Slices，不各自创建分支或 PR；每个 Slice Commit 排除无关改动。
+- Review evidence：在大 Ticket 或当前 Spec 上追加普通 Issue Comment，保存冻结 Base/Head 和两份完整的一次性 Reviewer 报告。Finding 处置、修复 Commit、验证引用和结果 Head 在最终 Gate 前写入第二条普通 Comment。它们是恢复证据，不是 Event 或 Verdict。
+- Integration：Delivery Worker 负责当前交付分支的 push、单一 PR、检查和合并。`auto-merge` 仅在最终 Gate、当前 PR 检查、分支保护和权限都符合仓库策略时执行；`human-merge` 保留就绪 PR 并等待用户操作。
+- Closure：大 Ticket 只在 PR 合并后关闭。Spec PR 合并后，验证每个 Ticket 的逻辑 Commit 或 `NO_CHANGE_REQUIRED` 证据及验收结果，再关闭 Tickets 和 Spec。有界 Initiative 按依赖顺序完成成员 Specs，全部交付后才关闭 Initiative。
+- Recovery：从所选 Issue、Review 与处置 Comments、分支、Commits、PR 和当前 Checks 恢复。认证、权限、保护规则、目标或外部检查失败时保持工作项 Open，并返回可定位、可恢复的诊断。

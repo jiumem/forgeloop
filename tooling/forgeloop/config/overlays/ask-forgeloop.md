@@ -15,7 +15,7 @@ First identify the user's current stage, then recommend one primary entry point 
 - For a large ambiguous problem spanning multiple sessions, first create an exploration Map: `$wayfinder`.
 - Publish sufficiently discussed context as a Spec: `$to-spec`.
 - Split an approved Spec into independently verifiable vertical Tickets: `$to-tickets`.
-- Execute Tracker-driven delivery from a formal Spec or persisted Initiative: `$run-initiative`.
+- Execute one large Ticket, one formal Spec, or one bounded multi-Spec Initiative through a single accountable Delivery Worker: `$run-initiative`.
 - Route external Issues, PRs, or MRs: `$triage`.
 - Perform a focused scan for genuine Deepening Opportunities: `$improve-codebase-architecture`.
 - Hand the temporary context required for continuation to a new session: `$handoff`.
@@ -28,7 +28,7 @@ Recommend `$spec-standards-review` when implemented code needs review against it
 
 ## Routing Rules
 
-1. When there is no formal Spec reference, do not recommend running `$run-initiative` directly; complete the design, Spec, or Tickets first.
+1. Recommend `$run-initiative` only for one clearly large spec-level Ticket, one formal Spec, or one bounded Initiative. Route a small direct Ticket to ordinary implementation, and refuse to combine multiple Initiatives.
 2. Do not expand a problem that can be understood in a single session into a `$wayfinder` Map.
 3. When the user requests only a read-only investigation, diagnosis, or review, do not recommend a write-oriented entry point.
 4. When configuration is missing, recommend `$setup-forgeloop` first; do not assume a Tracker or Integration Policy.

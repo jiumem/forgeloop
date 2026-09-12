@@ -11,7 +11,7 @@ When exploring the codebase, read `CONTEXT.md` (if it exists) to get a clear men
 
 ## Forgeloop Authorization Mode
 
-Before Phase 1, determine the scope the caller has already authorized. The default mode is diagnostic-only: investigate, reproduce, and report without modifying the workspace, production environment, Tracker, Spec, Commit, or PR/MR. Any workspace write or production instrumentation requires separate, explicit, minimally scoped diagnostic-write authorization, and diagnostic-write authorization does not grant repair authorization. Diagnose-and-fix mode applies only when the user explicitly authorizes a fix or a `$run-initiative` Coder supplies a writable Ticket Scope. Do not ask again for authorization the caller has already granted, but this Skill must not expand that Scope. Repair authorization covers only code and tests within Scope; it does not automatically include permission to create or update Commits, PRs/MRs, Tracker state, Specs, the target branch, or integration state.
+Before Phase 1, determine the scope the caller has already authorized. The default mode is diagnostic-only: investigate, reproduce, and report without modifying the workspace, production environment, Tracker, Spec, Commit, or PR/MR. Any workspace write or production instrumentation requires separate, explicit, minimally scoped diagnostic-write authorization, and diagnostic-write authorization does not grant repair authorization. Diagnose-and-fix mode applies only when the user explicitly authorizes a fix or a `$run-initiative` Delivery Worker supplies the writable Scope of its current Slice. Do not ask again for authorization the caller has already granted, but this Skill must not expand that Scope. Repair authorization covers only code and tests within Scope; it does not automatically include permission to create or update Commits, PRs/MRs, Tracker state, Specs, the target branch, or integration state.
 
 ## Redact
 
@@ -121,7 +121,7 @@ In diagnostic-only mode, prefer observational tools that do not modify the works
 
 ## Phase 5 — Fix + regression test
 
-Enter this phase only in diagnose-and-fix mode. When invoked by a `$run-initiative` Coder, the existing writable Ticket Scope constitutes repair authorization and must not be requested again. All tests, instrumentation, and repairs remain limited to that Scope, and the Spec, Tracker, and target branch must not be modified.
+Enter this phase only in diagnose-and-fix mode. When invoked by a `$run-initiative` Delivery Worker, the existing writable Slice Scope constitutes repair authorization and must not be requested again. All tests, instrumentation, and repairs remain limited to that Scope, and the Spec, Tracker, and target branch must not be modified.
 
 Write the regression test **before the fix** — but only if there is a **correct seam** for it.
 
