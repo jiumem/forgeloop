@@ -1,10 +1,10 @@
 # Forgeloop 中文手册
 
-Forgeloop 是一套面向 Codex 的 Tracker 驱动交付插件。它不替代 Codex，也不建立第二套项目管理系统；它把 Codex 已有的任务、子任务、Git 与 Tracker 能力组织成一条可恢复、可评审、可验收的工程交付路径。
+Forgeloop 是一套面向 Codex 的 Tracker 驱动交付插件。它不替代 Codex，也不建立第二套项目管理系统；它把需求澄清、Spec、Ticket、实现、审查、验证和集成组织成一条可恢复的工程交付路径。
 
-> 当前版本：`4.2.1` · 20 个正式 Skill · 11 个用户入口 · 9 个模型可调用能力
+> 当前版本：`4.3.0` · 20 个正式 Skill · 11 个用户入口 · 9 个模型可调用能力
 
-[快速开始](README.md) · [4.2.1 发布说明](docs/releases/4.2.1-release-notes.md) · [3.6.1 → 4.0.0 迁移指南](docs/migrations/3.6.1-to-4.0.0.md)
+[快速开始](README.md) · [4.3.0 发布说明](docs/releases/4.3.0-release-notes.md) · [4.2.1 → 4.3.0 迁移指南](docs/migrations/4.2.1-to-4.3.0.md)
 
 ## 目录
 
@@ -16,7 +16,7 @@ Forgeloop 是一套面向 Codex 的 Tracker 驱动交付插件。它不替代 Co
 - [run-initiative 如何闭环](#run-initiative-如何闭环)
 - [状态、暂停与恢复](#状态暂停与恢复)
 - [Tracker 与持久化](#tracker-与持久化)
-- [迁移到 3.0](#迁移到-30)
+- [从 4.2.1 升级到 4.3.0](#从-421-升级到-430)
 - [维护与验证](#维护与验证)
 
 ## 架构原则
@@ -25,32 +25,27 @@ Forgeloop 是一套面向 Codex 的 Tracker 驱动交付插件。它不替代 Co
 
 | 事实 | 唯一来源 | Forgeloop 的边界 |
 | --- | --- | --- |
-| Spec、Ticket、依赖、认领、运行状态 | Tracker | 读写正式工作项，不维护平行计划账本 |
-| 分支、提交、PR、检查、合并 | Git 与托管平台 | 验证真实提交状态，不把 Tracker 文本当作 Git 状态 |
+| Spec、Ticket、依赖和交付证据 | Tracker | 读写正式工作项，不维护平行计划账本 |
+| 分支、提交、PR、检查和合并 | Git 与托管平台 | 验证真实提交状态，不把 Tracker 文本当作 Git 状态 |
 | 行为与质量 | 代码和测试 | 以可执行证据判断，不以描述代替验证 |
 | 术语与架构决策 | 项目上下文文档与 ADR | 按需维护，不为流程预建空文档 |
 
-Forgeloop 不再维护 `PLAN.md`、`LEDGER.md` 或同义的第二状态系统。结构化状态只写入 Tracker；最小恢复信息写入运行记录。
+Forgeloop 不维护 `PLAN.md`、`LEDGER.md` 或同义的第二状态系统。Review 报告与 Finding 处置使用 Tracker 既有 Comment/Note/记录面持久化；它们是恢复证据，不是新的 Event、Verdict 或状态机。
 
-### 薄 Scheduler，强边界
+### 一个 Delivery Worker 负责到底
 
-`run-initiative` 的 Scheduler 只做五类事情：读取当前状态、选择下一个 Ticket、组装角色任务包、验证边界、推进状态。实现判断交给 Coder，评审判断交给两个 Reviewer，产品歧义交回用户。
+`run-initiative` 的主任务是唯一 Delivery Worker。它负责读取契约、规划 Slice、编辑代码、维护分支和 Commit、判断 Review Findings、运行最终 Gate、提交 PR 并按仓库策略完成集成。
 
-它遵循以下约束：
+它不会再创建独立 Supervisor 或 Coder 子任务。只有 Spec Reviewer 和 Standards Reviewer 作为隔离、只读子任务存在，并且每条交付分支只运行一次双轴 Review。
 
-- 严格串行：任意时刻只推进一个 Ticket。
-- 每个 Ticket 最多两个修复周期；周期内复用一个 Coder 和两个隔离 Reviewer，仅在进入 Cycle 2 或切换 Ticket 时刷新角色。
-- 每个周期最多三轮实际改变 Candidate 代码或测试的普通修复；三轮耗尽后必须先确认 `RUN_PAUSED / REPAIR_BUDGET`。
-- Cycle 1 耗尽后由 fresh Correction Coder 基于完整契约、Candidate、Findings 和历史证据执行只读 Exhaustion Diagnosis；只有可信的 `AUTO_REPAIR_RENEWAL` 才自动进入唯一 Cycle 2。Cycle 2 耗尽后停止自动修改，无可信方向保持 `IMPLEMENTATION_BLOCKED`，需要改变契约时进入 `CONTRACT_BLOCKER`。
-- `CONTRACT_BLOCKER` 由协调 Agent 先完成一个完整调和包和内部语义 Review；用户一次选择拒绝、批准后暂停或批准后继续，既有 Skill 随后按各自事实所有权完成发布与原 Run 恢复，不重复索要批准。
-- 诊断字段用于 Agent 组织、比较和恢复语义，不构成 parser、正则、布尔门禁或第二状态机。
-- Scheduler 不替子角色实现代码，也不替 Reviewer 改写评审结论。
+### 检查完整，报告克制
 
-### 角色任务包，不是 Agent 类型系统
+双轴 Review 遵循两层取向：
 
-Forgeloop 使用 Codex 的通用子任务能力，并通过 Role Task Pack 描述本轮目标、输入、约束和返回格式。Skill 不声明 Agent 类型、模型或推理强度，因为这些不是 Forgeloop 的运行控制面。
+- 检查面必须完整。Reviewer 要覆盖冻结范围、批准的 Spec、仓库规范、成功与失败路径、边界交互和证据可信度，不能为了省字漏掉真实问题。
+- Finding 出口必须狭窄。纯命名或格式偏好、没有当前风险的 smell、工具已可靠覆盖的问题、推测性加固，以及当前批准产品模型之外的未来规模或拓扑都不报告。
 
-用户在 Codex 主任务中选择当前模型；子任务沿用宿主提供的运行机制。Forgeloop 只负责把工作委派清楚。
+因此 4.3.0 不再限制 Reviewer 报告为 400 字以内，也不靠 Finding 数量或字数控制成本。干净报告是合法结果；技术深度只有在证明当前变更的具体后果时才有价值。
 
 ## 安装
 
@@ -63,16 +58,16 @@ Forgeloop 使用 Codex 的通用子任务能力，并通过 Role Task Pack 描�
 
 ### 从本仓库安装
 
-本仓库已经通过 [`.agents/plugins/marketplace.json`](.agents/plugins/marketplace.json) 声明 Repo-local Marketplace，插件源码位于 [`plugins/forgeloop`](plugins/forgeloop)。
+本仓库通过 [`.agents/plugins/marketplace.json`](.agents/plugins/marketplace.json) 声明 Repo-local Marketplace，插件源码位于 [`plugins/forgeloop`](plugins/forgeloop)。
 
 1. 克隆仓库，并在 Codex 中打开仓库根目录。
 2. 在 Codex 中打开 `/plugins`。
 3. 在 `forgeloop-local` Marketplace 中选择 `forgeloop` 并安装。
 4. 新建一个 Codex 任务，使插件在新任务中加载。
 
-如果本地 Marketplace 没有出现，先确认 Codex 打开的目录就是仓库根目录，并且 `.agents/plugins/marketplace.json` 可见。不要手工复制单个 Skill 目录；插件清单、元数据和脚本必须保持同一版本。
+如果本地 Marketplace 没有出现，先确认 Codex 打开的目录就是仓库根目录，并且 `.agents/plugins/marketplace.json` 可见。不要手工复制单个 Skill 目录；插件清单、元数据和 Skills 必须保持同一版本。
 
-Codex 官方说明：[插件安装与使用](https://developers.openai.com/learn/developers-codex-plugin)；[按用户或仓库安装本地插件](https://learn.chatgpt.com/docs/changelog#install-plugins-per-user-or-per-repo)。
+Codex 官方说明：[插件安装与使用](https://developers.openai.com/learn/developers-codex-plugin)。
 
 ## 初始化项目
 
@@ -89,51 +84,39 @@ $setup-forgeloop
 3. Triage 标签：安装了 `triage` 时确认标签词表。
 4. 项目上下文：领域文档位置和必要的工作约定。
 
-GitHub 与 GitLab 模式把远端 Tracker 作为正式工作项来源；Local 模式把 `.scratch/<feature>/` 作为本地 Tracker。项目中的 `docs/agents/issue-tracker.md` 记录的是接入契约与操作方式，不是另一套 Issue 数据库。
-
-初始化完成后，可以用以下入口确认配置：
-
-```text
-$ask-forgeloop 当前 Tracker、集成策略和可执行入口是什么？
-```
+项目中的 `docs/agents/issue-tracker.md` 记录接入契约与操作方式，不是另一套 Issue 数据库。
 
 ## 三条常用路径
 
-### 路径一：目标已经澄清，直接交付
+### 路径一：目标已经澄清，正式交付
 
 ```text
 $to-spec 把这份已澄清需求写成正式 Spec
-$to-tickets 把该 Spec 拆成可独立验证的 Ticket
+$to-tickets 把该 Spec 拆成可验证的 Tickets
 $run-initiative 执行这个 Spec
 ```
 
-`to-spec` 负责结构化已经解决的上下文，不承担漫长访谈。正式发布前，它会结合代码事实审计候选方案是否确实需要新增概念、事实源、生命周期和结构复杂度；能够在既有授权内收敛时形成更小的完整 Spec，需要新的产品或架构决定时返回上下文不足。后续 Planning Revision 原位更新同一个 Spec，不废弃旧 Issue 再创建替代品。
+`to-spec` 负责把已解决的上下文写成可验收契约。`to-tickets` 把 Spec 拆成最小、可观察的纵向结果；这些 Tickets 在执行时成为同一 Spec 分支上的实现 Slices，而不是独立分支、Review、Gate 和 PR。
 
-`to-tickets` 不重新争论已批准设计，只把 Spec 拆成最小、可观察的 Ticket 图。完整 Ticket 正文只维护在同一份草案文档中，会话仅摘要 Ticket 和展示变更。多个 Ticket、实现会话或 Reviewer 必须共享同一组系统设计决定时，`grill-with-docs` 负责创建或原位修订正式 Design Document，`to-spec` 只保存稳定引用，`to-tickets` 不把这些共享决定复制到每张 Ticket，也不把它们误写成 ADR。
+多个 Ticket、实现会话或 Reviewer 必须共享一组系统设计决定时，`grill-with-docs` 负责创建或原位修订正式 Design Document。`to-spec` 保存稳定引用，`to-tickets` 不把共享决定复制到每张 Ticket。
 
 ### 路径二：目标模糊，先做发现
-
-按问题类型选择一个最小入口：
 
 - `$wayfinder`：不知道下一步最值得做什么。
 - `$recommend-initiatives`：希望从当前代码库提出 1–3 个候选 Initiative。
 - `$grill-with-docs`：已经有方案，希望结合项目文档进行压力测试。
 - `$improve-codebase-architecture`：希望发现并设计架构改进机会。
 
-探索得出明确结论后，再进入 `to-spec`。不要把研究、争论和范围发现延迟到 `run-initiative`。
+探索得到明确结论后再进入 `to-spec`。不要把研究、争论和范围发现延迟到执行阶段。
 
 ### 路径三：已有变更或故障
 
-- `$spec-standards-review`：从预期行为与仓库规范两轴评审范围明确的已实现代码，可使用 PR、Diff、工作区、文件、目录或模块作为范围。
+- `$spec-standards-review`：从预期行为与仓库规范两轴审查范围明确的已实现代码。
 - `$diagnosing-bugs`：定位复杂 Bug、失败或性能退化的根因。
-- `$triage`：整理一组待办、故障或反馈并决定下一步。
+- `$triage`：整理待办、故障或反馈并决定下一步。
 - `$handoff`：把当前工作压缩成另一个任务可以继续的交接包。
 
-其中 `spec-standards-review` 可在其他 Workflow 明确指派双轴审查且冻结范围后复用，`diagnosing-bugs` 也可按其既有授权边界复用；它们都不是仅用户调用入口。
-
 ## 20 个正式 Skill
-
-Skill 的 `description` 只回答“什么时候加载”；完整流程规则留在各自的 `SKILL.md` 中。
 
 ### 仅用户调用的 Workflow（11）
 
@@ -146,21 +129,19 @@ Skill 的 `description` 只回答“什么时候加载”；完整流程规则�
 | `grill-with-docs` | 结合仓库文档拷打一个计划或设计 |
 | `wayfinder` | 当前方向不明确，需要找到下一步 |
 | `to-spec` | 把已经澄清的上下文固化为正式 Spec |
-| `to-tickets` | 把 Spec 拆为 Ticket，或调和 Spec 修订与 Final Gate 修复 |
-| `run-initiative` | 严格串行执行一个正式 Spec 或多 Spec Initiative |
+| `to-tickets` | 把 Spec 拆为最小、可观察的 Tickets |
+| `run-initiative` | 交付一个大 Ticket、正式 Spec 或有界 Initiative |
 | `triage` | 对工作项、问题或反馈进行分诊 |
 | `handoff` | 为另一个 Codex 任务生成可继续的交接上下文 |
 
-这些入口必须显式调用，不应因为普通任务描述而自动注入。
+这些入口必须显式调用，不应因为普通任务描述自动注入。
 
 ### 模型可调用的完整 Workflow（2）
 
 | Skill | 合适的触发场景 |
 | --- | --- |
-| `spec-standards-review` | 从预期行为与仓库规范两轴评审范围明确的已实现代码 |
+| `spec-standards-review` | 从预期行为与仓库规范两轴审查范围明确的已实现代码 |
 | `diagnosing-bugs` | 诊断故障、异常、失败或性能回退 |
-
-它们本身是完整流程，但也能被 `run-initiative` 或直接任务复用。
 
 ### 模型可调用的 Primitive（7）
 
@@ -174,135 +155,111 @@ Skill 的 `description` 只回答“什么时候加载”；完整流程规则�
 | `codebase-design` | 设计深模块、接口与可测试边界 |
 | `resolving-merge-conflicts` | 在恢复双方意图后解决合并或变基冲突 |
 
-“模型可调用”表示 Codex 可以根据任务语义加载，或由另一个 Workflow 复用；它不代表专用 Agent 类型。
-
 ## run-initiative 如何闭环
 
-`run-initiative` 只接受正式 Spec 或多 Spec Initiative。它不是需求发现入口，也不会边做边发明新的工作项结构。
+### 支持的交付形态
 
-### 单 Ticket 循环
+`run-initiative` 每次选择且只选择一种形态：
+
+- 大 Ticket：Ticket 本身达到 Spec 级复杂度，需要多个连贯 Slices。整个 Ticket 使用一个分支、一次 Review、一个最终 Gate 和一个 PR。
+- Spec：Spec 的 Tickets 直接成为实现 Slices。整个 Spec 使用一个分支；每个 Ticket 在 Review 前对应一个完整逻辑 Commit，或一条 `NO_CHANGE_REQUIRED` 证据。
+- 有界 Initiative：由多个 Specs 组成，但不能包含另一个 Initiative。每个 Spec 独立使用一个分支和一个 PR，并按依赖顺序交付；整个 Initiative 复用同一对 Reviewer 子任务。
+
+小 Ticket 不走这个 Workflow。一个现有 Seam、没有新增状态或事实源、没有权限/迁移/兼容/恢复语义，并且一个窄验证即可观察结果的改动，应直接实现。多个 Initiatives 也不能合并成一次运行。
+
+### 单分支快速实现
 
 ```text
-读取 Tracker 与 Git 状态
+读取 Tracker、契约与 Git
         ↓
-选择唯一可执行 Ticket
+Delivery Worker 规划 Slices
         ↓
-Coder 实现并提交候选变更
+在一个分支上依次实现逻辑 Commits
         ↓
-冻结 Base / Head 与输入快照
+冻结完整分支 Base / Head
         ↓
-Standards Reviewer ─┐
-                    ├→ Scheduler 合并结果
-Spec Reviewer ──────┘
+Spec Reviewer ──────┐
+                    ├→ 一次性 Findings
+Standards Reviewer ─┘
         ↓
-PASS：集成并推进 Tracker
-FAIL：本周期 Coder 修复，再重新双审
+Worker 逐项处置并持久化
+        ↓
+最终 Gate → 单一 PR → 集成与关闭
 ```
 
-两个 Reviewer 彼此隔离、只读工作，并从相同的冻结输入评审：
+Slice 期间不运行双轴 Review、完整仓库 Gate、CI、集成检查或 PR 检查。Delivery Worker 可以运行能明显缩短反馈周期的窄而快的局部检查；这些检查不是交付 Gate，也不需要 Tracker checkpoint。
 
-- Standards Reviewer 判断代码是否符合仓库标准和工程约束。
-- Spec Reviewer 判断实现是否满足 Ticket 和所属 Spec。
+临时或 fixup Commit 可以在编码期间存在。进入 Review 前，历史必须收敛为每个变更 Slice/Ticket 一个完整、可解释的逻辑 Commit。已经满足批准结果的 Slice/Ticket 使用 `NO_CHANGE_REQUIRED` 和可观察证据，不制造空 Commit。
 
-Coder 与双 Reviewer 同时收到一份统一交付价值函数。它按固定顺序判断：先完整满足批准结果及其必要约束，再验证证据是否真实可信，最后才在所有完整方案中选择最小语义扰动。最小语义扰动不是最少代码，而是尽量不新增领域概念、事实来源、状态、接口、生命周期、协调机制、失败模式和持续维护责任。
+### 唯一一次双轴 Review
 
-Spec Reviewer 遵循“广泛检查、克制阻塞”：权限、失败、恢复、并发、跨模块不变量和证据生产路径仍需深入检查，但 Blocking Finding 必须形成完整必要性链条，即“批准的可观察结果或明确约束 → 该结果必需的不变量 → 已批准模型内可达的反例 → Candidate 的可观察失败或不可信证据”。仅引用宽泛 ADR、架构原则、内部一致性、未来拓扑或更强技术保证不能阻塞交付；反过来，批准结果必然推出的权限、幂等、恢复和证据约束不会因为 Spec 没写实现术语而被裁剪。
+全部 Slices 完成后，Delivery Worker 冻结完整分支的 Base、Head、Diff、Slice 证据映射、批准契约与仓库规范，再调用两个隔离、只读 Reviewer：
 
-Repair Diagnosis 把 Spec Finding 视为可证伪的主张。必要性链条断裂且 Candidate 已满足批准结果时，Coder 使用现有 `NO_REPAIR`；链条完整时仍选择能够诚实满足结果的最小 Local 或 Structural repair。该判断不新增角色、Verdict、Event、Tracker 状态或修复预算。
+- Standards Reviewer 检查仓库规范和当前变更的具体工程风险。
+- Spec Reviewer 检查实现是否完整、正确地满足批准结果，且没有越界行为。
 
-Scheduler 必须在评审前验证候选变更已经形成真实提交，并冻结 Branch Head、Base、Head 和任务输入。如果任何共享输入发生变化，两项评审都必须重跑，不能拼接不同版本的结论。
+两份报告只收集一次。Reviewer 不返回合并许可，不产生 `PASS`、`REPAIR_REQUIRED` 或持久 Verdict，也不参加修复后的重新审查。
 
-### 修复预算
+对于有界 Initiative，第一个 Spec 到达 Review 时创建 Reviewer 对；后续 Specs 继续使用同一对任务，并重新绑定当前 Spec、Base、Head、分支、契约和 Diff。保留自然会话历史，但当前审查范围仍以重新绑定的输入为准。
 
-每个 Ticket 最多两个修复周期，每个周期最多三轮普通修复。评审指出的实现问题回到本周期 Coder，因为它保留本周期的问题与评审历史；修复后由本周期的两名 Reviewer 对新固定 Candidate 重新双审。
+### Worker 一次性处置 Findings
 
-候选提交自身导致的测试或契约失败也回到本周期 Coder；外部权限、远端服务或环境故障则暂停，不能伪装成代码缺陷消耗修复轮次。
+每个 Finding 必须有一种处置：
 
-Cycle 1 第三轮后仍存在 Blocking Finding 时，Scheduler 先持久化并精确回读 `RUN_PAUSED / REPAIR_BUDGET`，再创建 fresh Correction Coder 执行只读 Exhaustion Diagnosis。若旧机制已被证据证伪，并且存在实质不同、可证伪、仍在 Scope 内且会收敛设计的新机制，则确认 `RUN_RESUMED / AUTO_REPAIR_RENEWAL`，在同一 Ticket、Run 和 Branch 上进入 Cycle 2，并刷新双 Reviewer。该过程不需要用户批准，也不创建 replacement Ticket。
+- `FIXED`：确认是当前交付问题，完成最小完整修复并记录 Commit 与验证证据。
+- `REJECTED`：证据表明 Finding 缺少当前权威、可达后果、具体风险或违反项，或者当前实现已经满足要求。
+- `CONTRACT_BLOCKER`：问题真实，但正确解决必须改变批准的 Spec、Scope、ADR、公共接口或产品行为。
 
-Cycle 2 是唯一一次自动纠偏机会，同样最多三轮普通修复。Cycle 2 耗尽后停止自动修改并保持 `IMPLEMENTATION_BLOCKED`；无条件“继续”不能恢复，也不会创建 Cycle 3、replacement Ticket 或 replacement Run。正确实现需要改变 Spec、Scope、Acceptance、ADR 或已批准接口时进入零预算 `CONTRACT_BLOCKER`。
+冻结点和两份完整 Review 报告先写入 Tracker 的普通 Comment/Note/记录；全部处置完成后，再把处置理由、修复 Commits、验证证据和结果 Head 写入第二条记录。恢复时可从这些事实继续，不需要联系 Reviewer。
 
-### 集成与验收
+永远不运行第二次 Review。若修复仍在契约内，但必须推翻 Slice 计划或核心实现设计，停止为 `REPLAN_REQUIRED`；若必须改变契约，停止为 `CONTRACT_BLOCKER`。
 
-Scheduler 独占 push、PR、检查和合并动作。子任务不得自行集成。
+### 最终 Gate、PR 与完成
 
-`INDEPENDENT` Spec 使用已经通过双审并完成集成的 Ticket 证据。`SHARED` Spec 在普通 Ticket 全部进入 Integration Branch 后，由 Spec Root Final Integration Gate 对固定 `delivery_head` 执行必要的真实端到端旅程、验证完整交付范围并完成目标集成。这个 Gate 是最后一个允许产生实现 Finding 的环节。
+全部 Findings 有处置后，Delivery Worker 才运行仓库要求的完整 Gate。候选代码造成的失败由 Worker 诊断和修复，直至 Gate 通过；Gate 修复形成明确 Commit，但不重新启动 Review。
 
-Final Acceptance 不再创建新的 Reviewer，也不重新判断产品正确性。Scheduler 只核验既有 Ticket Verdict、Integration Result、Final Gate evidence、Revision、membership 和最终目标 Commit 是否形成完整 Seal Eligibility，再以现有 `ACCEPTANCE_RESULT` 精确发布并回读 Acceptance Seal。多 Spec Initiative 的所有成员结果必须绑定同一最终 Commit；只有 Initiative Seal 确认后，才按“成员 Spec 在前、父 Initiative 在后”的顺序关闭。
+本地 Gate 通过后创建一个覆盖完整大 Ticket 或 Spec 的 PR。后续检查、修复和合并遵循仓库 Integration Policy、保护规则、Required Checks 与权限；不会因为 PR 检查而重新打开 Review。
 
-Final Gate Finding 通过稳定 `repair_key` 交给用户显式调用 `to-tickets`，修复 Ticket 必须归属受影响的现有 Spec，不得直接挂在 Initiative 下。Final Acceptance 自身不能产生 Finding 或修复 Ticket；输入缺失时只返回拥有该事实的既有集成、规划或契约调和路径。
+PR 集成后才完成工作项：大 Ticket 直接关闭；Spec 先验证所有 Ticket 的逻辑 Commit 或 `NO_CHANGE_REQUIRED` 证据和验收结果，再关闭 Tickets 与 Spec；有界 Initiative 在全部成员 Specs 交付后关闭。
 
-### 规格修订不是运行时猜测
-
-执行中出现实质性 Spec 修订时，`run-initiative` 暂停并要求显式调用 `to-tickets` 做调和：
-
-- 已完成或已关闭的 Ticket 保持历史事实。
-- 只对开放 Ticket 做保留、更新、替代或新增决策。
-- 变更经用户批准后写回 Tracker。
-- 调和结束不自动恢复执行，由用户明确继续原运行。
-
-Final Gate 修复由 `to-tickets` 处理。每条缺口使用稳定的 `repair_key`，从而保证重复调用不会制造重复 Ticket。Acceptance Seal 阶段不再创建 repair key。
+`run-initiative` 不授权发布、部署或生产迁移。若 Spec 声明 `Release Boundary`，完成报告只指出剩余 Post-delivery action 和 Tracking reference，不操作外部工作项。
 
 ## 状态、暂停与恢复
 
-| 终态或暂停态 | 含义 | 用户下一步 |
+| 终态 | 含义 | 用户下一步 |
 | --- | --- | --- |
-| `COMPLETED` | Ticket、Spec 或 Initiative 已完成闭环 | 检查最终链接和交付摘要 |
-| `FAILED_PRECONDITION` | Tracker、Git、权限或配置不满足启动条件 | 修复明确列出的前置条件后重新启动 |
-| `PAUSED` | 存在可恢复的环境、检查、Final Gate Finding 或集成阻塞 | 按暂停原因处理既有责任路径，再继续同一运行 |
-| `CONTRACT_BLOCKER` | 产品、Schema 或架构意图发生冲突 | 由用户裁决并更新正式契约 |
-| `CANCELLED` | 用户取消，或运行被明确终止 | 保留现状，按需重新启动新的运行 |
+| `COMPLETED` | 分支已集成、必需检查通过、Finding 处置完整，Tracker 反映真实交付 | 检查最终链接和交付摘要 |
+| `REPLAN_REQUIRED` | 契约仍足够，但当前候选需要实质不同的 Slice 计划或实现设计 | 保留分支并重新规划，不自动再 Review |
+| `CONTRACT_BLOCKER` | 正确交付需要改变批准的产品结果、Scope、ADR、公共接口或失败行为 | 由用户裁决并更新正式契约 |
+| `BLOCKED` | 权限、基础设施、外部证据、目标状态或其他可恢复条件阻止推进 | 修复条件后从现有事实恢复 |
+| `CANCELLED` | 用户明确停止交付 | 保留已有 Git 证据，按需重新开始 |
+| `FAILED_PRECONDITION` | 启动前缺少有效输入或权限 | 修复列出的前置条件后重试 |
 
-运行记录只保存恢复所需的最小 Checkpoint、Claim 和错误证据。恢复时重新从 Tracker 与 Git 读取现实状态；不能仅凭旧日志假设某一步已经完成。
+恢复只读取正式 Tracker 工作项、Review 与处置记录、分支、Commit 历史、已有 PR 和当前检查。缺少关键事实时不猜测、不重建旧 Scheduler/repair-cycle 协议，也不做破坏性清理。
 
 ## Tracker 与持久化
 
 Forgeloop 支持三种 Tracker：
 
-| 模式 | 正式工作项 | 适用场景 |
+| 模式 | 正式工作项 | Review/处置证据 |
 | --- | --- | --- |
-| GitHub | GitHub Issues 与相关字段 | 项目已经使用 GitHub 协作 |
-| GitLab | GitLab Issues 与相关字段 | 项目已经使用 GitLab 协作 |
-| Local | `.scratch/<feature>/` | 本地实验、离线项目或尚未接入远端 Tracker |
+| GitHub | GitHub Issues 与关系 | Issue Comments |
+| GitLab | GitLab Issues 与关系 | Issue Notes |
+| Local | `.scratch/<feature>/` | 现有 Agent Run 记录区 |
 
-三种模式遵循同一状态语义。切换适配器不应改变 Workflow 的产品行为。
+三种模式遵循同一交付语义。切换适配器不应改变分支、Review、Gate、PR 或完成边界。
 
-Claim 用于防止两个运行同时推进同一个工作项。成功完成、暂停、取消和失败都必须留下可解释的状态；能够安全释放时释放 Claim，不能释放时记录恢复证据，避免静默遗留锁。
+## 从 4.2.1 升级到 4.3.0
 
-## 从 3.3.0 升级到 3.3.1
+4.3.0 删除每 Ticket Scheduler/Coder/双 Reviewer 修复循环，以及对应的运行 References、Checkpoint Event 和 Acceptance Seal 协议。现有运行不能在新版本中继续解释；请保留其 Git 与 Tracker 证据，并按新的大 Ticket、Spec 或有界 Initiative 形态重新启动。
 
-3.3.1 将 `$code-review` 断裂式替换为 `$spec-standards-review`，避免与 Codex 原生 Code Review 产品能力混淆，并直接表达 Spec / Standards 双轴审查语义。不提供别名、转发或兼容目录。
-
-完整步骤见 [`docs/migrations/3.3.0-to-3.3.1.md`](docs/migrations/3.3.0-to-3.3.1.md)。
-
-## 从 3.2 升级到 3.3
-
-3.3 将 `$review-change` 断裂式替换为 `$code-review`，不提供别名、转发或兼容目录。自定义 Prompt、Workflow 和文档必须直接改用新名称。审查范围不再限于固定 Git Diff，也可以是工作区改动、指定文件、目录或模块。
-
-完整步骤见 [`docs/migrations/3.2.0-to-3.3.0.md`](docs/migrations/3.2.0-to-3.3.0.md)。
-
-## 迁移到 3.0
-
-3.0 将旧入口收敛到 20 个正式 Skill：
-
-| 旧 Skill | 3.0 替代 |
-| --- | --- |
-| `grill-initiative` | `grill-with-docs`；需要找方向时使用 `wayfinder` |
-| `plan-initiative` | `to-spec` + `to-tickets` |
-| `run-initiative-sequences` | 新 `run-initiative` 的多 Spec Initiative 路径 |
-| 上游 `implement` | `run-initiative` 内部的 Ticket Coder 角色 |
-| 上游 `code-review` | 3.0–3.2 的 `review-change`；3.3.0 的 `code-review`；3.3.1 起为 `spec-standards-review` |
-| 上游 `research` | `primary-source-research` |
-
-不保留活动的 `legacy-*` Skill 或同义别名。Harness 教学能力继续属于独立项目 `forge-harness-builder`。
-
-完整迁移步骤见 [`docs/migrations/2.5.0-to-3.0.0.md`](docs/migrations/2.5.0-to-3.0.0.md)。
+完整步骤与行为差异见 [`docs/migrations/4.2.1-to-4.3.0.md`](docs/migrations/4.2.1-to-4.3.0.md)。
 
 ## 维护与验证
 
 以下命令都从仓库根目录运行。
 
-`plugins/forgeloop/` 是 Codex 实际安装的运行包，只包含 `.codex-plugin/` 与 `skills/`。开发期的生成配置、Fixture、维护脚本和测试统一位于 `tooling/forgeloop/`；发布校验会拒绝把这些开发资产或 `.DS_Store` 等杂项文件放回插件根目录。
+`plugins/forgeloop/` 是 Codex 实际安装的运行包，只包含 `.codex-plugin/` 与 `skills/`。生成配置、维护脚本、测试和跨 Tracker 规划 Fixture 位于 `tooling/forgeloop/`。
 
 ### 发布验证
 
@@ -316,7 +273,7 @@ python3 -m unittest discover \
   -p 'test_*.py'
 ```
 
-发布验证检查插件清单、20 个 Skill、11/9 调用策略、元数据、引用和运行契约。单元测试覆盖 Tracker 适配器、Fixture 与关键状态转换。
+发布验证检查插件清单、20 个 Skills、11/9 调用策略、集中元数据、引用、上游同步和 4.3 运行契约。
 
 ### 单项契约检查
 
@@ -324,15 +281,11 @@ python3 -m unittest discover \
 python3 tooling/forgeloop/scripts/validate_runtime_contract.py
 python3 tooling/forgeloop/scripts/refresh_skill_metadata.py --check
 python3 tooling/forgeloop/scripts/validate_fixtures.py \
-  tooling/forgeloop/fixtures/m1-tracker-paths.json \
-  tooling/forgeloop/fixtures/m2-runtime-matrix.json
-python3 -m unittest \
-  tooling/forgeloop/tests/test_recommend_initiatives.py
+  tooling/forgeloop/fixtures/m1-tracker-paths.json
+python3 tooling/forgeloop/scripts/sync_upstream.py --check
 ```
 
 ### Agent 行为评估
-
-需要验证 Skill 的语义判断而不引入 parser 或程序状态机时，维护者可显式运行隔离的 Codex Agent eval：
 
 ```bash
 FORGELOOP_RUN_AGENT_EVALS=1 python3 -m unittest discover \
@@ -340,7 +293,7 @@ FORGELOOP_RUN_AGENT_EVALS=1 python3 -m unittest discover \
   -p 'test_*_agent_eval.py'
 ```
 
-该评估需要已认证的全局 `codex` CLI。它在临时沙箱中评估候选 Spec，并以临时文件模拟首次 Tracker 写入；不会访问或修改真实 Tracker。
+该评估需要已认证的全局 `codex` CLI，并在临时沙箱中验证路由与语义判断，不访问真实 Tracker。
 
 ### 已安装缓存复验
 
@@ -352,15 +305,7 @@ python3 tooling/forgeloop/scripts/validate_suite.py \
   --plugin-root <installed-cache-root>
 ```
 
-该模式用于确认安装产物仍然包含恰好 20 个 Skill、正确的调用策略与单一 `+codex.` 缓存版本后缀。
-
-### 上游同步审计
-
-```bash
-python3 tooling/forgeloop/scripts/sync_upstream.py --check
-```
-
-该命令只审计声明为上游映射的内容。若存在有意的本地适配，应更新对应的转换规则或映射基线，而不是手工覆盖已经评审通过的本地语义。
+该模式确认安装产物仍然包含恰好 20 个 Skills、正确调用策略和单一 `+codex.` 缓存版本后缀。
 
 ## 许可证
 

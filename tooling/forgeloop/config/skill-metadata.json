@@ -78,10 +78,10 @@
     "default_prompt": "Use $spec-standards-review to explicitly review this bounded change set on the Spec and Standards axes."
   },
   "run-initiative": {
-    "description": "Load when the user explicitly wants to execute, resume, recover, or cancel delivery from a formal Tracker Spec or persisted Initiative.",
+    "description": "Load when the user explicitly wants to execute, resume, recover, or cancel delivery of one formal Tracker Spec, one clearly large spec-level Ticket, or one bounded Initiative made of Specs. Do not recommend for a small Ticket or for multiple Initiatives.",
     "display_name": "run-initiative",
-    "short_description": "Run Tracker tickets through coder and dual reviewer gates",
-    "default_prompt": "Use $run-initiative to run the Tracker-driven delivery loop from this formal Spec."
+    "short_description": "Deliver one delivery branch through one review and final gate",
+    "default_prompt": "Use $run-initiative as the Delivery Worker for this large Ticket, Spec, or bounded Initiative."
   },
   "setup-forgeloop": {
     "description": "Load when the user explicitly wants to configure or update Forgeloop Tracker integration and repository setup.",

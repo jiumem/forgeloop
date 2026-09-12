@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""校验 run-initiative 封板协议的必需条款未漂移或遗漏。"""
+"""校验 run-initiative 4.3 单 Worker 交付协议未漂移或遗漏。"""
 
 from __future__ import annotations
 
@@ -34,7 +34,7 @@ def main() -> int:
     if errors:
         print("\n".join(f"错误：{error}" for error in errors), file=sys.stderr)
         return 1
-    print("run-initiative 运行协议校验通过。")
+    print("run-initiative 4.3 运行协议校验通过。")
     return 0
 
 

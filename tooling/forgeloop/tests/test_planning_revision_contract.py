@@ -33,7 +33,7 @@ class PlanningRevisionContractTests(unittest.TestCase):
         text = generated_skill("to-spec")
 
         section = text[
-            text.index("Planning Revision Mode") : text.index("Forgeloop Approved Revision Mode")
+            text.index("Planning Revision Mode") : text.index("Forgeloop Formal Design Document Contract")
         ]
         for contract in (
             "same existing Spec",

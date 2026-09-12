@@ -137,8 +137,13 @@ class SyncUpstreamTests(unittest.TestCase):
             self.assertIn(f"**{smell}**", text)
         self.assertIn("two independent child Agents from self-contained prompts", text)
         self.assertIn("smell baseline from step 3** pasted in full", text)
+        self.assertIn("Inspect comprehensively and report selectively", text)
+        self.assertIn("Comprehensive inspection", text)
+        self.assertIn("High-value findings", text)
+        self.assertIn("The **Review stance** above, pasted in full", text)
         self.assertIn("Quote the spec line for each finding", text)
         self.assertIn("Do **not** merge or rerank findings", text)
+        self.assertNotIn("Under 400 words", text)
         self.assertNotIn("general-purpose` subagent", text)
 
     def test_to_spec_contract_gates_publishing(self) -> None:
@@ -181,22 +186,20 @@ class SyncUpstreamTests(unittest.TestCase):
             for prefix in ("[Initiative]", "[Spec]", "[Ticket]"):
                 self.assertNotIn(prefix, text, target)
 
-    def test_to_tickets_accepts_idempotent_final_gate_repairs(self) -> None:
+    def test_to_tickets_hands_the_complete_spec_to_one_delivery_branch(self) -> None:
         config = MODULE.load_config()
         mapping = next(
             item for item in config["mappings"] if item["target"] == "to-tickets"
         )
         text = MODULE.expected_files(config, mapping)[Path("SKILL.md")].decode()
 
-        self.assertIn("## Forgeloop Final Gate Repair Mode", text)
-        self.assertIn("Final Gate Finding", text)
-        self.assertNotIn("`ACCEPTANCE_RESULT` with `REPAIR_REQUIRED`", text)
-        self.assertIn("stable `repair_key`", text)
-        self.assertIn("Reuse the unique matching unfinished repair Ticket", text)
-        self.assertIn("do not decompose the whole Spec again", text)
-        self.assertIn("Never create a repair Ticket directly under an Initiative", text)
-        self.assertIn("`owning_spec_ref`", text)
-        self.assertIn("does not resume `$run-initiative`", text)
+        self.assertIn("implementation Slices on the Spec's single delivery branch", text)
+        self.assertIn("do not each receive a separate branch, Review, Gate, PR, or repair loop", text)
+        self.assertIn("clearly large enough to need several coherent Slices", text)
+        self.assertIn("A small direct Ticket should use ordinary implementation", text)
+        self.assertIn("Do not recommend one `$run-initiative` invocation for multiple Initiatives", text)
+        self.assertIn("one final Gate and one PR for the complete Spec", text)
+        self.assertNotIn("Forgeloop Final Gate Repair Mode", text)
 
     def test_explicit_workflows_do_not_invoke_setup_or_fallback_tracker(self) -> None:
         config = MODULE.load_config()
@@ -213,18 +216,18 @@ class SyncUpstreamTests(unittest.TestCase):
             next(item for item in config["mappings"] if item["target"] == "to-tickets"),
         )[Path("SKILL.md")].decode())
 
-    def test_to_tickets_reconciles_only_open_tickets_after_a_spec_revision(self) -> None:
+    def test_to_tickets_keeps_contract_revision_owned_by_to_spec(self) -> None:
         config = MODULE.load_config()
         mapping = next(
             item for item in config["mappings"] if item["target"] == "to-tickets"
         )
         text = MODULE.expected_files(config, mapping)[Path("SKILL.md")].decode()
 
-        self.assertIn("## Forgeloop Spec Revision Reconciliation Mode", text)
-        self.assertIn("Preserve every Completed or Closed Ticket", text)
-        self.assertIn("Compare the revised contract only with Open Tickets", text)
-        self.assertIn("`retain`, `update`, `supersede`, and `create`", text)
-        self.assertIn("does not resume `$run-initiative`", text)
+        self.assertIn("## Forgeloop Planning Contract Gap Handoff", text)
+        self.assertIn("invoke `$to-spec` explicitly for an in-place Planning Revision", text)
+        self.assertIn("must not edit the parent itself", text)
+        self.assertIn("must not create a replacement Spec", text)
+        self.assertNotIn("Forgeloop Spec Revision Reconciliation Mode", text)
 
     def test_diagnosing_bugs_contract_covers_every_write_seam(self) -> None:
         config = MODULE.load_config()
@@ -245,7 +248,8 @@ class SyncUpstreamTests(unittest.TestCase):
             "OS temporary directory",
             "report that diagnosis is blocked",
             "workspace instrumentation require write authorization",
-            "Ticket Scope",
+            "Slice Scope",
+            "`$run-initiative` Delivery Worker",
             "Every exit path",
             "does not authorize creating or updating a Commit, PR, or MR",
             "do not start `$improve-codebase-architecture` automatically",
